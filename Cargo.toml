@@ -10,9 +10,15 @@ debug = true       # controls whether the compiler passes `-g`
 [dependencies.hyper]
 version = "0.9.4"
 
+# this is copied
 # [dependencies.reroute]
 # version = "0.1.1"
+
+[dependencies.rusqlite]
+version = "0.7.2"
+features = ["functions", "backup"]
 
 [dependencies]
 regex = "0.1"
 horrorshow = "0.5"
+

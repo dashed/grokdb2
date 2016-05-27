@@ -4,10 +4,12 @@ Copied from https://github.com/gsquire/reroute at 27d5dc4
 because of hyper.
  */
 
+
 extern crate hyper;
 extern crate regex;
 
 mod error;
+
 
 use std::collections::HashMap;
 
@@ -19,18 +21,41 @@ use regex::{Regex, RegexSet};
 // reexports
 // pub use regex::{Captures};
 
+use ::GlobalContext;
+
 use self::error::RouterError;
+
 
 // ME: just use regex::Captures
 pub type Captures = Option<Vec<String>>;
 
-pub type RouterFn = fn(Request, Response, Captures);
+// pub type RouterFn = Fn(Request, Response, Captures) + Send + Sync;
+pub type RouterFn = fn(&GlobalContext, Request, Response, Captures);
+
+// impl FnOnce<()> for Box<FnBox(Request, Response, Captures) + Send + Sync> {
+//     fn call_once(self, args: ()) {
+//         self.call_box(args);
+//     }
+// }
+
+
+// impl<F> Handler for F where F: Fn(Request, Response, Captures), F: Sync + Send {
+//     fn handle<'a, 'k>(&'a self, req: Request<'a, 'k>, res: Response<'a, Fresh>) {
+//         self(req, res)
+//     }
+// }
+
+
+// Box<FnOnce(Request, Response, Captures) + Send + 'static + Sync>;
+// Box<FnBox(Request, Response, Captures)>;
 
 #[derive(PartialEq, Eq, Hash)]
 pub struct RouteInfo {
     route: String,
     verb: Method
 }
+
+// hint from: https://www.reddit.com/r/rust/comments/2o1ix0/is_there_a_way_to_put_an_unboxed_closure_into_a/
 
 /// The Router struct contains the information for your app to route requests
 /// properly based on their HTTP method, and matching route. It allows the use
@@ -40,7 +65,11 @@ pub struct RouteInfo {
 /// instance of the hyper server. Because of this, it has the potential to match
 /// multiple patterns that you provide. It will call the first handler that it
 /// matches against, so order matters.
+// pub struct Router<RouterFn> {
 pub struct Router {
+
+    global_context: GlobalContext,
+
     /// A custom 404 handler that you can provide.
     pub not_found: Option<RouterFn>,
 
@@ -50,7 +79,14 @@ pub struct Router {
     route_map: HashMap<RouteInfo, RouterFn>
 }
 
+// struct Struct<F> {
+//     f: F,
+// }
+
 impl Handler for Router {
+// impl<RouterFn> Handler for Router<RouterFn>
+    // where RouterFn: Fn(Request, Response, Captures), RouterFn: Sync + Send {
+
     // The handle method for the router simply tries to match the URI against
     // the first pattern that it can which in turn calls its associated handle
     // function passing the hyper Request and Response structures.
@@ -67,7 +103,7 @@ impl Handler for Router {
                     Some(h) => {
                         let compiled_pattern = &self.compiled_list[i];
                         let captures = get_captures(compiled_pattern, &uri);
-                        h(req, res, captures);
+                        h(&self.global_context, req, res, captures);
                     }
                     None => {
                         not_allowed(req, res);
@@ -76,16 +112,29 @@ impl Handler for Router {
             },
             // There is no point in passing captures to a route handler that
             // wasn't found.
-            None => self.not_found.unwrap()(req, res, None)
+            None => {
+                match self.not_found {
+                    Some(ref h) => {
+                        h(&self.global_context, req, res, None);
+                    },
+                    None => {
+                        default_not_found(req, res, None);
+                    }
+                };
+
+            }
         }
     }
 }
 
 impl Router {
+// impl<RouterFn> Router<RouterFn>
+    // where RouterFn: Fn(Request, Response, Captures), RouterFn: Sync + Send {
     /// Construct a new Router to maintain the routes and their handler
     /// functions.
-    pub fn new() -> Router {
+    pub fn new(global_context: GlobalContext) -> Router {
         Router {
+            global_context: global_context,
             not_found: None,
             routes: None,
             route_list: Vec::new(),
@@ -145,12 +194,6 @@ impl Router {
             return Err(RouterError::TooFewRoutes);
         }
 
-        // Check if the user added a 404 handler, else use the default.
-        match self.not_found {
-            Some(_) => {},
-            None => { self.not_found = Some(default_not_found); }
-        }
-
         let re_routes = RegexSet::new(self.route_list.iter());
         match re_routes {
             Ok(r) => {
@@ -165,7 +208,7 @@ impl Router {
 
     /// Add a function to handle routes that get no matches.
     pub fn add_not_found(&mut self, not_found: RouterFn) {
-        self.not_found = Some(not_found)
+        self.not_found = Some(not_found);
     }
 }
 
