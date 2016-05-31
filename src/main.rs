@@ -59,6 +59,8 @@ fn main() {
             global_context: &global_context,
             request: request,
             response: response,
+
+            // router/regexset
             uri: &uri,
             captures: None
         };
@@ -74,9 +76,6 @@ fn main() {
 
         handler(context);
 
-        // let context = context;
-
-        // response.send(PHRASE).unwrap();
     });
 
     println!("Listening on http://127.0.0.1:3000");
@@ -95,15 +94,16 @@ struct Context<
     'regex,
 
     // hyper lifetimes
-    'a, 'k: 'a, 'b
+    'request, 'k: 'request,
+    'response
     > {
     global_context: &'global GlobalContext<'global>,
 
     uri: &'regex str,
     captures: Option<Captures<'regex>>,
 
-    request: Request<'a, 'k>,
-    response: Response<'b>
+    request: Request<'request, 'k>,
+    response: Response<'response>
 
 
 }
