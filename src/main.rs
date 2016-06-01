@@ -1,5 +1,7 @@
 #![feature(macro_rules)]
 // #![deny(warnings)]
+#[macro_use]
+extern crate horrorshow as templates;
 extern crate conduit_mime_types as mime_types;
 extern crate hyper;
 extern crate regex;
@@ -20,6 +22,8 @@ use url::percent_encoding::percent_decode;
 
 use regex::{Regex, RegexSet};
 use regex::{Captures};
+
+use templates::{RenderOnce, TemplateBuffer, Template};
 
 use hyper::method::Method;
 use hyper::server::{Server, Handler, Request, Response};
@@ -70,16 +74,14 @@ fn main() {
 
     // let route_info = RouteInfo{route: route.to_owned(), verb: verb};
 
-    let mut router = Router {
-        routes: None,
-        route_list: Vec::new(),
-        compiled_list: Vec::new(),
-        route_map: HashMap::new(),
-    };
+    let mut router = Router::new();
 
-    router.get(r"/assets/(?P<path>.+)", route_static_assets);
+    router.get(r"/$", route_root);
 
-    // validate router.
+    // TODO: limit path length?
+    router.get(r"/assets/(?P<path>.+)$", route_static_assets);
+
+    // Freeze the router. This will validate the router.
     router.finalize();
 
     let router = router;
@@ -103,6 +105,7 @@ fn main() {
         };
 
         // middleware/logging
+        // TODO: complete
 
         // middleware/router
 
@@ -262,7 +265,16 @@ struct Router {
 
 impl Router {
 
-    pub fn finalize(&mut self) {
+    fn new() -> Self {
+        Router {
+            routes: None,
+            route_list: Vec::new(),
+            compiled_list: Vec::new(),
+            route_map: HashMap::new(),
+        }
+    }
+
+    fn finalize(&mut self) {
         if self.route_list.len() == 0  {
             panic!("Too few routes");
         }
@@ -457,7 +469,29 @@ fn route_static_assets(context: Context) {
     io::copy(&mut file, &mut stream).unwrap();
 }
 
-// /deck/:deck_id/view/cards
+// Path: /
+fn route_root(context: Context) {
+
+    // {
+
+    // };
+
+    let page = App::new(&context, String::from("My title"));
+
+
+
+    let mut response = context.response;
+
+    response.headers_mut().set((ContentType(Mime(TopLevel::Text, SubLevel::Html, vec![]))));
+
+    let mut stream = response.start().unwrap();
+
+    page.write_to_io(&mut stream)
+        .unwrap();
+
+}
+
+// Path: /deck/:deck_id/view/cards
 fn route_deck_cards(context: Context) {
 
 
@@ -468,6 +502,37 @@ fn route_deck_cards(context: Context) {
     db_read_lock!(context.global_context.db_connection);
 
     // TODO: rendering
+}
+
+/* templates */
+
+struct App {
+    title: String
+}
+
+impl App {
+    fn new(context: &Context, title: String) -> Self {
+        App {
+            title: title
+        }
+    }
+}
+
+impl RenderOnce for App {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+        // The actual template:
+        let App {title} = self;
+        tmpl << html! {
+            : raw!("<!DOCTYPE html>");
+            div {
+                header {
+                    h1 : title
+                }
+                // p : Page::new(format!("boop"))
+            }
+        };
+    }
 }
 
 /* helpers */
