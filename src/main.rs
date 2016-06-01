@@ -383,12 +383,16 @@ fn route_not_found(mut context: Context) {
     // let mut context = context;
 
     let message = format!("No route handler found for {}", context.request.uri);
+
+    // 404 status code
     *context.response.status_mut() = StatusCode::NotFound;
 
     context.response.send(message.as_bytes()).unwrap();
 }
 
 fn route_static_assets(context: Context) {
+
+    // TODO: caching stuff from https://github.com/iron/staticfile
 
     let req_path_raw = {
         let capture = context.captures.as_ref().unwrap();

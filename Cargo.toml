@@ -22,3 +22,5 @@ features = ["functions", "backup"]
 regex = "0.1"
 horrorshow = "0.5"
 url = "1.1"
+conduit-mime-types = "0.7.3"
+lazy_static = "0.2.1"
