@@ -1,11 +1,20 @@
+#![feature(macro_rules)]
 // #![deny(warnings)]
+extern crate conduit_mime_types as mime_types;
 extern crate hyper;
 extern crate regex;
 extern crate url;
+extern crate rusqlite;
+#[macro_use]
+extern crate lazy_static;
 
+use std::fs;
+use std::fs::{File};
+use std::io;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{PathBuf, Path};
+use std::sync::{Arc, Mutex, LockResult, MutexGuard, RwLock};
 
 use url::percent_encoding::percent_decode;
 
@@ -14,19 +23,47 @@ use regex::{Captures};
 
 use hyper::method::Method;
 use hyper::server::{Server, Handler, Request, Response};
+use hyper::header::{Headers, ContentType, TransferEncoding};
+use hyper::mime::{Mime, TopLevel, SubLevel};
 use hyper::uri::RequestUri;
 use hyper::status::StatusCode;
 
+use rusqlite::{Connection, Error, Result as SqliteResult};
 
 static PHRASE: &'static [u8] = b"Hello World!";
 
+lazy_static! {
+    static ref MIME_TYPES: mime_types::Types = mime_types::Types::new().unwrap();
+}
+
+/**
+
+- https://github.com/iron/iron/pull/291/files
+- reroute
+
+**/
 
 fn main() {
 
     // TODO: clap-rs
 
+    /* database */
+
+    let db_conn = Connection::open("test");
+
+    let db_conn = match db_conn {
+        Err(why) => {
+            panic!("{}", why);
+        },
+        Ok(db_conn) => {
+            db_conn
+        }
+    };
+
     let global_context = GlobalContext {
-        assets_root_path: Path::new("assets/")
+        assets_root_path: Path::new("assets/"),
+        db_connection: Arc::new(RwLock::new(Mutex::new(db_conn))),
+        // db_ops_lock: Arc::new(RwLock::new(true))
     };
 
     /* router setup */
@@ -65,6 +102,8 @@ fn main() {
             captures: None
         };
 
+        // middleware/logging
+
         // middleware/router
 
         let handler = match router.handle(&mut context) {
@@ -81,31 +120,111 @@ fn main() {
     println!("Listening on http://127.0.0.1:3000");
 }
 
+/* database */
+
+macro_rules! db_read_lock(
+    ($e:expr) => (
+
+        // match $e.global_context.db_connection.read() {
+        //     Ok(db_op_lock) => {
+        //         db_op_lock
+        //         // match db_op_lock.lock() {
+        //         //     Ok(db_lock) => db_lock,
+        //         //     Err(why) => {
+        //         //         panic!("db_read_lock/RwLock/Mutex {:?}", why);
+        //         //     }
+        //         // }
+        //     },
+        //     Err(why) => {
+        //         panic!("db_read_lock/RwLock {:?}", why);
+        //     }
+        // }.lock().unwrap()
+
+
+        // let db_op_lock = $e.global_context.db_connection.read().unwrap();
+        // let db_lock = db_op_lock.lock().unwrap();
+
+        {
+            // hacky type checking
+            let _: Arc<RwLock<Mutex<Connection>>> = $e;
+        };
+
+        let db_op_lock = $e.read().unwrap();
+        let _ = db_op_lock.lock().unwrap();
+
+
+        // db_op_lock.lock().unwrap()
+
+
+
+        // db_lock
+        // match $e {
+        //     Ok(v) => v,
+        //     Err(e) => { println!("Error: {}", e); return; }
+        // }
+    )
+);
+
+macro_rules! db_write_lock(
+    ($e:expr) => (
+
+        {
+            // hacky type checking
+            let _: Arc<RwLock<Mutex<Connection>>> = $e;
+        };
+
+        let db_op_lock = $e.write().unwrap();
+        let _ = db_op_lock.lock().unwrap();
+
+    )
+);
+
 /* contexts */
 
 struct GlobalContext<'a> {
-    assets_root_path: &'a Path
+    assets_root_path: &'a Path,
+
+    // RwLock => ORM operations read/write lock
+    // Mutex => database low-level lock
+    db_connection: Arc<RwLock<Mutex<Connection>>>
+    // db_ops_lock: Arc<RwLock<bool>>
 }
 
 // struct Context<'a, 'b, 'c, 'd: 'c> {
 struct Context<
+
+    // global context
     'global,
 
-    'regex,
+    // router
+    'regexset,
 
     // hyper lifetimes
-    'request, 'k: 'request,
+    'request, 'network_stream: 'request,
     'response
     > {
     global_context: &'global GlobalContext<'global>,
 
-    uri: &'regex str,
-    captures: Option<Captures<'regex>>,
+    uri: &'regexset str,
+    captures: Option<Captures<'regexset>>,
 
-    request: Request<'request, 'k>,
+    request: Request<'request, 'network_stream>,
     response: Response<'response>
 
 
+}
+
+impl<'a, 'b, 'c, 'd, 'e> Context<'a, 'b, 'c, 'd, 'e> {
+
+    /* deck API */
+
+    fn deck_read(&self, deck_id: u64) {
+
+        // lock database for read operation
+        db_read_lock!(self.global_context.db_connection);
+        // let db_op_lock = self.global_context.db_connection.read().unwrap();
+        // let db_lock = db_op_lock.lock().unwrap();
+    }
 }
 
 
@@ -177,7 +296,7 @@ impl Router {
             Some(matched_idx) => {
 
                 // let route = &self.route_list[i];
-                let route_info = RouteInfo{
+                let route_info = RouteInfo {
                     route_map_idx: matched_idx,
                     verb: context.request.method.clone()
                 };
@@ -271,26 +390,80 @@ fn route_not_found(mut context: Context) {
 
 fn route_static_assets(context: Context) {
 
-    let req_path_raw = context.captures.unwrap().name("path").unwrap();
+    let req_path_raw = {
+        let capture = context.captures.as_ref().unwrap();
+        capture.name("path").unwrap().clone()
+    };
 
     // let req_path = Path::new(&req_path);
+
+    // URL decode
     let decoded_req_path = Path::new(&req_path_raw).iter().map(decode_percents);
 
     let mut req_path = context.global_context.assets_root_path.to_path_buf();
     req_path.extend(decoded_req_path);
-    let req_path = req_path;
+    let req_path: PathBuf = req_path;
 
-    // TODO: fetch file
+    let metadata = match fs::metadata(&req_path) {
+        Ok(meta) => meta,
+        Err(e) => {
 
-    // TODO: stream file to output
+            // TODO: flesh out
+            route_not_found(context);
+            return;
 
-    // https://github.com/iron/iron/blob/2fd6e079592ec340d8c75200bd54fde91ce34d51/src/modifiers.rs#L116-L154
 
-    let message = format!("Path {:?}", req_path);
+            // let status = match e.kind() {
+            //     io::ErrorKind::NotFound => status::NotFound,
+            //     io::ErrorKind::PermissionDenied => status::Forbidden,
+            //     _ => status::InternalServerError,
+            // };
 
-    context.response.send(message.as_bytes()).unwrap();
+            // return Err(IronError::new(e, status))
+        },
+    };
 
-    // response.send(PHRASE).unwrap();
+    if !metadata.is_file() {
+        route_not_found(context);
+        return;
+    }
+
+    let path_str = format!("{}", &req_path.to_string_lossy());
+
+    let mut response = context.response;
+
+    // Set the content type based on the file extension
+    let mime_str = MIME_TYPES.mime_for_path(req_path.as_path());
+    let _ = mime_str.parse().map(|mime: Mime|
+        response.headers_mut().set((ContentType(mime)))
+    );
+
+    let mut file = File::open(req_path)
+        .ok()
+        .expect(&format!("No such file: {:?}", path_str));
+
+
+    if let Ok(metadata) = file.metadata() {
+        response.headers_mut().set(hyper::header::ContentLength(metadata.len()));
+    }
+
+    let mut stream = response.start().unwrap();
+
+    // TODO: clean up
+    io::copy(&mut file, &mut stream).unwrap();
+}
+
+// /deck/:deck_id/view/cards
+fn route_deck_cards(context: Context) {
+
+
+
+    // lock database for read operation
+    // let db_op_lock = context.global_context.db_connection.read().unwrap();
+    // let db_lock = db_op_lock.lock().unwrap();
+    db_read_lock!(context.global_context.db_connection);
+
+    // TODO: rendering
 }
 
 /* helpers */
