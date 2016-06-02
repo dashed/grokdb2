@@ -1,4 +1,3 @@
-#![feature(macro_rules)]
 // #![deny(warnings)]
 #[macro_use]
 extern crate horrorshow as templates;
@@ -1098,10 +1097,10 @@ impl<'component, 'a, 'b> RenderOnce for DeckDetailComponent<'component, Context<
                     |tmpl| match deck_route {
                         &DeckRoute::New => tmpl << NewDeckComponent::new(&context),
                         &DeckRoute::Description => tmpl << DeckDescriptionComponent::new(&context),
-                        &DeckRoute::Decks => tmpl << DeckDescriptionComponent::new(&context),
-                        &DeckRoute::Cards => tmpl << DeckDescriptionComponent::new(&context),
-                        &DeckRoute::Meta => tmpl << DeckDescriptionComponent::new(&context),
-                        &DeckRoute::Settings => tmpl << DeckDescriptionComponent::new(&context),
+                        &DeckRoute::Decks => tmpl << ChildDecksComponent::new(&context),
+                        &DeckRoute::Cards => tmpl << DeckCardsComponent::new(&context),
+                        &DeckRoute::Meta => tmpl << DeckMetaComponent::new(&context),
+                        &DeckRoute::Settings => tmpl << DeckSettingsComponent::new(&context),
                     };
                 }
             }
@@ -1157,6 +1156,110 @@ impl<'component, 'a, 'b> RenderOnce for DeckDescriptionComponent<'component, Con
         tmpl << html! {
 
             : "deck description"
+        };
+    }
+}
+
+// components/ChildDecksComponent
+struct ChildDecksComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> ChildDecksComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        ChildDecksComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for ChildDecksComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let ChildDecksComponent {context} = self;
+
+        tmpl << html! {
+
+            : "deck children"
+        };
+    }
+}
+
+// components/DeckCardsComponent
+struct DeckCardsComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> DeckCardsComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        DeckCardsComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for DeckCardsComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let DeckCardsComponent {context} = self;
+
+        tmpl << html! {
+
+            : "deck cards"
+        };
+    }
+}
+
+// components/DeckMetaComponent
+struct DeckMetaComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> DeckMetaComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        DeckMetaComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for DeckMetaComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let DeckMetaComponent {context} = self;
+
+        tmpl << html! {
+
+            : "deck meta"
+        };
+    }
+}
+
+// components/DeckSettingsComponent
+struct DeckSettingsComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> DeckSettingsComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        DeckSettingsComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for DeckSettingsComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let DeckSettingsComponent {context} = self;
+
+        tmpl << html! {
+
+            : "deck settings"
         };
     }
 }
