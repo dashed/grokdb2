@@ -11,6 +11,8 @@ extern crate url;
 extern crate rusqlite;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate matches;
 
 // TODO: remove; was using it for experiment
 // extern crate html5ever;
@@ -75,7 +77,66 @@ reference: https://github.com/joshbuchea/HEAD#link-elements
 
 /* global macros */
 
-// TODO: something here????
+macro_rules! default {
+    () => (
+        Default::default()
+    )
+}
+
+// Based on https://github.com/JedWatson/classnames
+// https://is.gd/Pzv20j
+macro_rules! classnames {
+
+    // base cases
+
+    ($name: expr) => (
+        format!("{}", $name)
+    );
+
+    ($name:expr => $should_include:expr) => (
+        if $should_include {
+            format!("{}", $name)
+        } else {
+            format!("")
+        }
+    );
+
+    // expansions
+
+    ($name:expr, $($tail:tt)+) => {
+        format!("{} {}", $name, classnames!($($tail)*))
+
+    };
+
+    ($name:expr => $should_include:expr, $($tail:tt)+) => {
+        if $should_include {
+            format!("{} {}", $name, classnames!($($tail)*))
+        } else {
+            classnames!($($tail)*)
+        };
+    };
+
+}
+
+// fn main() {
+
+//     let style = classnames! { "active".to_string() => { true } };
+//     let style = classnames! { "active" => { true } };
+//     trace_macros!(true);
+//     let style = classnames!("button-style", "active" => {
+//         true
+//     });
+//     let style = classnames!("button-style", "active" => {
+//         false
+//     });
+//     let style = classnames!("active" => {
+//         false
+//     }, "button-style");
+
+//     println!("{}", style);
+
+// }
+
 
 
 /* database */
@@ -428,7 +489,7 @@ fn route_static_assets(context: Context, request: Request, response: Response) {
 fn route_root(mut context: Context, request: Request, response: Response) {
 
     // TODO: fetch deck_id
-    context.view_route = AppRoute::Deck(1, DeckRoute::New);
+    context.view_route = AppRoute::Deck(1, DeckRoute::Cards);
 
     render_app_component(context, format!("grokdb"), request, response);
 }
@@ -565,6 +626,7 @@ fn render_app_component(
 
 type DeckID = u64;
 
+#[derive(Debug)]
 enum AppRoute {
 
     Home,
@@ -575,6 +637,7 @@ enum AppRoute {
     Deck(DeckID, DeckRoute)
 }
 
+#[derive(Debug)]
 enum DeckRoute {
 
     New,
@@ -873,6 +936,130 @@ impl<'component, 'a, 'b> RenderOnce for SettingsComponent<'component, Context<'a
     }
 }
 
+// components/BreadCrumbComponent
+struct BreadCrumbComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> BreadCrumbComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        BreadCrumbComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for BreadCrumbComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let BreadCrumbComponent {context} = self;
+
+        tmpl << html! {
+            ul(class="breadcrumb") {
+                li(class="breadcrumb-item") {
+                    a(href="#") {
+                        : "Library"
+                    }
+                }
+                li(class="breadcrumb-item") {
+                    a(href="#") {
+                        : "Math"
+                    }
+                }
+            }
+
+        };
+    }
+}
+
+// components/DeckNavComponent
+struct DeckNavComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> DeckNavComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        DeckNavComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let DeckNavComponent {context} = self;
+
+        // TODO: fix
+        let deck_id = default!();
+
+        tmpl << html! {
+            ul(class="menu") {
+                li(class="menu-header") {
+                    span(class="menu-header-text") {
+                        : "#123 Mathematics"
+                    }
+
+                }
+                li(class="menu-item") {
+                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Description),
+                        &context),
+                        class = classnames!("active" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description)))
+                    ) {
+                        : "Description"
+                    }
+                }
+                li(class="menu-item") {
+                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Decks),
+                        &context),
+                        class = classnames!("active" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks)))
+                        // class = "active"
+                    ) {
+                        : "Child Decks"
+                    }
+                }
+                li(class="menu-item") {
+                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Cards),
+                        &context),
+                        class = classnames!("active" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards)))
+                    ) {
+                        : "Cards"
+                    }
+                }
+                li(class="divider") {}
+                li(class="menu-item") {
+                    : "Brief Deck Statistics (TBA)"
+                }
+                li(class="divider") {}
+                li(class="menu-item") {
+                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Meta),
+                        &context),
+                        class = classnames!("active" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta)))
+                    ) {
+                        : "Meta"
+                    }
+                }
+                li(class="menu-item") {
+                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Settings),
+                        &context),
+                        class = classnames!("active" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings)))
+                    ) {
+                        : "Settings"
+                    }
+                }
+            }
+
+        };
+    }
+}
+
 // components/DeckDetailComponent
 struct DeckDetailComponent<'component, C: 'component> {
     context: &'component C
@@ -908,7 +1095,6 @@ impl<'component, 'a, 'b> RenderOnce for DeckDetailComponent<'component, Context<
                     : DeckNavComponent::new(&context);
                 }
                 section(class="column col-9") {
-                    // : "fuck"
                     |tmpl| match deck_route {
                         &DeckRoute::New => tmpl << NewDeckComponent::new(&context),
                         &DeckRoute::Description => tmpl << DeckDescriptionComponent::new(&context),
@@ -971,108 +1157,6 @@ impl<'component, 'a, 'b> RenderOnce for DeckDescriptionComponent<'component, Con
         tmpl << html! {
 
             : "deck description"
-        };
-    }
-}
-
-// components/BreadCrumbComponent
-struct BreadCrumbComponent<'component, C: 'component> {
-    context: &'component C
-}
-
-impl<'component, 'a, 'b> BreadCrumbComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        BreadCrumbComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for BreadCrumbComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let BreadCrumbComponent {context} = self;
-
-        tmpl << html! {
-            ul(class="breadcrumb") {
-                li(class="breadcrumb-item") {
-                    a(href="#") {
-                        : "Library"
-                    }
-                }
-                li(class="breadcrumb-item") {
-                    a(href="#") {
-                        : "Math"
-                    }
-                }
-            }
-
-        };
-    }
-}
-
-// components/DeckNavComponent
-struct DeckNavComponent<'component, C: 'component> {
-    context: &'component C
-}
-
-impl<'component, 'a, 'b> DeckNavComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        DeckNavComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let DeckNavComponent {context} = self;
-
-        tmpl << html! {
-            ul(class="menu") {
-                li(class="menu-header") {
-                    span(class="menu-header-text") {
-                        : "#123 Mathematics"
-                    }
-
-                }
-                li(class="menu-item") {
-                    a(href = view_route_to_link(AppRoute::Deck(Default::default(), DeckRoute::Description),
-                        &context),
-                        class="active") {
-                        : "Description"
-                    }
-                }
-                li(class="menu-item") {
-                    a(href="#") {
-                        : "Child Decks"
-                    }
-                }
-                li(class="menu-item") {
-                    a(href="#") {
-                        : "Cards"
-                    }
-                }
-                li(class="divider") {}
-                li(class="menu-item") {
-                    : "Brief Deck Statistics (TBA)"
-                }
-                li(class="divider") {}
-                li(class="menu-item") {
-                    a(href="#") {
-                        : "Meta"
-                    }
-                }
-                li(class="menu-item") {
-                    a(href="#") {
-                        : "Settings"
-                    }
-                }
-            }
-
         };
     }
 }
@@ -1142,12 +1226,12 @@ fn main() {
 
     route!(router, Get, AppRoute::Home);
     route!(router, Get, AppRoute::Settings);
-    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::New));
-    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::Description));
-    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::Decks));
-    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::Cards));
-    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::Meta));
-    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::Settings));
+    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::New));
+    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Description));
+    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Decks));
+    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Cards));
+    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Meta));
+    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Settings));
 
     // router.get(r"^/$", route_root);
     // router.get(r"^/settings$", route_settings);
