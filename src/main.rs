@@ -12,13 +12,23 @@ extern crate rusqlite;
 #[macro_use]
 extern crate lazy_static;
 
+// TODO: remove; was using it for experiment
+// extern crate html5ever;
+// extern crate tendril;
+
+/* rust lib imports */
+
 use std::fs;
 use std::fs::{File};
-use std::io;
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::path::{PathBuf, Path};
 use std::sync::{Arc, Mutex, LockResult, MutexGuard, RwLock};
+use std::io;
+use std::io::{Write};
+use std::default::Default;
+
+/* 3rd-party imports */
 
 use url::percent_encoding::percent_decode;
 
@@ -35,6 +45,16 @@ use hyper::uri::RequestUri;
 use hyper::status::StatusCode;
 
 use rusqlite::{Connection, Error, Result as SqliteResult};
+
+// use html5ever::driver::ParseOpts;
+// use html5ever::tree_builder::TreeBuilderOpts;
+// use html5ever::{parse_document, serialize};
+// use html5ever::rcdom::RcDom;
+
+// use tendril::TendrilSink;
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 static PHRASE: &'static [u8] = b"Hello World!";
 
@@ -53,83 +73,10 @@ reference: https://github.com/joshbuchea/HEAD#link-elements
 
 **/
 
-fn main() {
+/* global macros */
 
-    // TODO: clap-rs
+// TODO: something here????
 
-    /* database */
-
-    let db_conn = Connection::open("test");
-
-    let db_conn = match db_conn {
-        Err(why) => {
-            panic!("{}", why);
-        },
-        Ok(db_conn) => {
-            db_conn
-        }
-    };
-
-    let global_context = GlobalContext {
-        assets_root_path: Path::new("assets/"),
-        db_connection: Arc::new(RwLock::new(Mutex::new(db_conn))),
-        // db_ops_lock: Arc::new(RwLock::new(true))
-    };
-
-    /* router setup */
-
-    // let route_info = RouteInfo{route: route.to_owned(), verb: verb};
-
-    let mut router = Router::new();
-
-    router.get(r"/$", route_root);
-
-    // TODO: limit path length?
-    router.get(r"/assets/(?P<path>.+)$", route_static_assets);
-
-    // Freeze the router. This will validate the router.
-    router.finalize();
-
-    let router = router;
-
-    /* server */
-
-    let server = Server::http("127.0.0.1:3000").unwrap();
-
-    let _guard = server.handle(move |request: Request, response: Response| {
-
-        let uri = format!("{}", request.uri);
-
-        let mut context = Context {
-            global_context: &global_context,
-
-            // TODO: remove
-            // request: request,
-            // response: response,
-
-            // router/regexset
-            uri: &uri,
-            captures: None
-        };
-
-        // middleware/logging
-        // TODO: complete
-
-        // middleware/router
-
-        let handler = match router.handle(&mut context, &request) {
-            Some(handler) => {
-                handler
-            },
-            None => route_not_found
-        };
-
-        handler(context, request, response);
-
-    });
-
-    println!("Listening on http://127.0.0.1:3000");
-}
 
 /* database */
 
@@ -219,6 +166,8 @@ struct Context<
     uri: &'regexset str,
     captures: Option<Captures<'regexset>>,
 
+    view_route: AppRoute,
+
     // request: Request<'request, 'network_stream>,
     // response: Response<'response>
 
@@ -238,11 +187,11 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 }
 
-
-/* router */
+/* router manager */
 // Source: https://github.com/gsquire/reroute
 
 type RouterFn = fn(Context, Request, Response);
+type LinkGenerator = fn(&Context) -> String;
 
 #[derive(PartialEq, Eq, Hash)]
 struct RouteInfo {
@@ -394,8 +343,6 @@ impl Router {
 
 }
 
-
-
 /* routes */
 
 fn route_not_found(mut context: Context, request: Request, mut response: Response) {
@@ -478,12 +425,33 @@ fn route_static_assets(context: Context, request: Request, response: Response) {
 }
 
 // Path: /
-fn route_root(context: Context, request: Request, response: Response) {
+fn route_root(mut context: Context, request: Request, response: Response) {
+
+    // TODO: fetch deck_id
+    context.view_route = AppRoute::Deck(1, DeckRoute::New);
+
     render_app_component(context, format!("grokdb"), request, response);
 }
 
+
+fn route_settings(mut context: Context, request: Request, response: Response) {
+
+    context.view_route = AppRoute::Settings;
+
+    render_app_component(context, format!("grokdb"), request, response);
+}
+
+fn route_new_deck(mut context: Context, request: Request, response: Response) {
+
+    // TODO: fetch deck_id
+    context.view_route = AppRoute::Deck(1, DeckRoute::New);
+
+    render_app_component(context, format!("grokdb"), request, response);
+}
+
+
 // Path: /deck/:deck_id/view/cards
-fn route_deck_cards(context: Context) {
+fn route_deck_cards(mut context: Context, request: Request, response: Response) {
 
 
 
@@ -495,7 +463,7 @@ fn route_deck_cards(context: Context) {
     // TODO: rendering
 }
 
-/* route helpers */
+/* route handler helpers */
 
 fn render_app_component(
     context: Context,
@@ -511,36 +479,154 @@ fn render_app_component(
         mime!(Text/Html)
     )));
 
-    let app_component = App::new(&context, app_component_title);
+    let app_component = AppComponent::new(&context, app_component_title);
+
+    // We lock the database for reads
+    db_read_lock!(context.global_context.db_connection);
 
     let mut stream = response.start().unwrap();
     app_component.write_to_io(&mut stream)
         .unwrap();
 
+
+    /////
+
+    // let opts = ParseOpts {
+    //     tree_builder: TreeBuilderOpts {
+    //         drop_doctype: true,
+    //         ..Default::default()
+    //     },
+    //     ..Default::default()
+    // };
+
+    // // let stdin = io::stdin();
+
+    // let foo = app_component.into_string().unwrap();
+    // let mut foo = foo.as_bytes();
+
+    // let dom = parse_document(RcDom::default(), opts)
+    //     .from_utf8()
+    //     .read_from(&mut foo)
+    //     // .read_from(&mut stdin.lock())
+    //     .unwrap();
+
+    // let mut stream = response.start().unwrap();
+
+    // // The validator.nu HTML2HTML always prints a doctype at the very beginning.
+    // io::stdout().write_all(b"<!DOCTYPE html>\n")
+    //     .ok().expect("writing DOCTYPE failed");
+    // serialize(&mut stream, &dom.document, Default::default())
+    //     .ok().expect("serialization failed");
+
 }
+
+/* component route constants */
+
+type DeckID = u64;
+
+enum AppRoute {
+
+    Home,
+
+    // user settings
+    Settings,
+
+    Deck(DeckID, DeckRoute)
+}
+
+enum DeckRoute {
+
+    New,
+    // Decks,
+    // Cards,
+    // Description,
+    // Settings
+
+    // Create,
+    // Read,
+    // Update,
+    // http://stackoverflow.com/a/26897298/412627
+    // http://programmers.stackexchange.com/questions/114156/why-are-there-are-no-put-and-delete-methods-on-html-forms
+    // Delete
+}
+
+fn route_root_link(context: &Context) -> String {
+    format!("/")
+}
+
+fn route_settings_link(context: &Context) -> String {
+    format!("/settings")
+}
+
+fn route_new_deck_link(context: &Context) -> String {
+
+    // TODO: fetch deck_id
+
+    format!("/deck/1/new/deck")
+}
+
+
+fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerator) {
+
+    match view_route {
+
+        AppRoute::Home => (r"^/$", route_root, route_root_link),
+
+        AppRoute::Settings => (r"^/settings$", route_settings, route_settings_link),
+
+        AppRoute::Deck(_, deck_route) => {
+
+            match deck_route {
+                DeckRoute::New => (
+                    r"^/deck/(?P<deck_id>.+)/new/deck$",
+                    route_new_deck,
+                    route_new_deck_link)
+            }
+        }
+    }
+
+}
+
+fn get_route_regex(view_route: AppRoute) -> &'static str {
+    let (regex_matcher, _, _) = get_route_tuple(view_route);
+    regex_matcher
+}
+
+fn view_route_to_link(view_route: AppRoute, context: &Context) -> String {
+    let (_, _, link_generator) = get_route_tuple(view_route);
+    link_generator(context)
+}
+
+// helper macro to attach get_route_tuple(...) to route manager
+macro_rules! route(
+    ($router: expr, $method: ident, $view_route: expr) => (
+        let (regex_matcher, route_handler, _) = get_route_tuple($view_route);
+        $router.add_route(Method::$method, regex_matcher, route_handler);
+    )
+);
 
 /* components (templates) */
 
-// components/App
-struct App<'component, C: 'component> {
+// components/AppComponent
+struct AppComponent<'component, C: 'component> {
     context: &'component C,
     title: String
 }
 
-impl<'component, 'a, 'b> App<'component, Context<'a, 'b>> {
+impl<'component, 'a, 'b> AppComponent<'component, Context<'a, 'b>> {
     fn new(context: &'component Context<'a, 'b>, title: String) -> Self {
-        App {
+        AppComponent {
             context: context,
             title: title
         }
     }
 }
 
-impl<'component, 'a, 'b> RenderOnce for App<'component, Context<'a, 'b>> {
+impl<'component, 'a, 'b> RenderOnce for AppComponent<'component, Context<'a, 'b>> {
 
     fn render_once(self, tmpl: &mut TemplateBuffer) {
 
-        let App {context, title} = self;
+        let AppComponent {context, title} = self;
 
         tmpl << html! {
             : raw!("<!DOCTYPE html>");
@@ -556,16 +642,23 @@ impl<'component, 'a, 'b> RenderOnce for App<'component, Context<'a, 'b>> {
                     section(class="container grid-960") {
                         header(class="navbar") {
                             section(class="navbar-section") {
-                                a(href="#", class="navbar-brand") {
+                                a(href = view_route_to_link(AppRoute::Home, &context), class="navbar-brand") {
                                     : "grokdb"
                                 }
                             }
                             section(class="navbar-section") {
-                                a(href="#", class="btn btn-link badge", data-badge="9") {
+                                a(
+                                    href = view_route_to_link(AppRoute::Home, &context),
+                                    class="btn btn-link badge",
+                                    data-badge="9"
+                                ) {
                                     : "decks"
                                 }
                                 a(href="#", class="btn btn-link") {
                                     : "stashes"
+                                }
+                                a(href = view_route_to_link(AppRoute::Settings, &context), class="btn btn-link") {
+                                    : "settings"
                                 }
                                 a(href="#", class="btn btn-primary") {
                                     : "login"
@@ -573,8 +666,26 @@ impl<'component, 'a, 'b> RenderOnce for App<'component, Context<'a, 'b>> {
                             }
                         }
                         section(class="container") {
-                            // : "things"
-                            : BreadCrumb::new(context.clone())
+                            // : ViewRouteResolver::new(&context)
+                            |tmpl| match context.view_route {
+                                AppRoute::Home => {
+                                    unreachable!();
+                                    // tmpl << DeckDetailComponent::new(&context)
+                                }
+                                AppRoute::Settings => {
+                                    tmpl << SettingsComponent::new(&context)
+                                }
+                                AppRoute::Deck(_deck_id, ref _deck_route) => {
+
+                                    tmpl << DeckDetailComponent::new(&context)
+
+                                    // match deck_route {
+                                    //     &DeckRoute::New => tmpl << NewDeckComponent::new(&context)
+                                    // }
+
+                                }
+                            };
+
                         }
                         // p : Page::new(format!("boop"))
                     }
@@ -585,20 +696,171 @@ impl<'component, 'a, 'b> RenderOnce for App<'component, Context<'a, 'b>> {
     }
 }
 
-// components/BreadCrumb
-struct BreadCrumb;
+// components/ViewRouteResolver
+// TODO: bikeshed
 
-impl BreadCrumb {
-    fn new(context: &Context) -> Self {
-        BreadCrumb
+// struct ViewRouteResolver<'component, C: 'component> {
+//     context: &'component C
+// }
+
+// impl<'component, 'a, 'b> ViewRouteResolver<'component, Context<'a, 'b>> {
+//     fn new(context: &'component Context<'a, 'b>) -> Self {
+//         ViewRouteResolver {
+//             context: context
+//         }
+//     }
+// }
+
+// macro_rules! render_component(
+//     ($tmpl: expr, $component: expr) => (
+//         // $tmpl << html! {
+//         //     : $component
+//         // };
+//         $tmpl << $component;
+//     )
+// );
+
+// impl<'component, 'a, 'b> RenderOnce for ViewRouteResolver<'component, Context<'a, 'b>> {
+
+//     fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+//         let ViewRouteResolver {context} = self;
+
+//         match context.view_route {
+//             AppRoute::Home => {
+//                 render_component!(tmpl, DeckDetail::new(&context))
+//             }
+//             AppRoute::Settings => {
+//                 render_component!(tmpl, Settings::new(&context))
+//             }
+//             AppRoute::Deck(_, ref deck_route) => {
+
+//                 match deck_route {
+//                     &DeckRoute::New => render_component!(tmpl, Settings::new(&context))
+//                 }
+
+//             }
+//         }
+
+//     }
+// }
+
+// components/SettingsComponent
+struct SettingsComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> SettingsComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        SettingsComponent {
+            context: context
+        }
     }
 }
 
-impl RenderOnce for BreadCrumb {
+impl<'component, 'a, 'b> RenderOnce for SettingsComponent<'component, Context<'a, 'b>> {
 
     fn render_once(self, tmpl: &mut TemplateBuffer) {
 
-        let BreadCrumb {} = self;
+        let SettingsComponent {context} = self;
+
+        tmpl << html! {
+            section {
+                : "Settings (work in progress)"
+            }
+        };
+    }
+}
+
+// components/NewDeckComponent
+struct NewDeckComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> NewDeckComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        NewDeckComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for NewDeckComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let NewDeckComponent {context} = self;
+
+        tmpl << html! {
+
+            : "new deck"
+        };
+    }
+}
+
+// components/DeckDetailComponent
+struct DeckDetailComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> DeckDetailComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        DeckDetailComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for DeckDetailComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let DeckDetailComponent {context} = self;
+
+        let (deck_id, deck_route) = {
+            match context.view_route {
+                AppRoute::Deck(deck_id, ref deck_route) => (deck_id, deck_route),
+                _ => unreachable!()
+            }
+        };
+
+        tmpl << html! {
+
+            : BreadCrumbComponent::new(&context);
+
+            section(class="columns") {
+                section(class="column col-3") {
+                    : DeckNavComponent::new(&context);
+                }
+                section(class="column col-9") {
+                    // : "fuck"
+                    |tmpl| match deck_route {
+                        &DeckRoute::New => tmpl << NewDeckComponent::new(&context)
+                    };
+                }
+            }
+        };
+    }
+}
+
+// components/BreadCrumbComponent
+struct BreadCrumbComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> BreadCrumbComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        BreadCrumbComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for BreadCrumbComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let BreadCrumbComponent {context} = self;
 
         tmpl << html! {
             ul(class="breadcrumb") {
@@ -618,6 +880,69 @@ impl RenderOnce for BreadCrumb {
     }
 }
 
+// components/DeckNavComponent
+struct DeckNavComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> DeckNavComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        DeckNavComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let DeckNavComponent {context} = self;
+
+        tmpl << html! {
+            ul(class="menu") {
+                li(class="menu-header") {
+                    span(class="menu-header-text") {
+                        : "#123 Mathematics"
+                    }
+
+                }
+                li(class="menu-item") {
+                    a(href="#", class="active") {
+                        : "Description"
+                    }
+                }
+                li(class="menu-item") {
+                    a(href="#") {
+                        : "Child Decks"
+                    }
+                }
+                li(class="menu-item") {
+                    a(href="#") {
+                        : "Cards"
+                    }
+                }
+                li(class="divider") {}
+                li(class="menu-item") {
+                    : "Brief Deck Statistics (TBA)"
+                }
+                li(class="divider") {}
+                li(class="menu-item") {
+                    a(href="#") {
+                        : "Meta"
+                    }
+                }
+                li(class="menu-item") {
+                    a(href="#") {
+                        : "Settings"
+                    }
+                }
+            }
+
+        };
+    }
+}
+
 /* helpers */
 
 #[inline]
@@ -629,4 +954,95 @@ fn decode_percents(string: &OsStr) -> String {
 
     // String::from_utf8(.if_any().unwrap()).unwrap()
     // OsStr::new(&token)
+}
+
+/* grokdb */
+
+fn main() {
+
+    // TODO: clap-rs
+
+    /* database */
+
+    let db_conn = Connection::open("test");
+
+    let db_conn = match db_conn {
+        Err(why) => {
+            panic!("{}", why);
+        },
+        Ok(db_conn) => {
+            db_conn
+        }
+    };
+
+    let global_context = GlobalContext {
+        assets_root_path: Path::new("assets/"),
+        db_connection: Arc::new(RwLock::new(Mutex::new(db_conn))),
+        // db_ops_lock: Arc::new(RwLock::new(true))
+    };
+
+    /* router setup */
+
+    // let route_info = RouteInfo{route: route.to_owned(), verb: verb};
+
+    let mut router = Router::new();
+
+    // TODO: https://webmasters.googleblog.com/2010/04/to-slash-or-not-to-slash.html
+
+    route!(router, Get, AppRoute::Home);
+    route!(router, Get, AppRoute::Settings);
+    route!(router, Get, AppRoute::Deck(1, DeckRoute::New));
+
+    // router.get(r"^/$", route_root);
+    // router.get(r"^/settings$", route_settings);
+
+    // TODO: limit path length?
+    router.get(r"^/assets/(?P<path>.+)$", route_static_assets);
+
+    // Freeze the router. This will validate the router.
+    router.finalize();
+
+    let router = router;
+
+    /* server */
+
+    let server = Server::http("127.0.0.1:3000").unwrap();
+
+    let _guard = server.handle(move |request: Request, response: Response| {
+
+        let uri = format!("{}", request.uri);
+
+        let mut context = Context {
+
+            global_context: &global_context,
+
+            // TODO: remove
+            // request: request,
+            // response: response,
+
+            // router/regexset
+            uri: &uri,
+            captures: None,
+
+            // default view route
+            view_route: AppRoute::Home
+        };
+
+        // middleware/logging
+        // TODO: complete
+
+        // middleware/router
+
+        let handler = match router.handle(&mut context, &request) {
+            Some(handler) => {
+                handler
+            },
+            None => route_not_found
+        };
+
+        handler(context, request, response);
+
+    });
+
+    println!("Listening on http://127.0.0.1:3000");
 }
