@@ -3,6 +3,8 @@
 #[macro_use]
 extern crate horrorshow as templates;
 extern crate conduit_mime_types as mime_types;
+#[macro_use]
+extern crate mime;
 extern crate hyper;
 extern crate regex;
 extern crate url;
@@ -471,24 +473,7 @@ fn route_static_assets(context: Context) {
 
 // Path: /
 fn route_root(context: Context) {
-
-    // {
-
-    // };
-
-    let page = App::new(&context, String::from("My title"));
-
-
-
-    let mut response = context.response;
-
-    response.headers_mut().set((ContentType(Mime(TopLevel::Text, SubLevel::Html, vec![]))));
-
-    let mut stream = response.start().unwrap();
-
-    page.write_to_io(&mut stream)
-        .unwrap();
-
+    render_app_component(context, format!("grokdb"));
 }
 
 // Path: /deck/:deck_id/view/cards
@@ -502,6 +487,24 @@ fn route_deck_cards(context: Context) {
     db_read_lock!(context.global_context.db_connection);
 
     // TODO: rendering
+}
+
+/* route helpers */
+
+fn render_app_component(context: Context, app_component_title: String) {
+
+    let app_component = App::new(&context, app_component_title);
+
+    let mut response = context.response;
+
+    response.headers_mut().set((ContentType(
+        mime!(Text/Html)
+    )));
+
+    let mut stream = response.start().unwrap();
+    app_component.write_to_io(&mut stream)
+        .unwrap();
+
 }
 
 /* templates */
@@ -521,16 +524,29 @@ impl App {
 impl RenderOnce for App {
 
     fn render_once(self, tmpl: &mut TemplateBuffer) {
-        // The actual template:
+
         let App {title} = self;
+
         tmpl << html! {
             : raw!("<!DOCTYPE html>");
-            div {
-                header {
-                    h1 : title
+            html {
+                head {
+                    title { : &title }
+                    link (
+                        rel="stylesheet",
+                        href="/assets/spectre.min.css"
+                    );
                 }
-                // p : Page::new(format!("boop"))
+                body {
+                    div {
+                        header {
+                            h1 : &title
+                        }
+                        // p : Page::new(format!("boop"))
+                    }
+                }
             }
+
         };
     }
 }
