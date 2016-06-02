@@ -102,8 +102,10 @@ fn main() {
 
         let mut context = Context {
             global_context: &global_context,
-            request: request,
-            response: response,
+
+            // TODO: remove
+            // request: request,
+            // response: response,
 
             // router/regexset
             uri: &uri,
@@ -115,14 +117,14 @@ fn main() {
 
         // middleware/router
 
-        let handler = match router.handle(&mut context) {
+        let handler = match router.handle(&mut context, &request) {
             Some(handler) => {
                 handler
             },
             None => route_not_found
         };
 
-        handler(context);
+        handler(context, request, response);
 
     });
 
@@ -209,21 +211,21 @@ struct Context<
     'regexset,
 
     // hyper lifetimes
-    'request, 'network_stream: 'request,
-    'response
+    // 'request, 'network_stream: 'request,
+    // 'response
     > {
     global_context: &'global GlobalContext<'global>,
 
     uri: &'regexset str,
     captures: Option<Captures<'regexset>>,
 
-    request: Request<'request, 'network_stream>,
-    response: Response<'response>
+    // request: Request<'request, 'network_stream>,
+    // response: Response<'response>
 
 
 }
 
-impl<'a, 'b, 'c, 'd, 'e> Context<'a, 'b, 'c, 'd, 'e> {
+impl<'a, 'b> Context<'a, 'b> {
 
     /* deck API */
 
@@ -240,7 +242,7 @@ impl<'a, 'b, 'c, 'd, 'e> Context<'a, 'b, 'c, 'd, 'e> {
 /* router */
 // Source: https://github.com/gsquire/reroute
 
-type RouterFn = fn(Context);
+type RouterFn = fn(Context, Request, Response);
 
 #[derive(PartialEq, Eq, Hash)]
 struct RouteInfo {
@@ -302,7 +304,7 @@ impl Router {
     // function passing the hyper Request and Response structures.
     //
     // Returning None implies no route handler found.
-    fn handle<'a, 'b, 'c, 'd, 'e>(&'a self, context: &mut Context<'a, 'b, 'c, 'd, 'e>) -> Option<RouterFn> {
+    fn handle<'a, 'b>(&'a self, context: &mut Context<'a, 'b>, request: &Request) -> Option<RouterFn> {
 
         // TODO: remove
         // let uri = format!("{}", request.uri);
@@ -316,7 +318,7 @@ impl Router {
                 // let route = &self.route_list[i];
                 let route_info = RouteInfo {
                     route_map_idx: matched_idx,
-                    verb: context.request.method.clone()
+                    verb: request.method.clone()
                 };
 
                 let handler = self.route_map.get(&route_info);
@@ -396,19 +398,19 @@ impl Router {
 
 /* routes */
 
-fn route_not_found(mut context: Context) {
+fn route_not_found(mut context: Context, request: Request, mut response: Response) {
 
     // let mut context = context;
 
-    let message = format!("No route handler found for {}", context.request.uri);
+    let message = format!("No route handler found for {}", request.uri);
 
     // 404 status code
-    *context.response.status_mut() = StatusCode::NotFound;
+    *response.status_mut() = StatusCode::NotFound;
 
-    context.response.send(message.as_bytes()).unwrap();
+    response.send(message.as_bytes()).unwrap();
 }
 
-fn route_static_assets(context: Context) {
+fn route_static_assets(context: Context, request: Request, response: Response) {
 
     // TODO: caching stuff from https://github.com/iron/staticfile
 
@@ -431,7 +433,7 @@ fn route_static_assets(context: Context) {
         Err(e) => {
 
             // TODO: flesh out
-            route_not_found(context);
+            route_not_found(context, request, response);
             return;
 
 
@@ -446,13 +448,13 @@ fn route_static_assets(context: Context) {
     };
 
     if !metadata.is_file() {
-        route_not_found(context);
+        route_not_found(context, request, response);
         return;
     }
 
     let path_str = format!("{}", &req_path.to_string_lossy());
 
-    let mut response = context.response;
+    let mut response = response;
 
     // Set the content type based on the file extension
     let mime_str = MIME_TYPES.mime_for_path(req_path.as_path());
@@ -476,8 +478,8 @@ fn route_static_assets(context: Context) {
 }
 
 // Path: /
-fn route_root(context: Context) {
-    render_app_component(context, format!("grokdb"));
+fn route_root(context: Context, request: Request, response: Response) {
+    render_app_component(context, format!("grokdb"), request, response);
 }
 
 // Path: /deck/:deck_id/view/cards
@@ -495,11 +497,15 @@ fn route_deck_cards(context: Context) {
 
 /* route helpers */
 
-fn render_app_component(context: Context, app_component_title: String) {
+fn render_app_component(
+    context: Context,
+    app_component_title: String,
+    request: Request,
+    response: Response) {
 
 
 
-    let mut response = context.response;
+    let mut response = response;
 
     response.headers_mut().set((ContentType(
         mime!(Text/Html)
@@ -521,8 +527,8 @@ struct App<'component, C: 'component> {
     title: String
 }
 
-impl<'component, 'a, 'b, 'c, 'd, 'e> App<'component, Context<'a, 'b, 'c, 'd, 'e>> {
-    fn new(context: &'component Context<'a, 'b, 'c, 'd, 'e>, title: String) -> Self {
+impl<'component, 'a, 'b> App<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>, title: String) -> Self {
         App {
             context: context,
             title: title
@@ -530,7 +536,7 @@ impl<'component, 'a, 'b, 'c, 'd, 'e> App<'component, Context<'a, 'b, 'c, 'd, 'e>
     }
 }
 
-impl<'component, 'a, 'b, 'c, 'd, 'e> RenderOnce for App<'component, Context<'a, 'b, 'c, 'd, 'e>> {
+impl<'component, 'a, 'b> RenderOnce for App<'component, Context<'a, 'b>> {
 
     fn render_once(self, tmpl: &mut TemplateBuffer) {
 
