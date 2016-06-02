@@ -449,19 +449,60 @@ fn route_new_deck(mut context: Context, request: Request, response: Response) {
     render_app_component(context, format!("grokdb"), request, response);
 }
 
+fn route_deck_description(mut context: Context, request: Request, response: Response) {
 
-// Path: /deck/:deck_id/view/cards
+    // TODO: fetch deck_id
+    context.view_route = AppRoute::Deck(1, DeckRoute::Description);
+
+    render_app_component(context, format!("grokdb"), request, response);
+}
+
+fn route_deck_decks(mut context: Context, request: Request, response: Response) {
+
+    // TODO: fetch deck_id
+    context.view_route = AppRoute::Deck(1, DeckRoute::Decks);
+
+    render_app_component(context, format!("grokdb"), request, response);
+}
+
 fn route_deck_cards(mut context: Context, request: Request, response: Response) {
 
-
-
-    // lock database for read operation
-    // let db_op_lock = context.global_context.db_connection.read().unwrap();
-    // let db_lock = db_op_lock.lock().unwrap();
     db_read_lock!(context.global_context.db_connection);
 
-    // TODO: rendering
+    // TODO: fetch deck_id
+    context.view_route = AppRoute::Deck(1, DeckRoute::Cards);
+
+    render_app_component(context, format!("grokdb"), request, response);
 }
+
+fn route_deck_meta(mut context: Context, request: Request, response: Response) {
+
+    // TODO: fetch deck_id
+    context.view_route = AppRoute::Deck(1, DeckRoute::Meta);
+
+    render_app_component(context, format!("grokdb"), request, response);
+}
+
+fn route_deck_settings(mut context: Context, request: Request, response: Response) {
+
+    // TODO: fetch deck_id
+    context.view_route = AppRoute::Deck(1, DeckRoute::Settings);
+
+    render_app_component(context, format!("grokdb"), request, response);
+}
+
+// // Path: /deck/:deck_id/view/cards
+// fn route_deck_cards(mut context: Context, request: Request, response: Response) {
+
+
+
+//     // lock database for read operation
+//     // let db_op_lock = context.global_context.db_connection.read().unwrap();
+//     // let db_lock = db_op_lock.lock().unwrap();
+//     db_read_lock!(context.global_context.db_connection);
+
+//     // TODO: rendering
+// }
 
 /* route handler helpers */
 
@@ -537,16 +578,17 @@ enum AppRoute {
 enum DeckRoute {
 
     New,
-    // Decks,
-    // Cards,
-    // Description,
-    // Settings
+    Description,
+    Decks,
+    Cards,
+    Settings,
+    Meta
 
     // Create,
     // Read,
     // Update,
     // http://stackoverflow.com/a/26897298/412627
-    // http://programmers.stackexchange.com/questions/114156/why-are-there-are-no-put-and-delete-methods-on-html-forms
+// http://programmers.stackexchange.com/questions/114156/why-are-there-are-no-put-and-delete-methods-on-html-forms
     // Delete
 }
 
@@ -565,6 +607,40 @@ fn route_new_deck_link(context: &Context) -> String {
     format!("/deck/1/new/deck")
 }
 
+fn route_deck_description_link(context: &Context) -> String {
+
+    // TODO: fetch deck_id
+
+    format!("/deck/1/description")
+}
+
+fn route_deck_decks_link(context: &Context) -> String {
+
+    // TODO: fetch deck_id
+
+    format!("/deck/1/decks")
+}
+
+fn route_deck_cards_link(context: &Context) -> String {
+
+    // TODO: fetch deck_id
+
+    format!("/deck/1/cards")
+}
+
+fn route_deck_meta_link(context: &Context) -> String {
+
+    // TODO: fetch deck_id
+
+    format!("/deck/1/meta")
+}
+
+fn route_deck_settings_link(context: &Context) -> String {
+
+    // TODO: fetch deck_id
+
+    format!("/deck/1/settings")
+}
 
 fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerator) {
 
@@ -578,9 +654,34 @@ fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerat
 
             match deck_route {
                 DeckRoute::New => (
-                    r"^/deck/(?P<deck_id>.+)/new/deck$",
+                    r"^/deck/(?P<deck_id>\d+)/new/deck$",
                     route_new_deck,
-                    route_new_deck_link)
+                    route_new_deck_link),
+
+                DeckRoute::Description => (
+                    r"^/deck/(?P<deck_id>\d+)/description$",
+                    route_deck_description,
+                    route_deck_description_link),
+
+                DeckRoute::Decks => (
+                    r"^/deck/(?P<deck_id>\d+)/decks$",
+                    route_deck_decks,
+                    route_deck_decks_link),
+
+                DeckRoute::Cards => (
+                    r"^/deck/(?P<deck_id>\d+)/cards$",
+                    route_deck_cards,
+                    route_deck_cards_link),
+
+                DeckRoute::Meta => (
+                    r"^/deck/(?P<deck_id>\d+)/meta$",
+                    route_deck_meta,
+                    route_deck_meta_link),
+
+                DeckRoute::Settings => (
+                    r"^/deck/(?P<deck_id>\d+)/settings$",
+                    route_deck_settings,
+                    route_deck_settings_link),
             }
         }
     }
@@ -772,32 +873,6 @@ impl<'component, 'a, 'b> RenderOnce for SettingsComponent<'component, Context<'a
     }
 }
 
-// components/NewDeckComponent
-struct NewDeckComponent<'component, C: 'component> {
-    context: &'component C
-}
-
-impl<'component, 'a, 'b> NewDeckComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        NewDeckComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for NewDeckComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let NewDeckComponent {context} = self;
-
-        tmpl << html! {
-
-            : "new deck"
-        };
-    }
-}
-
 // components/DeckDetailComponent
 struct DeckDetailComponent<'component, C: 'component> {
     context: &'component C
@@ -835,10 +910,67 @@ impl<'component, 'a, 'b> RenderOnce for DeckDetailComponent<'component, Context<
                 section(class="column col-9") {
                     // : "fuck"
                     |tmpl| match deck_route {
-                        &DeckRoute::New => tmpl << NewDeckComponent::new(&context)
+                        &DeckRoute::New => tmpl << NewDeckComponent::new(&context),
+                        &DeckRoute::Description => tmpl << DeckDescriptionComponent::new(&context),
+                        &DeckRoute::Decks => tmpl << DeckDescriptionComponent::new(&context),
+                        &DeckRoute::Cards => tmpl << DeckDescriptionComponent::new(&context),
+                        &DeckRoute::Meta => tmpl << DeckDescriptionComponent::new(&context),
+                        &DeckRoute::Settings => tmpl << DeckDescriptionComponent::new(&context),
                     };
                 }
             }
+        };
+    }
+}
+
+// components/NewDeckComponent
+struct NewDeckComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> NewDeckComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        NewDeckComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for NewDeckComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let NewDeckComponent {context} = self;
+
+        tmpl << html! {
+
+            : "new deck"
+        };
+    }
+}
+
+// components/DeckDescriptionComponent
+struct DeckDescriptionComponent<'component, C: 'component> {
+    context: &'component C
+}
+
+impl<'component, 'a, 'b> DeckDescriptionComponent<'component, Context<'a, 'b>> {
+    fn new(context: &'component Context<'a, 'b>) -> Self {
+        DeckDescriptionComponent {
+            context: context
+        }
+    }
+}
+
+impl<'component, 'a, 'b> RenderOnce for DeckDescriptionComponent<'component, Context<'a, 'b>> {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let DeckDescriptionComponent {context} = self;
+
+        tmpl << html! {
+
+            : "deck description"
         };
     }
 }
@@ -908,7 +1040,9 @@ impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a,
 
                 }
                 li(class="menu-item") {
-                    a(href="#", class="active") {
+                    a(href = view_route_to_link(AppRoute::Deck(Default::default(), DeckRoute::Description),
+                        &context),
+                        class="active") {
                         : "Description"
                     }
                 }
@@ -989,9 +1123,31 @@ fn main() {
 
     // TODO: https://webmasters.googleblog.com/2010/04/to-slash-or-not-to-slash.html
 
+    // NOTE: compile-time reminder to add route!
+    let _matcher = AppRoute::Home;
+    match _matcher {
+        AppRoute::Home => {},
+        AppRoute::Settings => {},
+        AppRoute::Deck(_deck_id, ref _deck_route) => {
+            match _deck_route {
+                &DeckRoute::New => {},
+                &DeckRoute::Description => {},
+                &DeckRoute::Decks => {},
+                &DeckRoute::Cards => {},
+                &DeckRoute::Meta => {},
+                &DeckRoute::Settings => {}
+            }
+        }
+    };
+
     route!(router, Get, AppRoute::Home);
     route!(router, Get, AppRoute::Settings);
-    route!(router, Get, AppRoute::Deck(1, DeckRoute::New));
+    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::New));
+    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::Description));
+    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::Decks));
+    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::Cards));
+    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::Meta));
+    route!(router, Get, AppRoute::Deck(Default::default(), DeckRoute::Settings));
 
     // router.get(r"^/$", route_root);
     // router.get(r"^/settings$", route_settings);
