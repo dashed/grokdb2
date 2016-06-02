@@ -44,8 +44,12 @@ lazy_static! {
 
 /**
 
+// TODO: credit, copyright, license, etc
+List of projects whose code i've been copying & pasting from:
 - https://github.com/iron/iron/pull/291/files
 - reroute
+
+reference: https://github.com/joshbuchea/HEAD#link-elements
 
 **/
 
@@ -493,7 +497,7 @@ fn route_deck_cards(context: Context) {
 
 fn render_app_component(context: Context, app_component_title: String) {
 
-    let app_component = App::new(&context, app_component_title);
+
 
     let mut response = context.response;
 
@@ -501,31 +505,36 @@ fn render_app_component(context: Context, app_component_title: String) {
         mime!(Text/Html)
     )));
 
+    let app_component = App::new(&context, app_component_title);
+
     let mut stream = response.start().unwrap();
     app_component.write_to_io(&mut stream)
         .unwrap();
 
 }
 
-/* templates */
+/* components (templates) */
 
-struct App {
+// components/App
+struct App<'component, C: 'component> {
+    context: &'component C,
     title: String
 }
 
-impl App {
-    fn new(context: &Context, title: String) -> Self {
+impl<'component, 'a, 'b, 'c, 'd, 'e> App<'component, Context<'a, 'b, 'c, 'd, 'e>> {
+    fn new(context: &'component Context<'a, 'b, 'c, 'd, 'e>, title: String) -> Self {
         App {
+            context: context,
             title: title
         }
     }
 }
 
-impl RenderOnce for App {
+impl<'component, 'a, 'b, 'c, 'd, 'e> RenderOnce for App<'component, Context<'a, 'b, 'c, 'd, 'e>> {
 
     fn render_once(self, tmpl: &mut TemplateBuffer) {
 
-        let App {title} = self;
+        let App {context, title} = self;
 
         tmpl << html! {
             : raw!("<!DOCTYPE html>");
@@ -538,11 +547,63 @@ impl RenderOnce for App {
                     );
                 }
                 body {
-                    div {
-                        header {
-                            h1 : &title
+                    section(class="container grid-960") {
+                        header(class="navbar") {
+                            section(class="navbar-section") {
+                                a(href="#", class="navbar-brand") {
+                                    : "grokdb"
+                                }
+                            }
+                            section(class="navbar-section") {
+                                a(href="#", class="btn btn-link badge", data-badge="9") {
+                                    : "decks"
+                                }
+                                a(href="#", class="btn btn-link") {
+                                    : "stashes"
+                                }
+                                a(href="#", class="btn btn-primary") {
+                                    : "login"
+                                }
+                            }
+                        }
+                        section(class="container") {
+                            // : "things"
+                            : BreadCrumb::new(context.clone())
                         }
                         // p : Page::new(format!("boop"))
+                    }
+                }
+            }
+
+        };
+    }
+}
+
+// components/BreadCrumb
+struct BreadCrumb;
+
+impl BreadCrumb {
+    fn new(context: &Context) -> Self {
+        BreadCrumb
+    }
+}
+
+impl RenderOnce for BreadCrumb {
+
+    fn render_once(self, tmpl: &mut TemplateBuffer) {
+
+        let BreadCrumb {} = self;
+
+        tmpl << html! {
+            ul(class="breadcrumb") {
+                li(class="breadcrumb-item") {
+                    a(href="#") {
+                        : "Library"
+                    }
+                }
+                li(class="breadcrumb-item") {
+                    a(href="#") {
+                        : "Math"
                     }
                 }
             }
