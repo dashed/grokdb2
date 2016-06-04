@@ -36,7 +36,7 @@ use url::percent_encoding::percent_decode;
 use regex::{Regex, RegexSet};
 use regex::{Captures};
 
-use templates::{RenderOnce, TemplateBuffer, Template};
+use templates::{RenderOnce, TemplateBuffer, Template, FnRenderer};
 
 use hyper::method::Method;
 use hyper::server::{Server, Handler, Request, Response};
@@ -82,6 +82,79 @@ macro_rules! default {
     )
 }
 
+static SEPERATOR: &'static str = " ";
+
+macro_rules! labels {
+
+    (@inner_expand $tmpl:ident $item:expr) => {
+        $item.render_once($tmpl);
+    };
+
+
+    (@inner_expand $tmpl:ident $item:expr => $should_include:expr) => {
+        if $should_include {
+            $item.render_once($tmpl);
+        }
+    };
+
+    (@inner_expand $tmpl:ident $item:expr, $($tail:tt)+) => {
+        $item.render_once($tmpl);
+        SEPERATOR.render_once($tmpl);
+        labels!(@inner_expand $tmpl $($tail)*);
+    };
+
+    (@inner_expand $tmpl:ident $item:expr => $should_include:expr, $($tail:tt)+) => {
+        if $should_include {
+            $item.render_once($tmpl);
+            SEPERATOR.render_once($tmpl);
+        }
+        labels!(@inner_expand $tmpl $($tail)*);
+    };
+
+    // entries
+
+    ($item:expr) => {
+
+        FnRenderer::new(|tmpl| {
+            $item.render_once(tmpl);
+        }).into_string().unwrap()
+
+    };
+
+    ($item:expr => $should_include:expr) => {
+
+        FnRenderer::new(|tmpl| {
+            if $should_include {
+                $item.render_once(tmpl);
+            }
+        }).into_string().unwrap()
+
+    };
+
+    ($item:expr, $($tail:tt)+) => {
+
+        FnRenderer::new(|tmpl| {
+            $item.render_once(tmpl);
+            SEPERATOR.render_once(tmpl);
+            labels!(@inner_expand tmpl $($tail)*);
+        }).into_string().unwrap()
+
+    };
+
+    ($item:expr => $should_include:expr, $($tail:tt)+) => {
+
+        FnRenderer::new(|tmpl| {
+            if $should_include {
+                $item.render_once(tmpl);
+                SEPERATOR.render_once(tmpl);
+            }
+            labels!(@inner_expand tmpl $($tail)*);
+        }).into_string().unwrap()
+
+    };
+
+}
+
 // Based on https://github.com/JedWatson/classnames
 // https://is.gd/Pzv20j
 macro_rules! classnames {
@@ -103,11 +176,32 @@ macro_rules! classnames {
     // expansions
 
     ($name:expr, $($tail:tt)+) => {
+
+        // html!{
+        //     classnames!(@inner_expand $($tail)*)
+        // }
+
         format!("{} {}", $name, classnames!($($tail)*))
 
     };
 
     ($name:expr => $should_include:expr, $($tail:tt)+) => {
+
+        // if $should_include {
+        //     html!{
+        //         |t| {
+        //             t << $name;
+        //             classnames!(@inner_expand $($tail)*)
+        //         }
+        //     }
+        // } else {
+        //     html!{
+        //         |t| {
+        //             classnames!(@inner_expand $($tail)*)
+        //         }
+        //     }
+        // };
+
         if $should_include {
             format!("{} {}", $name, classnames!($($tail)*))
         } else {
@@ -419,7 +513,7 @@ fn route_not_found(mut context: Context, request: Request, mut response: Respons
 
 fn route_static_assets(context: Context, request: Request, response: Response) {
 
-    // TODO: caching stuff from https://github.com/iron/staticfile
+    // TODO: caching stuff from https://github.com/iron/staticfile/blob/master/src/static_handler.rs
 
     let req_path_raw = {
         let capture = context.captures.as_ref().unwrap();
@@ -828,8 +922,9 @@ impl<'component, 'a, 'b> RenderOnce for AppComponent<'component, Context<'a, 'b>
                                 }
                             }
                         }
-                        section(class="container") {
-                            // : ViewRouteResolver::new(&context)
+                        // section {
+                        // // section(class="container") {
+                        //     // : ViewRouteResolver::new(&context)
                             |tmpl| match context.view_route {
                                 AppRoute::Home => {
                                     unreachable!();
@@ -849,7 +944,7 @@ impl<'component, 'a, 'b> RenderOnce for AppComponent<'component, Context<'a, 'b>
                                 }
                             };
 
-                        }
+                        // }
                         // p : Page::new(format!("boop"))
                     }
                 }
@@ -928,8 +1023,19 @@ impl<'component, 'a, 'b> RenderOnce for SettingsComponent<'component, Context<'a
         let SettingsComponent {context} = self;
 
         tmpl << html! {
-            section {
-                : "Settings (work in progress)"
+            div(class="container") {
+                div(class="columns") {
+                    section(class="col-12") {
+                        : "Settings (work in progress)"
+                    }
+                }
+                div(class="columns") {
+                    div(class="col-12") {
+                        button(class="btn btn-primary") {
+                            : "Edit"
+                        }
+                    }
+                }
             }
         };
     }
@@ -993,19 +1099,49 @@ impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a,
 
         // TODO: fix
         let deck_id = default!();
+        // assert_eq!(labels!("active"), "active");
+        // assert_eq!(labels!(1), "1");
+        // assert_eq!(labels!("active" => true), "active");
+        // assert_eq!(labels!("active" => false), "");
+        // assert_eq!(labels!("button", "active" => true, "bold"), "button active bold");
+        // assert_eq!(labels!("button", "active" => false, "bold"), "button active bold");
+        // assert_eq!(labels!("button", "bold", "active" => true), "button bold active");
+        // assert_eq!(labels!("button", "bold", "active" => false), "button bold active");
 
         tmpl << html! {
             ul(class="menu") {
-                li(class="menu-header") {
-                    span(class="menu-header-text") {
-                        : "#123 Mathematics"
-                    }
+                // li(class="menu-header") {
+                //     h2(class="menu-header-text") {
+                //         : "Deck #123"
+                //     }
 
+                // }
+                li(class="menu-header") {
+                    div(class="menu-header-text") {
+                        : "Deck #123"
+                    }
                 }
+
+                li(class="menu-item") {
+                    div(class="chip") {
+                        div(class="chip-content") {
+                            : "Deck #123"
+                        }
+                    }
+                }
+                // li(class="menu-header") {
+                //     div(class="menu-header-text") {
+                //         : "#123"
+                //     }
+                // }
+
                 li(class="menu-item") {
                     a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Description),
                         &context),
-                        class = classnames!("active" =>
+                        style = labels!("font-weight:bold;" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description))
+                            ),
+                        class = labels!("active" =>
                             matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description)))
                     ) {
                         : "Description"
@@ -1014,7 +1150,10 @@ impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a,
                 li(class="menu-item") {
                     a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Decks),
                         &context),
-                        class = classnames!("active" =>
+                        style = labels!("font-weight:bold;" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks))
+                            ),
+                        class = labels!("active" =>
                             matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks)))
                         // class = "active"
                     ) {
@@ -1024,7 +1163,10 @@ impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a,
                 li(class="menu-item") {
                     a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Cards),
                         &context),
-                        class = classnames!("active" =>
+                        style = labels!("font-weight:bold;" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards))
+                            ),
+                        class = labels!("active" =>
                             matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards)))
                     ) {
                         : "Cards"
@@ -1038,7 +1180,10 @@ impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a,
                 li(class="menu-item") {
                     a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Meta),
                         &context),
-                        class = classnames!("active" =>
+                        style = labels!("font-weight:bold;" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta))
+                            ),
+                        class = labels!("active" =>
                             matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta)))
                     ) {
                         : "Meta"
@@ -1047,7 +1192,10 @@ impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a,
                 li(class="menu-item") {
                     a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Settings),
                         &context),
-                        class = classnames!("active" =>
+                        style = labels!("font-weight:bold;" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings))
+                            ),
+                        class = labels!("active" =>
                             matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings)))
                     ) {
                         : "Settings"
@@ -1087,23 +1235,30 @@ impl<'component, 'a, 'b> RenderOnce for DeckDetailComponent<'component, Context<
 
         tmpl << html! {
 
-            : BreadCrumbComponent::new(&context);
-
-            section(class="columns") {
-                section(class="column col-3") {
-                    : DeckNavComponent::new(&context);
+            div(class="container") {
+                div(class="columns") {
+                    div(class="col-12") {
+                        : BreadCrumbComponent::new(&context);
+                    }
                 }
-                section(class="column col-9") {
-                    |tmpl| match deck_route {
-                        &DeckRoute::New => tmpl << NewDeckComponent::new(&context),
-                        &DeckRoute::Description => tmpl << DeckDescriptionComponent::new(&context),
-                        &DeckRoute::Decks => tmpl << ChildDecksComponent::new(&context),
-                        &DeckRoute::Cards => tmpl << DeckCardsComponent::new(&context),
-                        &DeckRoute::Meta => tmpl << DeckMetaComponent::new(&context),
-                        &DeckRoute::Settings => tmpl << DeckSettingsComponent::new(&context),
-                    };
+                section(class="columns") {
+                    section(class="column col-3") {
+                        : DeckNavComponent::new(&context);
+                    }
+                    section(class="column col-9") {
+                        |tmpl| match deck_route {
+                            &DeckRoute::New => tmpl << NewDeckComponent::new(&context),
+                            &DeckRoute::Description => tmpl << DeckDescriptionComponent::new(&context),
+                            &DeckRoute::Decks => tmpl << ChildDecksComponent::new(&context),
+                            &DeckRoute::Cards => tmpl << DeckCardsComponent::new(&context),
+                            &DeckRoute::Meta => tmpl << DeckMetaComponent::new(&context),
+                            &DeckRoute::Settings => tmpl << DeckSettingsComponent::new(&context),
+                        };
+                    }
                 }
             }
+
+
         };
     }
 }
@@ -1155,7 +1310,30 @@ impl<'component, 'a, 'b> RenderOnce for DeckDescriptionComponent<'component, Con
 
         tmpl << html! {
 
-            : "deck description"
+            div(class="container") {
+                div(class="columns") {
+                    div(class="col-12") {
+                        h5 {
+                            : "Description for Mathematics"
+                        }
+                    }
+                }
+                div(class="columns") {
+                    div(class="col-12") {
+                        // button(class="btn btn-lg btn-primary") {
+                        //     : "Edit"
+                        // }
+                        button(class="btn btn-primary") {
+                            : "Edit"
+                        }
+                        // button(class="btn btn-sm btn-primary") {
+                        //     : "Edit"
+                        // }
+
+                    }
+                }
+            }
+
         };
     }
 }
@@ -1207,7 +1385,10 @@ impl<'component, 'a, 'b> RenderOnce for DeckCardsComponent<'component, Context<'
 
         tmpl << html! {
 
-            : "deck cards"
+            // : "lol"
+            @ for i in 0..10 {
+                : CardItem::new(&context, &i)
+            }
         };
     }
 }
@@ -1261,6 +1442,25 @@ impl<'component, 'a, 'b> RenderOnce for DeckSettingsComponent<'component, Contex
 
             : "deck settings"
         };
+    }
+}
+
+// components/CardItem
+template! {
+    CardItem(context: &Context<'a, 'a>, card_id: &u32) {
+        div(class = "card") {
+            div(class="card-header") {
+                h4(class="card-title") {
+                    a(href="#") {
+                        : "Microsoft"
+                    }
+                }
+                h6(class="card-meta") {
+                    : "Card #";
+                    : card_id;
+                }
+            }
+        }
     }
 }
 
