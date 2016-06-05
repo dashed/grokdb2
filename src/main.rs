@@ -1335,7 +1335,7 @@ impl<'component, 'a, 'b> RenderOnce for DeckDescriptionComponent<'component, Con
             div(class="container") {
                 div(class="columns") {
                     div(class="col-12") {
-                        h5 {
+                        h5(style="margin-top:0;") {
                             : "Description for Mathematics"
                         }
                     }
@@ -1410,7 +1410,7 @@ impl<'component, 'a, 'b> RenderOnce for DeckCardsComponent<'component, Context<'
             div(class="container") {
                 div(class="columns") {
                     div(class="col-12") {
-                        h5 {
+                        h5(style="margin-top:0;") {
                             : "Cards within Mathematics"
                         }
                     }
@@ -1506,6 +1506,9 @@ template! {
                     : "Card #";
                     : card_id;
                 }
+            }
+            div(class="card-body") {
+                : "Last reviewed yesterday"
             }
         }
     }
