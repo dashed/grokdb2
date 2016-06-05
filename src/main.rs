@@ -922,10 +922,9 @@ impl<'component, 'a, 'b> RenderOnce for AppComponent<'component, Context<'a, 'b>
                                 }
                             }
                         }
-
                         noscript {
                             div(class="toast toast-danger") {
-                                : "grokdb requires JavaScript to function properly. Go to: ";
+                                : "grokdb requires JavaScript to function properly. Go to ";
                                 a(href="http://enable-javascript.com/", target="_blank", style="color: #000000") {
                                     : "http://enable-javascript.com/"
                                 }
