@@ -685,7 +685,9 @@ fn render_app_component(
         mime!(Text/Html)
     )));
 
-    let app_component = AppComponent::new(&context, app_component_title);
+    let app_component = FnRenderer::new(|tmpl| {
+        AppComponent(tmpl, &context, app_component_title);
+    });
 
     // We lock the database for reads
     db_read_lock!(context.global_context.db_connection);
@@ -891,108 +893,92 @@ macro_rules! route(
 /* components (templates) */
 
 // components/AppComponent
-struct AppComponent<'component, C: 'component> {
-    context: &'component C,
-    title: String
-}
+fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, title: String) {
 
-impl<'component, 'a, 'b> AppComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>, title: String) -> Self {
-        AppComponent {
-            context: context,
-            title: title
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for AppComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let AppComponent {context, title} = self;
-
-        tmpl << html! {
-            : raw!("<!DOCTYPE html>");
-            html {
-                head {
-                    title { : &title }
-                    link (
-                        rel="stylesheet",
-                        href="/assets/spectre.min.css"
-                    );
-                }
-                body {
-                    section(class="container grid-960") {
-                        header(class="navbar") {
-                            section(class="navbar-section") {
-                                a(href = view_route_to_link(AppRoute::Home, &context), class="navbar-brand") {
-                                    : "grokdb"
-                                }
-                            }
-                            section(class="navbar-section") {
-                                a(
-                                    href = view_route_to_link(AppRoute::Home, &context),
-                                    class="btn btn-link badge",
-                                    data-badge="9"
-                                ) {
-                                    : "decks"
-                                }
-                                a(href="#", class="btn btn-link") {
-                                    : "stashes"
-                                }
-                                a(href = view_route_to_link(AppRoute::Settings, &context), class="btn btn-link") {
-                                    : "settings"
-                                }
-                                : " ";
-                                input(type="text", class="form-input input-inline", placeholder="search");
-                                : " ";
-                                a(href="#", class="btn btn-primary") {
-                                    : "login"
-                                }
+    tmpl << html! {
+        : raw!("<!DOCTYPE html>");
+        html {
+            head {
+                title { : &title }
+                link (
+                    rel="stylesheet",
+                    href="/assets/spectre.min.css"
+                );
+            }
+            body {
+                section(class="container grid-960") {
+                    header(class="navbar") {
+                        section(class="navbar-section") {
+                            a(href = view_route_to_link(AppRoute::Home, &context), class="navbar-brand") {
+                                : "grokdb"
                             }
                         }
-                        noscript {
-                            div(class="toast toast-danger") {
-                                : "grokdb requires JavaScript to function properly. Go to ";
-                                a(href="http://enable-javascript.com/", target="_blank", style="color: #000000") {
-                                    : "http://enable-javascript.com/"
-                                }
-                                : " to enable JavaScript for your browser.";
+                        section(class="navbar-section") {
+                            a(
+                                href = view_route_to_link(AppRoute::Home, &context),
+                                class="btn btn-link badge",
+                                data-badge="9"
+                            ) {
+                                : "decks"
+                            }
+                            a(href="#", class="btn btn-link") {
+                                : "stashes"
+                            }
+                            a(href = view_route_to_link(AppRoute::Settings, &context), class="btn btn-link") {
+                                : "settings"
+                            }
+                            : " ";
+                            input(type="text", class="form-input input-inline", placeholder="search");
+                            : " ";
+                            a(href="#", class="btn btn-primary") {
+                                : "login"
                             }
                         }
-
-                        // section {
-                        // // section(class="container") {
-                        //     // : ViewRouteResolver::new(&context)
-                            |tmpl| match context.view_route {
-                                AppRoute::Home => {
-                                    // TODO: fix
-                                    // NOTE: goes to DeckDetailComponent
-                                    unreachable!();
-                                    // tmpl << DeckDetailComponent::new(&context)
-                                }
-                                AppRoute::Settings => {
-                                    tmpl << SettingsComponent::new(&context)
-                                }
-                                AppRoute::Deck(_deck_id, ref _deck_route) => {
-
-                                    tmpl << DeckDetailComponent::new(&context)
-
-                                    // match deck_route {
-                                    //     &DeckRoute::New => tmpl << NewDeckComponent::new(&context)
-                                    // }
-
-                                }
-                            };
-
-                        // }
-                        // p : Page::new(format!("boop"))
                     }
+                    noscript {
+                        div(class="toast toast-danger") {
+                            : "grokdb requires JavaScript to function properly. Go to ";
+                            a(href="http://enable-javascript.com/", target="_blank", style="color: #000000") {
+                                : "http://enable-javascript.com/"
+                            }
+                            : " to enable JavaScript for your browser.";
+                        }
+                    }
+
+                    // section {
+                    // // section(class="container") {
+                    //     // : ViewRouteResolver::new(&context)
+                    |tmpl| {
+                        match context.view_route {
+                            AppRoute::Home => {
+                                // TODO: fix
+                                // NOTE: goes to DeckDetailComponent
+                                unreachable!();
+                                // tmpl << DeckDetailComponent::new(&context)
+                            }
+                            AppRoute::Settings => {
+                                SettingsComponent(tmpl, &context);
+                            }
+                            AppRoute::Deck(_deck_id, ref _deck_route) => {
+
+                                DeckDetailComponent(tmpl, &context);
+
+                                // match deck_route {
+                                //     &DeckRoute::New => tmpl << NewDeckComponent::new(&context)
+                                // }
+
+                            }
+                        };
+                    };
+
+                    // }
+                    // p : Page::new(format!("boop"))
                 }
             }
+        }
 
-        };
-    }
+    };
+
 }
 
 // components/ViewRouteResolver
@@ -1045,538 +1031,351 @@ impl<'component, 'a, 'b> RenderOnce for AppComponent<'component, Context<'a, 'b>
 // }
 
 // components/SettingsComponent
-struct SettingsComponent<'component, C: 'component> {
-    context: &'component C
-}
-
-impl<'component, 'a, 'b> SettingsComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        SettingsComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for SettingsComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let SettingsComponent {context} = self;
-
-        tmpl << html! {
-            div(class="container") {
-                div(class="columns") {
-                    section(class="col-12") {
-                        : "Settings (work in progress)"
-                    }
+fn SettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    println!("SettingsComponent");
+    tmpl << html! {
+        div(class="container") {
+            div(class="columns") {
+                section(class="col-12") {
+                    : "Settings (work in progress)"
                 }
-                div(class="columns") {
-                    div(class="col-12") {
-                        button(class="btn btn-primary") {
-                            : "Edit"
-                        }
+            }
+            div(class="columns") {
+                div(class="col-12") {
+                    button(class="btn btn-primary") {
+                        : "Edit"
                     }
                 }
             }
-        };
-    }
+        }
+    };
 }
 
 // components/BreadCrumbComponent
-struct BreadCrumbComponent<'component, C: 'component> {
-    context: &'component C
-}
-
-impl<'component, 'a, 'b> BreadCrumbComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        BreadCrumbComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for BreadCrumbComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let BreadCrumbComponent {context} = self;
-
-        tmpl << html! {
-            ul(class="breadcrumb") {
-                li(class="breadcrumb-item") {
-                    a(href="#") {
-                        : "Library"
-                    }
-                }
-                li(class="breadcrumb-item") {
-                    a(href="#") {
-                        : "Math"
-                    }
+fn BreadCrumbComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    tmpl << html! {
+        ul(class="breadcrumb") {
+            li(class="breadcrumb-item") {
+                a(href="#") {
+                    : "Library"
                 }
             }
+            li(class="breadcrumb-item") {
+                a(href="#") {
+                    : "Math"
+                }
+            }
+        }
 
-        };
-    }
+    };
 }
 
 // components/DeckNavComponent
-struct DeckNavComponent<'component, C: 'component> {
-    context: &'component C
-}
+fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
 
-impl<'component, 'a, 'b> DeckNavComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        DeckNavComponent {
-            context: context
-        }
-    }
-}
+    let deck_id = default!();
 
-impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a, 'b>> {
+    tmpl << html! {
+        ul(class="menu") {
+            // li(class="menu-header") {
+            //     h2(class="menu-header-text") {
+            //         : "Deck #123"
+            //     }
 
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
+            // }
+            li(class="menu-header") {
+                div(class="menu-header-text") {
+                    : "Deck #123"
+                }
+            }
 
-        let DeckNavComponent {context} = self;
-
-        // TODO: fix
-        let deck_id = default!();
-        // assert_eq!(labels!("active"), "active");
-        // assert_eq!(labels!(1), "1");
-        // assert_eq!(labels!("active" => true), "active");
-        // assert_eq!(labels!("active" => false), "");
-        // assert_eq!(labels!("button", "active" => true, "bold"), "button active bold");
-        // assert_eq!(labels!("button", "active" => false, "bold"), "button active bold");
-        // assert_eq!(labels!("button", "bold", "active" => true), "button bold active");
-        // assert_eq!(labels!("button", "bold", "active" => false), "button bold active");
-
-        tmpl << html! {
-            ul(class="menu") {
-                // li(class="menu-header") {
-                //     h2(class="menu-header-text") {
-                //         : "Deck #123"
-                //     }
-
-                // }
-                li(class="menu-header") {
-                    div(class="menu-header-text") {
+            li(class="menu-item") {
+                div(class="chip") {
+                    div(class="chip-content") {
                         : "Deck #123"
                     }
                 }
+            }
+            // li(class="menu-header") {
+            //     div(class="menu-header-text") {
+            //         : "#123"
+            //     }
+            // }
 
-                li(class="menu-item") {
-                    div(class="chip") {
-                        div(class="chip-content") {
-                            : "Deck #123"
-                        }
-                    }
-                }
-                // li(class="menu-header") {
-                //     div(class="menu-header-text") {
-                //         : "#123"
-                //     }
-                // }
-
-                li(class="menu-item") {
-                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Description),
-                        &context),
-                        style = labels!("font-weight:bold;" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description))
-                            ),
-                        class = labels!("active" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description)))
-                    ) {
-                        : "Description"
-                    }
-                }
-                li(class="menu-item") {
-                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Decks),
-                        &context),
-                        style = labels!("font-weight:bold;" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks))
-                            ),
-                        class = labels!("active" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks)))
-                        // class = "active"
-                    ) {
-                        : "Child Decks"
-                    }
-                }
-                li(class="menu-item") {
-                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Cards),
-                        &context),
-                        style = labels!("font-weight:bold;" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards))
-                            ),
-                        class = labels!("active" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards)))
-                    ) {
-                        : "Cards"
-                    }
-                }
-                li(class="menu-item") {
-                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Review),
-                        &context),
-                        style = labels!("font-weight:bold;" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Review))
-                            ),
-                        class = labels!("active" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Review)))
-                    ) {
-                        : "Review this Deck"
-                    }
-                }
-                li(class="divider") {}
-                li(class="menu-item") {
-                    : "Brief Deck Statistics (TBA)"
-                }
-                li(class="divider") {}
-                li(class="menu-item") {
-                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Meta),
-                        &context),
-                        style = labels!("font-weight:bold;" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta))
-                            ),
-                        class = labels!("active" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta)))
-                    ) {
-                        : "Meta"
-                    }
-                }
-                li(class="menu-item") {
-                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Settings),
-                        &context),
-                        style = labels!("font-weight:bold;" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings))
-                            ),
-                        class = labels!("active" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings)))
-                    ) {
-                        : "Settings"
-                    }
+            li(class="menu-item") {
+                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Description),
+                    &context),
+                    style = labels!("font-weight:bold;" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description))
+                        ),
+                    class = labels!("active" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description)))
+                ) {
+                    : "Description"
                 }
             }
+            li(class="menu-item") {
+                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Decks),
+                    &context),
+                    style = labels!("font-weight:bold;" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks))
+                        ),
+                    class = labels!("active" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks)))
+                    // class = "active"
+                ) {
+                    : "Child Decks"
+                }
+            }
+            li(class="menu-item") {
+                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Cards),
+                    &context),
+                    style = labels!("font-weight:bold;" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards))
+                        ),
+                    class = labels!("active" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards)))
+                ) {
+                    : "Cards"
+                }
+            }
+            li(class="menu-item") {
+                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Review),
+                    &context),
+                    style = labels!("font-weight:bold;" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Review))
+                        ),
+                    class = labels!("active" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Review)))
+                ) {
+                    : "Review this Deck"
+                }
+            }
+            li(class="divider") {}
+            li(class="menu-item") {
+                : "Brief Deck Statistics (TBA)"
+            }
+            li(class="divider") {}
+            li(class="menu-item") {
+                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Meta),
+                    &context),
+                    style = labels!("font-weight:bold;" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta))
+                        ),
+                    class = labels!("active" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta)))
+                ) {
+                    : "Meta"
+                }
+            }
+            li(class="menu-item") {
+                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Settings),
+                    &context),
+                    style = labels!("font-weight:bold;" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings))
+                        ),
+                    class = labels!("active" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings)))
+                ) {
+                    : "Settings"
+                }
+            }
+        }
 
-        };
-    }
+    };
 }
 
 // components/DeckDetailComponent
-struct DeckDetailComponent<'component, C: 'component> {
-    context: &'component C
-}
-
-impl<'component, 'a, 'b> DeckDetailComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        DeckDetailComponent {
-            context: context
+fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    let (deck_id, deck_route) = {
+        match context.view_route {
+            AppRoute::Deck(deck_id, ref deck_route) => (deck_id, deck_route),
+            _ => unreachable!()
         }
-    }
-}
+    };
 
-impl<'component, 'a, 'b> RenderOnce for DeckDetailComponent<'component, Context<'a, 'b>> {
+    tmpl << html! {
 
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let DeckDetailComponent {context} = self;
-
-        let (deck_id, deck_route) = {
-            match context.view_route {
-                AppRoute::Deck(deck_id, ref deck_route) => (deck_id, deck_route),
-                _ => unreachable!()
-            }
-        };
-
-        tmpl << html! {
-
-            div(class="container") {
-                div(class="columns") {
-                    div(class="col-12") {
-                        : BreadCrumbComponent::new(&context);
-                    }
-                }
-                section(class="columns") {
-                    section(class="column col-9") {
-                        |tmpl| match deck_route {
-                            &DeckRoute::New => tmpl << NewDeckComponent::new(&context),
-                            &DeckRoute::Description => tmpl << DeckDescriptionComponent::new(&context),
-                            &DeckRoute::Decks => tmpl << ChildDecksComponent::new(&context),
-                            &DeckRoute::Cards => tmpl << DeckCardsComponent::new(&context),
-                            &DeckRoute::Meta => tmpl << DeckMetaComponent::new(&context),
-                            &DeckRoute::Settings => tmpl << DeckSettingsComponent::new(&context),
-                            &DeckRoute::Review => tmpl << DeckReviewComponent::new(&context),
-                        };
-                    }
-                    section(class="column col-3") {
-                        : DeckNavComponent::new(&context);
-                    }
+        div(class="container") {
+            div(class="columns") {
+                div(class="col-12") {
+                    |tmpl| BreadCrumbComponent(tmpl, &context);
                 }
             }
+            section(class="columns") {
+                section(class="column col-9") {
+                    |tmpl| match deck_route {
+                        &DeckRoute::New => NewDeckComponent(tmpl, &context),
+                        &DeckRoute::Description => DeckDescriptionComponent(tmpl, &context),
+                        &DeckRoute::Decks => ChildDecksComponent(tmpl, &context),
+                        &DeckRoute::Cards => DeckCardsComponent(tmpl, &context),
+                        &DeckRoute::Meta => DeckMetaComponent(tmpl, &context),
+                        &DeckRoute::Settings => DeckSettingsComponent(tmpl, &context),
+                        &DeckRoute::Review => DeckReviewComponent(tmpl, &context),
+                    };
+                }
+                section(class="column col-3") {
+                    |tmpl| DeckNavComponent(tmpl, &context);
+                }
+            }
+        }
 
 
-        };
-    }
+    };
 }
 
 // components/NewDeckComponent
-struct NewDeckComponent<'component, C: 'component> {
-    context: &'component C
-}
-
-impl<'component, 'a, 'b> NewDeckComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        NewDeckComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for NewDeckComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let NewDeckComponent {context} = self;
-
-        tmpl << html! {
-
-            : "new deck"
-        };
-    }
+fn NewDeckComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    tmpl << html! {
+        : "new deck"
+    };
 }
 
 // components/DeckDescriptionComponent
-struct DeckDescriptionComponent<'component, C: 'component> {
-    context: &'component C
-}
+fn DeckDescriptionComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    tmpl << html! {
 
-impl<'component, 'a, 'b> DeckDescriptionComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        DeckDescriptionComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for DeckDescriptionComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let DeckDescriptionComponent {context} = self;
-
-        tmpl << html! {
-
-            div(class="container") {
-                div(class="columns") {
-                    div(class="col-12") {
-                        h5(style="margin-top:0;") {
-                            : "Description for Mathematics"
-                        }
-                    }
-                }
-                div(class="columns") {
-                    div(class="col-12") {
-                        // button(class="btn btn-lg btn-primary") {
-                        //     : "Edit"
-                        // }
-                        button(class="btn btn-primary") {
-                            : "Edit"
-                        }
-                        // button(class="btn btn-sm btn-primary") {
-                        //     : "Edit"
-                        // }
-
+        div(class="container") {
+            div(class="columns") {
+                div(class="col-12") {
+                    h5(style="margin-top:0;") {
+                        : "Description for Mathematics"
                     }
                 }
             }
+            div(class="columns") {
+                div(class="col-12") {
+                    // button(class="btn btn-lg btn-primary") {
+                    //     : "Edit"
+                    // }
+                    button(class="btn btn-primary") {
+                        : "Edit"
+                    }
+                    // button(class="btn btn-sm btn-primary") {
+                    //     : "Edit"
+                    // }
 
-        };
-    }
+                }
+            }
+        }
+
+    };
 }
 
 // components/ChildDecksComponent
-struct ChildDecksComponent<'component, C: 'component> {
-    context: &'component C
-}
+fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    tmpl << html! {
 
-impl<'component, 'a, 'b> ChildDecksComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        ChildDecksComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for ChildDecksComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let ChildDecksComponent {context} = self;
-
-        tmpl << html! {
-
-            : "deck children"
-        };
-    }
+        : "deck children"
+    };
 }
 
 // components/DeckCardsComponent
-struct DeckCardsComponent<'component, C: 'component> {
-    context: &'component C
-}
+fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    tmpl << html! {
 
-impl<'component, 'a, 'b> DeckCardsComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        DeckCardsComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for DeckCardsComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let DeckCardsComponent {context} = self;
-
-        tmpl << html! {
-
-            div(class="container") {
-                div(class="columns") {
-                    div(class="col-12") {
-                        h5(style="margin-top:0;") {
-                            : "Cards within Mathematics"
-                        }
+        div(class="container") {
+            div(class="columns") {
+                div(class="col-12") {
+                    h5(style="margin-top:0;") {
+                        : "Cards within Mathematics"
                     }
-                }
-                div(class="columns") {
-                    div(class="column") {
-                        button(class="btn btn-primary", style="background-color: #32b643;border-color: #30ae40;") {
-                            : "New Card"
-                        }
-                        : " ";
-                        button(class="btn") {
-                            : "Review this Deck"
-                        }
-                        : " ";
-                        div(class="input-group inline float-right") {
-                            input(type="text", class="form-input input-inline", placeholder="Search within this deck");
-                            button(class="btn btn-primary input-group-btn") {
-                                : "Search"
-                            }
-                        }
-                    }
-                    // div(class="column") {
-                    //     div(class="input-group") {
-                    //         input(type="text", class="form-input input-inline", placeholder="search");
-                    //         button(class="btn btn-primary input-group-btn") {
-                    //             : "Search"
-                    //         }
-                    //     }
-                    // }
-                }
-                div(class="columns") {
-                    div(class="column", style="display: flex;justify-content: flex-end") {
-                        : " ";
-                        select(class="form-select") {
-                            option {
-                                : "Order by Recent"
-                            }
-                            option {
-                                : "Order by Least Recent"
-                            }
-                        }
-                        : " ";
-                        select(class="form-select", style="margin-left:5px;") {
-                            option {
-                                : "Sort by Updated"
-                            }
-                            option {
-                                : "Choose an option"
-                            }
-                            option {
-                                : "Choose an option"
-                            }
-                        }
-                        : " ";
-                    }
-                    // div(class="column") {
-                    //     select(class="form-select") {
-                    //         option {
-                    //             : "Choose an option"
-                    //         }
-                    //         option {
-                    //             : "Choose an option"
-                    //         }
-                    //         option {
-                    //             : "Choose an option"
-                    //         }
-                    //     }
-                    // }
-                }
-                div(class="divider") {}
-                @ for i in 1..25 {
-                    div(class="columns") {
-                        div(class="col-12") {
-                            // : CardItem::new(&context, &i)
-                            |tmpl| CardItem(tmpl, &context, &i)
-                        }
-                    }
-
                 }
             }
-        };
-    }
+            div(class="columns") {
+                div(class="column") {
+                    button(class="btn btn-primary", style="background-color: #32b643;border-color: #30ae40;") {
+                        : "New Card"
+                    }
+                    : " ";
+                    button(class="btn") {
+                        : "Review this Deck"
+                    }
+                    : " ";
+                    div(class="input-group inline float-right") {
+                        input(type="text", class="form-input input-inline", placeholder="Search within this deck");
+                        button(class="btn btn-primary input-group-btn") {
+                            : "Search"
+                        }
+                    }
+                }
+                // div(class="column") {
+                //     div(class="input-group") {
+                //         input(type="text", class="form-input input-inline", placeholder="search");
+                //         button(class="btn btn-primary input-group-btn") {
+                //             : "Search"
+                //         }
+                //     }
+                // }
+            }
+            div(class="columns") {
+                div(class="column", style="display: flex;justify-content: flex-end") {
+                    : " ";
+                    select(class="form-select") {
+                        option {
+                            : "Order by Recent"
+                        }
+                        option {
+                            : "Order by Least Recent"
+                        }
+                    }
+                    : " ";
+                    select(class="form-select", style="margin-left:5px;") {
+                        option {
+                            : "Sort by Updated"
+                        }
+                        option {
+                            : "Choose an option"
+                        }
+                        option {
+                            : "Choose an option"
+                        }
+                    }
+                    : " ";
+                }
+                // div(class="column") {
+                //     select(class="form-select") {
+                //         option {
+                //             : "Choose an option"
+                //         }
+                //         option {
+                //             : "Choose an option"
+                //         }
+                //         option {
+                //             : "Choose an option"
+                //         }
+                //     }
+                // }
+            }
+            div(class="divider") {}
+            @ for i in 1..25 {
+                div(class="columns") {
+                    div(class="col-12") {
+                        // : CardItem::new(&context, &i)
+                        |tmpl| CardItem(tmpl, &context, &i)
+                    }
+                }
+
+            }
+        }
+    };
 }
 
 // components/DeckMetaComponent
-struct DeckMetaComponent<'component, C: 'component> {
-    context: &'component C
+fn DeckMetaComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    tmpl << html! {
+
+        : "deck meta"
+    };
 }
 
-impl<'component, 'a, 'b> DeckMetaComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        DeckMetaComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for DeckMetaComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let DeckMetaComponent {context} = self;
-
-        tmpl << html! {
-
-            : "deck meta"
-        };
-    }
-}
 
 // components/DeckSettingsComponent
-struct DeckSettingsComponent<'component, C: 'component> {
-    context: &'component C
-}
+fn DeckSettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    tmpl << html! {
 
-impl<'component, 'a, 'b> DeckSettingsComponent<'component, Context<'a, 'b>> {
-    fn new(context: &'component Context<'a, 'b>) -> Self {
-        DeckSettingsComponent {
-            context: context
-        }
-    }
-}
-
-impl<'component, 'a, 'b> RenderOnce for DeckSettingsComponent<'component, Context<'a, 'b>> {
-
-    fn render_once(self, tmpl: &mut TemplateBuffer) {
-
-        let DeckSettingsComponent {context} = self;
-
-        tmpl << html! {
-
-            : "deck settings"
-        };
-    }
+        : "deck settings"
+    };
 }
 
 // components/DeckReviewComponent
