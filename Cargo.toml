@@ -18,13 +18,18 @@ version = "0.9.6"
 version = "0.7.2"
 features = ["functions", "backup"]
 
+[dependencies.horrorshow]
+git = "https://github.com/dashed/horrorshow-rs"
+rev = "b1f6920"
+
 [dependencies]
 regex = "0.1"
-horrorshow = "0.5"
+# horrorshow = "0.5"
 url = "1.1"
 conduit-mime-types = "0.7.3"
 lazy_static = "0.2.1"
 mime = "0.2.0"
 matches = "0.1.2"
+time = "0.1.35"
 # html5ever = "0.5.4"
 # tendril = "0.2.2"

@@ -12,6 +12,7 @@ extern crate rusqlite;
 extern crate lazy_static;
 #[macro_use]
 extern crate matches;
+extern crate time;
 
 // TODO: remove; was using it for experiment
 // extern crate html5ever;
@@ -27,6 +28,7 @@ use std::path::{PathBuf, Path};
 use std::sync::{Arc, Mutex, LockResult, MutexGuard, RwLock};
 use std::io;
 use std::io::{Write};
+use std::thread;
 use std::default::Default;
 
 /* 3rd-party imports */
@@ -69,6 +71,7 @@ lazy_static! {
 List of projects whose code i've been copying & pasting from:
 - https://github.com/iron/iron/pull/291/files
 - reroute
+- https://github.com/tomaka/rouille
 
 reference: https://github.com/joshbuchea/HEAD#link-elements
 
@@ -82,134 +85,134 @@ macro_rules! default {
     )
 }
 
-static SEPERATOR: &'static str = " ";
+// static SEPERATOR: &'static str = " ";
 
-macro_rules! labels {
+// macro_rules! labels {
 
-    (@inner_expand $tmpl:ident $item:expr) => {
-        $item.render_once($tmpl);
-    };
+//     (@inner_expand $tmpl:ident $item:expr) => {
+//         $item.render_once($tmpl);
+//     };
 
 
-    (@inner_expand $tmpl:ident $item:expr => $should_include:expr) => {
-        if $should_include {
-            $item.render_once($tmpl);
-        }
-    };
+//     (@inner_expand $tmpl:ident $item:expr => $should_include:expr) => {
+//         if $should_include {
+//             $item.render_once($tmpl);
+//         }
+//     };
 
-    (@inner_expand $tmpl:ident $item:expr, $($tail:tt)+) => {
-        $item.render_once($tmpl);
-        SEPERATOR.render_once($tmpl);
-        labels!(@inner_expand $tmpl $($tail)*);
-    };
+//     (@inner_expand $tmpl:ident $item:expr, $($tail:tt)+) => {
+//         $item.render_once($tmpl);
+//         SEPERATOR.render_once($tmpl);
+//         labels!(@inner_expand $tmpl $($tail)*);
+//     };
 
-    (@inner_expand $tmpl:ident $item:expr => $should_include:expr, $($tail:tt)+) => {
-        if $should_include {
-            $item.render_once($tmpl);
-            SEPERATOR.render_once($tmpl);
-        }
-        labels!(@inner_expand $tmpl $($tail)*);
-    };
+//     (@inner_expand $tmpl:ident $item:expr => $should_include:expr, $($tail:tt)+) => {
+//         if $should_include {
+//             $item.render_once($tmpl);
+//             SEPERATOR.render_once($tmpl);
+//         }
+//         labels!(@inner_expand $tmpl $($tail)*);
+//     };
 
-    // entries
+//     // entries
 
-    ($item:expr) => {
+//     ($item:expr) => {
 
-        FnRenderer::new(|tmpl| {
-            $item.render_once(tmpl);
-        }).into_string().unwrap()
+//         FnRenderer::new(|tmpl| {
+//             $item.render_once(tmpl);
+//         }).into_string().unwrap()
 
-    };
+//     };
 
-    ($item:expr => $should_include:expr) => {
+//     ($item:expr => $should_include:expr) => {
 
-        FnRenderer::new(|tmpl| {
-            if $should_include {
-                $item.render_once(tmpl);
-            }
-        }).into_string().unwrap()
+//         FnRenderer::new(|tmpl| {
+//             if $should_include {
+//                 $item.render_once(tmpl);
+//             }
+//         }).into_string().unwrap()
 
-    };
+//     };
 
-    ($item:expr, $($tail:tt)+) => {
+//     ($item:expr, $($tail:tt)+) => {
 
-        FnRenderer::new(|tmpl| {
-            $item.render_once(tmpl);
-            SEPERATOR.render_once(tmpl);
-            labels!(@inner_expand tmpl $($tail)*);
-        }).into_string().unwrap()
+//         FnRenderer::new(|tmpl| {
+//             $item.render_once(tmpl);
+//             SEPERATOR.render_once(tmpl);
+//             labels!(@inner_expand tmpl $($tail)*);
+//         }).into_string().unwrap()
 
-    };
+//     };
 
-    ($item:expr => $should_include:expr, $($tail:tt)+) => {
+//     ($item:expr => $should_include:expr, $($tail:tt)+) => {
 
-        FnRenderer::new(|tmpl| {
-            if $should_include {
-                $item.render_once(tmpl);
-                SEPERATOR.render_once(tmpl);
-            }
-            labels!(@inner_expand tmpl $($tail)*);
-        }).into_string().unwrap()
+//         FnRenderer::new(|tmpl| {
+//             if $should_include {
+//                 $item.render_once(tmpl);
+//                 SEPERATOR.render_once(tmpl);
+//             }
+//             labels!(@inner_expand tmpl $($tail)*);
+//         }).into_string().unwrap()
 
-    };
+//     };
 
-}
+// }
 
 // Based on https://github.com/JedWatson/classnames
 // https://is.gd/Pzv20j
-macro_rules! classnames {
+// macro_rules! classnames {
 
-    // base cases
+//     // base cases
 
-    ($name: expr) => (
-        format!("{}", $name)
-    );
+//     ($name: expr) => (
+//         format!("{}", $name)
+//     );
 
-    ($name:expr => $should_include:expr) => (
-        if $should_include {
-            format!("{}", $name)
-        } else {
-            format!("")
-        }
-    );
+//     ($name:expr => $should_include:expr) => (
+//         if $should_include {
+//             format!("{}", $name)
+//         } else {
+//             format!("")
+//         }
+//     );
 
-    // expansions
+//     // expansions
 
-    ($name:expr, $($tail:tt)+) => {
+//     ($name:expr, $($tail:tt)+) => {
 
-        // html!{
-        //     classnames!(@inner_expand $($tail)*)
-        // }
+//         // html!{
+//         //     classnames!(@inner_expand $($tail)*)
+//         // }
 
-        format!("{} {}", $name, classnames!($($tail)*))
+//         format!("{} {}", $name, classnames!($($tail)*))
 
-    };
+//     };
 
-    ($name:expr => $should_include:expr, $($tail:tt)+) => {
+//     ($name:expr => $should_include:expr, $($tail:tt)+) => {
 
-        // if $should_include {
-        //     html!{
-        //         |t| {
-        //             t << $name;
-        //             classnames!(@inner_expand $($tail)*)
-        //         }
-        //     }
-        // } else {
-        //     html!{
-        //         |t| {
-        //             classnames!(@inner_expand $($tail)*)
-        //         }
-        //     }
-        // };
+//         // if $should_include {
+//         //     html!{
+//         //         |t| {
+//         //             t << $name;
+//         //             classnames!(@inner_expand $($tail)*)
+//         //         }
+//         //     }
+//         // } else {
+//         //     html!{
+//         //         |t| {
+//         //             classnames!(@inner_expand $($tail)*)
+//         //         }
+//         //     }
+//         // };
 
-        if $should_include {
-            format!("{} {}", $name, classnames!($($tail)*))
-        } else {
-            classnames!($($tail)*)
-        };
-    };
+//         if $should_include {
+//             format!("{} {}", $name, classnames!($($tail)*))
+//         } else {
+//             classnames!($($tail)*)
+//         };
+//     };
 
-}
+// }
 
 // fn main() {
 
@@ -645,6 +648,14 @@ fn route_deck_settings(mut context: Context, request: Request, response: Respons
     render_app_component(context, format!("grokdb"), request, response);
 }
 
+fn route_deck_review(mut context: Context, request: Request, response: Response) {
+
+    // TODO: fetch deck_id
+    context.view_route = AppRoute::Deck(1, DeckRoute::Review);
+
+    render_app_component(context, format!("grokdb"), request, response);
+}
+
 // // Path: /deck/:deck_id/view/cards
 // fn route_deck_cards(mut context: Context, request: Request, response: Response) {
 
@@ -738,7 +749,8 @@ enum DeckRoute {
     Decks,
     Cards,
     Settings,
-    Meta
+    Meta,
+    Review,
 
     // Create,
     // Read,
@@ -798,6 +810,15 @@ fn route_deck_settings_link(context: &Context) -> String {
     format!("/deck/1/settings")
 }
 
+
+fn route_deck_review_link(context: &Context) -> String {
+
+    // TODO: fetch deck_id
+
+    format!("/deck/1/review")
+}
+
+
 fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerator) {
 
     match view_route {
@@ -838,6 +859,11 @@ fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerat
                     r"^/deck/(?P<deck_id>\d+)/settings$",
                     route_deck_settings,
                     route_deck_settings_link),
+
+                DeckRoute::Review => (
+                    r"^/deck/(?P<deck_id>\d+)/review$",
+                    route_deck_review,
+                    route_deck_review_link),
             }
         }
     }
@@ -917,6 +943,9 @@ impl<'component, 'a, 'b> RenderOnce for AppComponent<'component, Context<'a, 'b>
                                 a(href = view_route_to_link(AppRoute::Settings, &context), class="btn btn-link") {
                                     : "settings"
                                 }
+                                : " ";
+                                input(type="text", class="form-input input-inline", placeholder="search");
+                                : " ";
                                 a(href="#", class="btn btn-primary") {
                                     : "login"
                                 }
@@ -937,6 +966,8 @@ impl<'component, 'a, 'b> RenderOnce for AppComponent<'component, Context<'a, 'b>
                         //     // : ViewRouteResolver::new(&context)
                             |tmpl| match context.view_route {
                                 AppRoute::Home => {
+                                    // TODO: fix
+                                    // NOTE: goes to DeckDetailComponent
                                     unreachable!();
                                     // tmpl << DeckDetailComponent::new(&context)
                                 }
@@ -1183,13 +1214,13 @@ impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a,
                     }
                 }
                 li(class="menu-item") {
-                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Cards),
+                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Review),
                         &context),
                         style = labels!("font-weight:bold;" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards))
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Review))
                             ),
                         class = labels!("active" =>
-                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards)))
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Review)))
                     ) {
                         : "Review this Deck"
                     }
@@ -1272,6 +1303,7 @@ impl<'component, 'a, 'b> RenderOnce for DeckDetailComponent<'component, Context<
                             &DeckRoute::Cards => tmpl << DeckCardsComponent::new(&context),
                             &DeckRoute::Meta => tmpl << DeckMetaComponent::new(&context),
                             &DeckRoute::Settings => tmpl << DeckSettingsComponent::new(&context),
+                            &DeckRoute::Review => tmpl << DeckReviewComponent::new(&context),
                         };
                     }
                     section(class="column col-3") {
@@ -1416,7 +1448,7 @@ impl<'component, 'a, 'b> RenderOnce for DeckCardsComponent<'component, Context<'
                     }
                 }
                 div(class="columns") {
-                    div(class="col-12") {
+                    div(class="column") {
                         button(class="btn btn-primary", style="background-color: #32b643;border-color: #30ae40;") {
                             : "New Card"
                         }
@@ -1424,13 +1456,68 @@ impl<'component, 'a, 'b> RenderOnce for DeckCardsComponent<'component, Context<'
                         button(class="btn") {
                             : "Review this Deck"
                         }
-                        div(class="divider") {}
+                        : " ";
+                        div(class="input-group inline float-right") {
+                            input(type="text", class="form-input input-inline", placeholder="Search within this deck");
+                            button(class="btn btn-primary input-group-btn") {
+                                : "Search"
+                            }
+                        }
                     }
+                    // div(class="column") {
+                    //     div(class="input-group") {
+                    //         input(type="text", class="form-input input-inline", placeholder="search");
+                    //         button(class="btn btn-primary input-group-btn") {
+                    //             : "Search"
+                    //         }
+                    //     }
+                    // }
                 }
-                @ for i in 0..10 {
+                div(class="columns") {
+                    div(class="column", style="display: flex;justify-content: flex-end") {
+                        : " ";
+                        select(class="form-select") {
+                            option {
+                                : "Order by Recent"
+                            }
+                            option {
+                                : "Order by Least Recent"
+                            }
+                        }
+                        : " ";
+                        select(class="form-select", style="margin-left:5px;") {
+                            option {
+                                : "Sort by Updated"
+                            }
+                            option {
+                                : "Choose an option"
+                            }
+                            option {
+                                : "Choose an option"
+                            }
+                        }
+                        : " ";
+                    }
+                    // div(class="column") {
+                    //     select(class="form-select") {
+                    //         option {
+                    //             : "Choose an option"
+                    //         }
+                    //         option {
+                    //             : "Choose an option"
+                    //         }
+                    //         option {
+                    //             : "Choose an option"
+                    //         }
+                    //     }
+                    // }
+                }
+                div(class="divider") {}
+                @ for i in 1..25 {
                     div(class="columns") {
                         div(class="col-12") {
-                            : CardItem::new(&context, &i)
+                            // : CardItem::new(&context, &i)
+                            |tmpl| CardItem(tmpl, &context, &i)
                         }
                     }
 
@@ -1492,9 +1579,16 @@ impl<'component, 'a, 'b> RenderOnce for DeckSettingsComponent<'component, Contex
     }
 }
 
+// components/DeckReviewComponent
+fn DeckReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    tmpl << html! {
+        : "review deck"
+    };
+}
+
 // components/CardItem
-template! {
-    CardItem(context: &Context<'a, 'a>, card_id: &u32) {
+fn CardItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, card_id: &u32) {
+    tmpl << html! {
         div(class = "card") {
             div(class="card-header") {
                 h4(class="card-title") {
@@ -1511,7 +1605,7 @@ template! {
                 : "Last reviewed yesterday"
             }
         }
-    }
+    };
 }
 
 /* helpers */
@@ -1525,6 +1619,69 @@ fn decode_percents(string: &OsStr) -> String {
 
     // String::from_utf8(.if_any().unwrap()).unwrap()
     // OsStr::new(&token)
+}
+
+/* LogEntry */
+// Shamelessly taken from:
+// https://github.com/tomaka/rouille/blob/68b9c65886f8aa75107f0ce3423a790f95ab675a/src/log.rs
+
+/// RAII guard that ensures that a log entry corresponding to a request will be written.
+///
+/// # Example
+///
+/// ```no_run
+/// rouille::start_server("localhost:80", move |request| {
+///     let _entry = rouille::LogEntry::start(std::io::stdout(), request);
+///
+///     // process the request here
+///
+/// # panic!()
+/// }); // <-- the log entry is written at the end of this block
+/// ```
+///
+pub struct LogEntry<W> where W: Write {
+    line: String,
+    output: W,
+    start_time: u64,
+}
+
+impl<'a, W> LogEntry<W> where W: Write {
+    /// Starts a `LogEntry`.
+    pub fn start(output: W, rq: &Request) -> LogEntry<W> {
+        LogEntry {
+            line: format!("{} {}", rq.method, rq.uri),
+            output: output,
+            start_time: time::precise_time_ns(),
+        }
+    }
+}
+
+impl<W> Drop for LogEntry<W> where W: Write {
+    fn drop(&mut self) {
+        write!(self.output, "{} - ", self.line).unwrap();
+
+        if thread::panicking() {
+            write!(self.output, " - PANIC!").unwrap();
+
+        } else {
+            let elapsed = time::precise_time_ns() - self.start_time;
+            format_time(self.output.by_ref(), elapsed);
+        }
+
+        writeln!(self.output, "").unwrap();
+    }
+}
+
+fn format_time<W>(mut out: W, time: u64) where W: Write {
+    if time < 1_000 {
+        write!(out, "{}ns", time).unwrap()
+    } else if time < 1_000_000 {
+        write!(out, "{:.1}us", time as f64 / 1_000.0).unwrap()
+    } else if time < 1_000_000_000 {
+        write!(out, "{:.1}ms", time as f64 / 1_000_000.0).unwrap()
+    } else {
+        write!(out, "{:.1}s", time as f64 / 1_000_000_000.0).unwrap()
+    }
 }
 
 /* grokdb */
@@ -1572,7 +1729,8 @@ fn main() {
                 &DeckRoute::Decks => {},
                 &DeckRoute::Cards => {},
                 &DeckRoute::Meta => {},
-                &DeckRoute::Settings => {}
+                &DeckRoute::Settings => {},
+                &DeckRoute::Review => {},
             }
         }
     };
@@ -1585,6 +1743,7 @@ fn main() {
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Cards));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Meta));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Settings));
+    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Review));
 
     // router.get(r"^/$", route_root);
     // router.get(r"^/settings$", route_settings);
@@ -1602,6 +1761,10 @@ fn main() {
     let server = Server::http("127.0.0.1:3000").unwrap();
 
     let _guard = server.handle(move |request: Request, response: Response| {
+
+        // logger
+        // TODO: logging microservice?
+        let _entry = LogEntry::start(io::stdout(), &request);
 
         let uri = format!("{}", request.uri);
 
