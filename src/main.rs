@@ -922,6 +922,17 @@ impl<'component, 'a, 'b> RenderOnce for AppComponent<'component, Context<'a, 'b>
                                 }
                             }
                         }
+
+                        noscript {
+                            div(class="toast toast-danger") {
+                                : "grokdb requires JavaScript to function properly. Go to: ";
+                                a(href="http://enable-javascript.com/", target="_blank", style="color: #000000") {
+                                    : "http://enable-javascript.com/"
+                                }
+                                : " to enable JavaScript for your browser.";
+                            }
+                        }
+
                         // section {
                         // // section(class="container") {
                         //     // : ViewRouteResolver::new(&context)
@@ -1172,6 +1183,18 @@ impl<'component, 'a, 'b> RenderOnce for DeckNavComponent<'component, Context<'a,
                         : "Cards"
                     }
                 }
+                li(class="menu-item") {
+                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Cards),
+                        &context),
+                        style = labels!("font-weight:bold;" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards))
+                            ),
+                        class = labels!("active" =>
+                            matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards)))
+                    ) {
+                        : "Review this Deck"
+                    }
+                }
                 li(class="divider") {}
                 li(class="menu-item") {
                     : "Brief Deck Statistics (TBA)"
@@ -1242,9 +1265,6 @@ impl<'component, 'a, 'b> RenderOnce for DeckDetailComponent<'component, Context<
                     }
                 }
                 section(class="columns") {
-                    section(class="column col-3") {
-                        : DeckNavComponent::new(&context);
-                    }
                     section(class="column col-9") {
                         |tmpl| match deck_route {
                             &DeckRoute::New => tmpl << NewDeckComponent::new(&context),
@@ -1254,6 +1274,9 @@ impl<'component, 'a, 'b> RenderOnce for DeckDetailComponent<'component, Context<
                             &DeckRoute::Meta => tmpl << DeckMetaComponent::new(&context),
                             &DeckRoute::Settings => tmpl << DeckSettingsComponent::new(&context),
                         };
+                    }
+                    section(class="column col-3") {
+                        : DeckNavComponent::new(&context);
                     }
                 }
             }
@@ -1385,9 +1408,34 @@ impl<'component, 'a, 'b> RenderOnce for DeckCardsComponent<'component, Context<'
 
         tmpl << html! {
 
-            // : "lol"
-            @ for i in 0..10 {
-                : CardItem::new(&context, &i)
+            div(class="container") {
+                div(class="columns") {
+                    div(class="col-12") {
+                        h5 {
+                            : "Cards within Mathematics"
+                        }
+                    }
+                }
+                div(class="columns") {
+                    div(class="col-12") {
+                        button(class="btn btn-primary", style="background-color: #32b643;border-color: #30ae40;") {
+                            : "New Card"
+                        }
+                        : " ";
+                        button(class="btn") {
+                            : "Review this Deck"
+                        }
+                        div(class="divider") {}
+                    }
+                }
+                @ for i in 0..10 {
+                    div(class="columns") {
+                        div(class="col-12") {
+                            : CardItem::new(&context, &i)
+                        }
+                    }
+
+                }
             }
         };
     }
