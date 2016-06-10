@@ -85,155 +85,29 @@ macro_rules! default {
     )
 }
 
-// static SEPERATOR: &'static str = " ";
+// alias
+macro_rules! classnames {
+    ($($tail:tt)+) => {{
+        let class = labels!($($tail)*).into_string().unwrap();
+        if class.len() > 0 {
+            Some(class)
+        } else {
+            None
+        }
+    }};
+}
 
-// macro_rules! labels {
-
-//     (@inner_expand $tmpl:ident $item:expr) => {
-//         $item.render_once($tmpl);
-//     };
-
-
-//     (@inner_expand $tmpl:ident $item:expr => $should_include:expr) => {
-//         if $should_include {
-//             $item.render_once($tmpl);
-//         }
-//     };
-
-//     (@inner_expand $tmpl:ident $item:expr, $($tail:tt)+) => {
-//         $item.render_once($tmpl);
-//         SEPERATOR.render_once($tmpl);
-//         labels!(@inner_expand $tmpl $($tail)*);
-//     };
-
-//     (@inner_expand $tmpl:ident $item:expr => $should_include:expr, $($tail:tt)+) => {
-//         if $should_include {
-//             $item.render_once($tmpl);
-//             SEPERATOR.render_once($tmpl);
-//         }
-//         labels!(@inner_expand $tmpl $($tail)*);
-//     };
-
-//     // entries
-
-//     ($item:expr) => {
-
-//         FnRenderer::new(|tmpl| {
-//             $item.render_once(tmpl);
-//         }).into_string().unwrap()
-
-//     };
-
-//     ($item:expr => $should_include:expr) => {
-
-//         FnRenderer::new(|tmpl| {
-//             if $should_include {
-//                 $item.render_once(tmpl);
-//             }
-//         }).into_string().unwrap()
-
-//     };
-
-//     ($item:expr, $($tail:tt)+) => {
-
-//         FnRenderer::new(|tmpl| {
-//             $item.render_once(tmpl);
-//             SEPERATOR.render_once(tmpl);
-//             labels!(@inner_expand tmpl $($tail)*);
-//         }).into_string().unwrap()
-
-//     };
-
-//     ($item:expr => $should_include:expr, $($tail:tt)+) => {
-
-//         FnRenderer::new(|tmpl| {
-//             if $should_include {
-//                 $item.render_once(tmpl);
-//                 SEPERATOR.render_once(tmpl);
-//             }
-//             labels!(@inner_expand tmpl $($tail)*);
-//         }).into_string().unwrap()
-
-//     };
-
-// }
-
-// Based on https://github.com/JedWatson/classnames
-// https://is.gd/Pzv20j
-// macro_rules! classnames {
-
-//     // base cases
-
-//     ($name: expr) => (
-//         format!("{}", $name)
-//     );
-
-//     ($name:expr => $should_include:expr) => (
-//         if $should_include {
-//             format!("{}", $name)
-//         } else {
-//             format!("")
-//         }
-//     );
-
-//     // expansions
-
-//     ($name:expr, $($tail:tt)+) => {
-
-//         // html!{
-//         //     classnames!(@inner_expand $($tail)*)
-//         // }
-
-//         format!("{} {}", $name, classnames!($($tail)*))
-
-//     };
-
-//     ($name:expr => $should_include:expr, $($tail:tt)+) => {
-
-//         // if $should_include {
-//         //     html!{
-//         //         |t| {
-//         //             t << $name;
-//         //             classnames!(@inner_expand $($tail)*)
-//         //         }
-//         //     }
-//         // } else {
-//         //     html!{
-//         //         |t| {
-//         //             classnames!(@inner_expand $($tail)*)
-//         //         }
-//         //     }
-//         // };
-
-//         if $should_include {
-//             format!("{} {}", $name, classnames!($($tail)*))
-//         } else {
-//             classnames!($($tail)*)
-//         };
-//     };
-
-// }
-
-// fn main() {
-
-//     let style = classnames! { "active".to_string() => { true } };
-//     let style = classnames! { "active" => { true } };
-//     trace_macros!(true);
-//     let style = classnames!("button-style", "active" => {
-//         true
-//     });
-//     let style = classnames!("button-style", "active" => {
-//         false
-//     });
-//     let style = classnames!("active" => {
-//         false
-//     }, "button-style");
-
-//     println!("{}", style);
-
-// }
-
-
+// alias
+macro_rules! stylenames {
+    ($($tail:tt)+) => {{
+        let class = labels_sep_by!(""; $($tail)*).into_string().unwrap();
+        if class.len() > 0 {
+            Some(class)
+        } else {
+            None
+        }
+    }};
+}
 
 /* database */
 
@@ -598,10 +472,18 @@ fn route_settings(mut context: Context, request: Request, response: Response) {
     render_app_component(context, format!("grokdb"), request, response);
 }
 
+fn route_new_card(mut context: Context, request: Request, response: Response) {
+
+    // TODO: fetch deck_id
+    context.view_route = AppRoute::Deck(1, DeckRoute::NewCard);
+
+    render_app_component(context, format!("grokdb"), request, response);
+}
+
 fn route_new_deck(mut context: Context, request: Request, response: Response) {
 
     // TODO: fetch deck_id
-    context.view_route = AppRoute::Deck(1, DeckRoute::New);
+    context.view_route = AppRoute::Deck(1, DeckRoute::NewDeck);
 
     render_app_component(context, format!("grokdb"), request, response);
 }
@@ -746,7 +628,8 @@ enum AppRoute {
 #[derive(Debug)]
 enum DeckRoute {
 
-    New,
+    NewCard,
+    NewDeck,
     Description,
     Decks,
     Cards,
@@ -776,6 +659,14 @@ fn route_new_deck_link(context: &Context) -> String {
 
     format!("/deck/1/new/deck")
 }
+
+fn route_new_card_link(context: &Context) -> String {
+
+    // TODO: fetch deck_id
+
+    format!("/deck/1/new/card")
+}
+
 
 fn route_deck_description_link(context: &Context) -> String {
 
@@ -832,7 +723,12 @@ fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerat
         AppRoute::Deck(_, deck_route) => {
 
             match deck_route {
-                DeckRoute::New => (
+                DeckRoute::NewCard=> (
+                    r"^/deck/(?P<deck_id>\d+)/new/card$",
+                    route_new_card,
+                    route_new_card_link),
+
+                DeckRoute::NewDeck=> (
                     r"^/deck/(?P<deck_id>\d+)/new/deck$",
                     route_new_deck,
                     route_new_deck_link),
@@ -969,7 +865,7 @@ fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, ti
 
                             }
                         };
-                    };
+                    }
 
                     // }
                     // p : Page::new(format!("boop"))
@@ -1105,10 +1001,10 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
             li(class="menu-item") {
                 a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Description),
                     &context),
-                    style = labels!("font-weight:bold;" =>
+                    style? = stylenames!("font-weight:bold;" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description))
                         ),
-                    class = labels!("active" =>
+                    class? = classnames!("active" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description)))
                 ) {
                     : "Description"
@@ -1117,10 +1013,10 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
             li(class="menu-item") {
                 a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Decks),
                     &context),
-                    style = labels!("font-weight:bold;" =>
+                    style? = stylenames!("font-weight:bold;" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks))
                         ),
-                    class = labels!("active" =>
+                    class? = classnames!("active" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks)))
                     // class = "active"
                 ) {
@@ -1130,10 +1026,10 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
             li(class="menu-item") {
                 a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Cards),
                     &context),
-                    style = labels!("font-weight:bold;" =>
+                    style? = stylenames!("font-weight:bold;" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards))
                         ),
-                    class = labels!("active" =>
+                    class? = classnames!("active" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards)))
                 ) {
                     : "Cards"
@@ -1142,27 +1038,23 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
             li(class="menu-item") {
                 a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Review),
                     &context),
-                    style = labels!("font-weight:bold;" =>
+                    style? = stylenames!("font-weight:bold;" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Review))
                         ),
-                    class = labels!("active" =>
+                    class? = classnames!("active" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Review)))
                 ) {
                     : "Review this Deck"
                 }
             }
-            li(class="divider") {}
-            li(class="menu-item") {
-                : "Brief Deck Statistics (TBA)"
-            }
-            li(class="divider") {}
+            // li(class="divider") {}
             li(class="menu-item") {
                 a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Meta),
                     &context),
-                    style = labels!("font-weight:bold;" =>
+                    style? = stylenames!("font-weight:bold;" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta))
                         ),
-                    class = labels!("active" =>
+                    class? = classnames!("active" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta)))
                 ) {
                     : "Meta"
@@ -1171,17 +1063,31 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
             li(class="menu-item") {
                 a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Settings),
                     &context),
-                    style = labels!("font-weight:bold;" =>
+                    style? = stylenames!("font-weight:bold;" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings))
                         ),
-                    class = labels!("active" =>
+                    class? = classnames!("active" =>
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings)))
                 ) {
                     : "Settings"
                 }
             }
         }
-
+        div(class="divider") {}
+        ul(class="menu") {
+            li(class="menu-item") {
+                : "9000 cards"
+            }
+            li(class="menu-item") {
+                : "9000 decks"
+            }
+            li(class="menu-item") {
+                : "Last reviewed yesterday."
+            }
+            li(class="menu-item") {
+                : "Last created a new card yesterday."
+            }
+        }
     };
 }
 
@@ -1194,6 +1100,8 @@ fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
         }
     };
 
+    // TODO: check if deck exists...
+
     tmpl << html! {
 
         div(class="container") {
@@ -1205,7 +1113,8 @@ fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
             section(class="columns") {
                 section(class="column col-9") {
                     |tmpl| match deck_route {
-                        &DeckRoute::New => NewDeckComponent(tmpl, &context),
+                        &DeckRoute::NewCard => NewCardComponent(tmpl, &context),
+                        &DeckRoute::NewDeck => NewDeckComponent(tmpl, &context),
                         &DeckRoute::Description => DeckDescriptionComponent(tmpl, &context),
                         &DeckRoute::Decks => ChildDecksComponent(tmpl, &context),
                         &DeckRoute::Cards => DeckCardsComponent(tmpl, &context),
@@ -1221,6 +1130,13 @@ fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
         }
 
 
+    };
+}
+
+// components/NewCardComponent
+fn NewCardComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    tmpl << html! {
+        : "new card"
     };
 }
 
@@ -1272,26 +1188,24 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
 
 // components/DeckCardsComponent
 fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+
+    let deck_id = default!();
+
     tmpl << html! {
 
         div(class="container") {
             div(class="columns") {
-                div(class="col-12") {
-                    h5(style="margin-top:0;") {
-                        : "Cards within Mathematics"
+                // div(class="col-12") {
+                //     h5(style="margin-top:0;") {
+                //         : "Cards within Mathematics"
+                //     }
+                // }
+                div(class="column") {
+                    h5(style="margin-top:0;", class="text-break") {
+                        : "Cards within MathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematics"
                     }
                 }
-            }
-            div(class="columns") {
                 div(class="column") {
-                    button(class="btn btn-primary", style="background-color: #32b643;border-color: #30ae40;") {
-                        : "New Card"
-                    }
-                    : " ";
-                    button(class="btn") {
-                        : "Review this Deck"
-                    }
-                    : " ";
                     div(class="input-group inline float-right") {
                         input(type="text", class="form-input input-inline", placeholder="Search within this deck");
                         button(class="btn btn-primary input-group-btn") {
@@ -1299,16 +1213,30 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
                         }
                     }
                 }
+            }
+            div(class="columns") {
+                div(class="column") {
+                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::NewCard),
+                            &context),
+                        style="background-color: #32b643;border-color: #30ae40;",
+                        class="btn btn-primary") {
+                        : "New Card"
+                    }
+                    : " ";
+                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Review),
+                        &context), class="btn") {
+                        : "Review this Deck"
+                    }
+                }
                 // div(class="column") {
-                //     div(class="input-group") {
-                //         input(type="text", class="form-input input-inline", placeholder="search");
+                //     div(class="input-group inline float-right") {
+                //         input(type="text", class="form-input input-inline", placeholder="Search within this deck");
                 //         button(class="btn btn-primary input-group-btn") {
                 //             : "Search"
                 //         }
                 //     }
                 // }
-            }
-            div(class="columns") {
+
                 div(class="column", style="display: flex;justify-content: flex-end") {
                     : " ";
                     select(class="form-select") {
@@ -1333,26 +1261,63 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
                     }
                     : " ";
                 }
+
                 // div(class="column") {
-                //     select(class="form-select") {
-                //         option {
-                //             : "Choose an option"
-                //         }
-                //         option {
-                //             : "Choose an option"
-                //         }
-                //         option {
-                //             : "Choose an option"
+                //     div(class="input-group") {
+                //         input(type="text", class="form-input input-inline", placeholder="search");
+                //         button(class="btn btn-primary input-group-btn") {
+                //             : "Search"
                 //         }
                 //     }
                 // }
             }
+            // div(class="columns") {
+            //     div(class="column", style="display: flex;justify-content: flex-end") {
+            //         : " ";
+            //         select(class="form-select") {
+            //             option {
+            //                 : "Order by Recent"
+            //             }
+            //             option {
+            //                 : "Order by Least Recent"
+            //             }
+            //         }
+            //         : " ";
+            //         select(class="form-select", style="margin-left:5px;") {
+            //             option {
+            //                 : "Sort by Updated"
+            //             }
+            //             option {
+            //                 : "Choose an option"
+            //             }
+            //             option {
+            //                 : "Choose an option"
+            //             }
+            //         }
+            //         : " ";
+            //     }
+
+
+
+            //     // div(class="column") {
+            //     //     select(class="form-select") {
+            //     //         option {
+            //     //             : "Choose an option"
+            //     //         }
+            //     //         option {
+            //     //             : "Choose an option"
+            //     //         }
+            //     //         option {
+            //     //             : "Choose an option"
+            //     //         }
+            //     //     }
+            //     // }
+            // }
             div(class="divider") {}
             @ for i in 1..25 {
                 div(class="columns") {
                     div(class="col-12") {
-                        // : CardItem::new(&context, &i)
-                        |tmpl| CardItem(tmpl, &context, &i)
+                        |tmpl| CardItem(tmpl, &context, &i);
                     }
                 }
 
@@ -1523,7 +1488,8 @@ fn main() {
         AppRoute::Settings => {},
         AppRoute::Deck(_deck_id, ref _deck_route) => {
             match _deck_route {
-                &DeckRoute::New => {},
+                &DeckRoute::NewCard => {},
+                &DeckRoute::NewDeck => {},
                 &DeckRoute::Description => {},
                 &DeckRoute::Decks => {},
                 &DeckRoute::Cards => {},
@@ -1536,7 +1502,8 @@ fn main() {
 
     route!(router, Get, AppRoute::Home);
     route!(router, Get, AppRoute::Settings);
-    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::New));
+    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::NewCard));
+    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::NewDeck));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Description));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Decks));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Cards));
@@ -1563,6 +1530,7 @@ fn main() {
 
         // logger
         // TODO: logging microservice?
+        // NOTE: this is a RAII guard
         let _entry = LogEntry::start(io::stdout(), &request);
 
         let uri = format!("{}", request.uri);
