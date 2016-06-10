@@ -465,6 +465,13 @@ fn route_root(mut context: Context, request: Request, response: Response) {
 }
 
 
+fn route_stashes(mut context: Context, request: Request, response: Response) {
+
+    context.view_route = AppRoute::Stashes;
+
+    render_app_component(context, format!("grokdb"), request, response);
+}
+
 fn route_settings(mut context: Context, request: Request, response: Response) {
 
     context.view_route = AppRoute::Settings;
@@ -622,6 +629,8 @@ enum AppRoute {
     // user settings
     Settings,
 
+    Stashes,
+
     Deck(DeckID, DeckRoute)
 }
 
@@ -651,6 +660,10 @@ fn route_root_link(context: &Context) -> String {
 
 fn route_settings_link(context: &Context) -> String {
     format!("/settings")
+}
+
+fn route_stashes_link(context: &Context) -> String {
+    format!("/stashes")
 }
 
 fn route_new_deck_link(context: &Context) -> String {
@@ -719,6 +732,8 @@ fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerat
         AppRoute::Home => (r"^/$", route_root, route_root_link),
 
         AppRoute::Settings => (r"^/settings$", route_settings, route_settings_link),
+
+        AppRoute::Stashes => (r"^/stashes$", route_stashes, route_stashes_link),
 
         AppRoute::Deck(_, deck_route) => {
 
@@ -812,15 +827,46 @@ fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, ti
                         section(class="navbar-section") {
                             a(
                                 href = view_route_to_link(AppRoute::Home, &context),
-                                class="btn btn-link badge",
+
+                                // TODO: fix
+                                style? = stylenames!("font-weight:bold;" => {
+                                    matches!(context.view_route, AppRoute::Deck(_, _)) ||
+                                    matches!(context.view_route, AppRoute::Home)
+                                }
+                                ),
+                                class? = classnames!("btn btn-link badge", "active" => {
+                                    matches!(context.view_route, AppRoute::Deck(_, _)) ||
+                                    matches!(context.view_route, AppRoute::Home)
+                                }
+                                ),
+
                                 data-badge="9"
                             ) {
                                 : "decks"
                             }
-                            a(href="#", class="btn btn-link") {
+                            a(
+                                href = view_route_to_link(AppRoute::Stashes, &context),
+
+                                style? = stylenames!("font-weight:bold;" =>
+                                    matches!(context.view_route, AppRoute::Stashes)
+                                ),
+                                class? = classnames!("btn btn-link badge", "active" =>
+                                    matches!(context.view_route, AppRoute::Stashes)
+                                )
+
+                            ) {
                                 : "stashes"
                             }
-                            a(href = view_route_to_link(AppRoute::Settings, &context), class="btn btn-link") {
+                            a(
+                                href = view_route_to_link(AppRoute::Settings, &context),
+
+                                style? = stylenames!("font-weight:bold;" =>
+                                    matches!(context.view_route, AppRoute::Settings)
+                                ),
+                                class? = classnames!("btn btn-link badge", "active" =>
+                                    matches!(context.view_route, AppRoute::Settings)
+                                )
+                            ) {
                                 : "settings"
                             }
                             : " ";
@@ -854,6 +900,9 @@ fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, ti
                             }
                             AppRoute::Settings => {
                                 SettingsComponent(tmpl, &context);
+                            }
+                            AppRoute::Stashes => {
+                                StashesComponent(tmpl, &context);
                             }
                             AppRoute::Deck(_deck_id, ref _deck_route) => {
 
@@ -926,6 +975,20 @@ fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, ti
 //     }
 // }
 
+// components/StashesComponent
+fn StashesComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    println!("StashesComponent");
+    tmpl << html! {
+        div(class="container") {
+            div(class="columns") {
+                section(class="col-12") {
+                    : "Stashes (work in progress)"
+                }
+            }
+        }
+    };
+}
+
 // components/SettingsComponent
 fn SettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
     println!("SettingsComponent");
@@ -936,13 +999,13 @@ fn SettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b
                     : "Settings (work in progress)"
                 }
             }
-            div(class="columns") {
-                div(class="col-12") {
-                    button(class="btn btn-primary") {
-                        : "Edit"
-                    }
-                }
-            }
+            // div(class="columns") {
+            //     div(class="col-12") {
+            //         button(class="btn btn-primary") {
+            //             : "Edit"
+            //         }
+            //     }
+            // }
         }
     };
 }
@@ -1486,6 +1549,7 @@ fn main() {
     match _matcher {
         AppRoute::Home => {},
         AppRoute::Settings => {},
+        AppRoute::Stashes => {},
         AppRoute::Deck(_deck_id, ref _deck_route) => {
             match _deck_route {
                 &DeckRoute::NewCard => {},
@@ -1502,6 +1566,7 @@ fn main() {
 
     route!(router, Get, AppRoute::Home);
     route!(router, Get, AppRoute::Settings);
+    route!(router, Get, AppRoute::Stashes);
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::NewCard));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::NewDeck));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Description));
