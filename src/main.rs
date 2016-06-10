@@ -1524,7 +1524,7 @@ fn main() {
 
     /* server */
 
-    let server = Server::http("127.0.0.1:3000").unwrap();
+    let server = Server::http(("localhost", 3000)).unwrap();
 
     let _guard = server.handle(move |request: Request, response: Response| {
 
