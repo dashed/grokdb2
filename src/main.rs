@@ -95,7 +95,7 @@ use contexts::{GlobalContext, Context};
 #[macro_use]
 mod route;
 use route::manager::{Router, RouterFn, LinkGenerator};
-use route::constants::{AppRoute, DeckRoute};
+use route::constants::{AppRoute, DeckRoute, CardRoute};
 use route::helpers::{view_route_to_link};
 
 /* components */
@@ -216,7 +216,17 @@ fn main() {
                 &DeckRoute::Cards => {},
                 &DeckRoute::Meta => {},
                 &DeckRoute::Settings => {},
-                &DeckRoute::Review => {},
+                &DeckRoute::Review => {}
+            }
+        },
+        AppRoute::Card(_deck_id, ref _card_route) => {
+            match _card_route {
+                &CardRoute::Profile => {}
+            }
+        },
+        AppRoute::CardInDeck(_deck_id, _card_id, ref _card_route) => {
+            match _card_route {
+                &CardRoute::Profile => {}
             }
         }
     };
@@ -232,6 +242,8 @@ fn main() {
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Meta));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Settings));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Review));
+    route!(router, Get, AppRoute::Card(default!(), CardRoute::Profile));
+    route!(router, Get, AppRoute::CardInDeck(default!(), default!(), CardRoute::Profile));
 
     // router.get(r"^/$", route_root);
     // router.get(r"^/settings$", route_settings);

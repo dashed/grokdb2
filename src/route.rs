@@ -2,6 +2,8 @@ pub mod constants {
     /* component route constants */
 
     pub type DeckID = u64;
+    pub type CardID = u64;
+    pub type StashID = u64;
 
     #[derive(Debug)]
     pub enum AppRoute {
@@ -13,7 +15,22 @@ pub mod constants {
 
         Stashes,
 
-        Deck(DeckID, DeckRoute)
+        Deck(DeckID, DeckRoute),
+
+        Card(CardID, CardRoute),
+        CardInDeck(DeckID, CardID, CardRoute)
+    }
+
+    #[derive(Debug)]
+    pub enum CardRoute {
+        Profile,
+        // Question,
+        // Answer,
+        // Description,
+        // Settings,
+        // Meta,
+
+        // Review
     }
 
     #[derive(Debug)]
@@ -22,11 +39,12 @@ pub mod constants {
         NewCard,
         NewDeck,
         Description,
-        Decks,
-        Cards,
+        Decks, // list
+        Cards, // list
         Settings,
         Meta,
         Review,
+        // CardProfile(CardID, CardRoute)
 
         // Create,
         // Read,
@@ -115,6 +133,19 @@ mod link {
         format!("/deck/1/review")
     }
 
+    pub fn deck_card_profile(context: &Context) -> String {
+
+        // TODO: fetch deck_id
+
+        format!("/deck/1/card/1")
+    }
+
+    pub fn card_profile(context: &Context) -> String {
+
+        // TODO: fetch deck_id
+
+        format!("/card/1")
+    }
 }
 
 pub mod routes {
@@ -145,7 +176,7 @@ pub mod routes {
 
     use contexts::Context;
     use super::helpers::render_app_component;
-    use super::constants::{AppRoute, DeckRoute};
+    use super::constants::{AppRoute, DeckRoute, CardRoute};
 
     lazy_static! {
         static ref MIME_TYPES: mime_types::Types = mime_types::Types::new().unwrap();
@@ -321,6 +352,23 @@ pub mod routes {
 
         render_app_component(context, format!("grokdb"), request, response);
     }
+
+    pub fn deck_card_profile(mut context: Context, request: Request, response: Response) {
+
+        // TODO: fetch deck_id and card_id
+        context.view_route = AppRoute::CardInDeck(1, 1, CardRoute::Profile);
+
+        render_app_component(context, format!("grokdb"), request, response);
+    }
+
+    pub fn card_profile(mut context: Context, request: Request, response: Response) {
+
+        // TODO: fetch card_id
+        context.view_route = AppRoute::Card(1, CardRoute::Profile);
+
+        render_app_component(context, format!("grokdb"), request, response);
+    }
+
 
     /* helpers */
 
@@ -539,7 +587,7 @@ pub mod helpers {
     /* local imports */
 
     use contexts::Context;
-    use super::constants::{AppRoute, DeckRoute};
+    use super::constants::{AppRoute, DeckRoute, CardRoute};
     use components::{AppComponent};
     use super::manager::{RouterFn, LinkGenerator};
 
@@ -612,6 +660,28 @@ pub mod helpers {
             AppRoute::Settings => (r"^/settings$", super::routes::settings, super::link::settings),
 
             AppRoute::Stashes => (r"^/stashes$", super::routes::stashes, super::link::stashes),
+
+            AppRoute::Card(_, card_route) => {
+
+                match card_route {
+                    CardRoute::Profile => {
+                        (r"^/card/(?P<card_id>\d+)$", super::routes::card_profile, super::link::card_profile)
+                    },
+                }
+            },
+
+            AppRoute::CardInDeck(_, _, card_route) => {
+
+                match card_route {
+                    CardRoute::Profile => {
+                        (
+                            r"^/deck/(?P<deck_id>\d+)/card/(?P<card_id>\d+)$",
+                            super::routes::deck_card_profile,
+                            super::link::deck_card_profile
+                        )
+                    },
+                }
+            },
 
             AppRoute::Deck(_, deck_route) => {
 

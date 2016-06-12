@@ -6,7 +6,7 @@ use templates::{RenderOnce, TemplateBuffer, Template, FnRenderer};
 
 use contexts::{Context};
 use route::helpers::{view_route_to_link};
-use route::constants::{AppRoute, DeckRoute};
+use route::constants::{AppRoute, DeckRoute, CardRoute};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -147,6 +147,12 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                                 //     &DeckRoute::New => tmpl << NewDeckComponent::new(&context)
                                 // }
 
+                            },
+                            AppRoute::Card(_card_id, ref _card_route) => {
+                                CardDetailComponent(tmpl, &context);
+                            },
+                            AppRoute::CardInDeck(_deck_id, _card_id, ref _card_route) => {
+                                CardDetailComponent(tmpl, &context);
                             }
                         };
                     }
@@ -245,7 +251,6 @@ fn SettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b
     };
 }
 
-// components/BreadCrumbComponent
 fn BreadCrumbComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
     tmpl << html! {
         ul(class="breadcrumb") {
@@ -264,7 +269,6 @@ fn BreadCrumbComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
     };
 }
 
-// components/DeckNavComponent
 fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
 
     let deck_id = default!();
@@ -394,7 +398,6 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
     };
 }
 
-// components/DeckDetailComponent
 fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
     let (deck_id, deck_route) = {
         match context.view_route {
@@ -423,7 +426,7 @@ fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
                         &DeckRoute::Cards => DeckCardsComponent(tmpl, &context),
                         &DeckRoute::Meta => DeckMetaComponent(tmpl, &context),
                         &DeckRoute::Settings => DeckSettingsComponent(tmpl, &context),
-                        &DeckRoute::Review => DeckReviewComponent(tmpl, &context),
+                        &DeckRoute::Review => DeckReviewComponent(tmpl, &context)
                     };
                 }
                 section(class="column col-3") {
@@ -464,11 +467,11 @@ fn NewCardComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                 div(class="column") {
                     div(class="btn-group btn-group-block") {
                         a(href="#", class="btn btn-primary")  {
-                            : "Front"
+                            : "Question"
                         }
                         : " ";
                         a(href="#", class="btn")  {
-                            : "Back"
+                            : "Answer"
                         }
                         : " ";
                         a(href="#", class="btn")  {
@@ -656,13 +659,16 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
                 }
             }
             div(class="divider") {}
-            @ for i in 1..25 {
-                div(class="columns") {
-                    div(class="col-12") {
-                        : "deck"
+            |tmpl| {
+                for i in 1..25 {
+                    &mut *tmpl << html! {
+                        div(class="columns") {
+                            div(class="col-12") {
+                                : "deck"
+                            }
+                        }
                     }
-                }
-
+                };
             }
         }
     };
@@ -796,14 +802,26 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
             //     // }
             // }
             div(class="divider") {}
-            @ for i in 1..25 {
-                div(class="columns") {
-                    div(class="col-12") {
-                        |tmpl| CardItem(tmpl, &context, &i);
+            |tmpl| {
+                for i in 1..25 {
+                    &mut *tmpl << html! {
+                        div(class="columns") {
+                            div(class="col-12") {
+                                |tmpl| CardItem(tmpl, &context, i);
+                            }
+                        }
                     }
-                }
-
+                };
             }
+
+            // @ for i in 1..25 {
+            //     div(class="columns") {
+            //         div(class="col-12") {
+            //             |tmpl| CardItem(tmpl, &context, &i);
+            //         }
+            //     }
+
+            // }
         }
     };
 }
@@ -832,13 +850,17 @@ fn DeckReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
     };
 }
 
-// components/CardItem
-fn CardItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, card_id: &u32) {
+fn CardItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, card_id: u64) {
+
+    let deck_id = default!();
+
     tmpl << html! {
         div(class = "card") {
             div(class="card-header") {
                 h4(class="card-title") {
-                    a(href="#") {
+                    a(href = view_route_to_link(
+                        AppRoute::CardInDeck(deck_id, card_id, CardRoute::Profile), &context)) {
+
                         : "Microsoft"
                     }
                 }
@@ -854,3 +876,135 @@ fn CardItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, card_i
     };
 }
 
+fn CardDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    let (card_id, card_route) = {
+        match context.view_route {
+            AppRoute::Card(card_id, ref card_route) => (card_id, card_route),
+            AppRoute::CardInDeck(_deck_id, card_id, ref card_route) => (card_id, card_route),
+            _ => unreachable!()
+        }
+    };
+
+    // TODO: check if card exists...
+
+    tmpl << html! {
+
+        div(class="container") {
+            div(class="columns") {
+                div(class="col-12") {
+                    |tmpl| BreadCrumbComponent(tmpl, &context);
+                }
+            }
+            div(class="columns") {
+                div(class="column col-9") {
+                    |tmpl| match card_route {
+                        &CardRoute::Profile => CardProfileComponent(tmpl, &context)
+                    };
+                }
+                div(class="column col-3") {
+                    |tmpl| CardNavComponent(tmpl, &context);
+                }
+            }
+
+        }
+
+
+    };
+}
+
+fn CardProfileComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+    tmpl << html! {
+        div(class="container") {
+            div(class="columns") {
+                div(class="column") {
+                    : "card profile"
+                }
+            }
+
+        }
+    };
+}
+
+fn CardNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+
+    let deck_id = default!();
+
+    tmpl << html! {
+        ul(class="menu") {
+
+            li(class="menu-item") {
+                div(class="chip") {
+                    div(class="chip-content") {
+                        : "Card #123"
+                    }
+                }
+            }
+
+            li(class="menu-item") {
+                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Description),
+                    &context),
+                    style? = stylenames!("font-weight:bold;" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description))
+                        ),
+                    class? = classnames!("active" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description)))
+                ) {
+                    : "Detail"
+                }
+            }
+
+            li(class="menu-item") {
+                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Review),
+                    &context),
+                    style? = stylenames!("font-weight:bold;" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Review))
+                        ),
+                    class? = classnames!("active" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Review)))
+                ) {
+                    : "Review this Card"
+                }
+            }
+            // li(class="divider") {}
+            li(class="menu-item") {
+                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Meta),
+                    &context),
+                    style? = stylenames!("font-weight:bold;" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta))
+                        ),
+                    class? = classnames!("active" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Meta)))
+                ) {
+                    : "Meta"
+                }
+            }
+            li(class="menu-item") {
+                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Settings),
+                    &context),
+                    style? = stylenames!("font-weight:bold;" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings))
+                        ),
+                    class? = classnames!("active" =>
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Settings)))
+                ) {
+                    : "Settings"
+                }
+            }
+        }
+        div(class="divider") {}
+        ul(class="menu") {
+            li(class="menu-item") {
+                : "9000 cards"
+            }
+            li(class="menu-item") {
+                : "9000 decks"
+            }
+            li(class="menu-item") {
+                : "Last reviewed yesterday."
+            }
+            li(class="menu-item") {
+                : "Last created a new card yesterday."
+            }
+        }
+    };
+}
