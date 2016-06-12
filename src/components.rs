@@ -21,6 +21,35 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                     rel="stylesheet",
                     href="/assets/spectre.min.css"
                 );
+
+                // custom stylesheet for specific views
+                |tmpl| {
+
+                    // TODO: css minify using build.rs
+
+                    match context.view_route {
+                        AppRoute::Deck(_, DeckRoute::NewCard) |
+                        AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
+                            tmpl << html! {
+                                style {
+                                    : raw!("
+                                        .btn-success {
+                                            border-color: #30ae40;
+                                            color: #32b643;
+                                        }
+                                        a.btn-success:hover {
+                                            background: #32b643;
+                                            border-color: #30ae40;
+                                            color: #fff;
+                                        }
+                                    ");
+                                }
+                            };
+
+                        },
+                        _ => {}
+                    };
+                }
             }
             body {
                 section(class="container grid-960") {
@@ -280,26 +309,31 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                 }
             }
             li(class="menu-item") {
-                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Decks),
-                    &context),
-                    style? = stylenames!("font-weight:bold;" =>
-                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks))
-                        ),
-                    class? = classnames!("active" =>
-                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks)))
-                    // class = "active"
+                a(
+                    href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Decks), &context),
+                    style? = stylenames!("font-weight:bold;" => {
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks)) ||
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::NewDeck))
+                    }),
+                    class? = classnames!("active" => {
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks)) ||
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::NewDeck))
+                    })
                 ) {
                     : "Child Decks"
                 }
             }
             li(class="menu-item") {
-                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Cards),
-                    &context),
-                    style? = stylenames!("font-weight:bold;" =>
-                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards))
-                        ),
-                    class? = classnames!("active" =>
-                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards)))
+                a(
+                    href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Cards), &context),
+                    style? = stylenames!("font-weight:bold;" => {
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards)) ||
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::NewCard))
+                    }),
+                    class? = classnames!("active" => {
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Cards)) ||
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::NewCard))
+                    })
                 ) {
                     : "Cards"
                 }
@@ -405,14 +439,155 @@ fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
 // components/NewCardComponent
 fn NewCardComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
     tmpl << html! {
-        : "new card"
+
+        div(class="container") {
+            div(class="columns") {
+                div(class="column") {
+                    h5(style="margin-top:0;margin-bottom:0;", class="text-break") {
+                        : "New Card"
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    div(class="form-group") {
+                        label(class="form-label", for="input-card-name") {
+                            : "Name"
+                        }
+                        input(class="form-input", type="text", id="input-card-name", placeholder="Name");
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    div(class="btn-group btn-group-block") {
+                        a(href="#", class="btn btn-primary")  {
+                            : "Front"
+                        }
+                        : " ";
+                        a(href="#", class="btn")  {
+                            : "Back"
+                        }
+                        : " ";
+                        a(href="#", class="btn")  {
+                            : "Description"
+                        }
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    ul(class="tab") {
+                        li(class="tab-item active") {
+                            a(href="#") {
+                                : "Source"
+                            }
+                        }
+                        li(class="tab-item") {
+                            a(href="#") {
+                                : "Render"
+                            }
+                        }
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    div(class="form-group") {
+                        textarea(
+                            class="form-input",
+                            id="input-deck-description",
+                            placeholder="Front of Card",
+                            rows="6"
+                        ) {
+                        }
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    a(href="#", class="btn btn-success") {
+                        : "Add new Card"
+                    }
+                }
+            }
+        }
+
     };
 }
 
 // components/NewDeckComponent
 fn NewDeckComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
     tmpl << html! {
-        : "new deck"
+
+        div(class="container") {
+            div(class="columns") {
+                div(class="column") {
+                    h5(style="margin-top:0;margin-bottom:0;", class="text-break") {
+                        : "New Deck"
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    div(class="form-group") {
+                        label(class="form-label", for="input-deck-name") {
+                            : "Name"
+                        }
+                        input(class="form-input", type="text", id="input-deck-name", placeholder="Name for new deck");
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    ul(class="tab") {
+                        li(class="tab-item active") {
+                            a(href="#") {
+                                : "Source"
+                            }
+                        }
+                        li(class="tab-item") {
+                            a(href="#") {
+                                : "Render"
+                            }
+                        }
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    div(class="form-group") {
+                        label(class="form-label", for="input-deck-description") {
+                            : "Description"
+                        }
+                        textarea(
+                            class="form-input",
+                            id="input-deck-description",
+                            placeholder="Description for new deck",
+                            rows="6"
+                        ) {
+                        }
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    a(href="#", class="btn btn-success") {
+                        : "Add new Deck"
+                    }
+                }
+            }
+        }
+
     };
 }
 
@@ -449,9 +624,47 @@ fn DeckDescriptionComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context
 
 // components/ChildDecksComponent
 fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+
+    let deck_id = default!();
+
     tmpl << html! {
 
-        : "deck children"
+        div(class="container") {
+            div(class="columns") {
+                div(class="column") {
+                    h5(style="margin-top:0;", class="text-break") {
+                        : "Decks within Math"
+                    }
+                }
+                div(class="column") {
+                    div(class="input-group inline float-right") {
+                        input(type="text", class="form-input input-inline", placeholder="Search within this deck");
+                        button(class="btn btn-primary input-group-btn") {
+                            : "Search"
+                        }
+                    }
+                }
+            }
+            div(class="columns") {
+                div(class="column") {
+                    a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::NewDeck),
+                            &context),
+                        style="background-color: #32b643;border-color: #30ae40;",
+                        class="btn btn-primary") {
+                        : "New Deck"
+                    }
+                }
+            }
+            div(class="divider") {}
+            @ for i in 1..25 {
+                div(class="columns") {
+                    div(class="col-12") {
+                        : "deck"
+                    }
+                }
+
+            }
+        }
     };
 }
 
@@ -471,7 +684,7 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
                 // }
                 div(class="column") {
                     h5(style="margin-top:0;", class="text-break") {
-                        : "Cards within MathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematicsMathematics"
+                        : "Cards within Math"
                     }
                 }
                 div(class="column") {
@@ -497,14 +710,14 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
                         : "Review this Deck"
                     }
                 }
-                // div(class="column") {
-                //     div(class="input-group inline float-right") {
-                //         input(type="text", class="form-input input-inline", placeholder="Search within this deck");
-                //         button(class="btn btn-primary input-group-btn") {
-                //             : "Search"
-                //         }
-                //     }
-                // }
+            // div(class="column") {
+            //     div(class="input-group inline float-right") {
+            //         input(type="text", class="form-input input-inline", placeholder="Search within this deck");
+            //         button(class="btn btn-primary input-group-btn") {
+            //             : "Search"
+            //         }
+            //     }
+            // }
 
                 div(class="column", style="display: flex;justify-content: flex-end") {
                     : " ";

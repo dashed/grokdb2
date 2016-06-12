@@ -1,179 +1,3 @@
-pub mod manager {
-    // Source: https://github.com/gsquire/reroute
-
-    /* rust lib imports */
-
-    use std::collections::HashMap;
-
-    /* 3rd-party imports */
-
-    use regex::{Regex, RegexSet};
-    use regex::{Captures};
-
-    use hyper::method::Method;
-    use hyper::server::{Server, Handler, Request, Response};
-
-    /* local imports */
-
-    use contexts::{GlobalContext, Context};
-
-    ////////////////////////////////////////////////////////////////////////////
-
-    pub type RouterFn = fn(Context, Request, Response);
-    pub type LinkGenerator = fn(&Context) -> String;
-
-    #[derive(PartialEq, Eq, Hash)]
-    struct RouteInfo {
-        // route: String,
-
-        // fast path
-        route_map_idx: usize,
-        verb: Method
-    }
-
-    /// The Router struct contains the information for your app to route requests
-    /// properly based on their HTTP method and matching route. It allows the use
-    /// of a custom 404 handler if desired but provides a default as well.
-    ///
-    /// Under the hood a Router uses a RegexSet to match URI's that come in to the
-    /// instance of the hyper server. Because of this, it has the potential to match
-    /// multiple patterns that you provide. It will call the first handler that it
-    /// matches against so order matters.
-    pub struct Router {
-        /// A custom 404 handler that you can provide.
-        // pub not_found: Option<RouterFn>,
-
-        routes: Option<RegexSet>,
-        route_list: Vec<String>,
-        compiled_list: Vec<Regex>,
-        route_map: HashMap<RouteInfo, RouterFn>
-    }
-
-    impl Router {
-
-        pub fn new() -> Self {
-            Router {
-                routes: None,
-                route_list: Vec::new(),
-                compiled_list: Vec::new(),
-                route_map: HashMap::new(),
-            }
-        }
-
-        pub fn finalize(&mut self) {
-            if self.route_list.len() == 0  {
-                panic!("Too few routes");
-            }
-
-            let re_routes = RegexSet::new(self.route_list.iter());
-            match re_routes {
-                Ok(r) => {
-                    self.routes = Some(r);
-                }
-                Err(err) => {
-                    panic!("RegexSet::new: {:?}", err);
-                }
-            }
-        }
-
-
-        // The handle method for the router simply tries to match the URI against
-        // the first pattern that it can which in turn calls its associated handle
-        // function passing the hyper Request and Response structures.
-        //
-        // Returning None implies no route handler found.
-        pub fn handle<'a, 'b>(&'a self, context: &mut Context<'a, 'b>, request: &Request) -> Option<RouterFn> {
-
-            // TODO: remove
-            // let uri = format!("{}", request.uri);
-
-            let matches = self.routes.as_ref().unwrap().matches(&context.uri);
-            let index = matches.iter().next();
-
-            match index {
-                Some(matched_idx) => {
-
-                    // let route = &self.route_list[i];
-                    let route_info = RouteInfo {
-                        route_map_idx: matched_idx,
-                        verb: request.method.clone()
-                    };
-
-                    let handler = self.route_map.get(&route_info);
-
-                    match handler {
-                        Some(h) => {
-
-                            let compiled_pattern = &self.compiled_list[matched_idx];
-
-                            // let mut context = context;
-
-                            let captures = compiled_pattern.captures(&(context.uri));
-
-                            // guaranteed to unwrap
-                            let captures = captures.unwrap();
-
-                            context.captures = Some(captures);
-
-                            // let captures = self.get_captures(compiled_pattern, &uri).unwrap();
-
-                            return Some(*h);
-
-                            // return Some((*h, captures));
-                            // let compiled_pattern = &self.compiled_list[i];
-                            // let captures = get_captures(compiled_pattern, &uri);
-                            // h(&self.global_context, req, res, captures);
-                        }
-                        None => {
-                            return None;
-                            // TODO: remove
-                            // not_allowed(req, res);
-                        }
-                    }
-                },
-                // There is no point in passing captures to a route handler that
-                // wasn't found.
-                None => {
-                    return None;
-                }
-            }
-
-            return None;
-        }
-
-        /// Add a route to the router and give it a function to call when the route
-        /// is matched against. You can call this explicitly or use the convenience
-        /// methods defined below.
-        pub fn add_route(&mut self, verb: Method, route: &str, handler: RouterFn) {
-
-            let route_info = RouteInfo{
-                // route: route.to_string(),
-                route_map_idx: self.route_map.len(),
-                verb: verb
-            };
-
-            match Regex::new(route) {
-                Ok(p) => {
-                    self.compiled_list.push(p);
-                },
-                Err(e) => {
-                    panic!("Not adding this route due to error: {}", e);
-                }
-            }
-
-            self.route_list.push(route.to_string());
-            self.route_map.insert(route_info, handler);
-        }
-
-        /// A convenience method for GET requests.
-        pub fn get(&mut self, route: &str, handler: RouterFn) {
-            self.add_route(Method::Get, route, handler);
-        }
-
-    }
-
-}
-
 pub mod constants {
     /* component route constants */
 
@@ -290,161 +114,6 @@ mod link {
 
         format!("/deck/1/review")
     }
-
-}
-
-#[macro_use]
-pub mod helpers {
-
-    /* 3rd-party imports */
-
-    use hyper::server::{Server, Handler, Request, Response};
-    use hyper::header::{Headers, ContentType, TransferEncoding};
-
-    use templates::{RenderOnce, TemplateBuffer, Template, FnRenderer};
-
-    /* local imports */
-
-    use contexts::Context;
-    use super::constants::{AppRoute, DeckRoute};
-    use components::{AppComponent};
-    use super::manager::{RouterFn, LinkGenerator};
-
-    ////////////////////////////////////////////////////////////////////////////
-
-    pub fn render_app_component(
-        context: Context,
-        app_component_title: String,
-        request: Request,
-        response: Response) {
-
-
-
-        let mut response = response;
-
-        response.headers_mut().set((ContentType(
-            mime!(Text/Html)
-        )));
-
-        let app_component = FnRenderer::new(|tmpl| {
-            AppComponent(tmpl, &context, app_component_title);
-        });
-
-        // We lock the database for reads
-        db_read_lock!(context.global_context.db_connection);
-
-        let mut stream = response.start().unwrap();
-        app_component.write_to_io(&mut stream)
-            .unwrap();
-
-
-        /////
-
-        // let opts = ParseOpts {
-        //     tree_builder: TreeBuilderOpts {
-        //         drop_doctype: true,
-        //         ..Default::default()
-        //     },
-        //     ..Default::default()
-        // };
-
-        // // let stdin = io::stdin();
-
-        // let foo = app_component.into_string().unwrap();
-        // let mut foo = foo.as_bytes();
-
-        // let dom = parse_document(RcDom::default(), opts)
-        //     .from_utf8()
-        //     .read_from(&mut foo)
-        //     // .read_from(&mut stdin.lock())
-        //     .unwrap();
-
-        // let mut stream = response.start().unwrap();
-
-        // // The validator.nu HTML2HTML always prints a doctype at the very beginning.
-        // io::stdout().write_all(b"<!DOCTYPE html>\n")
-        //     .ok().expect("writing DOCTYPE failed");
-        // serialize(&mut stream, &dom.document, Default::default())
-        //     .ok().expect("serialization failed");
-
-    }
-
-
-    pub fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerator) {
-
-        match view_route {
-
-            AppRoute::Home => (r"^/$", super::routes::root, super::link::root),
-
-            AppRoute::Settings => (r"^/settings$", super::routes::settings, super::link::settings),
-
-            AppRoute::Stashes => (r"^/stashes$", super::routes::stashes, super::link::stashes),
-
-            AppRoute::Deck(_, deck_route) => {
-
-                match deck_route {
-                    DeckRoute::NewCard=> (
-                        r"^/deck/(?P<deck_id>\d+)/new/card$",
-                        super::routes::new_card,
-                        super::link::new_card),
-
-                    DeckRoute::NewDeck=> (
-                        r"^/deck/(?P<deck_id>\d+)/new/deck$",
-                        super::routes::new_deck,
-                        super::link::new_deck),
-
-                    DeckRoute::Description => (
-                        r"^/deck/(?P<deck_id>\d+)/description$",
-                        super::routes::deck_description,
-                        super::link::deck_description),
-
-                    DeckRoute::Decks => (
-                        r"^/deck/(?P<deck_id>\d+)/decks$",
-                        super::routes::deck_decks,
-                        super::link::deck_decks),
-
-                    DeckRoute::Cards => (
-                        r"^/deck/(?P<deck_id>\d+)/cards$",
-                        super::routes::deck_cards,
-                        super::link::deck_cards),
-
-                    DeckRoute::Meta => (
-                        r"^/deck/(?P<deck_id>\d+)/meta$",
-                        super::routes::deck_meta,
-                        super::link::deck_meta),
-
-                    DeckRoute::Settings => (
-                        r"^/deck/(?P<deck_id>\d+)/settings$",
-                        super::routes::deck_settings,
-                        super::link::deck_settings),
-
-                    DeckRoute::Review => (
-                        r"^/deck/(?P<deck_id>\d+)/review$",
-                        super::routes::deck_review,
-                        super::link::deck_review),
-                }
-            }
-        }
-
-    }
-
-    fn get_route_regex(view_route: AppRoute) -> &'static str {
-        let (regex_matcher, _, _) = get_route_tuple(view_route);
-        regex_matcher
-    }
-
-    pub fn view_route_to_link(view_route: AppRoute, context: &Context) -> String {
-        let (_, _, link_generator) = get_route_tuple(view_route);
-        link_generator(context)
-    }
-
-    // helper macro to attach get_route_tuple(...) to route manager
-    macro_rules! route(
-        ($router: expr, $method: ident, $view_route: expr) => (
-            let (regex_matcher, route_handler, _) = route::helpers::get_route_tuple($view_route);
-            $router.add_route(Method::$method, regex_matcher, route_handler);
-        )
-    );
 
 }
 
@@ -678,5 +347,336 @@ pub mod routes {
 
     //     // TODO: rendering
     // }
+
+}
+
+pub mod manager {
+    // Source: https://github.com/gsquire/reroute
+
+    /* rust lib imports */
+
+    use std::collections::HashMap;
+
+    /* 3rd-party imports */
+
+    use regex::{Regex, RegexSet};
+    use regex::{Captures};
+
+    use hyper::method::Method;
+    use hyper::server::{Server, Handler, Request, Response};
+
+    /* local imports */
+
+    use contexts::{GlobalContext, Context};
+
+    ////////////////////////////////////////////////////////////////////////////
+
+    pub type RouterFn = fn(Context, Request, Response);
+    pub type LinkGenerator = fn(&Context) -> String;
+
+    #[derive(PartialEq, Eq, Hash)]
+    struct RouteInfo {
+        // route: String,
+
+        // fast path
+        route_map_idx: usize,
+        verb: Method
+    }
+
+    /// The Router struct contains the information for your app to route requests
+    /// properly based on their HTTP method and matching route. It allows the use
+    /// of a custom 404 handler if desired but provides a default as well.
+    ///
+    /// Under the hood a Router uses a RegexSet to match URI's that come in to the
+    /// instance of the hyper server. Because of this, it has the potential to match
+    /// multiple patterns that you provide. It will call the first handler that it
+    /// matches against so order matters.
+    pub struct Router {
+        /// A custom 404 handler that you can provide.
+        // pub not_found: Option<RouterFn>,
+
+        routes: Option<RegexSet>,
+        route_list: Vec<String>,
+        compiled_list: Vec<Regex>,
+        route_map: HashMap<RouteInfo, RouterFn>
+    }
+
+    impl Router {
+
+        pub fn new() -> Self {
+            Router {
+                routes: None,
+                route_list: Vec::new(),
+                compiled_list: Vec::new(),
+                route_map: HashMap::new(),
+            }
+        }
+
+        pub fn finalize(&mut self) {
+            if self.route_list.len() == 0  {
+                panic!("Too few routes");
+            }
+
+            let re_routes = RegexSet::new(self.route_list.iter());
+            match re_routes {
+                Ok(r) => {
+                    self.routes = Some(r);
+                }
+                Err(err) => {
+                    panic!("RegexSet::new: {:?}", err);
+                }
+            }
+        }
+
+
+        // The handle method for the router simply tries to match the URI against
+        // the first pattern that it can which in turn calls its associated handle
+        // function passing the hyper Request and Response structures.
+        //
+        // Returning None implies no route handler found.
+        pub fn handle<'a, 'b>(&'a self, context: &mut Context<'a, 'b>, request: &Request) -> Option<RouterFn> {
+
+            // TODO: remove
+            // let uri = format!("{}", request.uri);
+
+            let matches = self.routes.as_ref().unwrap().matches(&context.uri);
+            let index = matches.iter().next();
+
+            match index {
+                Some(matched_idx) => {
+
+                    // let route = &self.route_list[i];
+                    let route_info = RouteInfo {
+                        route_map_idx: matched_idx,
+                        verb: request.method.clone()
+                    };
+
+                    let handler = self.route_map.get(&route_info);
+
+                    match handler {
+                        Some(h) => {
+
+                            let compiled_pattern = &self.compiled_list[matched_idx];
+
+                            // let mut context = context;
+
+                            let captures = compiled_pattern.captures(&(context.uri));
+
+                            // guaranteed to unwrap
+                            let captures = captures.unwrap();
+
+                            context.captures = Some(captures);
+
+                            // let captures = self.get_captures(compiled_pattern, &uri).unwrap();
+
+                            return Some(*h);
+
+                            // return Some((*h, captures));
+                            // let compiled_pattern = &self.compiled_list[i];
+                            // let captures = get_captures(compiled_pattern, &uri);
+                            // h(&self.global_context, req, res, captures);
+                        }
+                        None => {
+                            return None;
+                            // TODO: remove
+                            // not_allowed(req, res);
+                        }
+                    }
+                },
+                // There is no point in passing captures to a route handler that
+                // wasn't found.
+                None => {
+                    return None;
+                }
+            }
+
+            return None;
+        }
+
+        /// Add a route to the router and give it a function to call when the route
+        /// is matched against. You can call this explicitly or use the convenience
+        /// methods defined below.
+        pub fn add_route(&mut self, verb: Method, route: &str, handler: RouterFn) {
+
+            let route_info = RouteInfo{
+                // route: route.to_string(),
+                route_map_idx: self.route_map.len(),
+                verb: verb
+            };
+
+            match Regex::new(route) {
+                Ok(p) => {
+                    self.compiled_list.push(p);
+                },
+                Err(e) => {
+                    panic!("Not adding this route due to error: {}", e);
+                }
+            }
+
+            self.route_list.push(route.to_string());
+            self.route_map.insert(route_info, handler);
+        }
+
+        /// A convenience method for GET requests.
+        pub fn get(&mut self, route: &str, handler: RouterFn) {
+            self.add_route(Method::Get, route, handler);
+        }
+
+    }
+
+}
+
+#[macro_use]
+pub mod helpers {
+
+    /* 3rd-party imports */
+
+    use hyper::server::{Server, Handler, Request, Response};
+    use hyper::header::{Headers, ContentType, TransferEncoding};
+
+    use templates::{RenderOnce, TemplateBuffer, Template, FnRenderer};
+
+    /* local imports */
+
+    use contexts::Context;
+    use super::constants::{AppRoute, DeckRoute};
+    use components::{AppComponent};
+    use super::manager::{RouterFn, LinkGenerator};
+
+    ////////////////////////////////////////////////////////////////////////////
+
+    pub fn render_app_component(
+        context: Context,
+        app_component_title: String,
+        request: Request,
+        response: Response) {
+
+
+
+        let mut response = response;
+
+        response.headers_mut().set((ContentType(
+            mime!(Text/Html)
+        )));
+
+        let app_component = FnRenderer::new(|tmpl| {
+            AppComponent(tmpl, &context, app_component_title);
+        });
+
+        // We lock the database for reads
+        db_read_lock!(context.global_context.db_connection);
+
+        let mut stream = response.start().unwrap();
+        app_component.write_to_io(&mut stream)
+            .unwrap();
+
+
+        /////
+
+        // let opts = ParseOpts {
+        //     tree_builder: TreeBuilderOpts {
+        //         drop_doctype: true,
+        //         ..Default::default()
+        //     },
+        //     ..Default::default()
+        // };
+
+        // // let stdin = io::stdin();
+
+        // let foo = app_component.into_string().unwrap();
+        // let mut foo = foo.as_bytes();
+
+        // let dom = parse_document(RcDom::default(), opts)
+        //     .from_utf8()
+        //     .read_from(&mut foo)
+        //     // .read_from(&mut stdin.lock())
+        //     .unwrap();
+
+        // let mut stream = response.start().unwrap();
+
+        // // The validator.nu HTML2HTML always prints a doctype at the very beginning.
+        // io::stdout().write_all(b"<!DOCTYPE html>\n")
+        //     .ok().expect("writing DOCTYPE failed");
+        // serialize(&mut stream, &dom.document, Default::default())
+        //     .ok().expect("serialization failed");
+
+    }
+
+
+    pub fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerator) {
+
+        match view_route {
+
+            AppRoute::Home => (r"^/$", super::routes::root, super::link::root),
+
+            AppRoute::Settings => (r"^/settings$", super::routes::settings, super::link::settings),
+
+            AppRoute::Stashes => (r"^/stashes$", super::routes::stashes, super::link::stashes),
+
+            AppRoute::Deck(_, deck_route) => {
+
+                match deck_route {
+                    DeckRoute::NewCard=> (
+                        r"^/deck/(?P<deck_id>\d+)/new/card$",
+                        super::routes::new_card,
+                        super::link::new_card),
+
+                    DeckRoute::NewDeck=> (
+                        r"^/deck/(?P<deck_id>\d+)/new/deck$",
+                        super::routes::new_deck,
+                        super::link::new_deck),
+
+                    DeckRoute::Description => (
+                        r"^/deck/(?P<deck_id>\d+)/description$",
+                        super::routes::deck_description,
+                        super::link::deck_description),
+
+                    DeckRoute::Decks => (
+                        r"^/deck/(?P<deck_id>\d+)/decks$",
+                        super::routes::deck_decks,
+                        super::link::deck_decks),
+
+                    DeckRoute::Cards => (
+                        r"^/deck/(?P<deck_id>\d+)/cards$",
+                        super::routes::deck_cards,
+                        super::link::deck_cards),
+
+                    DeckRoute::Meta => (
+                        r"^/deck/(?P<deck_id>\d+)/meta$",
+                        super::routes::deck_meta,
+                        super::link::deck_meta),
+
+                    DeckRoute::Settings => (
+                        r"^/deck/(?P<deck_id>\d+)/settings$",
+                        super::routes::deck_settings,
+                        super::link::deck_settings),
+
+                    DeckRoute::Review => (
+                        r"^/deck/(?P<deck_id>\d+)/review$",
+                        super::routes::deck_review,
+                        super::link::deck_review),
+                }
+            }
+        }
+
+    }
+
+    fn get_route_regex(view_route: AppRoute) -> &'static str {
+        let (regex_matcher, _, _) = get_route_tuple(view_route);
+        regex_matcher
+    }
+
+    pub fn view_route_to_link(view_route: AppRoute, context: &Context) -> String {
+        let (_, _, link_generator) = get_route_tuple(view_route);
+        link_generator(context)
+    }
+
+    // helper macro to attach get_route_tuple(...) to route manager
+    macro_rules! route(
+        ($router: expr, $method: ident, $view_route: expr) => (
+            let (regex_matcher, route_handler, _) = route::helpers::get_route_tuple($view_route);
+            $router.add_route(Method::$method, regex_matcher, route_handler);
+        )
+    );
 
 }
