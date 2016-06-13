@@ -638,7 +638,7 @@ fn DeckListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, de
             div(class="card-header") {
                 h4(class="card-title") {
                     a(href = view_route_to_link(
-                        AppRoute::CardInDeck(deck_id, deck_id, CardRoute::Profile), &context)) {
+                        AppRoute::Deck(deck_id, DeckRoute::Decks), &context)) {
 
                         : "Microsoft"
                     }
