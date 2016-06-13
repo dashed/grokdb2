@@ -66,12 +66,16 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                                 // TODO: fix
                                 style? = stylenames!("font-weight:bold;" => {
                                     matches!(context.view_route, AppRoute::Deck(_, _)) ||
-                                    matches!(context.view_route, AppRoute::Home)
+                                    matches!(context.view_route, AppRoute::Home) ||
+                                    matches!(context.view_route, AppRoute::Card(_, _)) ||
+                                    matches!(context.view_route, AppRoute::CardInDeck(_, _, _))
                                 }
                                 ),
                                 class? = classnames!("btn btn-link badge", "active" => {
                                     matches!(context.view_route, AppRoute::Deck(_, _)) ||
-                                    matches!(context.view_route, AppRoute::Home)
+                                    matches!(context.view_route, AppRoute::Home) ||
+                                    matches!(context.view_route, AppRoute::Card(_, _)) ||
+                                    matches!(context.view_route, AppRoute::CardInDeck(_, _, _))
                                 }
                                 ),
 
@@ -281,15 +285,15 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
             //     }
 
             // }
-            li(class="menu-header") {
-                div(class="menu-header-text") {
-                    : "Deck #123"
-                }
-            }
+            // li(class="menu-header") {
+            //     div(class="menu-header-text") {
+            //         : "Deck #123"
+            //     }
+            // }
 
             li(class="menu-item") {
                 div(class="chip") {
-                    div(class="chip-content") {
+                    div(class="chip-content text-center") {
                         : "Deck #123"
                     }
                 }
@@ -625,7 +629,36 @@ fn DeckDescriptionComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context
     };
 }
 
-// components/ChildDecksComponent
+fn DeckListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, deck_id: u64) {
+
+    // let deck_id = default!();
+
+    tmpl << html! {
+        div(class = "card") {
+            div(class="card-header") {
+                h4(class="card-title") {
+                    a(href = view_route_to_link(
+                        AppRoute::CardInDeck(deck_id, deck_id, CardRoute::Profile), &context)) {
+
+                        : "Microsoft"
+                    }
+                }
+                h6(class="card-meta") {
+                    : "Deck #";
+                    : deck_id;
+                }
+            }
+            div(class="card-body") {
+                : "Last reviewed yesterday.";
+                : " ";
+                : "500 cards.";
+                : " ";
+                : "500 decks.";
+            }
+        }
+    };
+}
+
 fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
 
     let deck_id = default!();
@@ -664,7 +697,7 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
                     &mut *tmpl << html! {
                         div(class="columns") {
                             div(class="col-12") {
-                                : "deck"
+                                |tmpl| DeckListItem(tmpl, &context, i);
                             }
                         }
                     }
@@ -674,7 +707,32 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
     };
 }
 
-// components/DeckCardsComponent
+fn CardListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, card_id: u64) {
+
+    let deck_id = default!();
+
+    tmpl << html! {
+        div(class = "card") {
+            div(class="card-header") {
+                h4(class="card-title") {
+                    a(href = view_route_to_link(
+                        AppRoute::CardInDeck(deck_id, card_id, CardRoute::Profile), &context)) {
+
+                        : "Microsoft"
+                    }
+                }
+                h6(class="card-meta") {
+                    : "Card #";
+                    : card_id;
+                }
+            }
+            div(class="card-body") {
+                : "Last reviewed yesterday"
+            }
+        }
+    };
+}
+
 fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
 
     let deck_id = default!();
@@ -807,7 +865,7 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
                     &mut *tmpl << html! {
                         div(class="columns") {
                             div(class="col-12") {
-                                |tmpl| CardItem(tmpl, &context, i);
+                                |tmpl| CardListItem(tmpl, &context, i);
                             }
                         }
                     }
@@ -847,32 +905,6 @@ fn DeckSettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a
 fn DeckReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
     tmpl << html! {
         : "review deck"
-    };
-}
-
-fn CardItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, card_id: u64) {
-
-    let deck_id = default!();
-
-    tmpl << html! {
-        div(class = "card") {
-            div(class="card-header") {
-                h4(class="card-title") {
-                    a(href = view_route_to_link(
-                        AppRoute::CardInDeck(deck_id, card_id, CardRoute::Profile), &context)) {
-
-                        : "Microsoft"
-                    }
-                }
-                h6(class="card-meta") {
-                    : "Card #";
-                    : card_id;
-                }
-            }
-            div(class="card-body") {
-                : "Last reviewed yesterday"
-            }
-        }
     };
 }
 
@@ -925,6 +957,18 @@ fn CardProfileComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a,
     };
 }
 
+fn resolve_card_route_link<'a, 'b>(context: &Context<'a, 'b>, card_route: CardRoute) -> AppRoute {
+    match context.view_route {
+        AppRoute::Card(card_id, ref _card_route) => {
+            AppRoute::Card(card_id, card_route)
+        },
+        AppRoute::CardInDeck(deck_id, card_id, ref _card_route) => {
+            AppRoute::CardInDeck(deck_id, card_id, card_route)
+        },
+        _ => unreachable!()
+    }
+}
+
 fn CardNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
 
     let deck_id = default!();
@@ -934,20 +978,24 @@ fn CardNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
 
             li(class="menu-item") {
                 div(class="chip") {
-                    div(class="chip-content") {
+                    div(class="chip-content text-center") {
                         : "Card #123"
                     }
                 }
             }
 
             li(class="menu-item") {
-                a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Description),
+                a(href = view_route_to_link(
+                    resolve_card_route_link(&context, CardRoute::Profile),
                     &context),
                     style? = stylenames!("font-weight:bold;" =>
-                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description))
+                        matches!(context.view_route, AppRoute::Card(_, CardRoute::Profile)) ||
+                        matches!(context.view_route, AppRoute::CardInDeck(_, _, CardRoute::Profile))
                         ),
                     class? = classnames!("active" =>
-                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Description)))
+                        matches!(context.view_route, AppRoute::Card(_, CardRoute::Profile)) ||
+                        matches!(context.view_route, AppRoute::CardInDeck(_, _, CardRoute::Profile))
+                    )
                 ) {
                     : "Detail"
                 }

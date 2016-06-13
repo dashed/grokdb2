@@ -24,9 +24,6 @@ pub mod constants {
     #[derive(Debug)]
     pub enum CardRoute {
         Profile,
-        // Question,
-        // Answer,
-        // Description,
         // Settings,
         // Meta,
 
