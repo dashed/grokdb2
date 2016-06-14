@@ -27,28 +27,41 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
 
                     // TODO: css minify using build.rs
 
-                    match context.view_route {
-                        AppRoute::Deck(_, DeckRoute::NewCard) |
-                        AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
-                            tmpl << html! {
-                                style {
-                                    : raw!("\
-                                        .btn-success {\
-                                            border-color: #30ae40;\
-                                            color: #32b643;\
-                                        }\
-                                        a.btn-success:hover {\
-                                            background: #32b643;\
-                                            border-color: #30ae40;\
-                                            color: #fff;\
-                                        }\
-                                    ");
-                                }
-                            };
+                    tmpl << html! {
+                        style {
+                            |tmpl| {
+                                match context.view_route {
+                                    AppRoute::Deck(_, DeckRoute::NewCard) |
+                                    AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
+                                        tmpl << html! {
+                                            style {
+                                                : raw!("\
+                                                    .btn-success {\
+                                                        border-color: #30ae40;\
+                                                        color: #32b643;\
+                                                    }\
+                                                    a.btn-success:hover {\
+                                                        background: #32b643;\
+                                                        border-color: #30ae40;\
+                                                        color: #fff;\
+                                                    }\
+                                                ");
+                                            }
+                                        };
 
-                        },
-                        _ => {}
+                                    },
+                                    _ => {}
+                                };
+                            }
+                            : raw!("\
+                                ul.pagination li {\
+                                    margin-top: 0;\
+                                }\
+                                ");
+                        }
                     };
+
+
                 }
             }
             body {
@@ -685,21 +698,39 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
     tmpl << html! {
 
         div(class="container") {
+
             div(class="columns") {
                 div(class="column") {
-                    h5(style="margin-top:0;", class="text-break") {
-                        : "Decks within Math"
+                    h5(style="margin-top:0;margin-bottom:0;", class="text-break") {
+                        small(class="label") {
+                            : "Decks within"
+                        }
+                        : " ";
+                        : "Math";
                     }
+
                 }
+                // div(class="column") {
+                //     div(class="input-group inline float-right") {
+                //         input(type="text", class="form-input input-inline", placeholder="Search within this deck");
+                //         button(class="btn btn-primary input-group-btn") {
+                //             : "Search"
+                //         }
+                //     }
+                // }
+            }
+
+            div(class="columns") {
                 div(class="column") {
-                    div(class="input-group inline float-right") {
-                        input(type="text", class="form-input input-inline", placeholder="Search within this deck");
+                    div(class="input-group") {
+                        input(type="text", class="form-input", placeholder="Search decks within this deck");
                         button(class="btn btn-primary input-group-btn") {
                             : "Search"
                         }
                     }
                 }
             }
+
             div(class="columns") {
                 div(class="column") {
                     a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::NewDeck),
@@ -709,8 +740,67 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
                         : "New Deck"
                     }
                 }
+
+                div(class="column", style="display: flex;justify-content: flex-end") {
+                    : " ";
+                    select(class="form-select") {
+                        option {
+                            : "Order by Recent"
+                        }
+                        option {
+                            : "Order by Least Recent"
+                        }
+                    }
+                    : " ";
+                    select(class="form-select", style="margin-left:5px;") {
+                        option {
+                            : "Sort by Updated"
+                        }
+                        option {
+                            : "Choose an option"
+                        }
+                        option {
+                            : "Choose an option"
+                        }
+                    }
+                    : " ";
+                }
             }
-            div(class="divider") {}
+
+            div(class="columns") {
+                div(class="column") {
+                    ul(class="pagination", style="width:100%;text-align:center;padding:0;margin:0;") {
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "Previous"
+                            }
+                        }
+                        li(class="page-item active") {
+                            a(href="#") {
+                                : "1"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "2"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "3"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "Next"
+                            }
+                        }
+                    }
+                }
+            }
+
+            // div(class="divider") {}
+
             |tmpl| {
                 for i in 1..25 {
                     &mut *tmpl << html! {
@@ -721,6 +811,40 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
                         }
                     }
                 };
+            }
+
+            // div(class="divider") {}
+
+            div(class="columns") {
+                div(class="column") {
+                    ul(class="pagination", style="width:100%;text-align:center;padding:0;margin:0;") {
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "Previous"
+                            }
+                        }
+                        li(class="page-item active") {
+                            a(href="#") {
+                                : "1"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "2"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "3"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "Next"
+                            }
+                        }
+                    }
+                }
             }
         }
     };
@@ -759,6 +883,7 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
     tmpl << html! {
 
         div(class="container") {
+
             div(class="columns") {
                 // div(class="col-12") {
                 //     h5(style="margin-top:0;") {
@@ -766,19 +891,35 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
                 //     }
                 // }
                 div(class="column") {
-                    h5(style="margin-top:0;", class="text-break") {
-                        : "Cards within Math"
+                    h5(style="margin-top:0;margin-bottom:0;", class="text-break") {
+                        small(class="label") {
+                            : "Cards within"
+                        }
+                        : " ";
+                        : "Math";
                     }
                 }
+                // div(class="column") {
+                //     div(class="input-group inline float-right") {
+                //         input(type="text", class="form-input input-inline", placeholder="Search within this deck");
+                //         button(class="btn btn-primary input-group-btn") {
+                //             : "Search"
+                //         }
+                //     }
+                // }
+            }
+
+            div(class="columns") {
                 div(class="column") {
-                    div(class="input-group inline float-right") {
-                        input(type="text", class="form-input input-inline", placeholder="Search within this deck");
+                    div(class="input-group") {
+                        input(type="text", class="form-input", placeholder="Search cards within this deck");
                         button(class="btn btn-primary input-group-btn") {
                             : "Search"
                         }
                     }
                 }
             }
+
             div(class="columns") {
                 div(class="column") {
                     a(href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::NewCard),
@@ -878,7 +1019,43 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
             //     //     }
             //     // }
             // }
-            div(class="divider") {}
+
+
+            div(class="columns") {
+                div(class="column") {
+                    ul(class="pagination", style="width:100%;text-align:center;padding:0;margin:0;") {
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "Previous"
+                            }
+                        }
+                        li(class="page-item active") {
+                            a(href="#") {
+                                : "1"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "2"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "3"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "Next"
+                            }
+                        }
+                    }
+                }
+            }
+
+            // div(class="divider") {}
+
+
             |tmpl| {
                 for i in 1..25 {
                     &mut *tmpl << html! {
@@ -889,6 +1066,40 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
                         }
                     }
                 };
+            }
+
+            // div(class="divider") {}
+
+            div(class="columns") {
+                div(class="column") {
+                    ul(class="pagination", style="width:100%;text-align:center;padding:0;margin:0;") {
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "Previous"
+                            }
+                        }
+                        li(class="page-item active") {
+                            a(href="#") {
+                                : "1"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "2"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "3"
+                            }
+                        }
+                        li(class="page-item") {
+                            a(href="#") {
+                                : "Next"
+                            }
+                        }
+                    }
+                }
             }
 
             // @ for i in 1..25 {
@@ -922,9 +1133,7 @@ fn DeckSettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a
 
 // components/DeckReviewComponent
 fn DeckReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
-    tmpl << html! {
-        : "review deck"
-    };
+    CardProfileReviewComponent(tmpl, context);
 }
 
 fn CardDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
