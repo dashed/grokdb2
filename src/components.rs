@@ -1246,6 +1246,10 @@ fn CardProfileComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a,
 }
 
 fn CardProfileReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+
+    let deck_id = default!();
+    let card_id = default!();
+
     tmpl << html! {
         div(class="container") {
             div(class="columns") {
@@ -1256,6 +1260,22 @@ fn CardProfileReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Conte
                         }
                         : " ";
                         : "What does the fox say?"
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    span(class="label") {
+                        : "Card #123"
+                    }
+                    : " ";
+                    a(href = view_route_to_link(
+                        AppRoute::CardInDeck(deck_id, card_id, CardRoute::Profile),
+                        &context),
+                        class="btn btn-sm"
+                    ) {
+                        : "Go to card profile"
                     }
                 }
             }
@@ -1290,6 +1310,176 @@ fn CardProfileReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Conte
                     }
                 }
             }
+
+            div(class="columns") {
+                div(class="column col-9") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Reveal Answer"
+                    }
+                }
+
+                div(class="column col-3") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Skip Card"
+                    }
+                }
+            }
+
+            hr;
+
+            div(class="columns") {
+                div(class="column col-12") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Custom Score"
+                    }
+                }
+
+            }
+
+
+            div(class="columns") {
+                div(class="column col-4") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Fail"
+                    }
+                }
+
+
+                div(class="column col-4") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Success"
+                    }
+                }
+
+                div(class="column col-4") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Reset Score"
+                    }
+                }
+
+            }
+
+            hr;
+
+            div(class="columns") {
+                div(class="column col-12") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Cancel Custom Score"
+                    }
+                }
+
+            }
+
+            div(class="columns") {
+                div(class="column col-6") {
+                    a(href = "#",
+                        class="btn btn-block btn-primary"
+                    ) {
+                        : "Append To Score"
+                    }
+                }
+
+
+                div(class="column col-6") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Set Score"
+                    }
+                }
+
+            }
+
+            div(class="columns") {
+                div(class="column col-6") {
+                    div(class="input-group") {
+
+                        span(class="input-group-addon") {
+                            : "Success Votes"
+                        }
+                        input(type="text", class="form-input", placeholder="Success Votes");
+                        button(class="btn btn-primary input-group-btn") {
+                            : "-"
+                        }
+                        button(class="btn btn-primary input-group-btn") {
+                            : "+"
+                        }
+                    }
+                }
+
+                div(class="column col-6") {
+                    div(class="input-group") {
+                        span(class="input-group-addon") {
+                            : "Fail Votes"
+                        }
+                        input(type="text", class="form-input", placeholder="Fail Votes");
+                        button(class="btn btn-primary input-group-btn") {
+                            : "-"
+                        }
+                        button(class="btn btn-primary input-group-btn") {
+                            : "+"
+                        }
+                    }
+                }
+
+
+            }
+
+            hr;
+
+            div(class="columns") {
+                div(class="column col-9") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Commit Score & Next Card"
+                    }
+                }
+
+                div(class="column col-3") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Skip Card"
+                    }
+                }
+            }
+
+            hr;
+
+            div(class="columns") {
+
+                div(class="column col-6") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Yes, skip"
+                    }
+                }
+
+                div(class="column col-6") {
+                    a(href = "#",
+                        class="btn btn-block btn-primary"
+                    ) {
+                        : "No, don't skip"
+                    }
+                }
+            }
+
 
         }
 
