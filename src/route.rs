@@ -27,7 +27,7 @@ pub mod constants {
         // Settings,
         // Meta,
 
-        // Review
+        Review
     }
 
     #[derive(Debug)]
@@ -137,14 +137,29 @@ mod link {
         format!("/deck/1/card/1")
     }
 
-    pub fn card_profile(context: &Context) -> String {
+    pub fn deck_card_profile_review(context: &Context) -> String {
 
         // TODO: fetch deck_id
 
+        format!("/deck/1/card/1/review")
+    }
+
+    pub fn card_profile(context: &Context) -> String {
+
+        // TODO: fetch card_Id
+
         format!("/card/1")
+    }
+
+    pub fn card_profile_review(context: &Context) -> String {
+
+        // TODO: fetch card_Id
+
+        format!("/card/1/review")
     }
 }
 
+// These are akin to controllers.
 pub mod routes {
 
     /* rust lib imports */
@@ -358,10 +373,26 @@ pub mod routes {
         render_app_component(context, format!("grokdb"), request, response);
     }
 
+    pub fn deck_card_profile_review(mut context: Context, request: Request, response: Response) {
+
+        // TODO: fetch deck_id and card_id
+        context.view_route = AppRoute::CardInDeck(1, 1, CardRoute::Review);
+
+        render_app_component(context, format!("grokdb"), request, response);
+    }
+
     pub fn card_profile(mut context: Context, request: Request, response: Response) {
 
         // TODO: fetch card_id
         context.view_route = AppRoute::Card(1, CardRoute::Profile);
+
+        render_app_component(context, format!("grokdb"), request, response);
+    }
+
+    pub fn card_profile_review(mut context: Context, request: Request, response: Response) {
+
+        // TODO: fetch card_id
+        context.view_route = AppRoute::Card(1, CardRoute::Review);
 
         render_app_component(context, format!("grokdb"), request, response);
     }
@@ -662,7 +693,18 @@ pub mod helpers {
 
                 match card_route {
                     CardRoute::Profile => {
-                        (r"^/card/(?P<card_id>\d+)$", super::routes::card_profile, super::link::card_profile)
+                        (
+                            r"^/card/(?P<card_id>\d+)$",
+                            super::routes::card_profile,
+                            super::link::card_profile
+                        )
+                    },
+                    CardRoute::Review => {
+                        (
+                            r"^/card/(?P<card_id>\d+)/review$",
+                            super::routes::card_profile_review,
+                            super::link::card_profile_review
+                        )
                     },
                 }
             },
@@ -675,6 +717,13 @@ pub mod helpers {
                             r"^/deck/(?P<deck_id>\d+)/card/(?P<card_id>\d+)$",
                             super::routes::deck_card_profile,
                             super::link::deck_card_profile
+                        )
+                    },
+                    CardRoute::Review => {
+                        (
+                            r"^/deck/(?P<deck_id>\d+)/card/(?P<card_id>\d+)/review$",
+                            super::routes::deck_card_profile_review,
+                            super::link::deck_card_profile_review
                         )
                     },
                 }

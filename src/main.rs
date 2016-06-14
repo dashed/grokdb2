@@ -221,12 +221,14 @@ fn main() {
         },
         AppRoute::Card(_deck_id, ref _card_route) => {
             match _card_route {
-                &CardRoute::Profile => {}
+                &CardRoute::Profile => {},
+                &CardRoute::Review => {},
             }
         },
         AppRoute::CardInDeck(_deck_id, _card_id, ref _card_route) => {
             match _card_route {
-                &CardRoute::Profile => {}
+                &CardRoute::Profile => {},
+                &CardRoute::Review => {}
             }
         }
     };
@@ -242,8 +244,11 @@ fn main() {
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Meta));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Settings));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Review));
+
     route!(router, Get, AppRoute::Card(default!(), CardRoute::Profile));
+    route!(router, Get, AppRoute::Card(default!(), CardRoute::Review));
     route!(router, Get, AppRoute::CardInDeck(default!(), default!(), CardRoute::Profile));
+    route!(router, Get, AppRoute::CardInDeck(default!(), default!(), CardRoute::Review));
 
     // router.get(r"^/$", route_root);
     // router.get(r"^/settings$", route_settings);
