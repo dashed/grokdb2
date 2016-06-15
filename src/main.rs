@@ -265,8 +265,7 @@ fn main() {
 
     /* server */
 
-    // let server = Server::http(("0.0.0.0", 3000)).unwrap();
-    let server = Server::http(("localhost", 3000)).unwrap();
+    let server = Server::http(("0.0.0.0", 3000)).unwrap();
 
     let _guard = server.handle(move |request: Request, response: Response| {
 
