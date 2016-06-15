@@ -34,19 +34,19 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                                     AppRoute::Deck(_, DeckRoute::NewCard) |
                                     AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
                                         tmpl << html! {
-                                            style {
-                                                : raw!("\
-                                                    .btn-success {\
-                                                        border-color: #30ae40;\
-                                                        color: #32b643;\
-                                                    }\
-                                                    a.btn-success:hover {\
-                                                        background: #32b643;\
-                                                        border-color: #30ae40;\
-                                                        color: #fff;\
-                                                    }\
-                                                ");
-                                            }
+
+                                            : raw!("\
+                                                .btn-success {\
+                                                    border-color: #30ae40;\
+                                                    color: #32b643;\
+                                                }\
+                                                a.btn-success:hover {\
+                                                    background: #32b643;\
+                                                    border-color: #30ae40;\
+                                                    color: #fff;\
+                                                }\
+                                            ");
+
                                         };
 
                                     },
@@ -482,6 +482,19 @@ fn NewCardComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                             : "Title of card"
                         }
                         input(class="form-input", type="text", id="input-card-title", placeholder="Title of card");
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    div(class="form-group") {
+                        label(class="form-checkbox") {
+                            input(type="checkbox");
+                            i(class="form-icon") {}
+                            : " ";
+                            : "Disable from review.";
+                        }
                     }
                 }
             }
