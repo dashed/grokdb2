@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///./src/deck_review.js"],"names":[],"mappings":";;;;;;AAAA,SAAQ,GAAR,CAAY,OAAZ,E","file":"deck_review.js","sourcesContent":["console.log('hello');\n\n\n\n/** WEBPACK FOOTER **\n ** ./src/deck_review.js\n **/"],"sourceRoot":""}

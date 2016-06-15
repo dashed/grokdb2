@@ -265,7 +265,8 @@ fn main() {
 
     /* server */
 
-    let server = Server::http(("0.0.0.0", 3000)).unwrap();
+    // let server = Server::http(("0.0.0.0", 3000)).unwrap();
+    let server = Server::http(("localhost", 3000)).unwrap();
 
     let _guard = server.handle(move |request: Request, response: Response| {
 
@@ -275,6 +276,7 @@ fn main() {
         let _entry = LogEntry::start(io::stdout(), &request);
 
         let uri = format!("{}", request.uri);
+        println!("uri: {}", uri);
 
         let mut context = Context {
 

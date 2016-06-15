@@ -273,6 +273,8 @@ pub mod routes {
 
         // TODO: clean up
         io::copy(&mut file, &mut stream).unwrap();
+
+        stream.end();
     }
 
     // Path: /
@@ -646,6 +648,7 @@ pub mod helpers {
         app_component.write_to_io(&mut stream)
             .unwrap();
 
+        stream.end();
 
         /////
 

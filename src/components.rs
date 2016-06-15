@@ -54,6 +54,16 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                                 };
                             }
                             : raw!("\
+                                body {\
+                                    display: flex;\
+                                    min-height: 100vh;\
+                                    flex-direction: column;\
+                                }\
+                                #grokdb {\
+                                    flex: 1;\
+                                }\
+                                ");
+                            : raw!("\
                                 ul.pagination li {\
                                     margin-top: 0;\
                                 }\
@@ -65,7 +75,7 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                 }
             }
             body {
-                section(class="container grid-960") {
+                section(class="container grid-960", id="grokdb") {
                     header(class="navbar") {
                         section(class="navbar-section") {
                             a(href = view_route_to_link(AppRoute::Home, &context), class="navbar-brand") {
@@ -177,6 +187,27 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                     // }
                     // p : Page::new(format!("boop"))
                 }
+
+                footer(class="container grid-960") {
+                    : "footer component"
+                }
+
+                // |tmpl| {
+                //     match context.view_route {
+                //         AppRoute::Deck(_, DeckRoute::Review) =>  {
+                //             tmpl << html! {
+                //                 script(type="text/javascript", src="/assets/vendor.js") {}
+                //                 script(type="text/javascript", src="/assets/deck_review.js") {}
+                //             };
+
+                //         },
+                //         _ => {}
+                //     };
+                // }
+                script(type="text/javascript", src="/assets/vendor.js") {}
+                script(type="text/javascript", src="/assets/deck_review.js") {}
+                script(type="text/javascript", src="/assets/invalid.js") {}
+                script(type="text/javascript", src="/assets/invalid2.js") {}
             }
         }
 

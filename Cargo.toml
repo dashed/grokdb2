@@ -8,7 +8,7 @@ opt-level = 0      # controls the `--opt-level` the compiler builds with
 debug = true       # controls whether the compiler passes `-g`
 
 [dependencies.hyper]
-version = "0.9.6"
+version = "0.9.8"
 
 # this is copied
 # [dependencies.reroute]
