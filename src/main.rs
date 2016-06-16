@@ -265,7 +265,11 @@ fn main() {
 
     /* server */
 
-    let server = Server::http(("0.0.0.0", 3000)).unwrap();
+    let mut server = Server::http(("0.0.0.0", 3000)).unwrap();
+
+    // disable keep-alive since server will be behind reverse proxy (e.g. nginx)
+    server.keep_alive(None);
+
 
     let _guard = server.handle(move |request: Request, response: Response| {
 
@@ -275,7 +279,6 @@ fn main() {
         let _entry = LogEntry::start(io::stdout(), &request);
 
         let uri = format!("{}", request.uri);
-        println!("uri: {}", uri);
 
         let mut context = Context {
 

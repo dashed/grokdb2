@@ -192,22 +192,19 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                     : "footer component"
                 }
 
-                // |tmpl| {
-                //     match context.view_route {
-                //         AppRoute::Deck(_, DeckRoute::Review) =>  {
-                //             tmpl << html! {
-                //                 script(type="text/javascript", src="/assets/vendor.js") {}
-                //                 script(type="text/javascript", src="/assets/deck_review.js") {}
-                //             };
+                |tmpl| {
+                    match context.view_route {
+                        AppRoute::Deck(_, DeckRoute::Review) =>  {
+                            tmpl << html! {
+                                script(type="text/javascript", src="/assets/vendor.js") {}
+                                script(type="text/javascript", src="/assets/deck_review.js") {}
+                            };
 
-                //         },
-                //         _ => {}
-                //     };
-                // }
-                script(type="text/javascript", src="/assets/vendor.js") {}
-                script(type="text/javascript", src="/assets/deck_review.js") {}
-                script(type="text/javascript", src="/assets/invalid.js") {}
-                script(type="text/javascript", src="/assets/invalid2.js") {}
+                        },
+                        _ => {}
+                    };
+                }
+
             }
         }
 
