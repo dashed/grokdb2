@@ -250,12 +250,14 @@ fn main() {
     route!(router, Get, AppRoute::CardInDeck(default!(), default!(), CardRoute::Profile));
     route!(router, Get, AppRoute::CardInDeck(default!(), default!(), CardRoute::Review));
 
+    // TODO: old; remove
     // router.get(r"^/$", route_root);
     // router.get(r"^/settings$", route_settings);
 
     // TODO: limit path length?
     router.get(r"^/assets/(?P<path>.+)$", route::routes::static_assets);
 
+    // TODO: what is this?
     // router.add_route(Method::Post, r"...", route)
 
     // Freeze the router. This will validate the router.

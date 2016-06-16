@@ -1155,7 +1155,6 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
     };
 }
 
-// components/DeckMetaComponent
 fn DeckMetaComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
     tmpl << html! {
 
@@ -1163,8 +1162,6 @@ fn DeckMetaComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b
     };
 }
 
-
-// components/DeckSettingsComponent
 fn DeckSettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
     tmpl << html! {
 
@@ -1172,7 +1169,6 @@ fn DeckSettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a
     };
 }
 
-// components/DeckReviewComponent
 fn DeckReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
     CardProfileReviewComponent(tmpl, context);
 }
@@ -1292,6 +1288,7 @@ fn CardProfileReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Conte
     let card_id = default!();
 
     tmpl << html! {
+
         div(class="container") {
             div(class="columns") {
                 div(class="column") {
@@ -1321,54 +1318,64 @@ fn CardProfileReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Conte
                 }
             }
 
-            div(class="columns") {
-                div(class="column") {
-                    div(class="btn-group btn-group-block") {
-                        a(href="#", class="btn btn-primary")  {
-                            : "Question"
-                        }
-                        : " ";
-                        a(href="#", class="btn")  {
-                            : "Description"
-                        }
+            div(id="deck-review-container") {
+                div(class="columns") {
+                    div(class="column") {
+                        div(class="loading") {}
                     }
                 }
             }
 
-            div(class="columns") {
-                div(class="column") {
-                    ul(class="tab") {
-                        li(class="tab-item active") {
-                            a(href="#") {
-                                : "Source"
-                            }
-                        }
-                        li(class="tab-item") {
-                            a(href="#") {
-                                : "Render"
-                            }
-                        }
-                    }
-                }
-            }
+            // TODO: clean up
 
-            div(class="columns") {
-                div(class="column col-9") {
-                    a(href = "#",
-                        class="btn btn-block"
-                    ) {
-                        : "Reveal Answer"
-                    }
-                }
+            // div(class="columns") {
+            //     div(class="column") {
+            //         div(class="btn-group btn-group-block") {
+            //             a(href="#", class="btn btn-primary")  {
+            //                 : "Question"
+            //             }
+            //             : " ";
+            //             a(href="#", class="btn")  {
+            //                 : "Description"
+            //             }
+            //         }
+            //     }
+            // }
 
-                div(class="column col-3") {
-                    a(href = "#",
-                        class="btn btn-block"
-                    ) {
-                        : "Skip Card"
-                    }
-                }
-            }
+            // div(class="columns") {
+            //     div(class="column") {
+            //         ul(class="tab") {
+            //             li(class="tab-item active") {
+            //                 a(href="#") {
+            //                     : "Source"
+            //                 }
+            //             }
+            //             li(class="tab-item") {
+            //                 a(href="#") {
+            //                     : "Render"
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+
+            // div(class="columns") {
+            //     div(class="column col-9") {
+            //         a(href = "#",
+            //             class="btn btn-block"
+            //         ) {
+            //             : "Reveal Answer"
+            //         }
+            //     }
+
+            //     div(class="column col-3") {
+            //         a(href = "#",
+            //             class="btn btn-block"
+            //         ) {
+            //             : "Skip Card"
+            //         }
+            //     }
+            // }
 
             hr;
 

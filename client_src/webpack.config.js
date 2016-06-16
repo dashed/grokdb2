@@ -12,12 +12,14 @@ module.exports = {
         vendor: [
             // 'babel-polyfill',
             // 'babel-runtime/regenerator',
-            // 'babel-runtime/core-js',
-            // 'react',
-            // 'react-dom',
-            // 'classnames',
+            'babel-runtime/core-js',
+            'react',
+            'react-dom',
+            'classnames',
             // 'little-loader',
-            // 'redux',
+            'redux',
+            'react-redux',
+            'lodash'
         ]
     },
 
