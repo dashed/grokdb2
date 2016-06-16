@@ -6,6 +6,7 @@ const ReactDOM = require('react-dom');
 const {Provider, connect} = require('react-redux');
 const {createStore} = require('redux');
 const classnames = require('classnames');
+const TextareaAutosize = require('react-textarea-autosize').default;
 // const _ = require('lodash');
 // const {combineReducers} = require('redux');
 
@@ -62,15 +63,13 @@ const __CardReviewTabsComponent = function(props) {
     );
 }
 
-// eslint-disable-next-line camelcase
-const __CardReviewTabsComponent__mapStateToProps = function(state) {
-    return{
-        [TAB]: state[TAB]
-    };
-}
-
 const CardReviewTabsComponent = connect(
-    __CardReviewTabsComponent__mapStateToProps
+    // mapStateToProps
+    (state) => {
+        return{
+            [TAB]: state[TAB]
+        };
+    }
 )(__CardReviewTabsComponent);
 
 const __RenderSourceComponent = function(props) {
@@ -134,6 +133,60 @@ const ReviewScoreCommitComponent = function(/* props */) {
     );
 }
 
+const __CardContentsComponent = function(props) {
+
+    const contents = props[CONTENTS]
+    const markdownView = props[MARKDOWN_VIEW];
+
+    switch(markdownView) {
+    case MARKDOWN_VIEW_RENDER:
+
+        return (
+            <div className='columns'>
+                <div className='column'>
+                    {contents}
+                </div>
+            </div>
+        );
+
+    case MARKDOWN_VIEW_SOURCE:
+    default:
+
+
+        return (
+            <div className='columns'>
+                <div className='column'>
+                    <TextareaAutosize
+                        key="textarea"
+                        useCacheForDOMMeasurements
+                        minRows={6}
+                        maxRows={10}
+                        className="form-input"
+                        // id="deck_source"
+                        // placeholder={placeholder}
+                        // onChange={this.onSourceChange}
+                        value={contents}
+                        readOnly={true}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+}
+
+const CardContentsComponent = connect(
+
+    // mapStateToProps
+    (state) => {
+        const currentCardTab = state[TAB];
+        return {
+            [MARKDOWN_VIEW]: state[currentCardTab][MARKDOWN_VIEW],
+            [CONTENTS]: state[currentCardTab][CONTENTS]
+        };
+    }
+)(__CardContentsComponent);
+
 const DeckReviewContainer = function(/* props */) {
     return (
         <div>
@@ -145,6 +198,11 @@ const DeckReviewContainer = function(/* props */) {
             <div className='columns'>
                 <div className='column'>
                     <RenderSourceComponent />
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <CardContentsComponent />
                 </div>
             </div>
             <div className='columns'>
@@ -179,6 +237,8 @@ enum MarkdownView {
 const MARKDOWN_VIEW = genKey();
 const MARKDOWN_VIEW_RENDER = genKey();
 const MARKDOWN_VIEW_SOURCE = genKey();
+
+const CONTENTS = genKey();
 
 /* redux action creators */
 // NOTE: FSA compliant
@@ -259,15 +319,18 @@ const initialState = {
     [TAB]: TAB_QUESTION,
 
     [TAB_QUESTION]: {
-        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER
+        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+        [CONTENTS]: 'question'
     },
 
     [TAB_ANSWER]: {
-        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER
+        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+        [CONTENTS]: 'answer'
     },
 
     [TAB_DESCRIPTION]: {
-        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER
+        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+        [CONTENTS]: 'description'
     }
 };
 

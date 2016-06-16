@@ -30,7 +30,7 @@ const treeReducer = function(state = EMPTY_OBJ, action) {
     }
 
     // console.log('patched');
-    return _.assign({}, state, patch);
+    return _.merge({}, state, patch);
     // return {...state, ...patch};
 }
 
