@@ -7,14 +7,9 @@ const {Provider, connect} = require('react-redux');
 const {createStore} = require('redux');
 const classnames = require('classnames');
 const TextareaAutosize = require('react-textarea-autosize').default;
-// const _ = require('lodash');
-// const {combineReducers} = require('redux');
 
-// const combineReducers = require('./combineReducers');
-// NOTE: above won't work; below is used to be in parity with redux upstream
-// import combineReducers from './combineReducers';
 
-const {/*serializeProps, deserializeProps,*/ genKey} = require('./helpers');
+const {genKey} = require('./helpers');
 const {applyReducer, reducer: treeReducer} = require('./redux-tree');
 
 /* react components */
@@ -49,13 +44,13 @@ const __CardReviewTabsComponent = function(props) {
         <div className='btn-group btn-group-block'>
             <a
                 onClick={switchTab(dispatch, TAB_QUESTION)}
-                href='#'
+                href='#question'
                 className = {classnames('btn', {'btn-primary': tabType === TAB_QUESTION})}>
                 {'Question'}
             </a>
             <a
                 onClick={switchTab(dispatch, TAB_DESCRIPTION)}
-                href='#'
+                href='#description'
                 className = {classnames('btn', {'btn-primary': tabType === TAB_DESCRIPTION})}>
                 {'Description'}
             </a>
@@ -74,6 +69,8 @@ const CardReviewTabsComponent = connect(
 
 const __RenderSourceComponent = function(props) {
 
+    // NOTE: switchTab(dispatch: dispatch, next_view: MARKDOWN_VIEW);
+
     const {dispatch, switchTab} = props;
     const currentTab = props[MARKDOWN_VIEW];
 
@@ -81,14 +78,14 @@ const __RenderSourceComponent = function(props) {
         <ul className='tab'>
             <li className = {classnames('tab-item', {'active': currentTab === MARKDOWN_VIEW_RENDER})}>
                 <a
-                    href='#'
+                    href='#render'
                     onClick={switchTab(dispatch, MARKDOWN_VIEW_RENDER)}>
                     {'Render'}
                 </a>
             </li>
             <li className = {classnames('tab-item', {'active': currentTab === MARKDOWN_VIEW_SOURCE})}>
                 <a
-                    href='#'
+                    href='#source'
                     onClick={switchTab(dispatch, MARKDOWN_VIEW_SOURCE)}>
                     {'Source'}
                 </a>
@@ -116,16 +113,54 @@ const RenderSourceComponent = connect(
     // }
 )(__RenderSourceComponent);
 
-const ReviewScoreCommitComponent = function(/* props */) {
+const RevealCommitButtonComponent = function(/* props */) {
+
+    return (
+        <a href='#reveal' className='btn btn-block'>
+            {'Reveal Answer'}
+        </a>
+    );
+}
+
+const __ReviewScoreCommitComponent = function(props) {
+
+    const {dispatch, showConfirmSkipCard} = props;
+
+    if(showConfirmSkipCard) {
+
+        return (
+            <div className='columns'>
+                <div className='column col-6'>
+                    <a
+                        href='#confirm-skip'
+                        className='btn btn-block'
+                        onClick={() => void 0}>
+                        {'Yes, skip'}
+                    </a>
+                </div>
+                <div className='column col-6'>
+                    <a
+                        href='#cancel-skip'
+                        className='btn btn-block btn-primary'
+                        onClick={skipCard(dispatch, SKIPCARD_INITIAL)}>
+                        {'No, do not skip'}
+                    </a>
+                </div>
+            </div>
+        );
+
+    }
+
     return (
         <div className='columns'>
             <div className='column col-9'>
-                <a href='#' className='btn btn-block'>
-                    {'Reveal Answer'}
-                </a>
+                <RevealCommitButtonComponent />
             </div>
             <div className='column col-3'>
-                <a href='#' className='btn btn-block'>
+                <a
+                    href='#skip'
+                    className='btn btn-block'
+                    onClick={skipCard(dispatch, SKIPCARD_CONFIRM)}>
                     {'Skip Card'}
                 </a>
             </div>
@@ -133,45 +168,73 @@ const ReviewScoreCommitComponent = function(/* props */) {
     );
 }
 
+const ReviewScoreCommitComponent = connect(
+
+    // mapStateToProps
+    (state) => {
+        return{
+            showConfirmSkipCard: state[SKIPCARD_VIEW] === SKIPCARD_CONFIRM
+        };
+    },
+
+
+)(__ReviewScoreCommitComponent);
+
+const CardSource = function(props) {
+    return <TextareaAutosize
+        style={props.style}
+        key='textarea'
+        useCacheForDOMMeasurements
+        minRows={6}
+        maxRows={10}
+        className='form-input'
+        // id="deck_source"
+        // placeholder={placeholder}
+        // onChange={this.onSourceChange}
+        value={props.contents}
+        readOnly={true}
+    />;
+}
+
+const __DISPLAY_NONE = {display: 'none'};
 const __CardContentsComponent = function(props) {
 
-    const contents = props[CONTENTS]
+    const currentTab = props[TAB];
+    const contents = props[currentTab]
     const markdownView = props[MARKDOWN_VIEW];
+
+
+    let sourceStyles = {
+        [TAB_QUESTION]: __DISPLAY_NONE,
+        [TAB_ANSWER]: __DISPLAY_NONE,
+        [TAB_DESCRIPTION]: __DISPLAY_NONE
+    };
+    let renderStyle = {};
 
     switch(markdownView) {
     case MARKDOWN_VIEW_RENDER:
-
-        return (
-            <div className='columns'>
-                <div className='column'>
-                    {contents}
-                </div>
-            </div>
-        );
+        // no-op
+        break;
 
     case MARKDOWN_VIEW_SOURCE:
     default:
 
-
-        return (
-            <div className='columns'>
-                <div className='column'>
-                    <TextareaAutosize
-                        key="textarea"
-                        useCacheForDOMMeasurements
-                        minRows={6}
-                        maxRows={10}
-                        className="form-input"
-                        // id="deck_source"
-                        // placeholder={placeholder}
-                        // onChange={this.onSourceChange}
-                        value={contents}
-                        readOnly={true}
-                    />
-                </div>
-            </div>
-        );
+        sourceStyles[currentTab] = {};
+        renderStyle.display = 'none';
     }
+
+    return (
+        <div>
+            <div style={renderStyle}>
+                {contents}
+            </div>
+            <div>
+                <CardSource contents={props[TAB_QUESTION]} style={sourceStyles[TAB_QUESTION]} />
+                <CardSource contents={props[TAB_ANSWER]} style={sourceStyles[TAB_ANSWER]} />
+                <CardSource contents={props[TAB_DESCRIPTION]} style={sourceStyles[TAB_DESCRIPTION]} />
+            </div>
+        </div>
+    );
 
 }
 
@@ -181,8 +244,18 @@ const CardContentsComponent = connect(
     (state) => {
         const currentCardTab = state[TAB];
         return {
+
+            // current tab
+            [TAB]: state[TAB],
+
+            // markdown view of current tab
             [MARKDOWN_VIEW]: state[currentCardTab][MARKDOWN_VIEW],
-            [CONTENTS]: state[currentCardTab][CONTENTS]
+
+            // card contents
+            [TAB_QUESTION]: state[TAB_QUESTION][CARD_CONTENTS],
+            [TAB_ANSWER]: state[TAB_ANSWER][CARD_CONTENTS],
+            [TAB_DESCRIPTION]: state[TAB_DESCRIPTION][CARD_CONTENTS],
+
         };
     }
 )(__CardContentsComponent);
@@ -238,10 +311,70 @@ const MARKDOWN_VIEW = genKey();
 const MARKDOWN_VIEW_RENDER = genKey();
 const MARKDOWN_VIEW_SOURCE = genKey();
 
-const CONTENTS = genKey();
+const CARD_CONTENTS = genKey();
+
+// TODO: clean up below
+/*
+enum SkipCard {
+    Yes,
+    No // default
+}
+
+enum PerformanceChoice {
+    NoChoice,
+    Fail,
+    Success,
+    Reset
+}
+
+enum CustomScoreOperation {
+    Append,
+    Set
+}
+
+// UI state machine
+enum CardPerformanceControl {
+    Initial,
+    DefaultChoices,
+    CustomScore,
+}
+ */
+
+const CARD_PERF_CONTROL_VIEW = genKey();
+const CARD_PERF_CONTROL__INITIAL = genKey(); // empty UI
+const CARD_PERF_CONTROL__DEFAULT_CHOICES = genKey();
+
+/*
+enum SkipCardView {
+    Initial,
+    Confirm
+}
+ */
+
+const SKIPCARD_VIEW = genKey();
+const SKIPCARD_INITIAL = genKey();
+const SKIPCARD_CONFIRM = genKey();
 
 /* redux action creators */
 // NOTE: FSA compliant
+
+const skipCard = function(dispatch, nextSkipCardView) {
+    return function(event) {
+        event.preventDefault();
+        dispatch(
+            applyReducer(
+                // path
+                [SKIPCARD_VIEW],
+                // reducer
+                skipCardReducer,
+                // action
+                {
+                    type: nextSkipCardView
+                }
+            )
+        );
+    }
+}
 
 const switchTab = function(dispatch, tabType) {
     return function(event) {
@@ -283,6 +416,21 @@ const switchMarkdownView = function(dispatch, target, markdownView) {
 
 /* redux reducers */
 
+const skipCardReducer = function(state = SKIPCARD_INITIAL, action) {
+
+    switch(action.type) {
+    case SKIPCARD_INITIAL:
+    case SKIPCARD_CONFIRM:
+        state = action.type;
+        break;
+
+    default:
+        state = SKIPCARD_INITIAL;
+    }
+
+    return state;
+}
+
 const tabReducer = function(state = TAB_QUESTION, action) {
 
     switch(action.type) {
@@ -316,22 +464,28 @@ const markdownViewReducer = function(state = MARKDOWN_VIEW_RENDER, action) {
 /* redux store */
 
 const initialState = {
+
+    // TODO: check window.location.hash.substr(1)
     [TAB]: TAB_QUESTION,
 
     [TAB_QUESTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
-        [CONTENTS]: 'question'
+        [CARD_CONTENTS]: 'question'
     },
 
     [TAB_ANSWER]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
-        [CONTENTS]: 'answer'
+        [CARD_CONTENTS]: 'answer'
     },
 
     [TAB_DESCRIPTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
-        [CONTENTS]: 'description'
-    }
+        [CARD_CONTENTS]: 'description'
+    },
+
+    [SKIPCARD_VIEW]: SKIPCARD_INITIAL,
+
+    [CARD_PERF_CONTROL_VIEW]: CARD_PERF_CONTROL__INITIAL
 };
 
 const store = createStore(treeReducer, initialState);

@@ -1,6 +1,7 @@
+// TODO: dependencies
 const _ = require('lodash');
 
-const APPLY_REDUCER = 'APPLY_REDUCER';
+const APPLY_REDUCER = '__REDUX_TREE__APPLY_REDUCER';
 const EMPTY_OBJ = {};
 
 const treeReducer = function(state = EMPTY_OBJ, action) {
@@ -22,16 +23,18 @@ const treeReducer = function(state = EMPTY_OBJ, action) {
 
         const result = reducer(specificState, action.payload.action);
         patch = _.set({}, path, result);
-        break;
 
+        // NOTE: the following will not work
+        // return {...state, ...patch};
+
+        return _.merge({}, state, patch);
 
     default:
         return state;
     }
 
-    // console.log('patched');
-    return _.merge({}, state, patch);
-    // return {...state, ...patch};
+    // unreachable!();
+
 }
 
 const applyReducer = function(path, reducer, action) {
@@ -46,6 +49,14 @@ const applyReducer = function(path, reducer, action) {
 }
 
 module.exports = {
+
+    // exported action
+    APPLY_REDUCER: APPLY_REDUCER,
+    action: APPLY_REDUCER,
+
+    // export reducer
+    treeReducer,
     reducer: treeReducer,
+
     applyReducer
 };

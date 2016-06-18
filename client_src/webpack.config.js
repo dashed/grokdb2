@@ -19,7 +19,8 @@ module.exports = {
             // 'little-loader',
             'redux',
             'react-redux',
-            'lodash'
+            'lodash',
+            'react-textarea-autosize'
         ]
     },
 
