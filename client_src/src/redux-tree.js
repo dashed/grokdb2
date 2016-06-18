@@ -1,35 +1,59 @@
-// TODO: dependencies
+// TODO: doc all the things... and cleanly.
+
+
+// TODO: specific lodash dependencies
 const _ = require('lodash');
+const isFunction = _.isFunction;
+// TODO: npm install npm.im/warning
 
-const APPLY_REDUCER = '__REDUX_TREE__APPLY_REDUCER';
-const EMPTY_OBJ = {};
+// sentinel values
+const APPLY_REDUCER = ['__REDUX_TREE__APPLY_REDUCER'];
+const NOT_SET = {};
 
-const treeReducer = function(state = EMPTY_OBJ, action) {
 
-    let patch = EMPTY_OBJ;
+const __getIn = (rootData, path) => {
+    // TODO: check path is array
+    return _.get(rootData, path)
+};
+
+const __setIn = (rootData, path, newValue) => {
+    // TODO: check path is array
+    const patch = _.set({}, path, newValue);
+    // NOTE: the following will not work: {...state, ...patch};
+    return _.merge({}, rootData, patch);
+};
+
+const treeReducer = (state = NOT_SET, action) => {
+
+    if(state === NOT_SET) {
+        throw Error('No initial state given.');
+    }
+
+    if(!action.type) {
+        return state;
+    }
 
     switch(action.type) {
 
     case APPLY_REDUCER:
 
-        const {path, reducer} = action.payload;
+        const {path, reducer, getIn, setIn} = action.payload;
 
-        // TODO: path is array
-        // TODO: check reducer is function
+        if (process.env.NODE_ENV !== 'production') {
+            // TODO: check reducer is function
+            if(!_.isFunction(reducer)) {
+                throw Error(`Given reducer is not a function: ${reducer}`);
+            }
+        }
 
-        const specificState = _.get(state, path);
+        const oldValue = getIn(state, path);
+        const newValue = reducer(oldValue, action.payload.action);
+        const newRoot = setIn(state, path, newValue);
 
-        // TODO: _.has(state, path);
-
-        const result = reducer(specificState, action.payload.action);
-        patch = _.set({}, path, result);
-
-        // NOTE: the following will not work
-        // return {...state, ...patch};
-
-        return _.merge({}, state, patch);
+        return newRoot;
 
     default:
+
         return state;
     }
 
@@ -37,26 +61,80 @@ const treeReducer = function(state = EMPTY_OBJ, action) {
 
 }
 
-const applyReducer = function(path, reducer, action) {
+// Higher-order reducer that wraps a given reducer.
+// The reducer function is the fallback reducer when actions not created with
+// applyReducer/applyReducerWith are dispatched to the redux store.
+const wrapReducer = (reducer) => {
+
+    // cache
+    const reducerIsFunction = _.isFunction(reducer);
+
+    return (state, action) => {
+
+        if(action.type && action.type === APPLY_REDUCER) {
+            return treeReducer(state, action);
+        }
+
+        if(reducerIsFunction) {
+            return reducer(state, action);
+        }
+
+        return state;
+    }
+};
+
+// Action creator that works on global states that are vanilla JS objects.
+//
+// Applies reducer function at path with given action.
+//
+// NOTES: The reducer function should know how to consume given action.
+const applyReducer = (reducer, path, action) => {
     return {
         type: APPLY_REDUCER,
         payload: {
             path: path, // array
             reducer: reducer, // redux compatible reducer
-            action: action // action to be applied to given reducer
+            action: action, // action to be applied to given reducer
+            getIn: __getIn,
+            setIn: __setIn
+        }
+    }
+}
+
+// Action creator that works on global states of any type.
+//
+// customize getIn and setIn.
+//
+// type getIn = (rootData, path) => valueAtPath
+// type setIn = (rootData, path, value) => rootData
+//
+// Useful for Immutable.js objects
+const applyReducerWith = (getIn, setIn) => {
+    return (path, reducer, action) => {
+        return {
+            type: APPLY_REDUCER,
+            payload: {
+                path: path, // array
+                reducer: reducer, // redux compatible reducer
+                action: action, // action to be applied to given reducer
+                getIn: getIn,
+                setIn: setIn
+            }
         }
     }
 }
 
 module.exports = {
 
-    // exported action
-    APPLY_REDUCER: APPLY_REDUCER,
-    action: APPLY_REDUCER,
+    // NOTE: action type is not exported. Consumers should use applyReducer or
+    // applyReducerWith
 
     // export reducer
     treeReducer,
     reducer: treeReducer,
+    wrapReducer,
 
-    applyReducer
+    // reducer application
+    applyReducer,
+    applyReducerWith
 };

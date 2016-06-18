@@ -113,14 +113,21 @@ const RenderSourceComponent = connect(
     // }
 )(__RenderSourceComponent);
 
-const RevealCommitButtonComponent = function(/* props */) {
+const __RevealCommitButtonComponent = function(props) {
+
+    const {dispatch} = props;
 
     return (
-        <a href='#reveal' className='btn btn-block'>
+        <a
+            href='#confirm-skip'
+            className='btn btn-block'
+            onClick={switchCardPerfControl(dispatch, CARD_PERF_CONTROL__DEFAULT_CHOICES)}>
             {'Reveal Answer'}
         </a>
     );
 }
+
+const RevealCommitButtonComponent = connect()(__RevealCommitButtonComponent);
 
 const __ReviewScoreCommitComponent = function(props) {
 
@@ -181,8 +188,7 @@ const ReviewScoreCommitComponent = connect(
 )(__ReviewScoreCommitComponent);
 
 const CardSource = function(props) {
-    return <TextareaAutosize
-        style={props.style}
+    return <TextareaAutosize style={props.style}
         key='textarea'
         useCacheForDOMMeasurements
         minRows={6}
@@ -355,18 +361,36 @@ const SKIPCARD_VIEW = genKey();
 const SKIPCARD_INITIAL = genKey();
 const SKIPCARD_CONFIRM = genKey();
 
-/* redux action creators */
+/* redux action dispatchers */
 // NOTE: FSA compliant
+
+const switchCardPerfControl = function(dispatch, nextCardPerfView) {
+    return function(event) {
+        event.preventDefault();
+        dispatch(
+            applyReducer(
+                // reducer
+                cardPerfReducer,
+                // path
+                [CARD_PERF_CONTROL_VIEW],
+                // action
+                {
+                    type: nextCardPerfView
+                }
+            )
+        );
+    }
+}
 
 const skipCard = function(dispatch, nextSkipCardView) {
     return function(event) {
         event.preventDefault();
         dispatch(
             applyReducer(
-                // path
-                [SKIPCARD_VIEW],
                 // reducer
                 skipCardReducer,
+                // path
+                [SKIPCARD_VIEW],
                 // action
                 {
                     type: nextSkipCardView
@@ -381,10 +405,10 @@ const switchTab = function(dispatch, tabType) {
         event.preventDefault();
         dispatch(
             applyReducer(
-                // path
-                [TAB],
                 // reducer
                 tabReducer,
+                // path
+                [TAB],
                 // action
                 {
                     type: tabType
@@ -400,10 +424,10 @@ const switchMarkdownView = function(dispatch, target, markdownView) {
         event.preventDefault();
         dispatch(
             applyReducer(
-                // path
-                [target, MARKDOWN_VIEW],
                 // reducer
                 markdownViewReducer,
+                // path
+                [target, MARKDOWN_VIEW],
                 // action
                 {
                     type: markdownView
@@ -415,6 +439,21 @@ const switchMarkdownView = function(dispatch, target, markdownView) {
 
 
 /* redux reducers */
+
+const cardPerfReducer = function(state = CARD_PERF_CONTROL__INITIAL, action) {
+
+    switch(action.type) {
+    case CARD_PERF_CONTROL__INITIAL:
+    case CARD_PERF_CONTROL__DEFAULT_CHOICES:
+        state = action.type;
+        break;
+
+    default:
+        state = CARD_PERF_CONTROL__INITIAL;
+    }
+
+    return state;
+}
 
 const skipCardReducer = function(state = SKIPCARD_INITIAL, action) {
 
