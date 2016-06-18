@@ -41,7 +41,7 @@ const treeReducer = (state = NOT_SET, action) => {
 
         if (process.env.NODE_ENV !== 'production') {
             // TODO: check reducer is function
-            if(!_.isFunction(reducer)) {
+            if(!isFunction(reducer)) {
                 throw Error(`Given reducer is not a function: ${reducer}`);
             }
         }

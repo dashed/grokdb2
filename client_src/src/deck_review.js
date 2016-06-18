@@ -117,17 +117,104 @@ const __RevealCommitButtonComponent = function(props) {
 
     const {dispatch} = props;
 
+    const perfControlView = props[CARD_PERF_CONTROL_VIEW];
+
+    switch(perfControlView) {
+    case CARD_PERF_CONTROL__INITIAL:
+
+
+        return (
+            <a
+                href='#confirm-skip'
+                className='btn btn-block'
+                onClick={switchCardPerfControl(dispatch, CARD_PERF_CONTROL__DEFAULT_CHOICES)}>
+                {'Reveal Answer'}
+            </a>
+        );
+
+    case CARD_PERF_CONTROL__DEFAULT_CHOICES:
+    default:
+
+        return (
+            <a
+                href='#confirm-skip'
+                className='btn btn-block'
+                onClick={() => void 0}>
+                {'Commit Score & Next Card'}
+            </a>
+        );
+
+    }
+
+}
+
+const RevealCommitButtonComponent = connect(
+    // mapStateToProps
+    (state) => {
+        return{
+            [CARD_PERF_CONTROL_VIEW]: state[CARD_PERF_CONTROL_VIEW]
+        };
+    },
+
+)(__RevealCommitButtonComponent);
+
+const __CardPerformanceControlComponent = function(props) {
+
+    const {shouldNotShow} = props;
+
+    if(shouldNotShow) {
+        return null;
+    }
+
+    // switch(perfControlView) {
+    // case CARD_PERF_CONTROL__INITIAL:
+    //     return;
+    // }
+
     return (
-        <a
-            href='#confirm-skip'
-            className='btn btn-block'
-            onClick={switchCardPerfControl(dispatch, CARD_PERF_CONTROL__DEFAULT_CHOICES)}>
-            {'Reveal Answer'}
-        </a>
+        <div className='columns'>
+            <div className='column col-4'>
+                <a
+                    href='#confirm-skip'
+                    className='btn btn-block'
+                    onClick={() => void 0}>
+                    {'Fail'}
+                </a>
+            </div>
+            <div className='column col-4'>
+                <a
+                    href='#confirm-skip'
+                    className='btn btn-block'
+                    onClick={() => void 0}>
+                    {'Success'}
+                </a>
+            </div>
+            <div className='column col-4'>
+                <a
+                    href='#confirm-skip'
+                    className='btn btn-block'
+                    onClick={() => void 0}>
+                    {'Reset Score'}
+                </a>
+            </div>
+        </div>
     );
 }
 
-const RevealCommitButtonComponent = connect()(__RevealCommitButtonComponent);
+const CardPerformanceControlComponent = connect(
+    // mapStateToProps
+    (state) => {
+        const shouldNotShow = (state[SKIPCARD_VIEW] === SKIPCARD_CONFIRM) ||
+            state[CARD_PERF_CONTROL_VIEW] === CARD_PERF_CONTROL__INITIAL;
+
+        return{
+            // [CARD_PERF_CONTROL_VIEW]: state[CARD_PERF_CONTROL_VIEW],
+            // shouldShow: !shouldNotShow
+            shouldNotShow
+        };
+    },
+
+)(__CardPerformanceControlComponent);
 
 const __ReviewScoreCommitComponent = function(props) {
 
@@ -136,22 +223,24 @@ const __ReviewScoreCommitComponent = function(props) {
     if(showConfirmSkipCard) {
 
         return (
-            <div className='columns'>
-                <div className='column col-6'>
-                    <a
-                        href='#confirm-skip'
-                        className='btn btn-block'
-                        onClick={() => void 0}>
-                        {'Yes, skip'}
-                    </a>
-                </div>
-                <div className='column col-6'>
-                    <a
-                        href='#cancel-skip'
-                        className='btn btn-block btn-primary'
-                        onClick={skipCard(dispatch, SKIPCARD_INITIAL)}>
-                        {'No, do not skip'}
-                    </a>
+            <div>
+                <div className='columns'>
+                    <div className='column col-6'>
+                        <a
+                            href='#confirm-skip'
+                            className='btn btn-block'
+                            onClick={() => void 0}>
+                            {'Yes, skip'}
+                        </a>
+                    </div>
+                    <div className='column col-6'>
+                        <a
+                            href='#cancel-skip'
+                            className='btn btn-block btn-primary'
+                            onClick={skipCard(dispatch, SKIPCARD_INITIAL)}>
+                            {'No, do not skip'}
+                        </a>
+                    </div>
                 </div>
             </div>
         );
@@ -159,17 +248,24 @@ const __ReviewScoreCommitComponent = function(props) {
     }
 
     return (
-        <div className='columns'>
-            <div className='column col-9'>
-                <RevealCommitButtonComponent />
+        <div>
+            <div className='columns'>
+                <div className='column'>
+                    <CardPerformanceControlComponent />
+                </div>
             </div>
-            <div className='column col-3'>
-                <a
-                    href='#skip'
-                    className='btn btn-block'
-                    onClick={skipCard(dispatch, SKIPCARD_CONFIRM)}>
-                    {'Skip Card'}
-                </a>
+            <div className='columns'>
+                <div className='column col-9'>
+                    <RevealCommitButtonComponent />
+                </div>
+                <div className='column col-3'>
+                    <a
+                        href='#skip'
+                        className='btn btn-block'
+                        onClick={skipCard(dispatch, SKIPCARD_CONFIRM)}>
+                        {'Skip Card'}
+                    </a>
+                </div>
             </div>
         </div>
     );
