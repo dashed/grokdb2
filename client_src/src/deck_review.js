@@ -20,7 +20,6 @@ const afterRender = () => {
 };
 
 ReactDOM.render(
-    // deck_review(initialState),
     deck_review(initialState),
     document.getElementById('deck-review-container'),
     afterRender
