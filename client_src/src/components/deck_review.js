@@ -2,15 +2,14 @@
 // require('babel-polyfill');
 
 const React = require('react');
-const ReactDOM = require('react-dom');
+// const ReactDOM = require('react-dom');
 const {Provider, connect} = require('react-redux');
 const {createStore} = require('redux');
 const classnames = require('classnames');
 const TextareaAutosize = require('react-textarea-autosize').default;
 
 
-const {genKey} = require('helpers');
-const {applyReducer, reducer: treeReducer} = require('redux-tree');
+const {reduceIn, makeReducer} = require('redux-tree');
 
 /* constants */
 
@@ -21,10 +20,10 @@ enum Tab {
     Description
 }
  */
-const TAB = genKey();
-const TAB_QUESTION = genKey();
-const TAB_ANSWER = genKey();
-const TAB_DESCRIPTION = genKey();
+const TAB = 'TAB';
+const TAB_QUESTION = 'TAB_QUESTION';
+const TAB_ANSWER = 'TAB_ANSWER';
+const TAB_DESCRIPTION = 'TAB_DESCRIPTION';
 
 /*
 enum MarkdownView {
@@ -32,11 +31,11 @@ enum MarkdownView {
     Source
 }
  */
-const MARKDOWN_VIEW = genKey();
-const MARKDOWN_VIEW_RENDER = genKey();
-const MARKDOWN_VIEW_SOURCE = genKey();
+const MARKDOWN_VIEW = 'MARKDOWN_VIEW';
+const MARKDOWN_VIEW_RENDER = 'MARKDOWN_VIEW_RENDER';
+const MARKDOWN_VIEW_SOURCE = 'MARKDOWN_VIEW_SOURCE';
 
-const CARD_CONTENTS = genKey();
+const CARD_CONTENTS = 'CARD_CONTENTS';
 
 // TODO: clean up below
 /*
@@ -65,9 +64,9 @@ enum CardPerformanceControl {
 }
  */
 
-const CARD_PERF_CONTROL_VIEW = genKey();
-const CARD_PERF_CONTROL__INITIAL = genKey(); // empty UI
-const CARD_PERF_CONTROL__DEFAULT_CHOICES = genKey();
+const CARD_PERF_CONTROL_VIEW = 'CARD_PERF_CONTROL_VIEW';
+const CARD_PERF_CONTROL__INITIAL = 'CARD_PERF_CONTROL__INITIAL'; // empty UI
+const CARD_PERF_CONTROL__DEFAULT_CHOICES = 'CARD_PERF_CONTROL__DEFAULT_CHOICES';
 
 /*
 enum SkipCardView {
@@ -76,9 +75,9 @@ enum SkipCardView {
 }
  */
 
-const SKIPCARD_VIEW = genKey();
-const SKIPCARD_INITIAL = genKey();
-const SKIPCARD_CONFIRM = genKey();
+const SKIPCARD_VIEW = 'SKIPCARD_VIEW';
+const SKIPCARD_INITIAL = 'SKIPCARD_INITIAL';
+const SKIPCARD_CONFIRM = 'SKIPCARD_CONFIRM';
 
 
 /* react components */
@@ -478,7 +477,7 @@ const switchCardPerfControl = function(dispatch, nextCardPerfView) {
     return function(event) {
         event.preventDefault();
         dispatch(
-            applyReducer(
+            reduceIn(
                 // reducer
                 cardPerfReducer,
                 // path
@@ -496,7 +495,7 @@ const skipCard = function(dispatch, nextSkipCardView) {
     return function(event) {
         event.preventDefault();
         dispatch(
-            applyReducer(
+            reduceIn(
                 // reducer
                 skipCardReducer,
                 // path
@@ -514,7 +513,7 @@ const switchTab = function(dispatch, tabType) {
     return function(event) {
         event.preventDefault();
         dispatch(
-            applyReducer(
+            reduceIn(
                 // reducer
                 tabReducer,
                 // path
@@ -529,11 +528,11 @@ const switchTab = function(dispatch, tabType) {
 }
 
 const switchMarkdownView = function(dispatch, target, markdownView) {
-    // target: Tab
+    // target: Tab such as question, question, or description
     return function(event) {
         event.preventDefault();
         dispatch(
-            applyReducer(
+            reduceIn(
                 // reducer
                 markdownViewReducer,
                 // path
@@ -637,7 +636,8 @@ const initialState = {
     [CARD_PERF_CONTROL_VIEW]: CARD_PERF_CONTROL__INITIAL
 };
 
-const store = createStore(treeReducer, initialState);
+// TODO: remove
+// const store = createStore(treeReducer, initialState);
 
 /* start */
 
@@ -649,7 +649,7 @@ const store = createStore(treeReducer, initialState);
 
 module.exports = function(__initialState = initialState) {
 
-    const store = createStore(treeReducer, __initialState);
+    const store = createStore(makeReducer(), __initialState);
 
     return (
         <Provider store={store}>
