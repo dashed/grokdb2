@@ -208,6 +208,7 @@ pub mod routes {
         response.send(message.as_bytes()).unwrap();
     }
 
+
     pub fn static_assets(context: Context, request: Request, response: Response) {
 
         // TODO: caching stuff from https://github.com/iron/staticfile/blob/master/src/static_handler.rs
@@ -697,14 +698,14 @@ pub mod helpers {
                 match card_route {
                     CardRoute::Profile => {
                         (
-                            r"^/card/(?P<card_id>\d+)$",
+                            r"^/card/(?P<card_id>[1-9][0-9]*)$",
                             super::routes::card_profile,
                             super::link::card_profile
                         )
                     },
                     CardRoute::Review => {
                         (
-                            r"^/card/(?P<card_id>\d+)/review$",
+                            r"^/card/(?P<card_id>[1-9][0-9]*)/review$",
                             super::routes::card_profile_review,
                             super::link::card_profile_review
                         )
@@ -717,14 +718,14 @@ pub mod helpers {
                 match card_route {
                     CardRoute::Profile => {
                         (
-                            r"^/deck/(?P<deck_id>\d+)/card/(?P<card_id>\d+)$",
+                            r"^/deck/(?P<deck_id>[1-9][0-9]*)/card/(?P<card_id>[1-9][0-9]*)$",
                             super::routes::deck_card_profile,
                             super::link::deck_card_profile
                         )
                     },
                     CardRoute::Review => {
                         (
-                            r"^/deck/(?P<deck_id>\d+)/card/(?P<card_id>\d+)/review$",
+                            r"^/deck/(?P<deck_id>[1-9][0-9]*)/card/(?P<card_id>[1-9][0-9]*)/review$",
                             super::routes::deck_card_profile_review,
                             super::link::deck_card_profile_review
                         )
@@ -736,42 +737,42 @@ pub mod helpers {
 
                 match deck_route {
                     DeckRoute::NewCard=> (
-                        r"^/deck/(?P<deck_id>\d+)/new/card$",
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/new/card$",
                         super::routes::new_card,
                         super::link::new_card),
 
                     DeckRoute::NewDeck=> (
-                        r"^/deck/(?P<deck_id>\d+)/new/deck$",
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/new/deck$",
                         super::routes::new_deck,
                         super::link::new_deck),
 
                     DeckRoute::Description => (
-                        r"^/deck/(?P<deck_id>\d+)/description$",
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/description$",
                         super::routes::deck_description,
                         super::link::deck_description),
 
                     DeckRoute::Decks => (
-                        r"^/deck/(?P<deck_id>\d+)/decks$",
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/decks$",
                         super::routes::deck_decks,
                         super::link::deck_decks),
 
                     DeckRoute::Cards => (
-                        r"^/deck/(?P<deck_id>\d+)/cards$",
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/cards$",
                         super::routes::deck_cards,
                         super::link::deck_cards),
 
                     DeckRoute::Meta => (
-                        r"^/deck/(?P<deck_id>\d+)/meta$",
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/meta$",
                         super::routes::deck_meta,
                         super::link::deck_meta),
 
                     DeckRoute::Settings => (
-                        r"^/deck/(?P<deck_id>\d+)/settings$",
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/settings$",
                         super::routes::deck_settings,
                         super::link::deck_settings),
 
                     DeckRoute::Review => (
-                        r"^/deck/(?P<deck_id>\d+)/review$",
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/review$",
                         super::routes::deck_review,
                         super::link::deck_review),
                 }

@@ -254,7 +254,10 @@ fn main() {
     // router.get(r"^/$", route_root);
     // router.get(r"^/settings$", route_settings);
 
-    // TODO: limit path length?
+    // TODO: look into rust cargo env variable to switch between debug/prod
+    // TODO: inline_static_asset!(router, "^/assets/deck_review.js$", "path/to/file", mime!(Application/Javascript))
+
+    // TODO: limit path length? [NOTE]: use above approach?
     router.get(r"^/assets/(?P<path>.+)$", route::routes::static_assets);
 
     // TODO: what is this?

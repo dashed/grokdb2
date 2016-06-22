@@ -2,12 +2,19 @@
 
 const ReactDOM = require('react-dom');
 
+const rehydrate = require('helpers/hydrate');
 
-const initialState = window.__INITIAL_STATE__;
+const maker = require('./components/deck_review');
 
-const deck_review = require('./components/deck_review');
+const { component, store } = maker();
 
-// rehydrate
+const initialState = window.__INITIAL_STATE__
+    // TODO: test
+    || require('lodash').merge({}, maker.initialState);
+
+// TODO: test
+initialState.TAB_QUESTION.CARD_CONTENTS = 'question';
+
 let firstRender = false;
 const afterRender = () => {
 
@@ -16,11 +23,13 @@ const afterRender = () => {
     }
     firstRender = true;
 
+    store.dispatch(rehydrate.hydrate(initialState));
+
     console.log('finished render');
 };
 
 ReactDOM.render(
-    deck_review(initialState),
+    component,
     document.getElementById('deck-review-container'),
     afterRender
 );

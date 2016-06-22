@@ -9,7 +9,7 @@ const classnames = require('classnames');
 const TextareaAutosize = require('react-textarea-autosize').default;
 
 
-const {reduceIn, makeReducer} = require('redux-tree');
+const {reduceIn, makeReducer} = require('lib/redux-tree');
 
 /* constants */
 
@@ -609,7 +609,7 @@ const markdownViewReducer = function(state = MARKDOWN_VIEW_RENDER, action) {
     return state;
 }
 
-/* redux store */
+/* default state */
 
 const initialState = {
 
@@ -618,17 +618,17 @@ const initialState = {
 
     [TAB_QUESTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
-        [CARD_CONTENTS]: 'question'
+        [CARD_CONTENTS]: ''
     },
 
     [TAB_ANSWER]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
-        [CARD_CONTENTS]: 'answer'
+        [CARD_CONTENTS]: ''
     },
 
     [TAB_DESCRIPTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
-        [CARD_CONTENTS]: 'description'
+        [CARD_CONTENTS]: ''
     },
 
     [SKIPCARD_VIEW]: SKIPCARD_INITIAL,
@@ -636,24 +636,27 @@ const initialState = {
     [CARD_PERF_CONTROL_VIEW]: CARD_PERF_CONTROL__INITIAL
 };
 
-// TODO: remove
-// const store = createStore(treeReducer, initialState);
+/* exports */
 
-/* start */
+const rehydrate = require('helpers/hydrate');
 
-// ReactDOM.render(
-//     <Provider store={store}>
-//         <DeckReviewContainer />
-//     </Provider>,
-//     document.getElementById('deck-review-container'));
+module.exports = function() {
 
-module.exports = function(__initialState = initialState) {
+    const store = createStore(makeReducer({
+        reducer: rehydrate
+    }), initialState);
 
-    const store = createStore(makeReducer(), __initialState);
-
-    return (
+    const component = (
         <Provider store={store}>
             <DeckReviewContainer />
         </Provider>
     );
-}
+
+    return {
+        store,
+        component
+    };
+
+};
+
+module.exports.initialState = initialState;

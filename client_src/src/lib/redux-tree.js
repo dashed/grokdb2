@@ -25,6 +25,7 @@ const treeReducer = (state, action) => {
 
     if (process.env.NODE_ENV !== 'production') {
         if(!action.meta) {
+            console.log(action);
             // TODO: improve error
             throw Error('no meta in action');
         }
@@ -79,10 +80,8 @@ const makeReducer = ({reducer: fallbackReducer = NOT_SET} = {}) => {
             return state;
         }
 
-        if(action.meta) {
-            const {reducer = NOT_SET} = action.meta;
-
-            if(reducer === NOT_SET && fallbackReducerIsFunction) {
+        if(fallbackReducerIsFunction) {
+            if(!action.meta || (action.meta && action.meta.reducer && isFunction(action.meta.reducer))) {
                 return fallbackReducer(state, action);
             }
         }
@@ -125,11 +124,8 @@ const reduceIn = (reducer, path, action, getIn = __getIn, setIn = __setIn, shoul
         }
     };
 
-    if (shouldPollute) {
-        return _.merge(action, patch);
-    } else {
-        return _.merge({}, action, patch);
-    }
+    return shouldPollute ? _.merge(action, patch) :
+        _.merge({}, action, patch);
 
 };
 

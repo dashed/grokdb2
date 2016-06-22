@@ -1319,11 +1319,12 @@ fn CardProfileReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Conte
             }
 
             div(id="deck-review-container") {
-                div(class="columns") {
-                    div(class="column") {
-                        div(class="loading") {}
-                    }
-                }
+                : raw!(include_str!("react_components/deck_review"))
+                // div(class="columns") {
+                //     div(class="column") {
+                //         div(class="loading") {}
+                //     }
+                // }
             }
 
             // TODO: clean up
