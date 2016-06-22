@@ -364,7 +364,7 @@ const ReviewScoreCommitComponent = connect(
 )(__ReviewScoreCommitComponent);
 
 const CardSource = function(props) {
-    return <TextareaAutosize style={props.style}
+    return (<TextareaAutosize style={props.style}
         key='textarea'
         useCacheForDOMMeasurements
         minRows={6}
@@ -375,7 +375,7 @@ const CardSource = function(props) {
         // onChange={this.onSourceChange}
         value={props.contents}
         readOnly={true}
-    />;
+    />);
 }
 
 const __DISPLAY_NONE = {display: 'none'};
