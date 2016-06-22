@@ -28,9 +28,14 @@ const treeReducer = (state, action) => {
             // TODO: improve error
             throw Error('no meta in action');
         }
+
+        if(!action.meta.__redux_tree) {
+            // TODO: improve error
+            throw Error('reduceIn/reduceInWith not used');
+        }
     }
 
-    const {reducer, path, getIn, setIn} = action.meta;
+    const {reducer, path, getIn, setIn} = action.meta.__redux_tree;
 
     if (process.env.NODE_ENV !== 'production') {
 
@@ -111,10 +116,12 @@ const reduceIn = (reducer, path, action, getIn = __getIn, setIn = __setIn, shoul
 
     const patch = {
         meta: {
-            path: path, // array
-            reducer: reducer, // redux compatible reducer
-            getIn: getIn,
-            setIn: setIn
+            __redux_tree: {
+                path: path, // array
+                reducer: reducer, // redux compatible reducer
+                getIn: getIn,
+                setIn: setIn
+            }
         }
     };
 
