@@ -10,13 +10,22 @@ module.exports = {
     entry: {
         deck_review: "./src/deck_review.js",
         vendor: [
-            // 'babel-polyfill',
+            'babel-polyfill',
             // 'babel-runtime/regenerator',
 
-            'babel-runtime/core-js',
+            // TODO: fix
+            // 'core-js',
+            // 'babel-runtime',
+
+
+            // 'babel-runtime/core-js',
+
+
             'react',
             'react-dom',
             'classnames',
+
+            // 'bluebird',
 
             // 'little-loader',
 

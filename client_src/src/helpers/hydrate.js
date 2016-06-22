@@ -1,4 +1,4 @@
-// rehydrate
+// reducer for rehydration
 //
 // terminology: http://stackoverflow.com/questions/29824908/what-does-dehydrate-and-rehydrate-stand-for-in-fluxible
 
@@ -6,6 +6,12 @@ const REHYDRATE = Symbol('REHYDRATE');
 
 // reducer
 module.exports = (state, action) => {
+
+    if (process.env.NODE_ENV !== 'production') {
+        if(!action.type) {
+            console.error(`Action not FSA. Given ${action}`);
+        }
+    }
 
     switch(action.type) {
 

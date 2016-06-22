@@ -1,104 +1,35 @@
-// TODO: this is fucking huge
-// require('babel-polyfill');
-
 const React = require('react');
-// const ReactDOM = require('react-dom');
 const {Provider, connect} = require('react-redux');
 const {createStore} = require('redux');
 const classnames = require('classnames');
 const TextareaAutosize = require('react-textarea-autosize').default;
 
+const {
+
+    TAB,
+    TAB_QUESTION,
+    TAB_ANSWER,
+    TAB_DESCRIPTION,
+
+    MARKDOWN_VIEW,
+    MARKDOWN_VIEW_RENDER,
+    MARKDOWN_VIEW_SOURCE,
+
+    CARD_CONTENTS,
+
+    CARD_PERF_CONTROL_VIEW,
+    CARD_PERF_CONTROL__INITIAL,
+    CARD_PERF_CONTROL__DEFAULT_CHOICES,
+
+    SKIPCARD_VIEW,
+    SKIPCARD_INITIAL,
+    SKIPCARD_CONFIRM,
+
+} = require('global/constants');
 
 const {reduceIn, makeReducer} = require('lib/redux-tree');
 
-/* constants */
-
-/*
-enum Tab {
-    Question,
-    Answer,
-    Description
-}
- */
-const TAB = 'TAB';
-const TAB_QUESTION = 'TAB_QUESTION';
-const TAB_ANSWER = 'TAB_ANSWER';
-const TAB_DESCRIPTION = 'TAB_DESCRIPTION';
-
-/*
-enum MarkdownView {
-    Render,
-    Source
-}
- */
-const MARKDOWN_VIEW = 'MARKDOWN_VIEW';
-const MARKDOWN_VIEW_RENDER = 'MARKDOWN_VIEW_RENDER';
-const MARKDOWN_VIEW_SOURCE = 'MARKDOWN_VIEW_SOURCE';
-
-const CARD_CONTENTS = 'CARD_CONTENTS';
-
-// TODO: clean up below
-/*
-enum SkipCard {
-    Yes,
-    No // default
-}
-
-enum PerformanceChoice {
-    NoChoice,
-    Fail,
-    Success,
-    Reset
-}
-
-enum CustomScoreOperation {
-    Append,
-    Set
-}
-
-// UI state machine
-enum CardPerformanceControl {
-    Initial,
-    DefaultChoices,
-    CustomScore,
-}
- */
-
-const CARD_PERF_CONTROL_VIEW = 'CARD_PERF_CONTROL_VIEW';
-const CARD_PERF_CONTROL__INITIAL = 'CARD_PERF_CONTROL__INITIAL'; // empty UI
-const CARD_PERF_CONTROL__DEFAULT_CHOICES = 'CARD_PERF_CONTROL__DEFAULT_CHOICES';
-
-/*
-enum SkipCardView {
-    Initial,
-    Confirm
-}
- */
-
-const SKIPCARD_VIEW = 'SKIPCARD_VIEW';
-const SKIPCARD_INITIAL = 'SKIPCARD_INITIAL';
-const SKIPCARD_CONFIRM = 'SKIPCARD_CONFIRM';
-
-
 /* react components */
-
-// const styleA = {
-//     marginTop: 0,
-//     marginBottom: 0
-// };
-
-// TODO: move to its own file
-// const CardTitleReviewComponent = React.createClass({
-//     render: function() {
-//         return (
-//             <h5 style={styleA} className='text-break'>
-//                 <small className='label'>{'Reviewing'}</small>
-//                 {' '}
-//                 {'What does the fox say?'}
-//             </h5>
-//         );
-//     }
-// });
 
 
 
