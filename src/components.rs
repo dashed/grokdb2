@@ -201,6 +201,13 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                             };
 
                         },
+                        AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
+                            tmpl << html! {
+                                script(type="text/javascript", src="/assets/vendor.js") {}
+                                script(type="text/javascript", src="/assets/new_deck.js") {}
+                            };
+
+                        },
                         _ => {}
                     };
                 }
@@ -601,7 +608,6 @@ fn NewCardComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
     };
 }
 
-// components/NewDeckComponent
 fn NewDeckComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
     tmpl << html! {
 
@@ -610,6 +616,16 @@ fn NewDeckComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                 div(class="column") {
                     h5(style="margin-top:0;margin-bottom:0;", class="text-break") {
                         : "New Deck"
+                    }
+                }
+            }
+
+            div(id="new-deck-container") {
+                // : raw!(include_str!("react_components/deck_review"))
+
+                div(class="columns") {
+                    div(class="column") {
+                        div(class="loading") {}
                     }
                 }
             }
