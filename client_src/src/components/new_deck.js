@@ -22,7 +22,7 @@ const RenderSourceComponent = connect(
     (state) => {
         return{
             [MARKDOWN_VIEW]: state[MARKDOWN_VIEW],
-            switchTab: (dispatch, markdownView) => switchMarkdownView(dispatch, currentCardTab, markdownView)
+            switchTab: (dispatch, markdownView) => switchMarkdownView(dispatch, markdownView)
         };
     },
 
@@ -34,10 +34,40 @@ const RenderSourceComponent = connect(
     // }
 )(require('components/dumb/render_source'));
 
+const newDeckStyle = {
+    marginTop: 0,
+    marginBottom: 0
+};
 const NewDeckContainer = function(/* props */) {
     return (
         <div>
-            {'lol'}
+            <div className='columns'>
+                <div className='column'>
+                    <h5 style={newDeckStyle}>
+                        {'New Deck'}
+                    </h5>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <div className='form-group'>
+                        <label className='form-label' htmlFor='input-deck-name'>
+                            {'Name'}
+                        </label>
+                        <input
+                            className='form-input'
+                            type='text'
+                            id='input-deck-name'
+                            placeholder='Name for new deck'
+                        />
+                    </div>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <RenderSourceComponent />
+                </div>
+            </div>
         </div>
     );
 }
@@ -46,8 +76,7 @@ const NewDeckContainer = function(/* props */) {
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
-const switchMarkdownView = function(dispatch, target, markdownView) {
-    // target: Tab such as question, question, or description
+const switchMarkdownView = function(dispatch, markdownView) {
     return function(event) {
         event.preventDefault();
         dispatch(
@@ -55,7 +84,7 @@ const switchMarkdownView = function(dispatch, target, markdownView) {
                 // reducer
                 markdownViewReducer,
                 // path
-                [target, MARKDOWN_VIEW],
+                [MARKDOWN_VIEW],
                 // action
                 {
                     type: markdownView

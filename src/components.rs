@@ -196,6 +196,10 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                     match context.view_route {
                         AppRoute::Deck(_, DeckRoute::Review) =>  {
                             tmpl << html! {
+                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
+                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
+                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
+
                                 script(type="text/javascript", src="/assets/vendor.js") {}
                                 script(type="text/javascript", src="/assets/deck_review.js") {}
                             };
@@ -203,6 +207,10 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                         },
                         AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
                             tmpl << html! {
+                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
+                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
+                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
+
                                 script(type="text/javascript", src="/assets/vendor.js") {}
                                 script(type="text/javascript", src="/assets/new_deck.js") {}
                             };
@@ -612,13 +620,13 @@ fn NewDeckComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
     tmpl << html! {
 
         div(class="container") {
-            div(class="columns") {
-                div(class="column") {
-                    h5(style="margin-top:0;margin-bottom:0;", class="text-break") {
-                        : "New Deck"
-                    }
-                }
-            }
+            // div(class="columns") {
+            //     div(class="column") {
+            //         h5(style="margin-top:0;margin-bottom:0;", class="text-break") {
+            //             : "New Deck"
+            //         }
+            //     }
+            // }
 
             div(id="new-deck-container") {
                 // : raw!(include_str!("react_components/deck_review"))

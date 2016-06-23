@@ -15,7 +15,10 @@ module.exports = {
         vendor: [
 
             // babel
-            'babel-polyfill',
+            // TODO: deferred to cdn
+            // 'babel-polyfill',
+
+            // TODO: generators are not used
             // 'babel-runtime/regenerator',
 
             // TODO: fix
@@ -29,11 +32,19 @@ module.exports = {
             'classnames',
             // 'bluebird',
             // 'little-loader',
-            'lodash',
 
+
+            // TODO: too big; import individual functions instead
+            // 'lodash',
+            'lodash/isFunction',
+            'lodash/get',
+            'lodash/set',
+            'lodash/merge',
+
+            // TODO: deferred to cdn via webpack externals
             // react
-            'react',
-            'react-dom',
+            // 'react',
+            // 'react-dom',
 
 
 
@@ -84,5 +95,10 @@ module.exports = {
 
     plugins: [
         new webpack.optimize.CommonsChunkPlugin(/* chunkName= */"vendor", /* filename= */"vendor.js")
-    ]
+    ],
+
+    externals: {
+        react: 'React',
+        'react-dom': 'ReactDOM'
+    }
 };

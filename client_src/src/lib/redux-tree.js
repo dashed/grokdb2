@@ -2,8 +2,10 @@
 
 
 // TODO: specific lodash dependencies
-const _ = require('lodash');
-const isFunction = _.isFunction;
+const isFunction = require('lodash/isFunction');
+const lodashGetIn = require('lodash/get');
+const lodashSetIn = require('lodash/set');
+const lodashMerge = require('lodash/merge');
 // TODO: npm install npm.im/warning
 
 // sentinel value
@@ -11,14 +13,14 @@ const NOT_SET = {};
 
 const __getIn = (rootData, path) => {
     // TODO: check path is array
-    return _.get(rootData, path)
+    return lodashGetIn(rootData, path)
 };
 
 const __setIn = (rootData, path, newValue) => {
     // TODO: check path is array
-    const patch = _.set({}, path, newValue);
+    const patch = lodashSetIn({}, path, newValue);
     // NOTE: the following will not work: {...state, ...patch};
-    return _.merge({}, rootData, patch);
+    return lodashMerge({}, rootData, patch);
 };
 
 const treeReducer = (state, action) => {
@@ -124,8 +126,8 @@ const reduceIn = (reducer, path, action, getIn = __getIn, setIn = __setIn, shoul
         }
     };
 
-    return shouldPollute ? _.merge(action, patch) :
-        _.merge({}, action, patch);
+    return shouldPollute ? lodashMerge(action, patch) :
+        lodashMerge({}, action, patch);
 
 };
 
