@@ -552,12 +552,12 @@ const initialState = {
 
 /* exports */
 
-const rehydrate = require('helpers/hydrate');
+const rehydrateFactory = require('helpers/hydrate');
 
 module.exports = function() {
 
     const store = createStore(makeReducer({
-        reducer: rehydrate
+        reducer: rehydrateFactory()
     }), initialState);
 
     const component = (

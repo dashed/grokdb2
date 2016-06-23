@@ -26,6 +26,7 @@ module.exports = (maker, initialState, mountTarget) => {
         firstRender = true;
 
         store.dispatch(rehydrate.hydrate(initialState));
+        store.dispatch(rehydrate.hotpath());
 
         console.log('finished render lol');
     };

@@ -1,10 +1,16 @@
 const React = require('react');
 const TextareaAutosize = require('react-textarea-autosize').default;
+const has = require('lodash/has');
 
 const MarkdownSource = function(props) {
 
-    return (<TextareaAutosize style={props.style}
-        key='textarea'
+    const contents = has(props.assignProps, 'value') ?
+        (props.assignProps.value || '') : (props.contents || '')
+
+    return (<TextareaAutosize
+
+        style={props.style}
+        // key='textarea'
         useCacheForDOMMeasurements
         minRows={6}
         maxRows={10}
@@ -12,14 +18,15 @@ const MarkdownSource = function(props) {
         // id="deck_source"
         placeholder={props.placeholder}
         // onChange={this.onSourceChange}
-        value={props.contents}
-        readOnly={!props.editable}
+        {...props.assignProps}
+        value={contents}
     />);
 };
 
 MarkdownSource.defaultProps = {
     placeholder: '',
-    style: {}
+    style: {},
+    assignProps: {}
 };
 
 if(process.env.NODE_ENV !== 'production') {
@@ -28,6 +35,7 @@ if(process.env.NODE_ENV !== 'production') {
         contents: React.PropTypes.string,
         editable: React.PropTypes.bool,
         placeholder: React.PropTypes.string,
+        assignProps: React.PropTypes.object,
     };
 }
 

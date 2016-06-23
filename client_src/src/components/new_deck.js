@@ -1,7 +1,8 @@
 const React = require('react');
 const {Provider, connect} = require('react-redux');
-const {createStore} = require('redux');
+const {createStore, applyMiddleware} = require('redux');
 const classnames = require('classnames');
+const {reduxForm, reducer: reduxformReducer} = require('redux-form');
 
 const {
 
@@ -24,7 +25,7 @@ const RenderSourceComponent = connect(
 
     // mapStateToProps
     (state) => {
-        return{
+        return {
             [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
             switchTab: (dispatch, markdownView) => switchMarkdownView(dispatch, markdownView)
         };
@@ -59,6 +60,7 @@ const __DeckDescriptionComponent = function(props) {
                     contents={contents}
                     style={sourceStyle}
                     placeholder={'Description for new deck'}
+                    assignProps={props.assignProps}
                     editable
                 />
             </div>
@@ -67,21 +69,37 @@ const __DeckDescriptionComponent = function(props) {
 
 }
 
+if(process.env.NODE_ENV !== 'production') {
+    __DeckDescriptionComponent.propTypes = {
+        assignProps: React.PropTypes.object,
+    };
+}
+
 const DeckDescriptionComponent = connect(
 
     // mapStateToProps
-    (state) => {
+    (state, ownProps) => {
 
         return {
 
             [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
-            [MARKDOWN_CONTENTS]: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+
+            // [MARKDOWN_CONTENTS]: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+            // from redux-form
+            [MARKDOWN_CONTENTS]: ownProps.assignProps.value
 
         };
     }
 )(__DeckDescriptionComponent);
 
-const NewDeckContainer = function(/* props */) {
+const __NewDeckContainer = function(props) {
+    const {
+        fields: { name, description},
+        // handleSubmit,
+        // resetForm,
+        // submitting
+    } = props;
+
     return (
         <div>
             <div className='columns'>
@@ -93,8 +111,9 @@ const NewDeckContainer = function(/* props */) {
                         <input
                             className='form-input'
                             type='text'
-                            id='input-deck-name'
+                            // id='input-deck-name'
                             placeholder='Name for new deck'
+                            {...name}
                         />
                     </div>
                 </div>
@@ -106,7 +125,7 @@ const NewDeckContainer = function(/* props */) {
             </div>
             <div className='columns'>
                 <div className='column'>
-                    <DeckDescriptionComponent />
+                    <DeckDescriptionComponent assignProps={description} />
                 </div>
             </div>
             <div className='columns'>
@@ -121,6 +140,26 @@ const NewDeckContainer = function(/* props */) {
         </div>
     );
 }
+
+const NewDeckContainer = reduxForm({
+        form: 'new_deck',
+        fields: ['name', 'description'],
+        overwriteOnInitialValuesChange: false
+    },
+    // mapStateToProps
+    (state) => {
+
+        return {
+            initialValues: {
+                name: 'lol',
+                description: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+            }
+        };
+    },
+    // {
+    //     overwriteOnInitialValuesChange: false
+    // }
+)(__NewDeckContainer);
 
 
 /* redux action dispatchers */
@@ -168,20 +207,49 @@ const initialState = {
 
     [DECK_DESCRIPTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
-        [MARKDOWN_CONTENTS]: 'descrip'
+        [MARKDOWN_CONTENTS]: '' // initial value for redux-form
     },
+
+    // redux-form
+    form: reduxformReducer()
 
 };
 
 /* exports */
 
-const rehydrate = require('helpers/hydrate');
+const merge = require('lodash/merge');
+
+const formReducer = (state, action) => {
+
+    // NOTE: we're not using combineReducers from redux
+
+    const newForm = reduxformReducer(state.form, action);
+    const newState = merge({}, state);
+    newState.form = newForm;
+
+    return newState;
+};
+
+const rehydrateFactory = require('helpers/hydrate');
+
+const middleware = () => {
+
+    if(process.env.NODE_ENV !== 'production') {
+
+        const createLogger = require('redux-logger');
+        const logger = createLogger();
+
+        return applyMiddleware(logger);
+    }
+
+    return applyMiddleware();
+};
 
 module.exports = function() {
 
     const store = createStore(makeReducer({
-        reducer: rehydrate
-    }), initialState);
+        reducer: rehydrateFactory(formReducer)
+    }), initialState, middleware());
 
     const component = (
         <Provider store={store}>
