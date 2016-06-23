@@ -200,7 +200,7 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
                                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
 
-                                script(type="text/javascript", src="/assets/vendor.js") {}
+                                // script(type="text/javascript", src="/assets/vendor.js") {}
                                 script(type="text/javascript", src="/assets/deck_review.js") {}
                             };
 
@@ -211,7 +211,7 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
                                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
 
-                                script(type="text/javascript", src="/assets/vendor.js") {}
+                                // script(type="text/javascript", src="/assets/vendor.js") {}
                                 script(type="text/javascript", src="/assets/new_deck.js") {}
                             };
 

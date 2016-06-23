@@ -10,11 +10,11 @@ const componentPath = args[0];
 
 require("babel-register");
 
-// NOTE: type componentMaker = (initialState) => ReactComponent
-const componentMaker = require(componentPath);
+const maker = require(componentPath);
+const { component, store } = maker();
 
 const result = ReactDOMServer.renderToString(
-    componentMaker(void 0 /* initial state */)
+    component
 );
 
 // NOTE: this adds trailing newline

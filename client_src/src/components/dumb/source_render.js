@@ -1,3 +1,11 @@
+/*
+Same as render_source.js but tabs are swapped.
+
+Design decision:
+- swapping is not configurable to optimize generated code.
+
+*/
+
 const React = require('react');
 const classnames = require('classnames');
 
@@ -31,20 +39,20 @@ const RenderSourceComponent = function(props) {
 
     return (
         <ul className='tab'>
-            <li className = {classnames('tab-item', {'active': currentTab === MARKDOWN_VIEW_RENDER})}>
-                <a
-                    href='#render'
-                    style={boldTest(currentTab === MARKDOWN_VIEW_RENDER)}
-                    onClick={switchTab(dispatch, MARKDOWN_VIEW_RENDER)}>
-                    {'Render'}
-                </a>
-            </li>
             <li className = {classnames('tab-item', {'active': currentTab === MARKDOWN_VIEW_SOURCE})}>
                 <a
                     href='#source'
                     style={boldTest(currentTab === MARKDOWN_VIEW_SOURCE)}
                     onClick={switchTab(dispatch, MARKDOWN_VIEW_SOURCE)}>
                     {'Source'}
+                </a>
+            </li>
+            <li className = {classnames('tab-item', {'active': currentTab === MARKDOWN_VIEW_RENDER})}>
+                <a
+                    href='#render'
+                    style={boldTest(currentTab === MARKDOWN_VIEW_RENDER)}
+                    onClick={switchTab(dispatch, MARKDOWN_VIEW_RENDER)}>
+                    {'Render'}
                 </a>
             </li>
         </ul>

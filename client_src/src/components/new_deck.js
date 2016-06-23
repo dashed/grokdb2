@@ -24,15 +24,8 @@ const RenderSourceComponent = connect(
             [MARKDOWN_VIEW]: state[MARKDOWN_VIEW],
             switchTab: (dispatch, markdownView) => switchMarkdownView(dispatch, markdownView)
         };
-    },
-
-    // mapDispatchToProps
-    // (dispatch) => {
-    //     return {
-    //         switchTab:
-    //     };
-    // }
-)(require('components/dumb/render_source'));
+    }
+)(require('components/dumb/source_render'));
 
 const newDeckStyle = {
     marginTop: 0,
