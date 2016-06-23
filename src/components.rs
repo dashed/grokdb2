@@ -620,13 +620,13 @@ fn NewDeckComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
     tmpl << html! {
 
         div(class="container") {
-            // div(class="columns") {
-            //     div(class="column") {
-            //         h5(style="margin-top:0;margin-bottom:0;", class="text-break") {
-            //             : "New Deck"
-            //         }
-            //     }
-            // }
+            div(class="columns") {
+                div(class="column") {
+                    h5(style="margin-top:0;margin-bottom:0;", class="text-break") {
+                        : "New Deck"
+                    }
+                }
+            }
 
             div(id="new-deck-container") {
                 // : raw!(include_str!("react_components/deck_review"))
@@ -638,58 +638,58 @@ fn NewDeckComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                 }
             }
 
-            div(class="columns") {
-                div(class="column") {
-                    div(class="form-group") {
-                        label(class="form-label", for="input-deck-name") {
-                            : "Name"
-                        }
-                        input(class="form-input", type="text", id="input-deck-name", placeholder="Name for new deck");
-                    }
-                }
-            }
+            // div(class="columns") {
+            //     div(class="column") {
+            //         div(class="form-group") {
+            //             label(class="form-label", for="input-deck-name") {
+            //                 : "Name"
+            //             }
+            //             input(class="form-input", type="text", id="input-deck-name", placeholder="Name for new deck");
+            //         }
+            //     }
+            // }
 
-            div(class="columns") {
-                div(class="column") {
-                    ul(class="tab") {
-                        li(class="tab-item active") {
-                            a(href="#") {
-                                : "Source"
-                            }
-                        }
-                        li(class="tab-item") {
-                            a(href="#") {
-                                : "Render"
-                            }
-                        }
-                    }
-                }
-            }
+            // div(class="columns") {
+            //     div(class="column") {
+            //         ul(class="tab") {
+            //             li(class="tab-item active") {
+            //                 a(href="#") {
+            //                     : "Source"
+            //                 }
+            //             }
+            //             li(class="tab-item") {
+            //                 a(href="#") {
+            //                     : "Render"
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
 
-            div(class="columns") {
-                div(class="column") {
-                    div(class="form-group") {
-                        label(class="form-label", for="input-deck-description") {
-                            : "Description"
-                        }
-                        textarea(
-                            class="form-input",
-                            id="input-deck-description",
-                            placeholder="Description for new deck",
-                            rows="6"
-                        ) {
-                        }
-                    }
-                }
-            }
+            // div(class="columns") {
+            //     div(class="column") {
+            //         div(class="form-group") {
+            //             label(class="form-label", for="input-deck-description") {
+            //                 : "Description"
+            //             }
+            //             textarea(
+            //                 class="form-input",
+            //                 id="input-deck-description",
+            //                 placeholder="Description for new deck",
+            //                 rows="6"
+            //             ) {
+            //             }
+            //         }
+            //     }
+            // }
 
-            div(class="columns") {
-                div(class="column") {
-                    a(href="#", class="btn btn-success") {
-                        : "Add new Deck"
-                    }
-                }
-            }
+            // div(class="columns") {
+            //     div(class="column") {
+            //         a(href="#", class="btn btn-success") {
+            //             : "Add new Deck"
+            //         }
+            //     }
+            // }
         }
 
     };

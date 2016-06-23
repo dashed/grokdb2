@@ -2,7 +2,6 @@ const React = require('react');
 const {Provider, connect} = require('react-redux');
 const {createStore} = require('redux');
 const classnames = require('classnames');
-const TextareaAutosize = require('react-textarea-autosize').default;
 
 const {
 
@@ -10,37 +9,81 @@ const {
     MARKDOWN_VIEW_RENDER,
     MARKDOWN_VIEW_SOURCE,
 
+    MARKDOWN_CONTENTS,
+    DECK_DESCRIPTION,
+
 } = require('global/constants');
 
 const {reduceIn, makeReducer} = require('lib/redux-tree');
 
 /* react components */
 
+const MarkdownSource = require('components/dumb/markdown_source');
+
 const RenderSourceComponent = connect(
 
     // mapStateToProps
     (state) => {
         return{
-            [MARKDOWN_VIEW]: state[MARKDOWN_VIEW],
+            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
             switchTab: (dispatch, markdownView) => switchMarkdownView(dispatch, markdownView)
         };
     }
 )(require('components/dumb/source_render'));
 
-const newDeckStyle = {
-    marginTop: 0,
-    marginBottom: 0
-};
+const __DeckDescriptionComponent = function(props) {
+
+    const markdownView = props[MARKDOWN_VIEW];
+    const contents = props[MARKDOWN_CONTENTS];
+
+    let sourceStyle = {};
+    let renderStyle = {};
+
+    switch(markdownView) {
+    case MARKDOWN_VIEW_RENDER:
+        sourceStyle.display = 'none';
+        break;
+
+    case MARKDOWN_VIEW_SOURCE:
+    default:
+        renderStyle.display = 'none';
+    }
+
+    return (
+        <div>
+            <div style={renderStyle}>
+                {contents}
+            </div>
+            <div>
+                <MarkdownSource
+                    contents={contents}
+                    style={sourceStyle}
+                    placeholder={'Description for new deck'}
+                    editable
+                />
+            </div>
+        </div>
+    );
+
+}
+
+const DeckDescriptionComponent = connect(
+
+    // mapStateToProps
+    (state) => {
+
+        return {
+
+            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
+            [MARKDOWN_CONTENTS]: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+
+        };
+    }
+)(__DeckDescriptionComponent);
+
 const NewDeckContainer = function(/* props */) {
     return (
         <div>
-            <div className='columns'>
-                <div className='column'>
-                    <h5 style={newDeckStyle}>
-                        {'New Deck'}
-                    </h5>
-                </div>
-            </div>
             <div className='columns'>
                 <div className='column'>
                     <div className='form-group'>
@@ -61,6 +104,20 @@ const NewDeckContainer = function(/* props */) {
                     <RenderSourceComponent />
                 </div>
             </div>
+            <div className='columns'>
+                <div className='column'>
+                    <DeckDescriptionComponent />
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <a
+                        href='#add-new-deck'
+                        className='btn btn-success'>
+                        {'Add new deck'}
+                    </a>
+                </div>
+            </div>
         </div>
     );
 }
@@ -77,7 +134,7 @@ const switchMarkdownView = function(dispatch, markdownView) {
                 // reducer
                 markdownViewReducer,
                 // path
-                [MARKDOWN_VIEW],
+                [DECK_DESCRIPTION, MARKDOWN_VIEW],
                 // action
                 {
                     type: markdownView
@@ -109,8 +166,10 @@ const markdownViewReducer = function(state = MARKDOWN_VIEW_RENDER, action) {
 
 const initialState = {
 
-    // for deck description
-    [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE
+    [DECK_DESCRIPTION]: {
+        [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
+        [MARKDOWN_CONTENTS]: 'descrip'
+    },
 
 };
 

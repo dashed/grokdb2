@@ -2,7 +2,6 @@ const React = require('react');
 const {Provider, connect} = require('react-redux');
 const {createStore} = require('redux');
 const classnames = require('classnames');
-const TextareaAutosize = require('react-textarea-autosize').default;
 
 const {
 
@@ -30,6 +29,8 @@ const {
 const {reduceIn, makeReducer} = require('lib/redux-tree');
 
 /* react components */
+
+const MarkdownSource = require('components/dumb/markdown_source');
 
 // TODO: move to its own file for re-use
 const __CardReviewTabsComponent = function(props) {
@@ -291,27 +292,6 @@ const ReviewScoreCommitComponent = connect(
 
 )(__ReviewScoreCommitComponent);
 
-const CardSource = function(props) {
-    return (<TextareaAutosize style={props.style}
-        key='textarea'
-        useCacheForDOMMeasurements
-        minRows={6}
-        maxRows={10}
-        className='form-input'
-        // id="deck_source"
-        // placeholder={placeholder}
-        // onChange={this.onSourceChange}
-        value={props.contents}
-        readOnly={true}
-    />);
-}
-if(process.env.NODE_ENV !== 'production') {
-    CardSource.propTypes = {
-        style: React.PropTypes.object,
-        contents: React.PropTypes.string,
-    };
-}
-
 const __DISPLAY_NONE = {display: 'none'};
 const __CardContentsComponent = function(props) {
 
@@ -345,9 +325,9 @@ const __CardContentsComponent = function(props) {
                 {contents}
             </div>
             <div>
-                <CardSource contents={props[TAB_QUESTION]} style={sourceStyles[TAB_QUESTION]} />
-                <CardSource contents={props[TAB_ANSWER]} style={sourceStyles[TAB_ANSWER]} />
-                <CardSource contents={props[TAB_DESCRIPTION]} style={sourceStyles[TAB_DESCRIPTION]} />
+                <MarkdownSource contents={props[TAB_QUESTION]} style={sourceStyles[TAB_QUESTION]} />
+                <MarkdownSource contents={props[TAB_ANSWER]} style={sourceStyles[TAB_ANSWER]} />
+                <MarkdownSource contents={props[TAB_DESCRIPTION]} style={sourceStyles[TAB_DESCRIPTION]} />
             </div>
         </div>
     );
