@@ -2,6 +2,8 @@ var
 path = require('path'),
 webpack = require('webpack');
 
+var is_production = process.env.NODE_ENV === 'production';
+
 var appRoot = __dirname;
 
 module.exports = {
@@ -9,7 +11,10 @@ module.exports = {
     watch: true,
     entry: {
         deck_review: "./src/deck_review.js",
+        new_deck: "./src/new_deck.js",
         vendor: [
+
+            // babel
             'babel-polyfill',
             // 'babel-runtime/regenerator',
 
@@ -20,19 +25,28 @@ module.exports = {
 
             // 'babel-runtime/core-js',
 
+            // utils
+            'classnames',
+            // 'bluebird',
+            // 'little-loader',
+            'lodash',
 
+            // react
             'react',
             'react-dom',
-            'classnames',
 
-            // 'bluebird',
 
-            // 'little-loader',
 
+            // 3rd-party react components
+            'react-textarea-autosize',
+
+
+
+            // redux
             'redux',
             'react-redux',
-            'lodash',
-            'react-textarea-autosize'
+            'redux-form',
+
         ]
     },
 

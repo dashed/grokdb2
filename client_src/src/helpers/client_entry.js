@@ -7,9 +7,7 @@ const ReactDOM = require('react-dom');
 const rehydrate = require('helpers/hydrate');
 
 
-module.exports = (maker, mountTarget) => {
-
-    const initialState = window.__INITIAL_STATE__;
+module.exports = (maker, initialState, mountTarget) => {
 
     const { component, store } = maker();
 

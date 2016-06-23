@@ -31,8 +31,6 @@ const {reduceIn, makeReducer} = require('lib/redux-tree');
 
 /* react components */
 
-
-
 // TODO: move to its own file for re-use
 const __CardReviewTabsComponent = function(props) {
 
@@ -56,6 +54,12 @@ const __CardReviewTabsComponent = function(props) {
         </div>
     );
 }
+if(process.env.NODE_ENV !== 'production') {
+    __CardReviewTabsComponent.propTypes = {
+        dispatch: React.PropTypes.func,
+        [TAB]: React.PropTypes.oneOf([TAB_QUESTION, TAB_DESCRIPTION, TAB_ANSWER])
+    };
+}
 
 const CardReviewTabsComponent = connect(
     // mapStateToProps
@@ -65,33 +69,6 @@ const CardReviewTabsComponent = connect(
         };
     }
 )(__CardReviewTabsComponent);
-
-const __RenderSourceComponent = function(props) {
-
-    // NOTE: switchTab(dispatch: dispatch, next_view: MARKDOWN_VIEW);
-
-    const {dispatch, switchTab} = props;
-    const currentTab = props[MARKDOWN_VIEW];
-
-    return (
-        <ul className='tab'>
-            <li className = {classnames('tab-item', {'active': currentTab === MARKDOWN_VIEW_RENDER})}>
-                <a
-                    href='#render'
-                    onClick={switchTab(dispatch, MARKDOWN_VIEW_RENDER)}>
-                    {'Render'}
-                </a>
-            </li>
-            <li className = {classnames('tab-item', {'active': currentTab === MARKDOWN_VIEW_SOURCE})}>
-                <a
-                    href='#source'
-                    onClick={switchTab(dispatch, MARKDOWN_VIEW_SOURCE)}>
-                    {'Source'}
-                </a>
-            </li>
-        </ul>
-    );
-}
 
 const RenderSourceComponent = connect(
 
@@ -110,7 +87,7 @@ const RenderSourceComponent = connect(
     //         switchTab:
     //     };
     // }
-)(__RenderSourceComponent);
+)(require('components/dumb/render_source'));
 
 const __RevealCommitButtonComponent = function(props) {
 
@@ -145,6 +122,15 @@ const __RevealCommitButtonComponent = function(props) {
 
     }
 
+}
+if(process.env.NODE_ENV !== 'production') {
+    __RevealCommitButtonComponent.propTypes = {
+        dispatch: React.PropTypes.func,
+        [CARD_PERF_CONTROL_VIEW]: React.PropTypes.oneOf([
+            CARD_PERF_CONTROL__INITIAL,
+            CARD_PERF_CONTROL__DEFAULT_CHOICES
+        ])
+    };
 }
 
 const RevealCommitButtonComponent = connect(
@@ -199,6 +185,11 @@ const __CardPerformanceControlComponent = function(props) {
         </div>
     );
 }
+if(process.env.NODE_ENV !== 'production') {
+    __CardPerformanceControlComponent.propTypes = {
+        shouldNotShow: React.PropTypes.bool,
+    };
+}
 
 const CardPerformanceControlComponent = connect(
     // mapStateToProps
@@ -215,7 +206,7 @@ const CardPerformanceControlComponent = connect(
 
 )(__CardPerformanceControlComponent);
 
-const CustomScoreButtonComponent = function(props) {
+const CustomScoreButtonComponent = function(/*props*/) {
     return (
         <div className='columns'>
             <div className='column'>
@@ -281,6 +272,12 @@ const __ReviewScoreCommitComponent = function(props) {
         </div>
     );
 }
+if(process.env.NODE_ENV !== 'production') {
+    __ReviewScoreCommitComponent.propTypes = {
+        dispatch: React.PropTypes.func,
+        showConfirmSkipCard: React.PropTypes.bool,
+    };
+}
 
 const ReviewScoreCommitComponent = connect(
 
@@ -307,6 +304,12 @@ const CardSource = function(props) {
         value={props.contents}
         readOnly={true}
     />);
+}
+if(process.env.NODE_ENV !== 'production') {
+    CardSource.propTypes = {
+        style: React.PropTypes.object,
+        contents: React.PropTypes.string,
+    };
 }
 
 const __DISPLAY_NONE = {display: 'none'};

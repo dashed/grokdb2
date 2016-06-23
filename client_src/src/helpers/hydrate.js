@@ -2,7 +2,10 @@
 //
 // terminology: http://stackoverflow.com/questions/29824908/what-does-dehydrate-and-rehydrate-stand-for-in-fluxible
 
-const REHYDRATE = Symbol('REHYDRATE');
+// const REHYDRATE = Symbol('REHYDRATE');
+//
+// This is cheaper alternative to Symbol.
+const REHYDRATE = ['REHYDRATE'];
 
 // reducer
 module.exports = (state, action) => {
