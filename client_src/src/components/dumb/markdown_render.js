@@ -23,12 +23,30 @@ const MarkdownRender = React.createClass({
     },
 
     render() {
+
+        const content = markdownParser.render(this.props.contents || '').trim();
+
+        if(content.length > 0) {
+            return (
+                <div
+                    ref="markdown_render"
+                    dangerouslySetInnerHTML={{__html: content}}
+                />
+            );
+        }
+
         return (
-            <div
-                ref="markdown_render"
-                dangerouslySetInnerHTML={generateMarkdown(this.props.contents || '')}
-            />
+            <div>
+                <div className='toast toast-primary'>
+                    {'No content was rendered. Click on source tab and enter some text.'}
+                </div>
+                <div
+                    ref="markdown_render"
+                />
+            </div>
         );
+
+
     }
 });
 

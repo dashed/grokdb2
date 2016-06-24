@@ -76,6 +76,22 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                                     border: .1rem solid #c5c5c5;\
                                 }\
                                 ");
+                            : raw!("\
+                                a:hover,\
+                                a:active,\
+                                .menu .menu-item a:hover,\
+                                .menu .menu-item a:active\
+                                {\
+                                    text-decoration: underline;\
+                                }\
+                                ");
+                            : raw!("\
+                                hr {\
+                                    height: 1px;\
+                                    background-color: #c5c5c5;\
+                                    border:none;\
+                                }\
+                                ");
                         }
                     };
 

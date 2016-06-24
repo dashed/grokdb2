@@ -57,13 +57,14 @@ const __DeckDescriptionComponent = function(props) {
                 <MarkdownRender contents={contents} />
             </div>
             <div>
-                <MarkdownSource
-                    contents={contents}
-                    style={sourceStyle}
-                    placeholder={'Description for new deck'}
-                    assignProps={props.assignProps}
-                    editable
-                />
+                <div className='form-group' style={sourceStyle}>
+                    <MarkdownSource
+                        contents={contents}
+                        placeholder={'Description for new deck'}
+                        assignProps={props.assignProps}
+                        editable
+                    />
+                </div>
             </div>
         </div>
     );
@@ -104,7 +105,7 @@ const __NewDeckContainer = function(props) {
     return (
         <div>
             <div className='columns'>
-                <div className='column'>
+                <div className='column col-12'>
                     <div className='form-group'>
                         <label className='form-label' htmlFor='input-deck-name'>
                             {'Name'}
@@ -120,12 +121,12 @@ const __NewDeckContainer = function(props) {
                 </div>
             </div>
             <div className='columns'>
-                <div className='column'>
+                <div className='column col-12'>
                     <RenderSourceComponent />
                 </div>
             </div>
             <div className='columns'>
-                <div className='column'>
+                <div className='column col-12'>
                     <DeckDescriptionComponent assignProps={description} />
                 </div>
             </div>
