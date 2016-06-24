@@ -79,6 +79,9 @@ reference: https://github.com/joshbuchea/HEAD#link-elements
 
 **/
 
+/* app errors */
+mod errors;
+
 /* global macros */
 
 #[macro_use]
