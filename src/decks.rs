@@ -6,6 +6,7 @@ use rusqlite::{Connection};
 /* local imports */
 
 use contexts::{GlobalContext};
+use errors::{EndPointError, APIStatus};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -14,6 +15,23 @@ pub struct CreateDeckRequest {
     name: String, // required
     description: String, // required, but may be empty
     parent: Option<u64>,
+}
+
+impl CreateDeckRequest {
+    fn is_invalid(&self) -> Option<EndPointError> {
+
+        if self.name.trim().len() <= 0 {
+            let response = EndPointError {
+                status: APIStatus::BadRequest,
+                developerMessage: "Deck name must be non-empty.".to_string(),
+                userMessage: "Deck name must be non-empty.".to_string()
+            };
+
+            return Some(response);
+        }
+
+        return None;
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -62,17 +80,23 @@ pub mod routes {
 
     pub fn create_deck(mut context: Context, request: Request, response: Response) {
 
-        let data: CreateDeckRequest = match serde_json::from_reader(request) {
+        let request: CreateDeckRequest = match serde_json::from_reader(request) {
             Ok(request) => request,
             Err(err) => {
                 let payload = json_deserialize_err(format!("Malformed request. Unable to create deck."));
-
                 respond_json!(response; payload);
-
                 return;
             }
         };
 
-        println!("data: {:?}", data);
+        match request.is_invalid() {
+            None => {},
+            Some(reason) => {
+                respond_json!(response; reason);
+                return;
+            }
+        }
+
+        println!("data: {:?}", request);
     }
 }

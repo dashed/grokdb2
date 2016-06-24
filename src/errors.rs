@@ -42,9 +42,9 @@ impl Serialize for APIStatus {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct EndPointError {
-    status: APIStatus,
-    developerMessage: String,
-    userMessage: String,
+    pub status: APIStatus,
+    pub developerMessage: String,
+    pub userMessage: String,
 }
 
 pub fn json_deserialize_err(reason: String) -> EndPointError {

@@ -33,6 +33,26 @@ macro_rules! respond_json {
         let mut response = $response;
 
         use hyper;
+        use errors::{EndPointError, APIStatus};
+
+        match $payload {
+            EndPointError { ref status, .. } => {
+
+                let status_code = match status {
+                    &APIStatus::Ok => {
+                        hyper::status::StatusCode::Ok
+                    },
+                    &APIStatus::BadRequest => {
+                        hyper::status::StatusCode::BadRequest
+                    },
+                    &APIStatus::ServerError => {
+                        hyper::status::StatusCode::InternalServerError
+                    }
+                };
+
+                *response.status_mut() = status_code;
+            }
+        }
 
         response.headers_mut().set((hyper::header::ContentType(
             mime!(Application/Json)
