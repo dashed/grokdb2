@@ -29,6 +29,8 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
 
                     tmpl << html! {
                         style {
+
+                            // custom styles for view
                             |tmpl| {
                                 match context.view_route {
                                     AppRoute::Deck(_, DeckRoute::NewCard) |
@@ -66,6 +68,12 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                             : raw!("\
                                 ul.pagination li {\
                                     margin-top: 0;\
+                                }\
+                                ");
+                            : raw!("\
+                                .grokdb-menu {\
+                                    box-shadow: none;\
+                                    border: .1rem solid #c5c5c5;\
                                 }\
                                 ");
                         }
@@ -340,7 +348,7 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
     let deck_id = default!();
 
     tmpl << html! {
-        ul(class="menu") {
+        ul(class="menu grokdb-menu") {
             // li(class="menu-header") {
             //     h2(class="menu-header-text") {
             //         : "Deck #123"
@@ -447,7 +455,7 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
             }
         }
         div(class="divider") {}
-        ul(class="menu") {
+        ul(class="menu grokdb-menu") {
             li(class="menu-item") {
                 : "9000 cards"
             }
