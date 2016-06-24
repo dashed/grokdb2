@@ -19,6 +19,7 @@ const {reduceIn, makeReducer} = require('lib/redux-tree');
 
 /* react components */
 
+const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
 
 const RenderSourceComponent = connect(
@@ -53,7 +54,7 @@ const __DeckDescriptionComponent = function(props) {
     return (
         <div>
             <div style={renderStyle}>
-                {contents}
+                <MarkdownRender contents={contents} />
             </div>
             <div>
                 <MarkdownSource
