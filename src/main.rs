@@ -176,7 +176,7 @@ fn main() {
 
     /* database */
 
-    let db_conn = Connection::open("test");
+    let db_conn = Connection::open("test.db");
 
     let db_conn = match db_conn {
         Err(why) => {
@@ -186,6 +186,8 @@ fn main() {
             db_conn
         }
     };
+
+    /* context setup */
 
     let global_context = GlobalContext {
         assets_root_path: Path::new("assets/"),
