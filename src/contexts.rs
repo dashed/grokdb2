@@ -23,6 +23,9 @@ pub struct GlobalContext<'a> {
     // db_ops_lock: Arc<RwLock<bool>>
 }
 
+// impl GlobalContext<'a> {
+// }
+
 pub struct Context<
 
     // global context
@@ -49,15 +52,15 @@ pub struct Context<
 
 }
 
-impl<'a, 'b> Context<'a, 'b> {
+// impl<'a, 'b> Context<'a, 'b> {
 
-    /* deck API */
+//     /* deck API */
 
-    fn deck_read(&self, deck_id: u64) {
+//     fn deck_read(&self, deck_id: u64) {
 
-        // lock database for read operation
-        db_read_lock!(self.global_context.db_connection);
-        // let db_op_lock = self.global_context.db_connection.read().unwrap();
-        // let db_lock = db_op_lock.lock().unwrap();
-    }
-}
+//         // lock database for read operation
+//         db_read_lock!(self.global_context.db_connection);
+//         // let db_op_lock = self.global_context.db_connection.read().unwrap();
+//         // let db_lock = db_op_lock.lock().unwrap();
+//     }
+// }

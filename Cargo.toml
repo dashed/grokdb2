@@ -22,7 +22,14 @@ features = ["functions", "backup"]
 git = "https://github.com/dashed/horrorshow-rs"
 rev = "b1f6920"
 
+[dependencies.serde_macros]
+git = "https://github.com/serde-rs/serde"
+rev = "5941f1d071157923203a278c16fbaddec4077932"
+
 [dependencies]
+serde = "0.7.10"
+serde_json = "0.7.1"
+# serde_macros = "0.7.10"
 regex = "0.1"
 # horrorshow = "0.5"
 url = "1.1"

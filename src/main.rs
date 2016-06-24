@@ -1,3 +1,5 @@
+#![feature(custom_derive, plugin)]
+#![plugin(serde_macros)]
 // #![deny(warnings)]
 #[macro_use]
 extern crate horrorshow as templates;
@@ -13,6 +15,8 @@ extern crate lazy_static;
 #[macro_use]
 extern crate matches;
 extern crate time;
+extern crate serde;
+extern crate serde_json;
 
 // TODO: remove; was using it for experiment
 // extern crate html5ever;
@@ -84,6 +88,10 @@ mod global_macros;
 
 #[macro_use]
 mod database;
+mod tables;
+
+/* grokdb api */
+mod decks;
 
 /* contexts */
 
@@ -187,12 +195,19 @@ fn main() {
         }
     };
 
+    let db_connection = Arc::new(RwLock::new(Mutex::new(db_conn)));
+
+    /* table setup */
+
+    {
+        tables::create_tables(db_connection.clone());
+    };
+
     /* context setup */
 
     let global_context = GlobalContext {
         assets_root_path: Path::new("assets/"),
-        db_connection: Arc::new(RwLock::new(Mutex::new(db_conn))),
-        // db_ops_lock: Arc::new(RwLock::new(true))
+        db_connection: db_connection,
     };
 
     /* router setup */

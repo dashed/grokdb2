@@ -1,10 +1,12 @@
 /* rust lib imports */
+use std::fmt;
+use std::error;
 use std::path::{Path};
 use std::sync::{Arc, Mutex, RwLock};
 
 /* 3rd-party imports */
 
-use rusqlite::{Connection};
+use rusqlite::{Connection, Error as SqliteError};
 
 use regex::{Captures};
 
@@ -14,6 +16,23 @@ use route::constants::AppRoute;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#[derive(Debug)]
+pub struct QueryError {
+    pub sqlite_error: SqliteError,
+    pub query: String,
+}
+
+impl fmt::Display for QueryError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} \nFor query:\n{}", self.sqlite_error, self.query)
+    }
+}
+
+impl error::Error for QueryError {
+    fn description(&self) -> &str {
+        return self.sqlite_error.description();
+    }
+}
 
 macro_rules! db_read_lock(
     ($e:expr) => (
@@ -62,15 +81,18 @@ macro_rules! db_read_lock(
 );
 
 macro_rules! db_write_lock(
-    ($e:expr) => (
+    ($ident:ident; $e:expr) => (
 
         {
+            use std::sync::{Arc, Mutex, RwLock};
+            use rusqlite::{Connection};
+
             // hacky type checking
             let _: Arc<RwLock<Mutex<Connection>>> = $e;
         };
 
         let db_op_lock = $e.write().unwrap();
-        let _ = db_op_lock.lock().unwrap();
-
+        let db_conn_guard = db_op_lock.lock().unwrap();
+        let ref $ident = *db_conn_guard;
     )
 );
