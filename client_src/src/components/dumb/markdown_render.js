@@ -11,11 +11,6 @@ const markdownParser = require('markdown-it')({
 // load with plugins (officially supported by markdown-it org)
 .use(require('markdown-it-link-target'));
 
-const generateMarkdown = (contents) => {
-    return {
-        __html: markdownParser.render(contents)
-    };
-}
 
 const MarkdownRender = React.createClass({
     propTypes: {
@@ -29,11 +24,13 @@ const MarkdownRender = React.createClass({
         if(content.length > 0) {
             return (
                 <div
-                    ref="markdown_render"
+                    ref='markdown_render'
                     dangerouslySetInnerHTML={{__html: content}}
                 />
             );
         }
+
+        // NOTE: dangerouslySetInnerHTML is not applied here
 
         return (
             <div>
@@ -41,7 +38,7 @@ const MarkdownRender = React.createClass({
                     {'No content was rendered. Click on source tab and enter some text.'}
                 </div>
                 <div
-                    ref="markdown_render"
+                    ref='markdown_render'
                 />
             </div>
         );
