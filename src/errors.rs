@@ -23,3 +23,12 @@ pub struct EndPointError {
     developerMessage: String,
     userMessage: String,
 }
+
+pub fn json_deserialize_err(reason: String) -> EndPointError {
+
+    return EndPointError {
+        status: APIStatus::BadRequest,
+        developerMessage: reason.clone(),
+        userMessage: reason
+    }
+}
