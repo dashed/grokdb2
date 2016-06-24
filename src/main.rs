@@ -270,11 +270,16 @@ fn main() {
     route!(router, Get, AppRoute::CardInDeck(default!(), default!(), CardRoute::Profile));
     route!(router, Get, AppRoute::CardInDeck(default!(), default!(), CardRoute::Review));
 
+    // API
+    router.post(r"^/api/deck$", decks::api::create_deck);
+
+
     // TODO: old; remove
     // router.get(r"^/$", route_root);
     // router.get(r"^/settings$", route_settings);
 
     // TODO: look into rust cargo env variable to switch between debug/prod
+    // hardcode static resources and serve them via RAM
     // TODO: inline_static_asset!(router, "^/assets/deck_review.js$", "path/to/file", mime!(Application/Javascript))
 
     // TODO: limit path length? [NOTE]: use above approach?
@@ -292,7 +297,11 @@ fn main() {
 
     let mut server = Server::http(("0.0.0.0", 3000)).unwrap();
 
-    // disable keep-alive since server will be behind reverse proxy (e.g. nginx)
+    // disable keep-alive for now.
+    // delegate keep-alive to reverse proxy (e.g. nginx).
+    // keep-alive for upstream servers can be an optimization.
+    //
+    // see: http://serverfault.com/a/426741
     server.keep_alive(None);
 
 

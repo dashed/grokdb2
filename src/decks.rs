@@ -33,3 +33,19 @@ impl<'a> GlobalContext<'a> {
         let db_conn: &Connection = db_conn;
     }
 }
+
+pub mod api {
+
+    /* 3rd-party imports */
+
+    use hyper::server::{Request, Response};
+
+    /* local imports */
+
+    use contexts::Context;
+
+    ////////////////////////////////////////////////////////////////////////////
+
+    pub fn create_deck(mut context: Context, request: Request, response: Response) {
+    }
+}

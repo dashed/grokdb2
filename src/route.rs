@@ -596,10 +596,16 @@ pub mod manager {
             self.route_map.insert(route_info, handler);
         }
 
-        /// A convenience method for GET requests.
+        // A convenience method for GET requests.
         pub fn get(&mut self, route: &str, handler: RouterFn) {
             self.add_route(Method::Get, route, handler);
         }
+
+        // A convenience method for GET requests.
+        pub fn post(&mut self, route: &str, handler: RouterFn) {
+            self.add_route(Method::Post, route, handler);
+        }
+
 
     }
 
