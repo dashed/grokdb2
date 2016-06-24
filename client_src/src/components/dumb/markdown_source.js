@@ -26,15 +26,16 @@ const MarkdownSource = function(props) {
 MarkdownSource.defaultProps = {
     placeholder: '',
     style: {},
-    assignProps: {}
+    assignProps: {},
+    contents: ''
 };
 
 if(process.env.NODE_ENV !== 'production') {
     MarkdownSource.propTypes = {
-        style: React.PropTypes.object,
-        contents: React.PropTypes.string,
-        editable: React.PropTypes.bool,
-        placeholder: React.PropTypes.string,
+        style: React.PropTypes.object.isRequired,
+        contents: React.PropTypes.string.isRequired,
+        editable: React.PropTypes.bool.isRequired,
+        placeholder: React.PropTypes.string.isRequired,
         assignProps: React.PropTypes.object,
     };
 }
