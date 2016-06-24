@@ -97,9 +97,10 @@ const DeckDescriptionComponent = connect(
 const __NewDeckContainer = function(props) {
     const {
         fields: { name, description},
-        // handleSubmit,
-        // resetForm,
-        // submitting
+        handleSubmit,
+        // resetForm, // not used
+        submitting,
+        // addNewDeck
     } = props;
 
     return (
@@ -134,7 +135,12 @@ const __NewDeckContainer = function(props) {
                 <div className='column'>
                     <a
                         href='#add-new-deck'
-                        className='btn btn-success'>
+                        className={classnames('btn btn-success', {
+                            'loading': submitting
+                        })}
+                        onClick={handleSubmit(addNewDeck)}
+                        disabled={submitting}
+                    >
                         {'Add new deck'}
                     </a>
                 </div>
@@ -143,29 +149,44 @@ const __NewDeckContainer = function(props) {
     );
 }
 
-const NewDeckContainer = reduxForm({
+if(process.env.NODE_ENV !== 'production') {
+    __NewDeckContainer.propTypes = {
+        fields: React.PropTypes.object.isRequired,
+        handleSubmit: React.PropTypes.func.isRequired,
+        submitting: React.PropTypes.bool.isRequired,
+        // addNewDeck: React.PropTypes.func.isRequired,
+    };
+}
+
+const NewDeckContainer = reduxForm(
+    {
         form: 'new_deck',
         fields: ['name', 'description'],
-        overwriteOnInitialValuesChange: false
+        initialValues: {
+            name: '',
+            description: ''
+        }
     },
     // mapStateToProps
-    (state) => {
-
-        return {
-            initialValues: {
-                name: 'lol',
-                description: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
-            }
-        };
-    },
-    // {
-    //     overwriteOnInitialValuesChange: false
+    // void 0,
+    // mapDispatchToProps
+    // (dispatch) => {
+    //     return {
+    //         addNewDeck
+    //     };
     // }
 )(__NewDeckContainer);
 
 
 /* redux action dispatchers */
 // NOTE: FSA compliant
+
+const addNewDeck = function(formData) {
+    return new Promise((resolve, reject) => {
+
+        window.location.href = '/deck/1/decks';
+    });
+};
 
 const switchMarkdownView = function(dispatch, markdownView) {
     return function(event) {
@@ -209,7 +230,7 @@ const initialState = {
 
     [DECK_DESCRIPTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
-        [MARKDOWN_CONTENTS]: '' // initial value for redux-form
+        // [MARKDOWN_CONTENTS]: '' // not used; value is stored and handled by redux-form
     },
 
     // redux-form
