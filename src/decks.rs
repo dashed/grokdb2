@@ -67,9 +67,7 @@ pub mod routes {
             Err(err) => {
                 let payload = json_deserialize_err(format!("Malformed request. Unable to create deck."));
 
-                // TODO: macro
-                let mut stream = response.start().unwrap();
-                serde_json::to_writer(&mut stream, &payload);
+                respond_json!(response; payload);
 
                 return;
             }

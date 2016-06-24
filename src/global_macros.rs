@@ -27,3 +27,19 @@ macro_rules! stylenames {
         }
     }};
 }
+
+macro_rules! respond_json {
+    ($response:expr; $payload:expr) => (
+        let mut response = $response;
+
+        use hyper;
+
+        response.headers_mut().set((hyper::header::ContentType(
+            mime!(Application/Json)
+        )));
+
+        // TODO: macro
+        let mut stream = response.start().unwrap();
+        serde_json::to_writer(&mut stream, &$payload);
+    );
+}
