@@ -2,13 +2,20 @@
 /* 3rd-party imports */
 
 use rusqlite::{Connection};
+use rusqlite::types::ToSql;
 
 /* local imports */
 
 use contexts::{GlobalContext};
-use errors::{EndPointError, APIStatus};
+use errors::{EndPointError, APIStatus, RawAPIError};
 
 ////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Debug)]
+pub struct CreateDeck {
+    pub name: String, // required
+    pub description: String, // required, but may be empty
+}
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct CreateDeckRequest {
@@ -53,9 +60,9 @@ pub struct CreateDeckResponse {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Deck {
-    id: u64,
-    name: String,
-    description: String
+    pub id: i64,
+    pub name: String,
+    pub description: String
 }
 
 pub mod routes {
@@ -103,9 +110,33 @@ pub mod routes {
 impl<'a> GlobalContext<'a> {
 
 
-    pub fn create_deck(&self, create_deck_request: CreateDeckRequest) {
+    pub fn create_deck(&self, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
+
+        let query = "INSERT INTO Decks(name, description) VALUES (:name, :description);";
+
+        let params: &[(&str, &ToSql)] = &[
+            (":name", &create_deck_request.name.clone()),
+            (":description", &create_deck_request.description.clone())
+        ];
 
         db_write_lock!(db_conn; self.db_connection);
         let db_conn: &Connection = db_conn;
+
+        match db_conn.execute_named(query, &params[..]) {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            },
+            _ => {/* query sucessfully executed */},
+        }
+
+        let row_id = db_conn.last_insert_rowid();
+
+        let created_deck = Deck {
+            id: row_id,
+            name: create_deck_request.name,
+            description: create_deck_request.description
+        };
+
+        return Ok(created_deck);
     }
 }

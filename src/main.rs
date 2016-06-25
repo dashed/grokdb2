@@ -225,6 +225,15 @@ fn main() {
 
                 // root deck not found.
                 // create a root deck.
+                // use decks::CreateDeckRequest;
+                let request = decks::CreateDeck {
+                    name: "Library".to_string(),
+                    description: "".to_string(),
+                };
+
+                let root_deck = global_context.create_deck(request).unwrap();
+
+                global_context.set_config("root_deck".to_string(), format!("{}", root_deck.id)).unwrap();
             }
         }
     };

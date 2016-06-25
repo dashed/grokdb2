@@ -8,7 +8,7 @@ use rusqlite::{Error as SqliteError};
 /* local imports */
 
 use contexts::{GlobalContext};
-use errors::{EndPointError, APIStatus, RawAPIError};
+use errors::{RawAPIError};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -35,9 +35,6 @@ impl<'a> GlobalContext<'a> {
             return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
         }
 
-        db_read_lock!(db_conn; self.db_connection);
-        let db_conn: &Connection = db_conn;
-
         let query = "
             SELECT
                 setting, value
@@ -50,6 +47,9 @@ impl<'a> GlobalContext<'a> {
         let params: &[(&str, &ToSql)] = &[
             (":setting", &setting)
         ];
+
+        db_read_lock!(db_conn; self.db_connection);
+        let db_conn: &Connection = db_conn;
 
         let results = db_conn.query_row_named(query, params, |row| -> Config {
             return Config {
@@ -83,9 +83,6 @@ impl<'a> GlobalContext<'a> {
             return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
         }
 
-        db_write_lock!(db_conn; self.db_connection);
-        let db_conn: &Connection = db_conn;
-
         let query = "
             INSERT OR REPLACE INTO Configs (setting, value)
             VALUES (:setting, :value);
@@ -95,6 +92,9 @@ impl<'a> GlobalContext<'a> {
             (":setting", &setting),
             (":value", &value),
         ];
+
+        db_write_lock!(db_conn; self.db_connection);
+        let db_conn: &Connection = db_conn;
 
         match db_conn.execute_named(query, &params[..]) {
             Err(sqlite_error) => {
