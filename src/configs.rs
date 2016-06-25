@@ -31,6 +31,10 @@ impl<'a> GlobalContext<'a> {
     // None => no config was found
     pub fn get_config(&self, setting: String) -> Result<Option<Config>, RawAPIError> {
 
+        if setting.trim().len() <= 0 {
+            return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
+        }
+
         db_read_lock!(db_conn; self.db_connection);
         let db_conn: &Connection = db_conn;
 
@@ -73,7 +77,11 @@ impl<'a> GlobalContext<'a> {
     }
 
     // on success, return the config set into the db
-    pub fn set_config(&self, set_config_request: SetConfigRequest) -> Result<Config, RawAPIError> {
+    pub fn set_config(&self, setting: String, value: String) -> Result<Config, RawAPIError> {
+
+        if setting.trim().len() <= 0 {
+            return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
+        }
 
         db_write_lock!(db_conn; self.db_connection);
         let db_conn: &Connection = db_conn;
@@ -84,8 +92,8 @@ impl<'a> GlobalContext<'a> {
         ";
 
         let params: &[(&str, &ToSql)] = &[
-            (":setting", &set_config_request.setting),
-            (":value", &set_config_request.value),
+            (":setting", &setting),
+            (":value", &value),
         ];
 
         match db_conn.execute_named(query, &params[..]) {
@@ -96,8 +104,8 @@ impl<'a> GlobalContext<'a> {
         }
 
         let config = Config {
-            setting: set_config_request.setting.clone(),
-            value: set_config_request.value.clone()
+            setting: setting.clone(),
+            value: value.clone()
         };
 
         return Ok(config);
