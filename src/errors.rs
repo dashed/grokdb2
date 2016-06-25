@@ -1,6 +1,7 @@
 /* 3rd-party imports */
 
 use serde::{Serialize, Serializer};
+use rusqlite::{Error as SqliteError};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -40,12 +41,48 @@ impl Serialize for APIStatus {
     }
 }
 
+// error struct for api endpoints
 #[derive(Debug, PartialEq, Serialize)]
 pub struct EndPointError {
     pub status: APIStatus,
     pub developerMessage: String,
     pub userMessage: String,
 }
+
+quick_error! {
+    #[derive(Debug)]
+    pub enum RawAPIError {
+
+        BadInput(api: &'static str, reason: &'static str) {
+            display("Bad inputs. API: {} Reason: {}", api, reason)
+            description("Bad input to raw api")
+        }
+
+        SQLError(sqlite_error: SqliteError, query: &'static str) {
+            display("{}\nFor query:\n{}", sqlite_error, query)
+            description(sqlite_error.description())
+        }
+    }
+}
+
+// #[derive(Debug)]
+// pub struct QueryError {
+//     pub sqlite_error: SqliteError,
+//     pub query: String,
+// }
+
+// impl fmt::Display for QueryError {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         write!(f, "{} \nFor query:\n{}", self.sqlite_error, self.query)
+//     }
+// }
+
+// impl error::Error for QueryError {
+//     fn description(&self) -> &str {
+//         return self.sqlite_error.description();
+//     }
+// }
+
 
 pub fn json_deserialize_err(reason: String) -> EndPointError {
 

@@ -18,7 +18,7 @@ pub struct CreateDeckRequest {
 }
 
 impl CreateDeckRequest {
-    fn is_invalid(&self) -> Option<EndPointError> {
+    fn is_invalid(&self, global_context: &GlobalContext) -> Option<EndPointError> {
 
         if self.name.trim().len() <= 0 {
             let response = EndPointError {
@@ -28,6 +28,13 @@ impl CreateDeckRequest {
             };
 
             return Some(response);
+        }
+
+        match self.parent {
+            None => {},
+            Some(parent_id) => {
+                // TODO: check if parent exists
+            }
         }
 
         return None;
@@ -49,17 +56,6 @@ pub struct Deck {
     id: u64,
     name: String,
     description: String
-}
-
-// deck api
-impl<'a> GlobalContext<'a> {
-
-    // POST /api/deck
-    pub fn create_deck(&self, create_deck_request: CreateDeckRequest) {
-
-        db_write_lock!(db_conn; self.db_connection);
-        let db_conn: &Connection = db_conn;
-    }
 }
 
 pub mod routes {
@@ -89,7 +85,7 @@ pub mod routes {
             }
         };
 
-        match request.is_invalid() {
+        match request.is_invalid(&context.global_context) {
             None => {},
             Some(reason) => {
                 respond_json!(response; reason);
@@ -97,6 +93,19 @@ pub mod routes {
             }
         }
 
+
+
         println!("data: {:?}", request);
+    }
+}
+
+// decks api
+impl<'a> GlobalContext<'a> {
+
+
+    pub fn create_deck(&self, create_deck_request: CreateDeckRequest) {
+
+        db_write_lock!(db_conn; self.db_connection);
+        let db_conn: &Connection = db_conn;
     }
 }

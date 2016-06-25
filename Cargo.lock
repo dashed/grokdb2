@@ -8,6 +8,7 @@ dependencies = [
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "matches 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "mime 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "quick-error 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.71 (registry+https://github.com/rust-lang/crates.io-index)",
  "rusqlite 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 0.7.10 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -287,6 +288,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "quasi_codegen 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "quick-error"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "rand"

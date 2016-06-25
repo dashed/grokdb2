@@ -336,8 +336,6 @@ pub mod routes {
 
     pub fn deck_cards(mut context: Context, request: Request, response: Response) {
 
-        db_read_lock!(context.global_context.db_connection);
-
         // TODO: fetch deck_id
         context.view_route = AppRoute::Deck(1, DeckRoute::Cards);
 
@@ -649,7 +647,7 @@ pub mod helpers {
         });
 
         // We lock the database for reads
-        db_read_lock!(context.global_context.db_connection);
+        db_read_lock!(_db_conn; context.global_context.db_connection);
 
         let mut stream = response.start().unwrap();
         app_component.write_to_io(&mut stream)

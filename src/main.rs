@@ -17,6 +17,9 @@ extern crate matches;
 extern crate time;
 extern crate serde;
 extern crate serde_json;
+#[macro_use(quick_error)]
+extern crate quick_error;
+
 
 // TODO: remove; was using it for experiment
 // extern crate html5ever;
@@ -94,6 +97,7 @@ mod database;
 mod tables;
 
 /* grokdb api */
+mod configs;
 mod decks;
 
 /* contexts */
@@ -202,15 +206,27 @@ fn main() {
 
     /* table setup */
 
-    {
-        tables::create_tables(db_connection.clone());
-    };
+    tables::setup_database(db_connection.clone());
 
     /* context setup */
 
     let global_context = GlobalContext {
         assets_root_path: Path::new("assets/"),
         db_connection: db_connection,
+    };
+
+    // preliminary setup.
+
+    {
+        // check if root deck exists
+        match global_context.get_config("root_deck".to_string()).unwrap() {
+            Some(_) => {},
+            None => {
+
+                // root deck not found.
+                // create a root deck.
+            }
+        }
     };
 
     /* router setup */

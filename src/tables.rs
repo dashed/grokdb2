@@ -4,7 +4,15 @@ use rusqlite::{Connection};
 
 use database::{QueryError};
 
-const SETUP: [&'static str; 5] = [
+const SETUP: [&'static str; 7] = [
+
+    // configs
+
+    CONFIGS,
+
+    // configs/triggers
+
+    CONFIG_ON_UPDATE_TRIGGER,
 
     // decks
 
@@ -20,6 +28,36 @@ const SETUP: [&'static str; 5] = [
     DECK_ON_UPDATE_TRIGGER,
     DECKSCLOSURE_NEW_DECK_TRIGGER,
 ];
+
+/**
+ * All SQL comply with syntax supported with SQLite v3.9.1
+ */
+
+/* configs */
+
+// note: CHECK (setting <> '') ensures setting is non-empty string
+const CONFIGS: &'static str = "
+CREATE TABLE IF NOT EXISTS Configs (
+    setting TEXT PRIMARY KEY NOT NULL,
+    value TEXT,
+
+    created_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
+
+    CHECK (setting <> '')
+);
+";
+
+const CONFIG_ON_UPDATE_TRIGGER: &'static str = "
+CREATE TRIGGER IF NOT EXISTS CONFIG_ON_UPDATE_TRIGGER
+AFTER UPDATE OF
+    setting, value
+ON Configs
+BEGIN
+    UPDATE Configs SET updated_at = strftime('%s', 'now') WHERE setting = NEW.setting;
+END;
+";
+
 
 /* decks */
 
@@ -80,7 +118,7 @@ BEGIN
 END;
 ";
 
-pub fn create_tables(db_connection: Arc<RwLock<Mutex<Connection>>>) -> Result<(), QueryError> {
+pub fn setup_database(db_connection: Arc<RwLock<Mutex<Connection>>>) -> Result<(), QueryError> {
 
     db_write_lock!(db_conn; db_connection);
     let db_conn: &Connection = db_conn;

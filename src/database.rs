@@ -34,7 +34,7 @@ impl error::Error for QueryError {
     }
 }
 
-macro_rules! db_read_lock(
+macro_rules! ____db_read_lock(
     ($e:expr) => (
 
         // match $e.global_context.db_connection.read() {
@@ -65,8 +65,8 @@ macro_rules! db_read_lock(
         };
 
         let db_op_lock = $e.read().unwrap();
-        let _ = db_op_lock.lock().unwrap();
-
+        let db_conn_guard = db_op_lock.lock().unwrap();
+        let ref $ident = *db_conn_guard;
 
         // db_op_lock.lock().unwrap()
 
@@ -79,6 +79,24 @@ macro_rules! db_read_lock(
         // }
     )
 );
+
+macro_rules! db_read_lock(
+    ($ident:ident; $e:expr) => (
+
+        {
+            use std::sync::{Arc, Mutex, RwLock};
+            use rusqlite::{Connection};
+
+            // hacky type checking
+            let _: Arc<RwLock<Mutex<Connection>>> = $e;
+        };
+
+        let db_op_lock = $e.read().unwrap();
+        let db_conn_guard = db_op_lock.lock().unwrap();
+        let ref $ident = *db_conn_guard;
+    )
+);
+
 
 macro_rules! db_write_lock(
     ($ident:ident; $e:expr) => (
