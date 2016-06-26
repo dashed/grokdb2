@@ -31,18 +31,52 @@ pub mod helpers {
             mime!(Text/Html)
         )));
 
+        // We lock the API for reads only
+        api_read_lock!(_api_guard; context.global_context.db_connection);
+
         let app_component = FnRenderer::new(|tmpl| {
             AppComponent(tmpl, &context, app_component_title);
         });
 
-        // We lock the API for reads only
-        api_read_lock!(_api_guard; context.global_context.db_connection);
+        match app_component.into_string() {
+            Err(why) => {
+                println!("ERROR RENDERING: {:?}", why);
 
-        let mut stream = response.start().unwrap();
-        app_component.write_to_io(&mut stream)
-            .unwrap();
+                // TODO: fix
+                super::routes::internal_server_error(&context, request, response);
 
-        stream.end();
+                return;
+            },
+            Ok(rendered) => {
+                response.send(rendered.as_bytes()).unwrap();
+
+                return;
+            }
+        };
+
+
+        /////
+
+        // let mut stream = response.start().unwrap();
+        // app_component.write_to_io(&mut stream)
+        //     .unwrap();
+
+        // stream.end();
+
+        ///////
+
+        // // We lock the API for reads only
+        // api_read_lock!(_api_guard; context.global_context.db_connection);
+
+        // let app_component = FnRenderer::new(|tmpl| {
+        //     AppComponent(tmpl, &context, app_component_title);
+        // });
+
+        // let mut stream = response.start().unwrap();
+        // app_component.write_to_io(&mut stream)
+        //     .unwrap();
+
+        // stream.end();
 
         /////
 
@@ -457,6 +491,19 @@ pub mod routes {
 
     ////////////////////////////////////////////////////////////////////////////
 
+    pub fn internal_server_error(mut context: &Context, request: Request, mut response: Response) {
+
+        // let mut context = context;
+
+        let message = format!("Internal server error for {}", request.uri);
+
+        // 500 status code
+        *response.status_mut() = StatusCode::InternalServerError;
+
+        response.send(message.as_bytes()).unwrap();
+    }
+
+
     pub fn not_found(mut context: Context, request: Request, mut response: Response) {
 
         // let mut context = context;
@@ -543,6 +590,9 @@ pub mod routes {
     pub fn root(mut context: Context, request: Request, response: Response) {
 
         let root_deck_id = context.global_context.root_deck_id;
+
+        // TODO: debug
+        let _deck_id = parse_capture!(context.captures, "deck_id", DeckID);
 
         context.view_route = AppRoute::Deck(root_deck_id, DeckRoute::Cards);
 
