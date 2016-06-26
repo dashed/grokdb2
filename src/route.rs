@@ -192,17 +192,16 @@ pub mod helpers {
         )
     );
 
-    #[macro_export]
+    // utility macro for extracting named capture and parsing it into the appropriate type
     macro_rules! parse_capture(
         ($captures: expr, $capture_name: expr, $to_type: ident) => (
-        // ($($captures:tt)+, $capture_name: expr, $to_type: ident) => (
             $captures
-                .as_ref()
+                .as_ref() // prevent move
                 .unwrap()
                 .name($capture_name)
                 .unwrap()
                 .parse::<$to_type>()
-                .unwrap()
+                .unwrap() // provided regex should ensure the captured group should convert to $to_type seamlessly
         )
     );
 
