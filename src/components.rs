@@ -361,7 +361,15 @@ fn BreadCrumbComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
 
 fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
 
-    let deck_id = default!();
+    // derive deck_id from view_route
+    let deck_id = match context.view_route {
+        AppRoute::Deck(deck_id, _) => {
+            deck_id
+        },
+        _ => {
+            unreachable!();
+        }
+    };
 
     tmpl << html! {
         ul(class="menu grokdb-menu") {
@@ -782,7 +790,15 @@ fn DeckListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, de
 
 fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
 
-    let deck_id = default!();
+    // derive deck_id from view_route
+    let deck_id = match context.view_route {
+        AppRoute::Deck(deck_id, _) => {
+            deck_id
+        },
+        _ => {
+            unreachable!();
+        }
+    };
 
     tmpl << html! {
 
@@ -967,7 +983,15 @@ fn CardListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, ca
 
 fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
 
-    let deck_id = default!();
+    // derive deck_id from view_route
+    let deck_id = match context.view_route {
+        AppRoute::Deck(deck_id, _) => {
+            deck_id
+        },
+        _ => {
+            unreachable!();
+        }
+    };
 
     tmpl << html! {
 

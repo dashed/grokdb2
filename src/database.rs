@@ -80,6 +80,22 @@ macro_rules! ____db_read_lock(
     )
 );
 
+// lock critical section for reads only at API level
+macro_rules! api_read_lock(
+    ($ident:ident; $e:expr) => (
+
+        {
+            use std::sync::{Arc, Mutex, RwLock};
+            use rusqlite::{Connection};
+
+            // hacky type checking
+            let _: Arc<RwLock<Mutex<Connection>>> = $e;
+        };
+
+        let $ident = $e.read().unwrap();
+    )
+);
+
 macro_rules! db_read_lock(
     ($ident:ident; $e:expr) => (
 

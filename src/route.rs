@@ -1,3 +1,215 @@
+#[macro_use]
+pub mod helpers {
+
+    /* 3rd-party imports */
+
+    use hyper::server::{Server, Handler, Request, Response};
+    use hyper::header::{Headers, ContentType, TransferEncoding};
+
+    use templates::{RenderOnce, TemplateBuffer, Template, FnRenderer};
+
+    /* local imports */
+
+    use contexts::Context;
+    use super::constants::{AppRoute, DeckRoute, CardRoute};
+    use components::{AppComponent};
+    use super::manager::{RouterFn, LinkGenerator};
+
+    ////////////////////////////////////////////////////////////////////////////
+
+    pub fn render_app_component(
+        context: Context,
+        app_component_title: String,
+        request: Request,
+        response: Response) {
+
+
+
+        let mut response = response;
+
+        response.headers_mut().set((ContentType(
+            mime!(Text/Html)
+        )));
+
+        let app_component = FnRenderer::new(|tmpl| {
+            AppComponent(tmpl, &context, app_component_title);
+        });
+
+        // We lock the API for reads only
+        api_read_lock!(_api_guard; context.global_context.db_connection);
+
+        let mut stream = response.start().unwrap();
+        app_component.write_to_io(&mut stream)
+            .unwrap();
+
+        stream.end();
+
+        /////
+
+        // let opts = ParseOpts {
+        //     tree_builder: TreeBuilderOpts {
+        //         drop_doctype: true,
+        //         ..Default::default()
+        //     },
+        //     ..Default::default()
+        // };
+
+        // // let stdin = io::stdin();
+
+        // let foo = app_component.into_string().unwrap();
+        // let mut foo = foo.as_bytes();
+
+        // let dom = parse_document(RcDom::default(), opts)
+        //     .from_utf8()
+        //     .read_from(&mut foo)
+        //     // .read_from(&mut stdin.lock())
+        //     .unwrap();
+
+        // let mut stream = response.start().unwrap();
+
+        // // The validator.nu HTML2HTML always prints a doctype at the very beginning.
+        // io::stdout().write_all(b"<!DOCTYPE html>\n")
+        //     .ok().expect("writing DOCTYPE failed");
+        // serialize(&mut stream, &dom.document, Default::default())
+        //     .ok().expect("serialization failed");
+
+    }
+
+
+    pub fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerator) {
+
+        match view_route {
+
+            AppRoute::Home => (r"^/$", super::routes::root, super::link::root),
+
+            AppRoute::Settings => (r"^/settings$", super::routes::settings, super::link::settings),
+
+            AppRoute::Stashes => (r"^/stashes$", super::routes::stashes, super::link::stashes),
+
+            AppRoute::Card(_, card_route) => {
+
+                match card_route {
+                    CardRoute::Profile => {
+                        (
+                            r"^/card/(?P<card_id>[1-9][0-9]*)$",
+                            super::routes::card_profile,
+                            super::link::card_profile
+                        )
+                    },
+                    CardRoute::Review => {
+                        (
+                            r"^/card/(?P<card_id>[1-9][0-9]*)/review$",
+                            super::routes::card_profile_review,
+                            super::link::card_profile_review
+                        )
+                    },
+                }
+            },
+
+            AppRoute::CardInDeck(_, _, card_route) => {
+
+                match card_route {
+                    CardRoute::Profile => {
+                        (
+                            r"^/deck/(?P<deck_id>[1-9][0-9]*)/card/(?P<card_id>[1-9][0-9]*)$",
+                            super::routes::deck_card_profile,
+                            super::link::deck_card_profile
+                        )
+                    },
+                    CardRoute::Review => {
+                        (
+                            r"^/deck/(?P<deck_id>[1-9][0-9]*)/card/(?P<card_id>[1-9][0-9]*)/review$",
+                            super::routes::deck_card_profile_review,
+                            super::link::deck_card_profile_review
+                        )
+                    },
+                }
+            },
+
+            AppRoute::Deck(_, deck_route) => {
+
+                match deck_route {
+                    DeckRoute::NewCard=> (
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/new/card$",
+                        super::routes::new_card,
+                        super::link::new_card),
+
+                    DeckRoute::NewDeck=> (
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/new/deck$",
+                        super::routes::new_deck,
+                        super::link::new_deck),
+
+                    DeckRoute::Description => (
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/description$",
+                        super::routes::deck_description,
+                        super::link::deck_description),
+
+                    DeckRoute::Decks => (
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/decks$",
+                        super::routes::deck_decks,
+                        super::link::deck_decks),
+
+                    DeckRoute::Cards => (
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/cards$",
+                        super::routes::deck_cards,
+                        super::link::deck_cards),
+
+                    DeckRoute::Meta => (
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/meta$",
+                        super::routes::deck_meta,
+                        super::link::deck_meta),
+
+                    DeckRoute::Settings => (
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/settings$",
+                        super::routes::deck_settings,
+                        super::link::deck_settings),
+
+                    DeckRoute::Review => (
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/review$",
+                        super::routes::deck_review,
+                        super::link::deck_review),
+                }
+            }
+        }
+
+    }
+
+    fn get_route_regex(view_route: AppRoute) -> &'static str {
+        let (regex_matcher, _, _) = get_route_tuple(view_route);
+        regex_matcher
+    }
+
+    pub fn view_route_to_link(view_route_destination: AppRoute, context: &Context) -> String {
+        let (_, _, link_generator) = get_route_tuple(view_route_destination);
+        link_generator(view_route_destination, context)
+    }
+
+    // helper macro to attach get_route_tuple(...) to route manager
+    macro_rules! route(
+        ($router: expr, $method: ident, $view_route: expr) => (
+            let (regex_matcher, route_handler, _) = route::helpers::get_route_tuple($view_route);
+            $router.add_route(Method::$method, regex_matcher, route_handler);
+        )
+    );
+
+    #[macro_export]
+    macro_rules! parse_capture(
+        ($captures: expr, $capture_name: expr, $to_type: ident) => (
+        // ($($captures:tt)+, $capture_name: expr, $to_type: ident) => (
+            $captures
+                .as_ref()
+                .unwrap()
+                .name($capture_name)
+                .unwrap()
+                .parse::<$to_type>()
+                .unwrap()
+        )
+    );
+
+}
+
+
+
 pub mod constants {
     /* component route constants */
 
@@ -6,7 +218,7 @@ pub mod constants {
     pub type CardID = i64;
     pub type StashID = i64;
 
-    #[derive(Debug)]
+    #[derive(Debug, Copy, Clone)]
     pub enum AppRoute {
 
         Home,
@@ -22,7 +234,7 @@ pub mod constants {
         CardInDeck(DeckID, CardID, CardRoute)
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Copy, Clone)]
     pub enum CardRoute {
         Profile,
         // Settings,
@@ -31,7 +243,7 @@ pub mod constants {
         Review
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Copy, Clone)]
     pub enum DeckRoute {
 
         NewCard,
@@ -58,101 +270,150 @@ mod link {
     /* local imports */
 
     use contexts::Context;
+    use super::constants::AppRoute;
 
     ////////////////////////////////////////////////////////////////////////////
 
-    pub fn root(context: &Context) -> String {
+    pub fn root(view_route_destination: AppRoute, context: &Context) -> String {
         format!("/")
     }
 
-    pub fn settings(context: &Context) -> String {
+    pub fn settings(view_route_destination: AppRoute, context: &Context) -> String {
         format!("/settings")
     }
 
-    pub fn stashes(context: &Context) -> String {
+    pub fn stashes(view_route_destination: AppRoute, context: &Context) -> String {
         format!("/stashes")
     }
 
-    pub fn new_deck(context: &Context) -> String {
+    pub fn new_deck(view_route_destination: AppRoute, _context: &Context) -> String {
 
-        // TODO: fetch deck_id
+        match view_route_destination {
+            AppRoute::Deck(deck_id, _) => {
+                return format!("/deck/{}/new/deck", deck_id);
+            },
+            _ => {
+                unreachable!();
+            }
+        }
 
-        format!("/deck/1/new/deck")
     }
 
-    pub fn new_card(context: &Context) -> String {
+    pub fn new_card(view_route_destination: AppRoute, context: &Context) -> String {
 
-        // TODO: fetch deck_id
+        match view_route_destination {
+            AppRoute::Deck(deck_id, _) => {
+                return format!("/deck/{}/new/card", deck_id);
+            },
+            _ => {
+                unreachable!();
+            }
+        }
 
-        format!("/deck/1/new/card")
-    }
-
-
-    pub fn deck_description(context: &Context) -> String {
-
-        // TODO: fetch deck_id
-
-        format!("/deck/1/description")
-    }
-
-    pub fn deck_decks(context: &Context) -> String {
-
-        // TODO: fetch deck_id
-
-        format!("/deck/1/decks")
-    }
-
-    pub fn deck_cards(context: &Context) -> String {
-
-        // TODO: fetch deck_id
-
-        format!("/deck/1/cards")
-    }
-
-    pub fn deck_meta(context: &Context) -> String {
-
-        // TODO: fetch deck_id
-
-        format!("/deck/1/meta")
-    }
-
-    pub fn deck_settings(context: &Context) -> String {
-
-        // TODO: fetch deck_id
-
-        format!("/deck/1/settings")
     }
 
 
-    pub fn deck_review(context: &Context) -> String {
+    pub fn deck_description(view_route_destination: AppRoute, context: &Context) -> String {
 
-        // TODO: fetch deck_id
+        match view_route_destination {
+            AppRoute::Deck(deck_id, _) => {
+                return format!("/deck/{}/description", deck_id);
+            },
+            _ => {
+                unreachable!();
+            }
+        }
 
-        format!("/deck/1/review")
     }
 
-    pub fn deck_card_profile(context: &Context) -> String {
+    pub fn deck_decks(view_route_destination: AppRoute, context: &Context) -> String {
+
+        match view_route_destination {
+            AppRoute::Deck(deck_id, _) => {
+                return format!("/deck/{}/decks", deck_id);
+            },
+            _ => {
+                unreachable!();
+            }
+        }
+
+    }
+
+    pub fn deck_cards(view_route_destination: AppRoute, context: &Context) -> String {
+
+        match view_route_destination {
+            AppRoute::Deck(deck_id, _) => {
+                return format!("/deck/{}/cards", deck_id);
+            },
+            _ => {
+                unreachable!();
+            }
+        }
+
+    }
+
+    pub fn deck_meta(view_route_destination: AppRoute, context: &Context) -> String {
+
+        match view_route_destination {
+            AppRoute::Deck(deck_id, _) => {
+                return format!("/deck/{}/meta", deck_id);
+            },
+            _ => {
+                unreachable!();
+            }
+        }
+
+    }
+
+    pub fn deck_settings(view_route_destination: AppRoute, context: &Context) -> String {
+
+        match view_route_destination {
+            AppRoute::Deck(deck_id, _) => {
+                return format!("/deck/{}/settings", deck_id);
+            },
+            _ => {
+                unreachable!();
+            }
+        }
+
+    }
+
+
+    pub fn deck_review(view_route_destination: AppRoute, context: &Context) -> String {
+
+        match view_route_destination {
+            AppRoute::Deck(deck_id, _) => {
+                return format!("/deck/{}/review", deck_id);
+            },
+            _ => {
+                unreachable!();
+            }
+        }
+
+    }
+
+    pub fn deck_card_profile(view_route_destination: AppRoute, context: &Context) -> String {
 
         // TODO: fetch deck_id
 
         format!("/deck/1/card/1")
     }
 
-    pub fn deck_card_profile_review(context: &Context) -> String {
+    pub fn deck_card_profile_review(view_route_destination: AppRoute, context: &Context) -> String {
 
         // TODO: fetch deck_id
 
         format!("/deck/1/card/1/review")
     }
 
-    pub fn card_profile(context: &Context) -> String {
+    pub fn card_profile(view_route_destination: AppRoute, context: &Context) -> String {
 
         // TODO: fetch card_Id
 
         format!("/card/1")
     }
 
-    pub fn card_profile_review(context: &Context) -> String {
+    pub fn card_profile_review(view_route_destination: AppRoute, context: &Context) -> String {
 
         // TODO: fetch card_Id
 
@@ -189,7 +450,7 @@ pub mod routes {
 
     use contexts::Context;
     use super::helpers::render_app_component;
-    use super::constants::{AppRoute, DeckRoute, CardRoute};
+    use super::constants::{AppRoute, DeckRoute, CardRoute, DeckID};
 
     lazy_static! {
         static ref MIME_TYPES: mime_types::Types = mime_types::Types::new().unwrap();
@@ -306,64 +567,88 @@ pub mod routes {
 
     pub fn new_card(mut context: Context, request: Request, response: Response) {
 
-        // TODO: fetch deck_id
-        context.view_route = AppRoute::Deck(1, DeckRoute::NewCard);
+        // /deck/:deck_id/new/card
+
+        let deck_id = parse_capture!(&context.captures, "deck_id", DeckID);
+
+        context.view_route = AppRoute::Deck(deck_id, DeckRoute::NewCard);
 
         render_app_component(context, format!("grokdb"), request, response);
     }
 
     pub fn new_deck(mut context: Context, request: Request, response: Response) {
 
-        // TODO: fetch deck_id
-        context.view_route = AppRoute::Deck(1, DeckRoute::NewDeck);
+        // /deck/:deck_id/new/deck
+
+        let deck_id = parse_capture!(&context.captures, "deck_id", DeckID);
+
+        context.view_route = AppRoute::Deck(deck_id, DeckRoute::NewDeck);
 
         render_app_component(context, format!("grokdb"), request, response);
     }
 
     pub fn deck_description(mut context: Context, request: Request, response: Response) {
 
-        // TODO: fetch deck_id
-        context.view_route = AppRoute::Deck(1, DeckRoute::Description);
+        // /deck/:deck_id/description
+
+        let deck_id = parse_capture!(context.captures, "deck_id", DeckID);
+
+        context.view_route = AppRoute::Deck(deck_id, DeckRoute::Description);
 
         render_app_component(context, format!("grokdb"), request, response);
     }
 
     pub fn deck_decks(mut context: Context, request: Request, response: Response) {
 
-        // TODO: fetch deck_id
-        context.view_route = AppRoute::Deck(1, DeckRoute::Decks);
+        // /deck/:deck_id/decks
+
+        let deck_id = parse_capture!(context.captures, "deck_id", DeckID);
+
+        context.view_route = AppRoute::Deck(deck_id, DeckRoute::Decks);
 
         render_app_component(context, format!("grokdb"), request, response);
     }
 
     pub fn deck_cards(mut context: Context, request: Request, response: Response) {
 
-        // TODO: fetch deck_id
-        context.view_route = AppRoute::Deck(1, DeckRoute::Cards);
+        // /deck/:deck_id/cards
+
+        let deck_id = parse_capture!(context.captures, "deck_id", DeckID);
+
+        context.view_route = AppRoute::Deck(deck_id, DeckRoute::Cards);
 
         render_app_component(context, format!("grokdb"), request, response);
     }
 
     pub fn deck_meta(mut context: Context, request: Request, response: Response) {
 
-        // TODO: fetch deck_id
-        context.view_route = AppRoute::Deck(1, DeckRoute::Meta);
+        // /deck/:deck_id/meta
+
+        let deck_id = parse_capture!(context.captures, "deck_id", DeckID);
+
+        context.view_route = AppRoute::Deck(deck_id, DeckRoute::Meta);
 
         render_app_component(context, format!("grokdb"), request, response);
     }
 
     pub fn deck_settings(mut context: Context, request: Request, response: Response) {
 
-        // TODO: fetch deck_id
-        context.view_route = AppRoute::Deck(1, DeckRoute::Settings);
+        // /deck/:deck_id/settings
+
+        let deck_id = parse_capture!(context.captures, "deck_id", DeckID);
+
+        context.view_route = AppRoute::Deck(deck_id, DeckRoute::Settings);
 
         render_app_component(context, format!("grokdb"), request, response);
     }
 
     pub fn deck_review(mut context: Context, request: Request, response: Response) {
 
-        // TODO: fetch deck_id
-        context.view_route = AppRoute::Deck(1, DeckRoute::Review);
+        // /deck/:deck_id/review
+
+        let deck_id = parse_capture!(context.captures, "deck_id", DeckID);
+
+        context.view_route = AppRoute::Deck(deck_id, DeckRoute::Review);
 
         render_app_component(context, format!("grokdb"), request, response);
     }
@@ -402,6 +687,8 @@ pub mod routes {
 
 
     /* helpers */
+
+
 
     #[inline]
     fn decode_percents(string: &OsStr) -> String {
@@ -447,11 +734,20 @@ pub mod manager {
     /* local imports */
 
     use contexts::{GlobalContext, Context};
+    use super::constants::AppRoute;
 
     ////////////////////////////////////////////////////////////////////////////
 
     pub type RouterFn = fn(Context, Request, Response);
-    pub type LinkGenerator = fn(&Context) -> String;
+
+    // TODO: flesh out this docs
+    // fn(view_route_destination: AppRoute, context: &Context) -> String
+    //
+    // view_route_destination := TBA
+    // context := access to db and env variables
+    //
+    // returns string for href attribute of anchor tag
+    pub type LinkGenerator = fn(AppRoute, &Context) -> String;
 
     #[derive(PartialEq, Eq, Hash)]
     struct RouteInfo {
@@ -611,198 +907,3 @@ pub mod manager {
 
 }
 
-#[macro_use]
-pub mod helpers {
-
-    /* 3rd-party imports */
-
-    use hyper::server::{Server, Handler, Request, Response};
-    use hyper::header::{Headers, ContentType, TransferEncoding};
-
-    use templates::{RenderOnce, TemplateBuffer, Template, FnRenderer};
-
-    /* local imports */
-
-    use contexts::Context;
-    use super::constants::{AppRoute, DeckRoute, CardRoute};
-    use components::{AppComponent};
-    use super::manager::{RouterFn, LinkGenerator};
-
-    ////////////////////////////////////////////////////////////////////////////
-
-    pub fn render_app_component(
-        context: Context,
-        app_component_title: String,
-        request: Request,
-        response: Response) {
-
-
-
-        let mut response = response;
-
-        response.headers_mut().set((ContentType(
-            mime!(Text/Html)
-        )));
-
-        let app_component = FnRenderer::new(|tmpl| {
-            AppComponent(tmpl, &context, app_component_title);
-        });
-
-        // We lock the database for reads
-        db_read_lock!(_db_conn; context.global_context.db_connection);
-
-        let mut stream = response.start().unwrap();
-        app_component.write_to_io(&mut stream)
-            .unwrap();
-
-        stream.end();
-
-        /////
-
-        // let opts = ParseOpts {
-        //     tree_builder: TreeBuilderOpts {
-        //         drop_doctype: true,
-        //         ..Default::default()
-        //     },
-        //     ..Default::default()
-        // };
-
-        // // let stdin = io::stdin();
-
-        // let foo = app_component.into_string().unwrap();
-        // let mut foo = foo.as_bytes();
-
-        // let dom = parse_document(RcDom::default(), opts)
-        //     .from_utf8()
-        //     .read_from(&mut foo)
-        //     // .read_from(&mut stdin.lock())
-        //     .unwrap();
-
-        // let mut stream = response.start().unwrap();
-
-        // // The validator.nu HTML2HTML always prints a doctype at the very beginning.
-        // io::stdout().write_all(b"<!DOCTYPE html>\n")
-        //     .ok().expect("writing DOCTYPE failed");
-        // serialize(&mut stream, &dom.document, Default::default())
-        //     .ok().expect("serialization failed");
-
-    }
-
-
-    pub fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerator) {
-
-        match view_route {
-
-            AppRoute::Home => (r"^/$", super::routes::root, super::link::root),
-
-            AppRoute::Settings => (r"^/settings$", super::routes::settings, super::link::settings),
-
-            AppRoute::Stashes => (r"^/stashes$", super::routes::stashes, super::link::stashes),
-
-            AppRoute::Card(_, card_route) => {
-
-                match card_route {
-                    CardRoute::Profile => {
-                        (
-                            r"^/card/(?P<card_id>[1-9][0-9]*)$",
-                            super::routes::card_profile,
-                            super::link::card_profile
-                        )
-                    },
-                    CardRoute::Review => {
-                        (
-                            r"^/card/(?P<card_id>[1-9][0-9]*)/review$",
-                            super::routes::card_profile_review,
-                            super::link::card_profile_review
-                        )
-                    },
-                }
-            },
-
-            AppRoute::CardInDeck(_, _, card_route) => {
-
-                match card_route {
-                    CardRoute::Profile => {
-                        (
-                            r"^/deck/(?P<deck_id>[1-9][0-9]*)/card/(?P<card_id>[1-9][0-9]*)$",
-                            super::routes::deck_card_profile,
-                            super::link::deck_card_profile
-                        )
-                    },
-                    CardRoute::Review => {
-                        (
-                            r"^/deck/(?P<deck_id>[1-9][0-9]*)/card/(?P<card_id>[1-9][0-9]*)/review$",
-                            super::routes::deck_card_profile_review,
-                            super::link::deck_card_profile_review
-                        )
-                    },
-                }
-            },
-
-            AppRoute::Deck(_, deck_route) => {
-
-                match deck_route {
-                    DeckRoute::NewCard=> (
-                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/new/card$",
-                        super::routes::new_card,
-                        super::link::new_card),
-
-                    DeckRoute::NewDeck=> (
-                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/new/deck$",
-                        super::routes::new_deck,
-                        super::link::new_deck),
-
-                    DeckRoute::Description => (
-                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/description$",
-                        super::routes::deck_description,
-                        super::link::deck_description),
-
-                    DeckRoute::Decks => (
-                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/decks$",
-                        super::routes::deck_decks,
-                        super::link::deck_decks),
-
-                    DeckRoute::Cards => (
-                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/cards$",
-                        super::routes::deck_cards,
-                        super::link::deck_cards),
-
-                    DeckRoute::Meta => (
-                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/meta$",
-                        super::routes::deck_meta,
-                        super::link::deck_meta),
-
-                    DeckRoute::Settings => (
-                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/settings$",
-                        super::routes::deck_settings,
-                        super::link::deck_settings),
-
-                    DeckRoute::Review => (
-                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/review$",
-                        super::routes::deck_review,
-                        super::link::deck_review),
-                }
-            }
-        }
-
-    }
-
-    fn get_route_regex(view_route: AppRoute) -> &'static str {
-        let (regex_matcher, _, _) = get_route_tuple(view_route);
-        regex_matcher
-    }
-
-    pub fn view_route_to_link(view_route: AppRoute, context: &Context) -> String {
-        let (_, _, link_generator) = get_route_tuple(view_route);
-        link_generator(context)
-    }
-
-    // helper macro to attach get_route_tuple(...) to route manager
-    macro_rules! route(
-        ($router: expr, $method: ident, $view_route: expr) => (
-            let (regex_matcher, route_handler, _) = route::helpers::get_route_tuple($view_route);
-            $router.add_route(Method::$method, regex_matcher, route_handler);
-        )
-    );
-
-}
