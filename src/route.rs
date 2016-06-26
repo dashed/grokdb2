@@ -1,9 +1,10 @@
 pub mod constants {
     /* component route constants */
 
-    pub type DeckID = u64;
-    pub type CardID = u64;
-    pub type StashID = u64;
+    // TODO: change to u64. it's i64 b/c sqlite requires it.
+    pub type DeckID = i64;
+    pub type CardID = i64;
+    pub type StashID = i64;
 
     #[derive(Debug)]
     pub enum AppRoute {
@@ -281,8 +282,9 @@ pub mod routes {
     // Path: /
     pub fn root(mut context: Context, request: Request, response: Response) {
 
-        // TODO: fetch deck_id
-        context.view_route = AppRoute::Deck(1, DeckRoute::Cards);
+        let root_deck_id = context.global_context.root_deck_id;
+
+        context.view_route = AppRoute::Deck(root_deck_id, DeckRoute::Cards);
 
         render_app_component(context, format!("grokdb"), request, response);
     }

@@ -6,7 +6,7 @@ use templates::{RenderOnce, TemplateBuffer, Template, FnRenderer};
 
 use contexts::{Context};
 use route::helpers::{view_route_to_link};
-use route::constants::{AppRoute, DeckRoute, CardRoute};
+use route::constants::{AppRoute, DeckRoute, CardRoute, DeckID, CardID, StashID};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -750,7 +750,7 @@ fn DeckDescriptionComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context
     };
 }
 
-fn DeckListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, deck_id: u64) {
+fn DeckListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, deck_id: DeckID) {
 
     // let deck_id = default!();
 
@@ -939,7 +939,7 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
     };
 }
 
-fn CardListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, card_id: u64) {
+fn CardListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, card_id: CardID) {
 
     let deck_id = default!();
 
