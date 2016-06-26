@@ -210,33 +210,60 @@ fn main() {
 
     /* context setup */
 
-    let global_context = GlobalContext {
+    let mut global_context = GlobalContext {
         assets_root_path: Path::new("assets/"),
         db_connection: db_connection,
+        root_deck_id: 0, // sentinel value
     };
 
     // preliminary setup.
 
     {
         // check if root deck exists
-        match global_context.get_config("root_deck".to_string()).unwrap() {
-            Some(_) => {},
+        let should_create_root_deck = match global_context.get_config("root_deck".to_string()).unwrap() {
+            Some(config) => {
+                let deck_id = config.value;
+
+                match deck_id.parse::<i64>() {
+                    Ok(deck_id) => {
+
+                        // let mut global_context = &mut global_context;
+
+                        println!("deck_id: {}", deck_id);
+                        global_context.root_deck_id = deck_id;
+
+
+
+                        false
+                    },
+                    Err(_) => {
+                        true
+                    }
+                }
+
+            },
             None => {
-
-                // root deck not found.
-                // create a root deck.
-                // use decks::CreateDeckRequest;
-                let request = decks::CreateDeck {
-                    name: "Library".to_string(),
-                    description: "".to_string(),
-                };
-
-                let root_deck = global_context.create_deck(request).unwrap();
-
-                global_context.set_config("root_deck".to_string(), format!("{}", root_deck.id)).unwrap();
+                true
             }
+        };
+
+        if should_create_root_deck {
+            // root deck not found.
+            // create a root deck.
+            // use decks::CreateDeckRequest;
+            let request = decks::CreateDeck {
+                name: "Library".to_string(),
+                description: "".to_string(),
+            };
+
+            let root_deck = global_context.create_deck(request).unwrap();
+
+            global_context.set_config("root_deck".to_string(), format!("{}", root_deck.id)).unwrap();
         }
     };
+
+    // freeze global_context
+    let global_context = global_context;
 
     /* router setup */
 

@@ -17,6 +17,8 @@ use route::constants::AppRoute;
 pub struct GlobalContext<'a> {
     pub assets_root_path: &'a Path,
 
+    pub root_deck_id: i64,
+
     // RwLock => ORM operations read/write lock
     // Mutex => database low-level lock
     pub db_connection: Arc<RwLock<Mutex<Connection>>>

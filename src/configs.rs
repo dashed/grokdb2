@@ -19,8 +19,8 @@ pub struct SetConfigRequest {
 }
 
 pub struct Config {
-    setting: String,
-    value: String
+    pub setting: String,
+    pub value: String
 }
 
 
