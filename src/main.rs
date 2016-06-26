@@ -226,13 +226,7 @@ fn main() {
 
                 match deck_id.parse::<i64>() {
                     Ok(deck_id) => {
-
-                        // let mut global_context = &mut global_context;
-
-                        println!("deck_id: {}", deck_id);
                         global_context.root_deck_id = deck_id;
-
-
 
                         false
                     },
