@@ -220,7 +220,7 @@ pub mod routes {
 
         let json_response = DeckResponse {
 
-            profile_url: view_route_to_link(AppRoute::Deck(new_deck.id, DeckRoute::Description), &context),
+            profile_url: view_route_to_link(AppRoute::Deck(new_deck.id, DeckRoute::Decks), &context),
             deck: new_deck,
 
             has_parent: true,

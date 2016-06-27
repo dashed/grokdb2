@@ -1,8 +1,15 @@
+global.Promise = require('bluebird');
+
 const React = require('react');
-const {Provider, connect} = require('react-redux');
+
 const {createStore, applyMiddleware} = require('redux');
-const classnames = require('classnames');
+const {Provider, connect} = require('react-redux');
 const {reduxForm, reducer: reduxformReducer} = require('redux-form');
+const classnames = require('classnames');
+
+const fetch = require('fetch-ponyfill')({
+    Promise: require('bluebird')
+});
 
 const {
 
@@ -105,6 +112,8 @@ const __NewDeckContainer = function(props) {
         // addNewDeck
     } = props;
 
+    const postURL = props[POST_TO];
+
     return (
         <div>
             <div className='columns'>
@@ -140,7 +149,7 @@ const __NewDeckContainer = function(props) {
                         className={classnames('btn btn-success', {
                             'loading': submitting
                         })}
-                        onClick={handleSubmit(addNewDeck)}
+                        onClick={handleSubmit(addNewDeck.bind(null, postURL))}
                         disabled={submitting}
                     >
                         {'Add new deck'}
@@ -156,6 +165,7 @@ if(process.env.NODE_ENV !== 'production') {
         fields: React.PropTypes.object.isRequired,
         handleSubmit: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
+        [POST_TO]: React.PropTypes.string.isRequired,
         // addNewDeck: React.PropTypes.func.isRequired,
     };
 }
@@ -170,7 +180,12 @@ const NewDeckContainer = reduxForm(
         }
     },
     // mapStateToProps
-    // void 0,
+    (state) => {
+
+        return {
+            [POST_TO]: state[POST_TO]
+        };
+    }
     // mapDispatchToProps
     // (dispatch) => {
     //     return {
@@ -183,10 +198,25 @@ const NewDeckContainer = reduxForm(
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
-const addNewDeck = function(formData) {
+const addNewDeck = function(postURL, formData) {
     return new Promise((resolve, reject) => {
 
-        window.location.href = '/deck/1/decks';
+        fetch(postURL, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: formData.name,
+                description: formData.description
+            })
+        }).then(function(response) {
+            return response.json();
+        }).then(function(response) {
+            window.location.href = response.profile_url;
+        });
+
     });
 };
 
