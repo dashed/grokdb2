@@ -83,6 +83,7 @@ reference: https://github.com/joshbuchea/HEAD#link-elements
 **/
 
 /* app errors */
+#[macro_use]
 mod errors;
 
 /* global macros */

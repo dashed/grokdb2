@@ -8,6 +8,7 @@ use rusqlite::types::ToSql;
 
 use contexts::{GlobalContext};
 use errors::{EndPointError, APIStatus, RawAPIError};
+use route::constants::{DeckID};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -21,26 +22,56 @@ pub struct CreateDeck {
 pub struct CreateDeckRequest {
     name: String, // required
     description: String, // required, but may be empty
-    parent: Option<u64>,
+    parent: Option<DeckID>,
 }
 
 impl CreateDeckRequest {
+
+    // None => is valid
     fn is_invalid(&self, global_context: &GlobalContext) -> Option<EndPointError> {
 
         if self.name.trim().len() <= 0 {
-            let response = EndPointError {
+            let err_response = EndPointError {
                 status: APIStatus::BadRequest,
                 developerMessage: "Deck name must be non-empty.".to_string(),
                 userMessage: "Deck name must be non-empty.".to_string()
             };
 
-            return Some(response);
+            return Some(err_response);
         }
 
         match self.parent {
             None => {},
             Some(parent_id) => {
-                // TODO: check if parent exists
+
+                match global_context.deck_exists(parent_id) {
+                    Ok(deck_exists) => {
+
+                        if deck_exists {
+                            return None;
+                        }
+
+                        let err_response = EndPointError {
+                            status: APIStatus::BadRequest,
+                            developerMessage: "Parent deck does not exist.".to_string(),
+                            userMessage: "Parent deck does not exist.".to_string()
+                        };
+
+                        return Some(err_response);
+                    },
+                    Err(why) => {
+
+                        handle_raw_api_error!(why);
+
+                        let err_response = EndPointError {
+                            status: APIStatus::ServerError,
+                            developerMessage: "Internal server error.".to_string(),
+                            userMessage: "Internal server error.".to_string()
+                        };
+
+                        return Some(err_response);
+                    }
+                }
             }
         }
 
@@ -81,6 +112,7 @@ pub mod routes {
 
     ////////////////////////////////////////////////////////////////////////////
 
+    // POST /api/deck
     pub fn create_deck(mut context: Context, request: Request, response: Response) {
 
         let request: CreateDeckRequest = match serde_json::from_reader(request) {
@@ -109,6 +141,31 @@ pub mod routes {
 // decks api
 impl<'a> GlobalContext<'a> {
 
+    pub fn deck_exists(&self, deck_id: DeckID) -> Result<bool, RawAPIError> {
+
+        let query = "SELECT COUNT(1) FROM Decks WHERE deck_id = :deck_id LIMIT 1;";
+
+        let params: &[(&str, &ToSql)] = &[
+            (":deck_id", &deck_id)
+        ];
+
+        db_write_lock!(db_conn; self.db_connection);
+        let db_conn: &Connection = db_conn;
+
+        let results = db_conn.query_row_named(query, params, |row| -> bool {
+            let count: i64 = row.get(0);
+            return count >= 1;
+        });
+
+        match results {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            },
+            Ok(deck_exists) => {
+                return Ok(deck_exists);
+            }
+        };
+    }
 
     pub fn create_deck(&self, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
 

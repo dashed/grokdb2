@@ -303,7 +303,7 @@ mod link {
     /* local imports */
 
     use contexts::Context;
-    use super::constants::{AppRoute, CardRoute};
+    use super::constants::{AppRoute, CardRoute, DeckRoute};
 
     ////////////////////////////////////////////////////////////////////////////
 

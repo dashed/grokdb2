@@ -92,3 +92,12 @@ pub fn json_deserialize_err(reason: String) -> EndPointError {
         userMessage: reason
     }
 }
+
+macro_rules! handle_raw_api_error(
+    ($reason: expr) => {{
+        let _type_check: RawAPIError = $reason;
+
+        // TODO: logging backend
+        println!("RAW API ERROR: {:?}", _type_check);
+    }}
+);
