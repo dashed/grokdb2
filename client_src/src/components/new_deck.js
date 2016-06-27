@@ -19,6 +19,7 @@ const {
 
     MARKDOWN_CONTENTS,
     DECK_DESCRIPTION,
+    DECK_NAME,
 
     POST_TO,
 
@@ -371,6 +372,10 @@ const markdownViewReducer = function(state = MARKDOWN_VIEW_RENDER, action) {
 const initialState = {
 
     [POST_TO]: '',
+
+    [DECK_NAME]: {
+        [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
+    },
 
     [DECK_DESCRIPTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,

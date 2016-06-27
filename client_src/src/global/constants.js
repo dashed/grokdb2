@@ -47,10 +47,14 @@ const SKIPCARD_VIEW = 'SKIPCARD_VIEW';
 const SKIPCARD_INITIAL = 'SKIPCARD_INITIAL';
 const SKIPCARD_CONFIRM = 'SKIPCARD_CONFIRM';
 
-// keys
+
+/* keys */
+// deck props
+const DECK_NAME = 'DECK_NAME';
+const DECK_DESCRIPTION = 'DECK_DESCRIPTION';
+
 const CARD_CONTENTS = 'CARD_CONTENTS'; // change to MARKDOWN_CONTENTS
 const MARKDOWN_CONTENTS = 'MARKDOWN_CONTENTS';
-const DECK_DESCRIPTION = 'DECK_DESCRIPTION';
 const POST_TO = 'POST_TO'; // key for url to send POST request to
 
 module.exports = {
@@ -73,9 +77,10 @@ module.exports = {
     SKIPCARD_CONFIRM,
 
     // keys
+    DECK_NAME,
+    DECK_DESCRIPTION,
     CARD_CONTENTS,
     MARKDOWN_CONTENTS,
-    DECK_DESCRIPTION,
     POST_TO,
 
 };
