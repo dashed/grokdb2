@@ -211,10 +211,45 @@ const addNewDeck = function(postURL, formData) {
                 name: formData.name,
                 description: formData.description
             })
-        }).then(function(response) {
-            return response.json();
-        }).then(function(response) {
-            window.location.href = response.profile_url;
+        })
+        .then(function(response) {
+
+            return Promise.all([response.status, response.json()]);
+        }, function(err) {
+
+            // TODO: handle on network failure, etc
+
+            console.log('err:', err);
+        })
+        .then(function([statusCode, jsonResponse]) {
+
+            console.log(response);
+
+            switch(statusCode) {
+            case 400:
+
+                // response.userMessage
+
+                // TODO: description
+                break;
+
+            case 200:
+
+                window.location.href = jsonResponse.profile_url;
+                break;
+
+            default:
+                throw Error('super bad');
+            }
+
+        }, function(err) {
+            // TODO: handle on json parsing fail
+
+            console.log('err:', err);
+        })
+        .catch(function(err) {
+            // TODO: handle
+            console.log('err:', err);
         });
 
     });
