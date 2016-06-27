@@ -97,6 +97,14 @@ mod global_macros;
 mod database;
 mod tables;
 
+/* route */
+
+#[macro_use]
+mod route;
+use route::manager::{Router, RouterFn, LinkGenerator};
+use route::constants::{AppRoute, DeckRoute, CardRoute};
+use route::helpers::{view_route_to_link};
+
 /* grokdb api */
 mod configs;
 mod decks;
@@ -106,13 +114,7 @@ mod decks;
 mod contexts;
 use contexts::{GlobalContext, Context};
 
-/* route */
 
-#[macro_use]
-mod route;
-use route::manager::{Router, RouterFn, LinkGenerator};
-use route::constants::{AppRoute, DeckRoute, CardRoute};
-use route::helpers::{view_route_to_link};
 
 /* components */
 
@@ -324,7 +326,7 @@ fn main() {
     route!(router, Get, AppRoute::CardInDeck(default!(), default!(), CardRoute::Review));
 
     // API
-    router.post(r"^/api/deck$", decks::routes::create_deck);
+    router.post(r"^/api/deck/(?P<deck_id>[1-9][0-9]*)$", decks::routes::create_deck);
 
 
     // TODO: old; remove

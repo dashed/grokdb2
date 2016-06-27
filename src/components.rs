@@ -5,7 +5,7 @@ use templates::{RenderOnce, TemplateBuffer, Template, FnRenderer};
 /* local imports */
 
 use contexts::{Context};
-use route::helpers::{view_route_to_link};
+use route::helpers::{view_route_to_link, view_route_to_pre_render_state};
 use route::constants::{AppRoute, DeckRoute, CardRoute, DeckID, CardID, StashID};
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -236,6 +236,11 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
 
                                 // script(type="text/javascript", src="/assets/vendor.js") {}
+                                script(type="text/javascript") {
+                                    // needs to be raw b/c of html escaping
+                                    : raw!(format!("window.__PRE_RENDER_STATE__ = {};",
+                                        view_route_to_pre_render_state(context.view_route, context)))
+                                }
                                 script(type="text/javascript", src="/assets/new_deck.js") {}
                             };
 

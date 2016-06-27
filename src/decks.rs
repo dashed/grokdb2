@@ -13,6 +13,11 @@ use route::constants::{DeckID};
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#[derive(Debug, PartialEq, Serialize)]
+pub struct NewDeckPreRenderState {
+    pub POST_TO: String
+}
+
 #[derive(Debug)]
 pub struct CreateDeck {
     pub name: String, // required
@@ -23,7 +28,7 @@ pub struct CreateDeck {
 pub struct CreateDeckRequest {
     name: String, // required
     description: String, // required, but may be empty
-    parent: Option<DeckID>,
+    // parent: Option<DeckID>,
 }
 
 impl CreateDeckRequest {
@@ -41,36 +46,37 @@ impl CreateDeckRequest {
             return Some(err_response);
         }
 
-        match self.parent {
-            None => {},
-            Some(parent_id) => {
+        // TODO: remove
+        // match self.parent {
+        //     None => {},
+        //     Some(parent_id) => {
 
-                match global_context.deck_exists(parent_id) {
-                    Ok(deck_exists) => {
+        //         match global_context.deck_exists(parent_id) {
+        //             Ok(deck_exists) => {
 
-                        if deck_exists {
-                            return None;
-                        }
+        //                 if deck_exists {
+        //                     return None;
+        //                 }
 
-                        let err_response = EndPointError {
-                            status: APIStatus::BadRequest,
-                            developerMessage: "Parent deck does not exist.".to_string(),
-                            userMessage: "Parent deck does not exist.".to_string()
-                        };
+        //                 let err_response = EndPointError {
+        //                     status: APIStatus::BadRequest,
+        //                     developerMessage: "Parent deck does not exist.".to_string(),
+        //                     userMessage: "Parent deck does not exist.".to_string()
+        //                 };
 
-                        return Some(err_response);
-                    },
-                    Err(why) => {
+        //                 return Some(err_response);
+        //             },
+        //             Err(why) => {
 
-                        handle_raw_api_error!(why);
+        //                 handle_raw_api_error!(why);
 
-                        let err_response = internal_server_error!();
+        //                 let err_response = internal_server_error!();
 
-                        return Some(err_response);
-                    }
-                }
-            }
-        }
+        //                 return Some(err_response);
+        //             }
+        //         }
+        //     }
+        // }
 
         return None;
     }
@@ -125,12 +131,16 @@ pub mod routes {
     use super::{CreateDeckRequest, CreateDeck, Deck, DeckResponse};
     use route::constants::{DeckID, AppRoute, DeckRoute};
     use route::helpers::{view_route_to_link};
-    use errors::{json_deserialize_err};
+    use errors::{json_deserialize_err, EndPointError, APIStatus};
 
     ////////////////////////////////////////////////////////////////////////////
 
-    // POST /api/deck
+    // TODO: POST /api/deck (this is very raw)
+
+    // POST /api/deck/:deck_id
     pub fn create_deck(mut context: Context, request: Request, response: Response) {
+
+        let parent_deck_id = parse_capture!(&context.captures, "deck_id", DeckID);
 
         let request: CreateDeckRequest = match serde_json::from_reader(request) {
             Ok(request) => request,
@@ -145,6 +155,32 @@ pub mod routes {
             None => {},
             Some(reason) => {
                 respond_json!(response; reason);
+                return;
+            }
+        }
+
+        match context.global_context.deck_exists(parent_deck_id) {
+            Ok(deck_exists) => {
+
+                if !deck_exists {
+                    let err_response = EndPointError {
+                        status: APIStatus::BadRequest,
+                        developerMessage: "Parent deck does not exist.".to_string(),
+                        userMessage: "Parent deck does not exist.".to_string()
+                    };
+
+                    respond_json!(response; err_response);
+                    return;
+                }
+
+            },
+            Err(why) => {
+
+                handle_raw_api_error!(why);
+
+                let err_response = internal_server_error!();
+
+                respond_json!(response; err_response);
                 return;
             }
         }
@@ -168,38 +204,27 @@ pub mod routes {
             }
         };
 
-        let (has_parent, parent_id): (bool, Option<DeckID>) = match request.parent {
-            None => {
-                (false, None)
-            },
-            Some(parent_id) => {
+        let child_id = new_deck.id;
 
-                let child_id = new_deck.id;
+        match context.global_context.connect_decks(child_id, parent_deck_id) {
+            Ok(_) => {},
+            Err(why) => {
 
-                match context.global_context.connect_decks(child_id, parent_id) {
-                    Ok(_) => {
-                        (true, Some(parent_id))
-                    },
-                    Err(why) => {
+                handle_raw_api_error!(why);
 
-                        handle_raw_api_error!(why);
-
-                        let reason = internal_server_error!();
-                        respond_json!(response; reason);
-                        return;
-                    }
-                }
-
+                let reason = internal_server_error!();
+                respond_json!(response; reason);
+                return;
             }
-        };
+        }
 
         let json_response = DeckResponse {
 
             profile_url: view_route_to_link(AppRoute::Deck(new_deck.id, DeckRoute::Description), &context),
             deck: new_deck,
 
-            has_parent: has_parent,
-            parent_id: parent_id
+            has_parent: true,
+            parent_id: Some(parent_deck_id)
         };
 
         respond_json!(response; json_response);

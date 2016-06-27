@@ -6,6 +6,8 @@ pub mod helpers {
     use hyper::server::{Server, Handler, Request, Response};
     use hyper::header::{Headers, ContentType, TransferEncoding};
 
+    use serde_json;
+
     use templates::{RenderOnce, TemplateBuffer, Template, FnRenderer};
 
     /* local imports */
@@ -14,6 +16,7 @@ pub mod helpers {
     use super::constants::{AppRoute, DeckRoute, CardRoute};
     use components::{AppComponent};
     use super::manager::{RouterFn, LinkGenerator};
+    use decks::{NewDeckPreRenderState};
 
     ////////////////////////////////////////////////////////////////////////////
 
@@ -238,6 +241,22 @@ pub mod helpers {
                 .unwrap() // provided regex should ensure the captured group should convert to $to_type seamlessly
         )
     );
+
+    pub fn view_route_to_pre_render_state(view_route_destination: AppRoute, context: &Context) -> String {
+
+        match view_route_destination {
+            AppRoute::Deck(deck_id, DeckRoute::NewDeck) =>  {
+                let state = NewDeckPreRenderState {
+                    POST_TO: format!("/api/deck/{}", deck_id)
+                };
+                serde_json::to_string(&state).unwrap()
+
+            },
+            _ => {
+                unreachable!();
+            }
+        }
+    }
 
 }
 
