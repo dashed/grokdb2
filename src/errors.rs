@@ -133,3 +133,13 @@ macro_rules! handle_raw_api_error(
         println!("RAW API ERROR: {:?}", _type_check);
     }}
 );
+
+macro_rules! handle_serde_error(
+    ($reason: expr) => {{
+        use serde_json;
+        let _type_check: serde_json::error::Error = $reason;
+
+        // TODO: logging backend
+        println!("SERDE ERROR: {:?}", _type_check);
+    }}
+);
