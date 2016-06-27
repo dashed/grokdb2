@@ -16,24 +16,6 @@ use route::constants::AppRoute;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug)]
-pub struct QueryError {
-    pub sqlite_error: SqliteError,
-    pub query: String,
-}
-
-impl fmt::Display for QueryError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} \nFor query:\n{}", self.sqlite_error, self.query)
-    }
-}
-
-impl error::Error for QueryError {
-    fn description(&self) -> &str {
-        return self.sqlite_error.description();
-    }
-}
-
 macro_rules! ____db_read_lock(
     ($e:expr) => (
 

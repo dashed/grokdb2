@@ -1,8 +1,16 @@
+/* rust lib imports */
+
 use std::sync::{Arc, Mutex, RwLock};
+
+/* 3rd-party imports */
 
 use rusqlite::{Connection};
 
-use database::{QueryError};
+/* local imports */
+
+use errors::{RawAPIError};
+
+////////////////////////////////////////////////////////////////////////////////
 
 const SETUP: [&'static str; 7] = [
 
@@ -118,7 +126,7 @@ BEGIN
 END;
 ";
 
-pub fn setup_database(db_connection: Arc<RwLock<Mutex<Connection>>>) -> Result<(), QueryError> {
+pub fn setup_database(db_connection: Arc<RwLock<Mutex<Connection>>>) -> Result<(), RawAPIError> {
 
     db_write_lock!(db_conn; db_connection);
     let db_conn: &Connection = db_conn;
@@ -126,15 +134,9 @@ pub fn setup_database(db_connection: Arc<RwLock<Mutex<Connection>>>) -> Result<(
     // // execute every table setup query
     for query in SETUP.into_iter() {
 
-        let ref query = query.to_string();
-
         match db_conn.execute_batch(query) {
-            Err(why) => {
-                let err = QueryError {
-                    sqlite_error: why,
-                    query: query.clone(),
-                };
-                return Err(err);
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
             },
             _ => {/* query sucessfully executed */},
         }

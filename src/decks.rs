@@ -103,7 +103,7 @@ pub mod routes {
     /* local imports */
 
     use contexts::Context;
-    use super::{CreateDeckRequest, CreateDeck};
+    use super::{CreateDeckRequest, CreateDeck, Deck};
     use errors::{json_deserialize_err};
 
     ////////////////////////////////////////////////////////////////////////////
@@ -146,6 +146,29 @@ pub mod routes {
                 return;
             }
         };
+
+        match request.parent {
+            None => {},
+            Some(parent_id) => {
+
+                let child_id = new_deck.id;
+
+                match context.global_context.connect_decks(child_id, parent_id) {
+                    Ok(_) => {},
+                    Err(why) => {
+
+                        handle_raw_api_error!(why);
+
+                        let reason = internal_server_error!();
+                        respond_json!(response; reason);
+                        return;
+                    }
+                }
+
+            }
+        }
+
+
 
 
         println!("data: {:?}", request);
@@ -209,5 +232,72 @@ impl<'a> GlobalContext<'a> {
         };
 
         return Ok(created_deck);
+    }
+
+    pub fn connect_decks(&self, child: DeckID, parent: DeckID) -> Result<(), RawAPIError> {
+
+        // moving a child deck subtree consists of two procedures:
+        // 1. delete any and all subtree connections between child (and its descendants)
+        //    and the child's ancestors
+        let query_delete = "
+            DELETE FROM DecksClosure
+
+            /* select all descendents of child */
+            WHERE descendent IN (
+                SELECT descendent
+                FROM DecksClosure
+                WHERE ancestor = :child
+            )
+            AND
+
+            /* select all ancestors of child but not child itself */
+            ancestor IN (
+                SELECT ancestor
+                FROM DecksClosure
+                WHERE descendent = :child
+                AND ancestor != descendent
+            )
+            AND descendent != ancestor;
+        ";
+
+        let params: &[(&str, &ToSql)] = &[
+            (":child", &child)
+        ];
+
+
+        db_write_lock!(db_conn; self.db_connection);
+        let db_conn: &Connection = db_conn;
+
+        match db_conn.execute_named(query_delete, &params[..]) {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query_delete));
+            },
+            _ => {/* query sucessfully executed */},
+        }
+
+
+        // 2. make parent (and its ancestors) be ancestors of child deck (and its descendants)
+        let query_insert = "
+            INSERT OR IGNORE INTO DecksClosure(ancestor, descendent, depth)
+            SELECT p.ancestor, c.descendent, p.depth+c.depth+1
+                FROM DecksClosure AS p, DecksClosure AS c
+            WHERE
+                c.ancestor = :child
+                AND p.descendent = :parent;
+        ";
+
+        let params: &[(&str, &ToSql)] = &[
+            (":child", &child),
+            (":parent", &parent)
+        ];
+
+        match db_conn.execute_named(query_insert, &params[..]) {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query_insert));
+            },
+            _ => {/* query sucessfully executed */},
+        }
+
+        return Ok(());
     }
 }

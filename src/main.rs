@@ -207,7 +207,13 @@ fn main() {
 
     /* table setup */
 
-    tables::setup_database(db_connection.clone());
+    match tables::setup_database(db_connection.clone()) {
+        Ok(_) => {},
+        Err(why) => {
+            handle_raw_api_error!(why);
+            return;
+        }
+    }
 
     /* context setup */
 
