@@ -109,8 +109,10 @@ const __NewDeckContainer = function(props) {
         handleSubmit,
         // resetForm, // not used
         submitting,
-        // addNewDeck
+        error
     } = props;
+
+    console.log(error);
 
     const postURL = props[POST_TO];
 
@@ -142,6 +144,22 @@ const __NewDeckContainer = function(props) {
                     <DeckDescriptionComponent assignProps={description} />
                 </div>
             </div>
+            {
+                (() => {
+
+                    if(!error) {
+                        return null;
+                    }
+
+                    return (<div className='columns'>
+                        <div className='column col-12'>
+                            <div className='toast toast-danger'>
+                                {error.message}
+                            </div>
+                        </div>
+                    </div>);
+                })()
+            }
             <div className='columns'>
                 <div className='column'>
                     <a
@@ -220,10 +238,16 @@ const addNewDeck = function(postURL, formData) {
             // TODO: handle on network failure, etc
 
             console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: "Unable to create new deck."
+                }
+            });
         })
         .then(function([statusCode, jsonResponse]) {
 
-            console.log(response);
+            console.log(jsonResponse);
 
             switch(statusCode) {
             case 400:
@@ -231,6 +255,15 @@ const addNewDeck = function(postURL, formData) {
                 // response.userMessage
 
                 // TODO: description
+                //
+                // http://redux-form.com/5.2.5/#/api/props
+                // how to detect errors
+                reject({
+                    _error: {
+                        message: jsonResponse.userMessage
+                    }
+                });
+                return;
                 break;
 
             case 200:
@@ -239,17 +272,33 @@ const addNewDeck = function(postURL, formData) {
                 break;
 
             default:
-                throw Error('super bad');
+                reject({
+                    _error: {
+                        message: "Unable to create new deck."
+                    }
+                });
             }
 
         }, function(err) {
             // TODO: handle on json parsing fail
 
             console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: "Unable to create new deck."
+                }
+            });
         })
         .catch(function(err) {
             // TODO: handle
             console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: "Unable to create new deck."
+                }
+            });
         });
 
     });
