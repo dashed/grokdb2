@@ -322,7 +322,7 @@ mod link {
     pub fn new_deck(view_route_destination: AppRoute, _context: &Context) -> String {
 
         match view_route_destination {
-            AppRoute::Deck(deck_id, _) => {
+            AppRoute::Deck(deck_id, DeckRoute::NewDeck) => {
                 return format!("/deck/{}/new/deck", deck_id);
             },
             _ => {
@@ -335,7 +335,7 @@ mod link {
     pub fn new_card(view_route_destination: AppRoute, context: &Context) -> String {
 
         match view_route_destination {
-            AppRoute::Deck(deck_id, _) => {
+            AppRoute::Deck(deck_id, DeckRoute::NewCard) => {
                 return format!("/deck/{}/new/card", deck_id);
             },
             _ => {
@@ -349,7 +349,7 @@ mod link {
     pub fn deck_description(view_route_destination: AppRoute, context: &Context) -> String {
 
         match view_route_destination {
-            AppRoute::Deck(deck_id, _) => {
+            AppRoute::Deck(deck_id, DeckRoute::Description) => {
                 return format!("/deck/{}/description", deck_id);
             },
             _ => {
@@ -362,7 +362,7 @@ mod link {
     pub fn deck_decks(view_route_destination: AppRoute, context: &Context) -> String {
 
         match view_route_destination {
-            AppRoute::Deck(deck_id, _) => {
+            AppRoute::Deck(deck_id, DeckRoute::Decks) => {
                 return format!("/deck/{}/decks", deck_id);
             },
             _ => {
@@ -375,7 +375,7 @@ mod link {
     pub fn deck_cards(view_route_destination: AppRoute, context: &Context) -> String {
 
         match view_route_destination {
-            AppRoute::Deck(deck_id, _) => {
+            AppRoute::Deck(deck_id, DeckRoute::Cards) => {
                 return format!("/deck/{}/cards", deck_id);
             },
             _ => {
@@ -388,7 +388,7 @@ mod link {
     pub fn deck_meta(view_route_destination: AppRoute, context: &Context) -> String {
 
         match view_route_destination {
-            AppRoute::Deck(deck_id, _) => {
+            AppRoute::Deck(deck_id, DeckRoute::Meta) => {
                 return format!("/deck/{}/meta", deck_id);
             },
             _ => {
@@ -401,7 +401,7 @@ mod link {
     pub fn deck_settings(view_route_destination: AppRoute, context: &Context) -> String {
 
         match view_route_destination {
-            AppRoute::Deck(deck_id, _) => {
+            AppRoute::Deck(deck_id, DeckRoute::Settings) => {
                 return format!("/deck/{}/settings", deck_id);
             },
             _ => {
@@ -415,7 +415,7 @@ mod link {
     pub fn deck_review(view_route_destination: AppRoute, context: &Context) -> String {
 
         match view_route_destination {
-            AppRoute::Deck(deck_id, _) => {
+            AppRoute::Deck(deck_id, DeckRoute::Review) => {
                 return format!("/deck/{}/review", deck_id);
             },
             _ => {
