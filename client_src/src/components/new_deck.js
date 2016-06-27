@@ -268,11 +268,17 @@ const middleware = () => {
     return applyMiddleware();
 };
 
-module.exports = function() {
+module.exports = function(preRenderState) {
+
+    if(preRenderState) {
+        preRenderState = merge({}, initialState, preRenderState);
+    } else {
+        preRenderState = initialState;
+    }
 
     const store = createStore(makeReducer({
         reducer: rehydrateFactory(formReducer)
-    }), initialState, middleware());
+    }), preRenderState, middleware());
 
     const component = (
         <Provider store={store}>

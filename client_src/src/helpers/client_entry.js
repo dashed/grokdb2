@@ -8,13 +8,15 @@ const ReactDOM = require('react-dom');
 const rehydrate = require('helpers/hydrate');
 
 
-module.exports = (maker, initialState, mountTarget) => {
+module.exports = (maker, preRenderState, postRenderState, mountTarget) => {
 
-    const { component, store } = maker();
+    const { component, store } = maker(preRenderState);
 
-    if(!initialState) {
-        console.warn('initialState not given');
-        initialState = maker.initialState;
+    if(process.env.NODE_ENV !== 'production') {
+        if(!postRenderState) {
+            console.warn('postRenderState not given');
+            postRenderState = maker.initialState;
+        }
     }
 
     let firstRender = false;
@@ -25,10 +27,13 @@ module.exports = (maker, initialState, mountTarget) => {
         }
         firstRender = true;
 
-        store.dispatch(rehydrate.hydrate(initialState));
+        store.dispatch(rehydrate.hydrate(postRenderState));
         store.dispatch(rehydrate.hotpath());
 
-        console.log('finished render lol');
+        if(process.env.NODE_ENV !== 'production') {
+            console.log('rehydration finished.');
+        }
+
     };
 
     ReactDOM.render(
