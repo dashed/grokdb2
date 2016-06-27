@@ -1,7 +1,7 @@
 
 /* 3rd-party imports */
 
-use rusqlite::{Connection};
+use rusqlite::{Connection, Row};
 use rusqlite::types::ToSql;
 use hyper;
 
@@ -135,7 +135,7 @@ pub mod routes {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    // TODO: POST /api/deck (this is very raw)
+    // TODO: POST /api/deck (this is very raw); adapt from create_deck(...)
 
     // POST /api/deck/:deck_id
     pub fn create_deck(mut context: Context, request: Request, response: Response) {
@@ -356,5 +356,89 @@ impl<'a> GlobalContext<'a> {
         }
 
         return Ok(());
+    }
+
+    // pub fn count_children_of_deck(&self, deck_id: DeckID) -> Result<u64, RawAPIError> {
+
+    //     let query = "
+    //         SELECT
+    //             Count(descendent)
+    //         FROM
+    //             DecksClosure
+    //         INNER JOIN
+    //             Decks
+    //         ON DecksClosure.descendent = Decks.deck_id
+    //         WHERE
+    //             ancestor = :deck_id
+    //         AND
+    //             depth = 1
+    //         ORDER BY
+    //             Decks.name
+    //         COLLATE NOCASE ASC;
+    //     ";
+    // }
+
+    pub fn children_of_deck(&self, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
+
+        let query = "
+            SELECT
+                descendent
+            FROM
+                DecksClosure
+            INNER JOIN
+                Decks
+            ON DecksClosure.descendent = Decks.deck_id
+            WHERE
+                ancestor = :deck_id
+            AND
+                depth = 1
+            ORDER BY
+                Decks.name
+            COLLATE NOCASE ASC;
+        ";
+        // TODO: COLLATE NOCASE ASC necessary?
+
+        let params: &[(&str, &ToSql)] = &[
+            (":deck_id", &deck_id),
+        ];
+
+        db_read_lock!(db_conn; self.db_connection);
+        let db_conn: &Connection = db_conn;
+
+        let mut statement = match db_conn.prepare(query) {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            },
+            Ok(statement) => statement
+        };
+
+        let maybe_iter = statement.query_map_named(params, |row: &Row| -> DeckID {
+            return row.get(0);
+        });
+
+        match maybe_iter {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            },
+            Ok(iter) => {
+
+                let mut vec_of_deck_id: Vec<DeckID> = Vec::new();
+
+                for maybe_deck_id in iter {
+
+                    let deck_id: DeckID = match maybe_deck_id {
+                        Err(sqlite_error) => {
+                            return Err(RawAPIError::SQLError(sqlite_error, query));
+                        },
+                        Ok(deck_id) => deck_id
+                    };
+
+                    vec_of_deck_id.push(deck_id);
+                }
+
+                return Ok(vec_of_deck_id);
+            }
+        };
+
     }
 }

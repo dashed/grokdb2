@@ -6,6 +6,10 @@ authors = ["Alberto Leal <mailforalberto@gmail.com>"]
 [profile.dev]
 opt-level = 0      # controls the `--opt-level` the compiler builds with
 debug = true       # controls whether the compiler passes `-g`
+panic = 'unwind'   # ensures panic is unwind safe
+
+[profile.release]
+panic = 'unwind'   # ensures panic is unwind safe
 
 [dependencies.hyper]
 version = "0.9.8"

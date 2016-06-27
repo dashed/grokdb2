@@ -1,6 +1,10 @@
 #[macro_use]
 pub mod helpers {
 
+    /* rust lib imports */
+
+    use std::panic::{self, AssertUnwindSafe};
+
     /* 3rd-party imports */
 
     use hyper::server::{Server, Handler, Request, Response};
@@ -41,7 +45,30 @@ pub mod helpers {
             AppComponent(tmpl, &context, app_component_title);
         });
 
-        match app_component.into_string() {
+        // Panic capture semantics:
+        // - horroshow-rs does not provide a convenient way to abort template rendering.
+        // - Template abortion can only be done via panic!(...) macro. (the convention)
+        // - If panic!(...) macro is only used for panics, then AssertUnwindSafe can be safely used.
+        // - Cargo.toml must be configured to enforce panic strategy is 'unwind' for it to be guaranteed
+        //   to be caught by the panic::catch_unwind function.
+        //
+        // see: https://github.com/rust-lang/rfcs/blob/master/text/1513-less-unwinding.md
+        // see: http://doc.crates.io/manifest.html
+        let result = panic::catch_unwind(AssertUnwindSafe(|| {
+            app_component.into_string()
+
+        }));
+
+        if result.is_err() {
+
+            println!("TEMPALTE RENDERING PANIC: {:?}", result.err().unwrap());
+
+            super::routes::internal_server_error(&context, request, response);
+
+            return;
+        }
+
+        match result.ok().unwrap() {
             Err(why) => {
                 println!("ERROR RENDERING: {:?}", why);
 
@@ -269,6 +296,7 @@ pub mod constants {
     pub type DeckID = i64;
     pub type CardID = i64;
     pub type StashID = i64;
+    pub type Count = u64; // type for counting things
 
     #[derive(Debug, Copy, Clone)]
     pub enum AppRoute {

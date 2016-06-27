@@ -25,6 +25,7 @@ pub struct GlobalContext<'a> {
     // db_ops_lock: Arc<RwLock<bool>>
 }
 
+// TODO: remove
 // impl GlobalContext<'a> {
 // }
 
