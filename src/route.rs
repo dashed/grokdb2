@@ -303,7 +303,7 @@ mod link {
     /* local imports */
 
     use contexts::Context;
-    use super::constants::AppRoute;
+    use super::constants::{AppRoute, CardRoute};
 
     ////////////////////////////////////////////////////////////////////////////
 
@@ -427,9 +427,20 @@ mod link {
 
     pub fn deck_card_profile(view_route_destination: AppRoute, context: &Context) -> String {
 
-        // TODO: fetch deck_id
+        match view_route_destination {
 
-        format!("/deck/1/card/1")
+            AppRoute::Card(card_id, CardRoute::Profile) => {
+                return format!("/card/{}", card_id);
+            },
+
+            AppRoute::CardInDeck(deck_id, card_id, CardRoute::Profile) => {
+                return format!("/deck/{}/card/{}", deck_id, card_id);
+            },
+            _ => {
+                unreachable!();
+            }
+        }
+
     }
 
     pub fn deck_card_profile_review(view_route_destination: AppRoute, context: &Context) -> String {
@@ -459,6 +470,7 @@ pub mod routes {
 
     /* rust lib imports */
 
+    use std::panic::{self, AssertUnwindSafe};
     use std::fs;
     use std::fs::{File};
     use std::io;
@@ -591,8 +603,28 @@ pub mod routes {
 
         let root_deck_id = context.global_context.root_deck_id;
 
-        // TODO: debug
-        let _deck_id = parse_capture!(context.captures, "deck_id", DeckID);
+        // enclose_panicable!(request; response; {
+        //     // code
+        // });
+
+        // /////
+
+        // let result = panic::catch_unwind(AssertUnwindSafe(|| {
+        //     // TODO: debug
+        //     let _deck_id = parse_capture!(context.captures, "deck_id", DeckID);
+        // }));
+
+        // if result.is_err() {
+        //     let message = format!("Internal server error for {}", request.uri);
+
+        //     let mut response = response;
+
+        //     // 500 status code
+        //     *response.status_mut() = StatusCode::InternalServerError;
+
+        //     response.send(message.as_bytes()).unwrap();
+        //     return;
+        // }
 
         context.view_route = AppRoute::Deck(root_deck_id, DeckRoute::Cards);
 

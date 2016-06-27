@@ -760,8 +760,6 @@ fn DeckDescriptionComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context
 
 fn DeckListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, deck_id: DeckID) {
 
-    // let deck_id = default!();
-
     tmpl << html! {
         div(class = "card") {
             div(class="card-header") {
@@ -955,9 +953,7 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
     };
 }
 
-fn CardListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, card_id: CardID) {
-
-    let deck_id = default!();
+fn CardListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, deck_id: DeckID, card_id: CardID) {
 
     tmpl << html! {
         div(class = "card") {
@@ -1174,7 +1170,7 @@ fn DeckCardsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, '
                     &mut *tmpl << html! {
                         div(class="columns") {
                             div(class="col-12") {
-                                |tmpl| CardListItem(tmpl, &context, i);
+                                |tmpl| CardListItem(tmpl, &context, deck_id, i);
                             }
                         }
                     }
@@ -1356,8 +1352,21 @@ fn CardProfileComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a,
 
 fn CardProfileReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
 
-    let deck_id = default!();
-    let card_id = default!();
+    // derive deck_id from view_route
+    let (deck_id, card_id) = match context.view_route {
+        AppRoute::Card(card_id, _) => {
+
+            let deck_id = 9000;
+
+            (deck_id, card_id)
+        },
+        AppRoute::CardInDeck(deck_id, card_id, _) => {
+            (deck_id, card_id)
+        }
+        _ => {
+            unreachable!();
+        }
+    };
 
     tmpl << html! {
 
