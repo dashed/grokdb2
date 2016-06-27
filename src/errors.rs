@@ -93,9 +93,21 @@ pub fn json_deserialize_err(reason: String) -> EndPointError {
     }
 }
 
+macro_rules! internal_server_error(
+    () => (
+        EndPointError {
+            status: APIStatus::ServerError,
+            developerMessage: "Internal server error.".to_string(),
+            userMessage: "Internal server error.".to_string()
+        }
+    )
+);
+
+
 macro_rules! handle_raw_api_error(
     ($reason: expr) => {{
-        let _type_check: RawAPIError = $reason;
+        use errors;
+        let _type_check: errors::RawAPIError = $reason;
 
         // TODO: logging backend
         println!("RAW API ERROR: {:?}", _type_check);

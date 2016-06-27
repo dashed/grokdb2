@@ -63,11 +63,7 @@ impl CreateDeckRequest {
 
                         handle_raw_api_error!(why);
 
-                        let err_response = EndPointError {
-                            status: APIStatus::ServerError,
-                            developerMessage: "Internal server error.".to_string(),
-                            userMessage: "Internal server error.".to_string()
-                        };
+                        let err_response = internal_server_error!();
 
                         return Some(err_response);
                     }
@@ -107,7 +103,7 @@ pub mod routes {
     /* local imports */
 
     use contexts::Context;
-    use super::CreateDeckRequest;
+    use super::{CreateDeckRequest, CreateDeck};
     use errors::{json_deserialize_err};
 
     ////////////////////////////////////////////////////////////////////////////
@@ -132,6 +128,24 @@ pub mod routes {
             }
         }
 
+        let create_deck = CreateDeck {
+            name: request.name.trim().to_string(),
+            description: request.description.trim().to_string()
+        };
+
+        let new_deck: Deck = match context.global_context.create_deck(create_deck) {
+            Ok(new_deck) => {
+                new_deck
+            },
+            Err(why) => {
+
+                handle_raw_api_error!(why);
+
+                let reason = internal_server_error!();
+                respond_json!(response; reason);
+                return;
+            }
+        };
 
 
         println!("data: {:?}", request);
