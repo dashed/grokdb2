@@ -275,7 +275,8 @@ const addNewDeck = function(postURL, formData) {
             console.log(jsonResponse);
 
             switch(statusCode) {
-            case 400:
+            case 400: // Bad Request
+            case 500: // Internal Server Error
 
                 // response.userMessage
 
@@ -291,12 +292,12 @@ const addNewDeck = function(postURL, formData) {
                 return;
                 break;
 
-            case 200:
+            case 200: // Ok
 
                 window.location.href = jsonResponse.profile_url;
                 break;
 
-            default:
+            default: // Unexpected http status code
                 reject({
                     _error: {
                         message: 'Unable to create new deck.'
