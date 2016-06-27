@@ -112,20 +112,34 @@ const __NewDeckContainer = function(props) {
         error
     } = props;
 
-    console.log(error);
-
     const postURL = props[POST_TO];
 
     return (
         <div>
             <div className='columns'>
                 <div className='column col-12'>
+                    {
+                        (() => {
+
+                            if(!name.touched || !name.error) {
+                                return null;
+                            }
+
+                            return (
+                                <div className='toast toast-danger'>
+                                    {name.error}
+                                </div>
+                            );
+                        })()
+                    }
                     <div className='form-group'>
                         <label className='form-label' htmlFor='input-deck-name'>
                             {'Name'}
                         </label>
                         <input
-                            className='form-input'
+                            className={classnames('form-input', {
+                                'is-danger': name.touched && name.error
+                            })}
                             type='text'
                             // id='input-deck-name'
                             placeholder='Name for new deck'
@@ -192,6 +206,17 @@ const NewDeckContainer = reduxForm(
     {
         form: 'new_deck',
         fields: ['name', 'description'],
+        validate: (values) => {
+            const errors = {};
+
+            if (!values.name) {
+                errors.name = 'Deck name is required';
+            } else if(values.name.trim().length <= 0) {
+                errors.name = 'Deck name cannot be entirely spaces (or whitespace).';
+            }
+
+            return errors;
+        },
         initialValues: {
             name: '',
             description: ''
@@ -241,7 +266,7 @@ const addNewDeck = function(postURL, formData) {
 
             reject({
                 _error: {
-                    message: "Unable to create new deck."
+                    message: 'Unable to create new deck.'
                 }
             });
         })
@@ -274,7 +299,7 @@ const addNewDeck = function(postURL, formData) {
             default:
                 reject({
                     _error: {
-                        message: "Unable to create new deck."
+                        message: 'Unable to create new deck.'
                     }
                 });
             }
@@ -286,7 +311,7 @@ const addNewDeck = function(postURL, formData) {
 
             reject({
                 _error: {
-                    message: "Unable to create new deck."
+                    message: 'Unable to create new deck.'
                 }
             });
         })
@@ -296,7 +321,7 @@ const addNewDeck = function(postURL, formData) {
 
             reject({
                 _error: {
-                    message: "Unable to create new deck."
+                    message: 'Unable to create new deck.'
                 }
             });
         });
