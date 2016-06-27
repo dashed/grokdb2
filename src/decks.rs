@@ -3,6 +3,7 @@
 
 use rusqlite::{Connection};
 use rusqlite::types::ToSql;
+use hyper;
 
 /* local imports */
 
@@ -76,14 +77,32 @@ impl CreateDeckRequest {
 }
 
 #[derive(Debug, PartialEq, Serialize)]
-pub struct CreateDeckResponse {
+pub struct DeckResponse {
 
-    // url for client side to redirect to
-    redirect: String,
+    profile_url: String,
 
-    // the created resource
-    deck: Deck
+    // the resource
+    deck: Deck,
+
+    has_parent: bool,
+    parent_id: Option<DeckID>
 }
+
+impl DeckResponse {
+    pub fn status_code(&self) -> hyper::status::StatusCode {
+        hyper::status::StatusCode::Ok
+    }
+}
+
+// #[derive(Debug, PartialEq, Serialize)]
+// pub struct CreateDeckResponse {
+
+//     // url for client side to redirect to
+//     redirect: String,
+
+//     // the created resource
+//     deck: Deck
+// }
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Deck {
@@ -103,7 +122,9 @@ pub mod routes {
     /* local imports */
 
     use contexts::Context;
-    use super::{CreateDeckRequest, CreateDeck, Deck};
+    use super::{CreateDeckRequest, CreateDeck, Deck, DeckResponse};
+    use route::constants::{DeckID, AppRoute, DeckRoute};
+    use route::helpers::{view_route_to_link};
     use errors::{json_deserialize_err};
 
     ////////////////////////////////////////////////////////////////////////////
@@ -147,14 +168,18 @@ pub mod routes {
             }
         };
 
-        match request.parent {
-            None => {},
+        let (has_parent, parent_id): (bool, Option<DeckID>) = match request.parent {
+            None => {
+                (false, None)
+            },
             Some(parent_id) => {
 
                 let child_id = new_deck.id;
 
                 match context.global_context.connect_decks(child_id, parent_id) {
-                    Ok(_) => {},
+                    Ok(_) => {
+                        (true, Some(parent_id))
+                    },
                     Err(why) => {
 
                         handle_raw_api_error!(why);
@@ -166,12 +191,20 @@ pub mod routes {
                 }
 
             }
-        }
+        };
 
+        let json_response = DeckResponse {
 
+            profile_url: view_route_to_link(AppRoute::Deck(new_deck.id, DeckRoute::Description), &context),
+            deck: new_deck,
 
+            has_parent: has_parent,
+            parent_id: parent_id
+        };
 
-        println!("data: {:?}", request);
+        respond_json!(response; json_response);
+
+        // println!("data: {:?}", request);
     }
 }
 

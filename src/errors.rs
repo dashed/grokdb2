@@ -1,5 +1,6 @@
 /* 3rd-party imports */
 
+use hyper;
 use serde::{Serialize, Serializer};
 use rusqlite::{Error as SqliteError};
 
@@ -49,6 +50,24 @@ pub struct EndPointError {
     pub userMessage: String,
 }
 
+impl EndPointError {
+    pub fn status_code(&self) -> hyper::status::StatusCode {
+        let status_code = match self.status {
+            APIStatus::Ok => {
+                hyper::status::StatusCode::Ok
+            },
+            APIStatus::BadRequest => {
+                hyper::status::StatusCode::BadRequest
+            },
+            APIStatus::ServerError => {
+                hyper::status::StatusCode::InternalServerError
+            }
+        };
+
+        status_code
+    }
+}
+
 quick_error! {
     #[derive(Debug)]
     pub enum RawAPIError {
@@ -94,13 +113,14 @@ pub fn json_deserialize_err(reason: String) -> EndPointError {
 }
 
 macro_rules! internal_server_error(
-    () => (
-        EndPointError {
-            status: APIStatus::ServerError,
+    () => {{
+        use errors;
+        errors::EndPointError {
+            status: errors::APIStatus::ServerError,
             developerMessage: "Internal server error.".to_string(),
             userMessage: "Internal server error.".to_string()
         }
-    )
+    }}
 );
 
 

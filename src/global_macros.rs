@@ -33,32 +33,16 @@ macro_rules! respond_json {
         let mut response = $response;
 
         use hyper;
-        use errors::{EndPointError, APIStatus};
 
-        match $payload {
-            EndPointError { ref status, .. } => {
-
-                let status_code = match status {
-                    &APIStatus::Ok => {
-                        hyper::status::StatusCode::Ok
-                    },
-                    &APIStatus::BadRequest => {
-                        hyper::status::StatusCode::BadRequest
-                    },
-                    &APIStatus::ServerError => {
-                        hyper::status::StatusCode::InternalServerError
-                    }
-                };
-
-                *response.status_mut() = status_code;
-            }
-        }
+        // any and all json serializables must implement this
+        *response.status_mut() = $payload.status_code();
 
         response.headers_mut().set((hyper::header::ContentType(
             mime!(Application/Json)
         )));
 
-        // TODO: macro
+
+        // TODO: don't stream... first convert to string; capture any panics
         let mut stream = response.start().unwrap();
         serde_json::to_writer(&mut stream, &$payload);
     );
