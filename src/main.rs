@@ -375,6 +375,9 @@ fn main() {
             // request: request,
             // response: response,
 
+            // used for error handling logging
+            // log_entry: &_entry,
+
             // router/regexset
             uri: &uri,
             captures: None,

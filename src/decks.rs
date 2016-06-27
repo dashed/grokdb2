@@ -204,7 +204,6 @@ pub mod routes {
 
         respond_json!(response; json_response);
 
-        // println!("data: {:?}", request);
     }
 }
 

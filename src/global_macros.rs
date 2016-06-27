@@ -54,6 +54,8 @@ macro_rules! respond_json {
             Ok(json_response) => json_response,
             Err(why) => {
 
+                // TODO: $request to get uri
+
                 handle_serde_error!(why);
 
                 let message = "Internal server error";
