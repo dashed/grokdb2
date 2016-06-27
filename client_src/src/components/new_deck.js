@@ -13,6 +13,8 @@ const {
     MARKDOWN_CONTENTS,
     DECK_DESCRIPTION,
 
+    POST_TO,
+
 } = require('global/constants');
 
 const {reduceIn, makeReducer} = require('lib/redux-tree');
@@ -227,6 +229,8 @@ const markdownViewReducer = function(state = MARKDOWN_VIEW_RENDER, action) {
 /* default state */
 
 const initialState = {
+
+    [POST_TO]: '',
 
     [DECK_DESCRIPTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
