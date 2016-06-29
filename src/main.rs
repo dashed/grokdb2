@@ -83,6 +83,7 @@ reference: https://github.com/joshbuchea/HEAD#link-elements
 **/
 
 mod types;
+mod helpers;
 
 /* app errors */
 #[macro_use]

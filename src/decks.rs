@@ -273,7 +273,7 @@ impl<'a> APIContext<'a> {
             (":deck_id", &deck_id)
         ];
 
-        db_write_lock!(db_conn; self.global_context.db_connection);
+        db_read_lock!(db_conn; self.global_context.db_connection);
         let db_conn: &Connection = db_conn;
 
         let results = db_conn.query_row_named(query, params, |row| -> bool {
@@ -449,6 +449,41 @@ impl<'a> APIContext<'a> {
     //         COLLATE NOCASE ASC;
     //     ";
     // }
+
+    pub fn children_of_deck_count(&self, deck_id: DeckID) -> Result<Count, RawAPIError> {
+
+        let query = format!(r"
+            SELECT
+                COUNT(descendent)
+            FROM
+                DecksClosure
+            INNER JOIN
+                Decks
+            ON DecksClosure.descendent = Decks.deck_id
+            WHERE
+                ancestor = {deck_id}
+            AND
+                depth = 1;
+        ", deck_id = deck_id);
+
+        db_read_lock!(db_conn; self.global_context.db_connection);
+        let db_conn: &Connection = db_conn;
+
+        let results = db_conn.query_row(&query, &[], |row| -> Count {
+            let count: i64 = row.get(0);
+            return count as Count;
+        });
+
+        match results {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            },
+            Ok(count) => {
+                return Ok(count);
+            }
+        };
+
+    }
 
     pub fn children_of_deck(&self, deck_id: DeckID, filter: DecksPageRequest) -> Result<Vec<Deck>, RawAPIError> {
 
