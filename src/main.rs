@@ -82,6 +82,8 @@ reference: https://github.com/joshbuchea/HEAD#link-elements
 
 **/
 
+mod types;
+
 /* app errors */
 #[macro_use]
 mod errors;
@@ -112,7 +114,7 @@ mod decks;
 /* contexts */
 
 mod contexts;
-use contexts::{GlobalContext, Context};
+use contexts::{GlobalContext, Context, APIContext};
 
 
 
@@ -228,8 +230,9 @@ fn main() {
     // preliminary setup.
 
     {
+
         // check if root deck exists
-        let should_create_root_deck = match global_context.get_config("root_deck".to_string()).unwrap() {
+        let should_create_root_deck = match APIContext::new(&global_context).get_config("root_deck".to_string()).unwrap() {
             Some(config) => {
                 let deck_id = config.value;
 
@@ -259,9 +262,11 @@ fn main() {
                 description: "".to_string(),
             };
 
-            let root_deck = global_context.create_deck(request).unwrap();
+            let local_api = APIContext::new(&global_context);
 
-            global_context.set_config("root_deck".to_string(), format!("{}", root_deck.id)).unwrap();
+            let root_deck = local_api.create_deck(request).unwrap();
+
+            local_api.set_config("root_deck".to_string(), format!("{}", root_deck.id)).unwrap();
         }
     };
 
@@ -372,6 +377,8 @@ fn main() {
         let mut context = Context {
 
             global_context: &global_context,
+
+            api: APIContext::new(&global_context),
 
             // TODO: remove
             // request: request,

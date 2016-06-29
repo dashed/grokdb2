@@ -7,7 +7,7 @@ use rusqlite::{Error as SqliteError};
 
 /* local imports */
 
-use contexts::{GlobalContext};
+use contexts::{GlobalContext, APIContext};
 use errors::{RawAPIError};
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ pub struct Config {
 
 
 // configs api
-impl<'a> GlobalContext<'a> {
+impl<'a> APIContext<'a> {
 
     // Some(config) => config was found
     // None => no config was found
@@ -48,7 +48,7 @@ impl<'a> GlobalContext<'a> {
             (":setting", &setting)
         ];
 
-        db_read_lock!(db_conn; self.db_connection);
+        db_read_lock!(db_conn; self.global_context.db_connection);
         let db_conn: &Connection = db_conn;
 
         let results = db_conn.query_row_named(query, params, |row| -> Config {
@@ -68,7 +68,7 @@ impl<'a> GlobalContext<'a> {
                     _ => {}
                 };
 
-                return Err(RawAPIError::SQLError(sqlite_error, query));
+                return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
             },
             Ok(config) => {
                 return Ok(Some(config));
@@ -93,12 +93,12 @@ impl<'a> GlobalContext<'a> {
             (":value", &value),
         ];
 
-        db_write_lock!(db_conn; self.db_connection);
+        db_write_lock!(db_conn; self.global_context.db_connection);
         let db_conn: &Connection = db_conn;
 
         match db_conn.execute_named(query, &params[..]) {
             Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query));
+                return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
             },
             _ => {/* query sucessfully executed */},
         }

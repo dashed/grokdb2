@@ -136,7 +136,7 @@ pub fn setup_database(db_connection: Arc<RwLock<Mutex<Connection>>>) -> Result<(
 
         match db_conn.execute_batch(query) {
             Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query));
+                return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
             },
             _ => {/* query sucessfully executed */},
         }

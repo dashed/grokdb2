@@ -209,12 +209,14 @@ pub mod helpers {
                         super::link::deck_description),
 
                     DeckRoute::Decks => (
-                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/decks$",
+                        // r"^/deck/(?P<deck_id>[1-9][0-9]*)/decks$",
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/decks(?:\?(?P<query_string>.*))?$",
                         super::routes::deck_decks,
                         super::link::deck_decks),
 
                     DeckRoute::Cards => (
-                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/cards$",
+                        // r"^/deck/(?P<deck_id>[1-9][0-9]*)/cards$",
+                        r"^/deck/(?P<deck_id>[1-9][0-9]*)/cards(?:\?(?P<query_string>.*))?$",
                         super::routes::deck_cards,
                         super::link::deck_cards),
 
@@ -296,7 +298,6 @@ pub mod constants {
     pub type DeckID = i64;
     pub type CardID = i64;
     pub type StashID = i64;
-    pub type Count = u64; // type for counting things
 
     #[derive(Debug, Copy, Clone)]
     pub enum AppRoute {

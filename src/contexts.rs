@@ -44,6 +44,8 @@ pub struct Context<
 
     pub global_context: &'global GlobalContext<'global>,
 
+    pub api: APIContext<'global>,
+
     pub uri: &'regexset str,
     pub captures: Option<Captures<'regexset>>,
 
@@ -52,8 +54,23 @@ pub struct Context<
     // request: Request<'request, 'network_stream>,
     // response: Response<'response>
 
-
 }
+
+pub struct APIContext<'global> {
+    pub global_context: &'global GlobalContext<'global>,
+    pub should_cache: bool,
+}
+
+impl<'global> APIContext<'global> {
+
+    pub fn new(global_context: &'global GlobalContext<'global>) -> Self {
+        return APIContext {
+            global_context: global_context,
+            should_cache: false
+        };
+    }
+}
+
 
 // impl<'a, 'b> Context<'a, 'b> {
 

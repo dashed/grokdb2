@@ -77,7 +77,7 @@ quick_error! {
             description("Bad input to raw api")
         }
 
-        SQLError(sqlite_error: SqliteError, query: &'static str) {
+        SQLError(sqlite_error: SqliteError, query: String) {
             display("{}\nFor query:\n{}", sqlite_error, query)
             description(sqlite_error.description())
         }

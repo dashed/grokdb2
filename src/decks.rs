@@ -7,15 +7,35 @@ use hyper;
 
 /* local imports */
 
-use contexts::{GlobalContext};
+use contexts::{GlobalContext, Context, APIContext};
 use errors::{EndPointError, APIStatus, RawAPIError};
 use route::constants::{DeckID};
+use types::{Page, PerPage, SortOrder, Count};
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct NewDeckPreRenderState {
     pub POST_TO: String
+}
+
+pub enum DecksPageSort {
+    DeckTitle(SortOrder),
+    CreatedAt(SortOrder),
+    UpdatedAt(SortOrder),
+    // last time user reviewed this deck;
+    // not based on the cards the deck contains
+    ReviewedAt(SortOrder)
+}
+
+pub struct DecksPageRequest {
+    page: Page,
+    per_page: PerPage,
+    sort: DecksPageSort,
+
+    // this enforces the caller to fetch number of pages
+    number_of_pages: Count
+    // search: Option<String>
 }
 
 #[derive(Debug)]
@@ -34,7 +54,7 @@ pub struct CreateDeckRequest {
 impl CreateDeckRequest {
 
     // None => is valid
-    fn is_invalid(&self, global_context: &GlobalContext) -> Option<EndPointError> {
+    fn is_invalid(&self, api: &APIContext) -> Option<EndPointError> {
 
         if self.name.trim().len() <= 0 {
             let err_response = EndPointError {
@@ -112,9 +132,13 @@ impl DeckResponse {
 
 #[derive(Debug, PartialEq, Serialize)]
 pub struct Deck {
-    pub id: i64,
+    pub id: DeckID,
     pub name: String,
-    pub description: String
+    pub description: String,
+    pub created_at: i64, // unix timestamp
+    pub updated_at: i64,  // unix timestamp
+    pub reviewed_at: i64,  // unix timestamp
+    pub has_reviewed: bool // false if reviewed_at == created_at, otherwise true
 }
 
 pub mod routes {
@@ -151,7 +175,7 @@ pub mod routes {
             }
         };
 
-        match request.is_invalid(&context.global_context) {
+        match request.is_invalid(&context.api) {
             None => {},
             Some(reason) => {
                 respond_json!(response; reason);
@@ -159,7 +183,7 @@ pub mod routes {
             }
         }
 
-        match context.global_context.deck_exists(parent_deck_id) {
+        match context.api.deck_exists(parent_deck_id) {
             Ok(deck_exists) => {
 
                 if !deck_exists {
@@ -190,7 +214,7 @@ pub mod routes {
             description: request.description.trim().to_string()
         };
 
-        let new_deck: Deck = match context.global_context.create_deck(create_deck) {
+        let new_deck: Deck = match context.api.create_deck(create_deck) {
             Ok(new_deck) => {
                 new_deck
             },
@@ -206,7 +230,7 @@ pub mod routes {
 
         let child_id = new_deck.id;
 
-        match context.global_context.connect_decks(child_id, parent_deck_id) {
+        match context.api.connect_decks(child_id, parent_deck_id) {
             Ok(_) => {},
             Err(why) => {
 
@@ -233,17 +257,23 @@ pub mod routes {
 }
 
 // decks api
-impl<'a> GlobalContext<'a> {
+impl<'a> APIContext<'a> {
 
     pub fn deck_exists(&self, deck_id: DeckID) -> Result<bool, RawAPIError> {
 
-        let query = "SELECT COUNT(1) FROM Decks WHERE deck_id = :deck_id LIMIT 1;";
+        let query = r"
+            SELECT
+                COUNT(1)
+            FROM Decks
+            WHERE deck_id = :deck_id
+            LIMIT 1;
+        ";
 
         let params: &[(&str, &ToSql)] = &[
             (":deck_id", &deck_id)
         ];
 
-        db_write_lock!(db_conn; self.db_connection);
+        db_write_lock!(db_conn; self.global_context.db_connection);
         let db_conn: &Connection = db_conn;
 
         let results = db_conn.query_row_named(query, params, |row| -> bool {
@@ -253,10 +283,54 @@ impl<'a> GlobalContext<'a> {
 
         match results {
             Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query));
+                return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
             },
             Ok(deck_exists) => {
                 return Ok(deck_exists);
+            }
+        };
+    }
+
+    pub fn get_deck(&self, deck_id: DeckID) -> Result<Deck, RawAPIError> {
+
+        let query = format!("
+            SELECT
+                deck_id,
+                name,
+                description,
+                created_at,
+                updated_at,
+                reviewed_at
+            FROM Decks
+            WHERE deck_id = {deck_id}
+            LIMIT 1;
+        ", deck_id = deck_id);
+
+        db_read_lock!(db_conn; self.global_context.db_connection);
+        let db_conn: &Connection = db_conn;
+
+        let results = db_conn.query_row(&query, &[], |row| -> Deck {
+
+            let created_at: i64 = row.get(3);
+            let reviewed_at: i64 = row.get(5);
+
+            return Deck {
+                id: row.get(0),
+                name: row.get(1),
+                description: row.get(2),
+                created_at: created_at,
+                updated_at: row.get(4),
+                reviewed_at: reviewed_at,
+                has_reviewed: created_at != reviewed_at
+            };
+        });
+
+        match results {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            },
+            Ok(deck) => {
+                return Ok(deck);
             }
         };
     }
@@ -270,25 +344,23 @@ impl<'a> GlobalContext<'a> {
             (":description", &create_deck_request.description.clone())
         ];
 
-        db_write_lock!(db_conn; self.db_connection);
-        let db_conn: &Connection = db_conn;
+        let deck_id: DeckID = {
+            db_write_lock!(db_conn; self.global_context.db_connection);
+            let db_conn: &Connection = db_conn;
 
-        match db_conn.execute_named(query, &params[..]) {
-            Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query));
-            },
-            _ => {/* query sucessfully executed */},
-        }
+            match db_conn.execute_named(query, &params[..]) {
+                Err(sqlite_error) => {
+                    return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+                },
+                _ => {/* query sucessfully executed */},
+            }
 
-        let row_id = db_conn.last_insert_rowid();
-
-        let created_deck = Deck {
-            id: row_id,
-            name: create_deck_request.name,
-            description: create_deck_request.description
+            let row_id = db_conn.last_insert_rowid();
+            row_id
         };
 
-        return Ok(created_deck);
+        return self.get_deck(deck_id);
+
     }
 
     pub fn connect_decks(&self, child: DeckID, parent: DeckID) -> Result<(), RawAPIError> {
@@ -322,12 +394,12 @@ impl<'a> GlobalContext<'a> {
         ];
 
 
-        db_write_lock!(db_conn; self.db_connection);
+        db_write_lock!(db_conn; self.global_context.db_connection);
         let db_conn: &Connection = db_conn;
 
         match db_conn.execute_named(query_delete, &params[..]) {
             Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query_delete));
+                return Err(RawAPIError::SQLError(sqlite_error, query_delete.to_string()));
             },
             _ => {/* query sucessfully executed */},
         }
@@ -350,7 +422,7 @@ impl<'a> GlobalContext<'a> {
 
         match db_conn.execute_named(query_insert, &params[..]) {
             Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query_insert));
+                return Err(RawAPIError::SQLError(sqlite_error, query_insert.to_string()));
             },
             _ => {/* query sucessfully executed */},
         }
@@ -378,7 +450,124 @@ impl<'a> GlobalContext<'a> {
     //     ";
     // }
 
-    pub fn children_of_deck(&self, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
+    pub fn children_of_deck(&self, deck_id: DeckID, filter: DecksPageRequest) -> Result<Vec<Deck>, RawAPIError> {
+
+        if filter.per_page <= 0 {
+            return Err(RawAPIError::BadInput("decks::children_of_deck", "filter.per_page must be at least 1"));
+        }
+
+        if filter.page <= 0 {
+            return Err(RawAPIError::BadInput("decks::children_of_deck", "filter.page must be at least 1"));
+        }
+
+        if filter.page > filter.number_of_pages {
+            return Err(RawAPIError::BadInput("decks::children_of_deck", "page out of bounds"));
+        }
+
+        let records_to_skip = (filter.page - 1) * filter.per_page;
+
+        // src: http://blog.ssokolow.com/archives/2009/12/23/sql-pagination-without-offset/
+
+        let records_skip_query = format!(r"
+            SELECT
+                descendent
+            FROM
+                DecksClosure
+            INNER JOIN
+                Decks
+            ON DecksClosure.descendent = Decks.deck_id
+            WHERE
+                ancestor = {deck_id}
+            AND
+                depth = 1
+            ORDER BY
+                Decks.name
+            COLLATE NOCASE ASC
+            LIMIT {records_to_skip}
+        ", deck_id = deck_id, records_to_skip = records_to_skip);
+
+        let query = format!(r"
+            SELECT
+                Decks.deck_id,
+                Decks.name,
+                Decks.description,
+                Decks.created_at,
+                Decks.updated_at,
+                Decks.reviewed_at
+            FROM
+                DecksClosure
+            INNER JOIN
+                Decks
+            ON DecksClosure.descendent = Decks.deck_id
+            WHERE
+                Decks.oid NOT IN ({records_skip_query})
+            AND
+                ancestor = {deck_id}
+            AND
+                depth = 1
+            ORDER BY
+                Decks.name
+            COLLATE NOCASE ASC
+            LIMIT {per_page};
+        ",
+            records_skip_query = records_skip_query,
+            deck_id = deck_id,
+            per_page = filter.per_page
+        );
+
+        db_read_lock!(db_conn; self.global_context.db_connection);
+        let db_conn: &Connection = db_conn;
+
+        let mut statement = match db_conn.prepare(&query) {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            },
+            Ok(statement) => statement
+        };
+
+        let maybe_iter = statement.query_map(&[], |row: &Row| -> Deck {
+
+            let created_at: i64 = row.get(3);
+            let reviewed_at: i64 = row.get(5);
+
+            return Deck {
+                id: row.get(0),
+                name: row.get(1),
+                description: row.get(2),
+                created_at: created_at,
+                updated_at: row.get(4),
+                reviewed_at: reviewed_at,
+                has_reviewed: created_at != reviewed_at
+            };
+        });
+
+        match maybe_iter {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            },
+            Ok(iter) => {
+
+                let mut vec_of_decks: Vec<Deck> = Vec::new();
+
+                for maybe_deck in iter {
+
+                    let item = match maybe_deck {
+                        Err(sqlite_error) => {
+                            return Err(RawAPIError::SQLError(sqlite_error, query));
+                        },
+                        Ok(item) => item
+                    };
+
+                    vec_of_decks.push(item);
+                }
+
+                return Ok(vec_of_decks);
+            }
+        };
+
+    }
+
+    pub fn children_of_deck_old(&self, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
 
         let query = "
             SELECT
@@ -402,12 +591,12 @@ impl<'a> GlobalContext<'a> {
             (":deck_id", &deck_id),
         ];
 
-        db_read_lock!(db_conn; self.db_connection);
+        db_read_lock!(db_conn; self.global_context.db_connection);
         let db_conn: &Connection = db_conn;
 
         let mut statement = match db_conn.prepare(query) {
             Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query));
+                return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
             },
             Ok(statement) => statement
         };
@@ -418,7 +607,7 @@ impl<'a> GlobalContext<'a> {
 
         match maybe_iter {
             Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query));
+                return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
             },
             Ok(iter) => {
 
@@ -428,7 +617,7 @@ impl<'a> GlobalContext<'a> {
 
                     let deck_id: DeckID = match maybe_deck_id {
                         Err(sqlite_error) => {
-                            return Err(RawAPIError::SQLError(sqlite_error, query));
+                            return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
                         },
                         Ok(deck_id) => deck_id
                     };

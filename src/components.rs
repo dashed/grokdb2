@@ -171,9 +171,6 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                             }
                             : " to enable JavaScript for your browser.";
                         }
-                        |_tmpl| {
-                            panic!("forced template panic");
-                        }
                     }
 
                     // section {
