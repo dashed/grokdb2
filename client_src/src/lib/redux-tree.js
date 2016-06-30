@@ -1,26 +1,43 @@
 // TODO: doc all the things... and cleanly.
-
+// Apply reducer & action on sub-state through a given path.
 
 // TODO: specific lodash dependencies
 const isFunction = require('lodash/isFunction');
 const lodashGetIn = require('lodash/get');
 const lodashSetIn = require('lodash/set');
 const lodashMerge = require('lodash/merge');
+const lodashMergeWith = require('lodash/mergeWith');
+const lodashIsArray = require('lodash/isArray');
 // TODO: npm install npm.im/warning
 
 // sentinel value
 const NOT_SET = {};
 
+// NOTE: needed b/c
+// _.merge([1,2,3],[undefined]) => [1,2,3]
+// _.merge({a: void 0}, {b: void 0}) => {a: void 0}
+const customMerge = (_oldValue, newValue, key, destObject) => {
+    if(newValue === void 0) {
+        // TODO: necessary?
+        //var key = _.isArray(destObject) ? Number(key) : key;
+        // NOTE: this is a side-effect
+        destObject[key] = newValue;
+    }
+};
+
 const __getIn = (rootData, path) => {
-    // TODO: check path is array
     return lodashGetIn(rootData, path)
 };
 
 const __setIn = (rootData, path, newValue) => {
-    // TODO: check path is array
-    const patch = lodashSetIn({}, path, newValue);
+
+    const isArray = lodashIsArray(rootData);
+
+    const patch = lodashSetIn(isArray ? [] : {}, path, newValue);
+
     // NOTE: the following will not work: {...state, ...patch};
-    return lodashMerge({}, rootData, patch);
+
+    return lodashMergeWith(isArray ? [] : {}, rootData, patch, customMerge);
 };
 
 const treeReducer = (state, action) => {
