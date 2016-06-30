@@ -2,6 +2,10 @@
 
 use hyper;
 
+/* local imports */
+// TODO: remove
+// use types::{SortOrder};
+
 ////////////////////////////////////////////////////////////////////////////////
 
 macro_rules! default {
@@ -73,5 +77,27 @@ macro_rules! respond_json {
         // TODO: don't stream... first convert to string; capture any panics
         // let mut stream = response.start().unwrap();
         // serde_json::to_writer(&mut stream, &$payload);
+    );
+}
+
+macro_rules! query_pair {
+    ($key: expr, $value: expr) => (
+        format!("{}={}", $key, $value)
+    );
+}
+
+macro_rules! order_by {
+    ($order: expr) => {{
+        use types::{SortOrder};
+        match $order {
+            SortOrder::Ascending => query_pair!("order_by", "asc"),
+            SortOrder::Descending => query_pair!("order_by", "desc")
+        }
+    }}
+}
+
+macro_rules! sort_by {
+    ($sort_by: expr) => (
+        query_pair!("sort_by", $sort_by)
     );
 }

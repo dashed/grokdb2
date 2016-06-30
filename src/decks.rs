@@ -10,7 +10,7 @@ use hyper;
 use contexts::{GlobalContext, Context, APIContext};
 use errors::{EndPointError, APIStatus, RawAPIError};
 use route::constants::{DeckID};
-use types::{Page, PerPage, SortOrder, Count};
+use types::{Page, PerPage, SortOrder, Count, DecksPageSort};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -19,22 +19,13 @@ pub struct NewDeckPreRenderState {
     pub POST_TO: String
 }
 
-pub enum DecksPageSort {
-    DeckTitle(SortOrder),
-    CreatedAt(SortOrder),
-    UpdatedAt(SortOrder),
-    // last time user reviewed this deck;
-    // not based on the cards the deck contains
-    ReviewedAt(SortOrder)
-}
-
 pub struct DecksPageRequest {
-    page: Page,
-    per_page: PerPage,
-    sort: DecksPageSort,
+    pub page: Page,
+    pub per_page: PerPage,
+    pub sort: DecksPageSort,
 
     // this enforces the caller to fetch number of pages
-    number_of_pages: Count
+    pub number_of_pages: Count
     // search: Option<String>
 }
 
@@ -130,7 +121,7 @@ impl DeckResponse {
 //     deck: Deck
 // }
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Deck {
     pub id: DeckID,
     pub name: String,
@@ -156,6 +147,7 @@ pub mod routes {
     use route::constants::{DeckID, AppRoute, DeckRoute};
     use route::helpers::{view_route_to_link};
     use errors::{json_deserialize_err, EndPointError, APIStatus};
+    use types::{DecksPageQuery, Search};
 
     ////////////////////////////////////////////////////////////////////////////
 
@@ -244,7 +236,10 @@ pub mod routes {
 
         let json_response = DeckResponse {
 
-            profile_url: view_route_to_link(AppRoute::Deck(new_deck.id, DeckRoute::Decks), &context),
+            profile_url: view_route_to_link(
+                AppRoute::Deck(new_deck.id, DeckRoute::Decks(DecksPageQuery::NoQuery, Search::NoQuery)),
+                &context
+            ),
             deck: new_deck,
 
             has_parent: true,
@@ -260,6 +255,12 @@ pub mod routes {
 impl<'a> APIContext<'a> {
 
     pub fn deck_exists(&self, deck_id: DeckID) -> Result<bool, RawAPIError> {
+
+        if self.should_cache {
+            if self.cache.decks.contains_key(&deck_id) {
+                return Ok(true);
+            }
+        }
 
         let query = r"
             SELECT
@@ -291,7 +292,14 @@ impl<'a> APIContext<'a> {
         };
     }
 
-    pub fn get_deck(&self, deck_id: DeckID) -> Result<Deck, RawAPIError> {
+    pub fn get_deck(&mut self, deck_id: DeckID) -> Result<Deck, RawAPIError> {
+
+        if self.should_cache {
+            if self.cache.decks.contains_key(&deck_id) {
+                let deck = self.cache.decks.get(&deck_id).unwrap();
+                return Ok(deck.clone());
+            }
+        }
 
         let query = format!("
             SELECT
@@ -330,12 +338,16 @@ impl<'a> APIContext<'a> {
                 return Err(RawAPIError::SQLError(sqlite_error, query));
             },
             Ok(deck) => {
+
+                if self.should_cache {
+                    self.cache.decks.insert(deck.id, deck.clone());
+                }
                 return Ok(deck);
             }
         };
     }
 
-    pub fn create_deck(&self, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
+    pub fn create_deck(&mut self, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
 
         let query = "INSERT INTO Decks(name, description) VALUES (:name, :description);";
 
@@ -452,6 +464,8 @@ impl<'a> APIContext<'a> {
 
     pub fn children_of_deck_count(&self, deck_id: DeckID) -> Result<Count, RawAPIError> {
 
+        // TODO: caching
+
         let query = format!(r"
             SELECT
                 COUNT(descendent)
@@ -485,7 +499,7 @@ impl<'a> APIContext<'a> {
 
     }
 
-    pub fn children_of_deck(&self, deck_id: DeckID, filter: DecksPageRequest) -> Result<Vec<Deck>, RawAPIError> {
+    pub fn children_of_deck(&mut self, deck_id: DeckID, filter: DecksPageRequest) -> Result<Vec<Deck>, RawAPIError> {
 
         if filter.per_page <= 0 {
             return Err(RawAPIError::BadInput("decks::children_of_deck", "filter.per_page must be at least 1"));
@@ -592,6 +606,10 @@ impl<'a> APIContext<'a> {
                         },
                         Ok(item) => item
                     };
+
+                    if self.should_cache {
+                        self.cache.decks.insert(item.id, item.clone());
+                    }
 
                     vec_of_decks.push(item);
                 }

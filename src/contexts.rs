@@ -1,6 +1,7 @@
 /* rust lib imports */
 use std::path::{Path};
 use std::sync::{Arc, Mutex, RwLock};
+use std::collections::{HashMap, HashSet, BTreeMap};
 
 /* 3rd-party imports */
 
@@ -10,7 +11,8 @@ use regex::{Captures};
 
 /* local imports */
 
-use route::constants::AppRoute;
+use route::constants::{DeckID, AppRoute};
+use decks::{Deck};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -56,9 +58,23 @@ pub struct Context<
 
 }
 
+pub struct Cache {
+    pub decks: HashMap<DeckID, Deck>
+}
+
+impl Cache {
+    fn new() -> Self {
+        return Cache {
+            decks: HashMap::new()
+        };
+    }
+}
+
 pub struct APIContext<'global> {
     pub global_context: &'global GlobalContext<'global>,
     pub should_cache: bool,
+
+    pub cache: Cache
 }
 
 impl<'global> APIContext<'global> {
@@ -66,8 +82,13 @@ impl<'global> APIContext<'global> {
     pub fn new(global_context: &'global GlobalContext<'global>) -> Self {
         return APIContext {
             global_context: global_context,
-            should_cache: false
+            should_cache: false,
+            cache: Cache::new()
         };
+    }
+
+    pub fn should_cache(&mut self, should_cache: bool) {
+        self.should_cache = should_cache;
     }
 }
 

@@ -7,10 +7,12 @@ use templates::{RenderOnce, TemplateBuffer, Template, FnRenderer};
 use contexts::{Context};
 use route::helpers::{view_route_to_link, view_route_to_pre_render_state};
 use route::constants::{AppRoute, DeckRoute, CardRoute, DeckID, CardID, StashID};
+use types::{DecksPageQuery, Search, SortOrder, DecksPageSort};
+use decks::{DecksPageRequest, Deck};
 
 ////////////////////////////////////////////////////////////////////////////////
 
-pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, title: String) {
+pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Context<'a, 'b>, title: String) {
 
     tmpl << html! {
         : raw!("<!DOCTYPE html>");
@@ -177,7 +179,7 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                     // // section(class="container") {
                     //     // : ViewRouteResolver::new(&context)
                     |tmpl| {
-                        match context.view_route {
+                        match context.view_route.clone() {
                             AppRoute::Home => {
                                 // TODO: fix
                                 // NOTE: goes to DeckDetailComponent
@@ -185,14 +187,14 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                                 // tmpl << DeckDetailComponent::new(&context)
                             }
                             AppRoute::Settings => {
-                                SettingsComponent(tmpl, &context);
+                                SettingsComponent(tmpl, &mut context);
                             }
                             AppRoute::Stashes => {
                                 StashesComponent(tmpl, &context);
                             }
                             AppRoute::Deck(_deck_id, ref _deck_route) => {
 
-                                DeckDetailComponent(tmpl, &context);
+                                DeckDetailComponent(tmpl, context);
 
                                 // match deck_route {
                                 //     &DeckRoute::New => tmpl << NewDeckComponent::new(&context)
@@ -200,10 +202,10 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
 
                             },
                             AppRoute::Card(_card_id, ref _card_route) => {
-                                CardDetailComponent(tmpl, &context);
+                                CardDetailComponent(tmpl, &mut context);
                             },
                             AppRoute::CardInDeck(_deck_id, _card_id, ref _card_route) => {
-                                CardDetailComponent(tmpl, &context);
+                                CardDetailComponent(tmpl, &mut context);
                             }
                         };
                     }
@@ -239,7 +241,7 @@ pub fn AppComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
                                 script(type="text/javascript") {
                                     // needs to be raw b/c of html escaping
                                     : raw!(format!("window.__PRE_RENDER_STATE__ = {};",
-                                        view_route_to_pre_render_state(context.view_route, context)))
+                                        view_route_to_pre_render_state(context.view_route.clone(), context)))
                                 }
                                 script(type="text/javascript", src="/assets/new_deck.js") {}
                             };
@@ -320,7 +322,7 @@ fn StashesComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
 }
 
 // components/SettingsComponent
-fn SettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+fn SettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &mut Context<'a, 'b>) {
     println!("SettingsComponent");
     tmpl << html! {
         div(class="container") {
@@ -340,7 +342,7 @@ fn SettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b
     };
 }
 
-fn BreadCrumbComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+fn BreadCrumbComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &mut Context<'a, 'b>) {
     tmpl << html! {
         ul(class="breadcrumb") {
 
@@ -417,13 +419,13 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
             }
             li(class="menu-item") {
                 a(
-                    href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Decks), &context),
+                    href = view_route_to_link(AppRoute::Deck(deck_id, DeckRoute::Decks(DecksPageQuery::NoQuery, Search::NoQuery)), &context),
                     style? = stylenames!("font-weight:bold;" => {
-                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks)) ||
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks(_, _))) ||
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::NewDeck))
                     }),
                     class? = classnames!("active" => {
-                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks)) ||
+                        matches!(context.view_route, AppRoute::Deck(_, DeckRoute::Decks(_, _))) ||
                         matches!(context.view_route, AppRoute::Deck(_, DeckRoute::NewDeck))
                     })
                 ) {
@@ -501,12 +503,13 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
     };
 }
 
-fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
-    let (deck_id, deck_route) = {
-        match context.view_route {
-            AppRoute::Deck(deck_id, ref deck_route) => (deck_id, deck_route),
-            _ => unreachable!()
-        }
+fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Context<'a, 'b>) {
+
+    let view_route = context.view_route.clone();
+
+    let (deck_id, deck_route) = match view_route {
+        AppRoute::Deck(deck_id, ref deck_route) => (deck_id, deck_route),
+        _ => unreachable!()
     };
 
     // TODO: check if deck exists...
@@ -516,7 +519,7 @@ fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
         div(class="container") {
             div(class="columns") {
                 div(class="col-12") {
-                    |tmpl| BreadCrumbComponent(tmpl, &context);
+                    |tmpl| BreadCrumbComponent(tmpl, &mut context);
                 }
             }
             section(class="columns") {
@@ -525,7 +528,7 @@ fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
                         &DeckRoute::NewCard => NewCardComponent(tmpl, &context),
                         &DeckRoute::NewDeck => NewDeckComponent(tmpl, &context),
                         &DeckRoute::Description => DeckDescriptionComponent(tmpl, &context),
-                        &DeckRoute::Decks => ChildDecksComponent(tmpl, &context),
+                        &DeckRoute::Decks(_, _) => ChildDecksComponent(tmpl, &mut context),
                         &DeckRoute::Cards => DeckCardsComponent(tmpl, &context),
                         &DeckRoute::Meta => DeckMetaComponent(tmpl, &context),
                         &DeckRoute::Settings => DeckSettingsComponent(tmpl, &context),
@@ -763,16 +766,21 @@ fn DeckDescriptionComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context
     };
 }
 
-fn DeckListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, deck_id: DeckID) {
+fn DeckListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &mut Context<'a, 'b>, deck_id: DeckID) {
+
+    let deck: Deck = match context.api.get_deck(deck_id) {
+        Err(_) => panic!(),
+        Ok(deck) => deck
+    };
 
     tmpl << html! {
         div(class = "card") {
             div(class="card-header") {
                 h4(class="card-title") {
                     a(href = view_route_to_link(
-                        AppRoute::Deck(deck_id, DeckRoute::Decks), &context)) {
+                        AppRoute::Deck(deck_id, DeckRoute::Decks(DecksPageQuery::NoQuery, Search::NoQuery)), &context)) {
 
-                        : "Microsoft"
+                        : &deck.name
                     }
                 }
                 h6(class="card-meta") {
@@ -791,12 +799,51 @@ fn DeckListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>, de
     };
 }
 
-fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Context<'a, 'b>) {
 
     // derive deck_id from view_route
-    let deck_id = match context.view_route {
-        AppRoute::Deck(deck_id, _) => {
-            deck_id
+    let (deck_id, decks_page_request): (DeckID, DecksPageRequest) = match context.view_route {
+        AppRoute::Deck(deck_id, DeckRoute::Decks(ref page_query, ref search_query)) => {
+
+            match page_query {
+                &DecksPageQuery::NoQuery => {
+
+                    let number_of_pages = match context.api.children_of_deck_count(deck_id) {
+                        Err(_) => {
+                            panic!("Panicked on context.api.children_of_deck_count()");
+                        },
+                        Ok(number_of_pages) => number_of_pages
+                    };
+
+                    let decks_page_request = DecksPageRequest {
+                        page: 1,
+                        per_page: 25,
+                        sort: DecksPageSort::DeckTitle(SortOrder::Ascending),
+                        number_of_pages: number_of_pages
+                    };
+
+                    (deck_id, decks_page_request)
+                },
+                &DecksPageQuery::Query(page, ref sort) => {
+
+                    let number_of_pages = match context.api.children_of_deck_count(deck_id) {
+                        Err(_) => {
+                            panic!("Panicked on context.api.children_of_deck_count()");
+                        },
+                        Ok(number_of_pages) => number_of_pages
+                    };
+
+                    let decks_page_request = DecksPageRequest {
+                        page: page,
+                        per_page: 25,
+                        sort: sort.clone(),
+                        number_of_pages: number_of_pages
+                    };
+
+                    (deck_id, decks_page_request)
+                }
+            }
+
         },
         _ => {
             unreachable!();
@@ -910,11 +957,21 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
             // div(class="divider") {}
 
             |tmpl| {
-                for i in 1..25 {
+
+                // fetch list of decks
+                let decks = match (&mut context).api.children_of_deck(deck_id, decks_page_request) {
+                    Err(_) => {
+                        // TODO: panic error
+                        panic!();
+                    },
+                    Ok(decks) => decks
+                };
+
+                for deck in &decks {
                     &mut *tmpl << html! {
                         div(class="columns") {
                             div(class="col-12") {
-                                |tmpl| DeckListItem(tmpl, &context, i);
+                                |tmpl| DeckListItem(tmpl, &mut context, deck.id);
                             }
                         }
                     }
@@ -1246,13 +1303,14 @@ fn DeckReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
     CardProfileReviewComponent(tmpl, context);
 }
 
-fn CardDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
-    let (card_id, card_route) = {
-        match context.view_route {
-            AppRoute::Card(card_id, ref card_route) => (card_id, card_route),
-            AppRoute::CardInDeck(_deck_id, card_id, ref card_route) => (card_id, card_route),
-            _ => unreachable!()
-        }
+fn CardDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Context<'a, 'b>) {
+
+    let view_route = context.view_route.clone();
+
+    let (card_id, card_route) = match view_route {
+        AppRoute::Card(card_id, ref card_route) => (card_id, card_route),
+        AppRoute::CardInDeck(_deck_id, card_id, ref card_route) => (card_id, card_route),
+        _ => unreachable!()
     };
 
     // TODO: check if card exists...
@@ -1262,7 +1320,7 @@ fn CardDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 
         div(class="container") {
             div(class="columns") {
                 div(class="col-12") {
-                    |tmpl| BreadCrumbComponent(tmpl, &context);
+                    |tmpl| BreadCrumbComponent(tmpl, &mut context);
                 }
             }
             div(class="columns") {

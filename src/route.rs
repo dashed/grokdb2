@@ -30,8 +30,6 @@ pub mod helpers {
         request: Request,
         response: Response) {
 
-
-
         let mut response = response;
 
         response.headers_mut().set((ContentType(
@@ -39,11 +37,19 @@ pub mod helpers {
         )));
 
         // We lock the API for reads only
-        api_read_lock!(_api_guard; context.global_context.db_connection);
+        api_read_lock!(_api_guard; context.api.global_context.db_connection);
 
-        let app_component = FnRenderer::new(|tmpl| {
-            AppComponent(tmpl, &context, app_component_title);
-        });
+        let mut context = context;
+        {
+            (&mut context).api.should_cache(true);
+        };
+
+
+        let app_component = {
+            FnRenderer::new(|tmpl| {
+                AppComponent(tmpl, &mut context, app_component_title);
+            })
+        };
 
         // Panic capture semantics:
         // - horroshow-rs does not provide a convenient way to abort template rendering.
@@ -63,7 +69,7 @@ pub mod helpers {
 
             println!("TEMPALTE RENDERING PANIC: {:?}", result.err().unwrap());
 
-            super::routes::internal_server_error(&context, request, response);
+            super::routes::internal_server_error(request, response);
 
             return;
         }
@@ -73,7 +79,7 @@ pub mod helpers {
                 println!("ERROR RENDERING: {:?}", why);
 
                 // TODO: fix
-                super::routes::internal_server_error(&context, request, response);
+                super::routes::internal_server_error(request, response);
 
                 return;
             },
@@ -138,7 +144,6 @@ pub mod helpers {
         //     .ok().expect("serialization failed");
 
     }
-
 
     pub fn get_route_tuple(view_route: AppRoute) -> (&'static str, RouterFn, LinkGenerator) {
 
@@ -208,7 +213,7 @@ pub mod helpers {
                         super::routes::deck_description,
                         super::link::deck_description),
 
-                    DeckRoute::Decks => (
+                    DeckRoute::Decks(_, _) => (
                         // r"^/deck/(?P<deck_id>[1-9][0-9]*)/decks$",
                         r"^/deck/(?P<deck_id>[1-9][0-9]*)/decks(?:\?(?P<query_string>.*))?$",
                         super::routes::deck_decks,
@@ -246,7 +251,7 @@ pub mod helpers {
     }
 
     pub fn view_route_to_link(view_route_destination: AppRoute, context: &Context) -> String {
-        let (_, _, link_generator) = get_route_tuple(view_route_destination);
+        let (_, _, link_generator) = get_route_tuple(view_route_destination.clone());
         link_generator(view_route_destination, context)
     }
 
@@ -292,6 +297,13 @@ pub mod helpers {
 
 
 pub mod constants {
+
+    /* local imports */
+
+    use types::{Search, DecksPageQuery};
+
+    /////////////////////////////////////////////////////////////////////////////
+
     /* component route constants */
 
     // TODO: change to u64. it's i64 b/c sqlite requires it.
@@ -299,7 +311,7 @@ pub mod constants {
     pub type CardID = i64;
     pub type StashID = i64;
 
-    #[derive(Debug, Copy, Clone)]
+    #[derive(Debug, Clone)]
     pub enum AppRoute {
 
         Home,
@@ -324,13 +336,13 @@ pub mod constants {
         Review
     }
 
-    #[derive(Debug, Copy, Clone)]
+    #[derive(Debug, Clone)]
     pub enum DeckRoute {
 
         NewCard,
         NewDeck,
         Description,
-        Decks, // list
+        Decks(DecksPageQuery, Search), // list
         Cards, // list
         Settings,
         Meta,
@@ -348,10 +360,15 @@ pub mod constants {
 
 mod link {
 
+    /* 3rd-party imports */
+
+    use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
+
     /* local imports */
 
     use contexts::Context;
     use super::constants::{AppRoute, CardRoute, DeckRoute};
+    use types::{DecksPageQuery, DecksPageSort, Search};
 
     ////////////////////////////////////////////////////////////////////////////
 
@@ -410,7 +427,49 @@ mod link {
     pub fn deck_decks(view_route_destination: AppRoute, context: &Context) -> String {
 
         match view_route_destination {
-            AppRoute::Deck(deck_id, DeckRoute::Decks) => {
+            AppRoute::Deck(deck_id, DeckRoute::Decks(page_query, search_query)) => {
+
+                let mut query = vec![];
+
+                match page_query {
+                    DecksPageQuery::NoQuery => {},
+                    DecksPageQuery::Query(page, page_sort_order) => {
+                        query.push(query_pair!("page", page));
+
+                        match page_sort_order {
+                            DecksPageSort::DeckTitle(sort_order) => {
+                                query.push(sort_by!("title"));
+                                query.push(order_by!(sort_order));
+                            },
+                            DecksPageSort::CreatedAt(sort_order) => {
+                                query.push(sort_by!("created_at"));
+                                query.push(order_by!(sort_order));
+                            },
+                            DecksPageSort::UpdatedAt(sort_order) => {
+                                query.push(sort_by!("updated_at"));
+                                query.push(order_by!(sort_order));
+                            },
+                            DecksPageSort::ReviewedAt(sort_order) => {
+                                query.push(sort_by!("reviewed_at"));
+                                query.push(order_by!(sort_order));
+                            }
+                        }
+                    }
+
+                }
+
+                match search_query {
+                    Search::NoQuery => {},
+                    Search::Query(search_query) => {
+                        let search_query = percent_encode(search_query.as_bytes(), PATH_SEGMENT_ENCODE_SET).collect::<String>();
+                        query.push(query_pair!("search", search_query));
+                    }
+                }
+
+                if query.len() > 0 {
+                    return format!("/deck/{}/decks?{}", deck_id, query.join("&"));
+                }
+
                 return format!("/deck/{}/decks", deck_id);
             },
             _ => {
@@ -537,13 +596,14 @@ pub mod routes {
 
     use mime_types;
 
-    use url::percent_encoding::percent_decode;
+    use url::percent_encoding::{percent_decode};
 
     /* local imports */
 
     use contexts::Context;
     use super::helpers::render_app_component;
     use super::constants::{AppRoute, DeckRoute, CardRoute, DeckID};
+    use types::{DecksPageQuery, Search};
 
     lazy_static! {
         static ref MIME_TYPES: mime_types::Types = mime_types::Types::new().unwrap();
@@ -551,7 +611,7 @@ pub mod routes {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    pub fn internal_server_error(mut context: &Context, request: Request, mut response: Response) {
+    pub fn internal_server_error(request: Request, mut response: Response) {
 
         // let mut context = context;
 
@@ -733,7 +793,7 @@ pub mod routes {
 
         let deck_id = parse_capture!(context.captures, "deck_id", DeckID);
 
-        context.view_route = AppRoute::Deck(deck_id, DeckRoute::Decks);
+        context.view_route = AppRoute::Deck(deck_id, DeckRoute::Decks(DecksPageQuery::NoQuery, Search::NoQuery));
 
         render_app_component(context, format!("grokdb"), request, response);
     }

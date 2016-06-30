@@ -20,6 +20,24 @@ extern crate serde_json;
 #[macro_use(quick_error)]
 extern crate quick_error;
 
+/* local modules */
+
+mod types;
+mod helpers;
+#[macro_use]
+mod errors;
+#[macro_use]
+mod global_macros;
+#[macro_use]
+mod database;
+mod tables;
+#[macro_use]
+mod route;
+/* grokdb api */
+mod configs;
+mod decks;
+mod contexts;
+mod components;
 
 // TODO: remove; was using it for experiment
 // extern crate html5ever;
@@ -63,6 +81,12 @@ use rusqlite::{Connection, Error, Result as SqliteResult};
 
 // use tendril::TendrilSink;
 
+/* local imports */
+use contexts::{GlobalContext, Context, APIContext};
+use route::manager::{Router, RouterFn, LinkGenerator};
+use route::constants::{AppRoute, DeckRoute, CardRoute};
+use route::helpers::{view_route_to_link};
+use types::{DecksPageQuery, Search};
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -81,48 +105,6 @@ List of projects whose code i've been copying & pasting from:
 reference: https://github.com/joshbuchea/HEAD#link-elements
 
 **/
-
-mod types;
-mod helpers;
-
-/* app errors */
-#[macro_use]
-mod errors;
-
-/* global macros */
-
-#[macro_use]
-mod global_macros;
-
-/* database */
-
-#[macro_use]
-mod database;
-mod tables;
-
-/* route */
-
-#[macro_use]
-mod route;
-use route::manager::{Router, RouterFn, LinkGenerator};
-use route::constants::{AppRoute, DeckRoute, CardRoute};
-use route::helpers::{view_route_to_link};
-
-/* grokdb api */
-mod configs;
-mod decks;
-
-/* contexts */
-
-mod contexts;
-use contexts::{GlobalContext, Context, APIContext};
-
-
-
-/* components */
-
-mod components;
-
 
 
 
@@ -263,7 +245,7 @@ fn main() {
                 description: "".to_string(),
             };
 
-            let local_api = APIContext::new(&global_context);
+            let mut local_api = APIContext::new(&global_context);
 
             let root_deck = local_api.create_deck(request).unwrap();
 
@@ -293,7 +275,7 @@ fn main() {
                 &DeckRoute::NewCard => {},
                 &DeckRoute::NewDeck => {},
                 &DeckRoute::Description => {},
-                &DeckRoute::Decks => {},
+                &DeckRoute::Decks(_, _) => {},
                 &DeckRoute::Cards => {},
                 &DeckRoute::Meta => {},
                 &DeckRoute::Settings => {},
@@ -320,7 +302,7 @@ fn main() {
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::NewCard));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::NewDeck));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Description));
-    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Decks));
+    route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Decks(DecksPageQuery::NoQuery, Search::NoQuery)));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Cards));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Meta));
     route!(router, Get, AppRoute::Deck(default!(), DeckRoute::Settings));
