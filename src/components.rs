@@ -9,6 +9,7 @@ use route::helpers::{view_route_to_link, view_route_to_pre_render_state};
 use route::constants::{AppRoute, DeckRoute, CardRoute, DeckID, CardID, StashID};
 use types::{DecksPageQuery, Search, SortOrder, DecksPageSort};
 use decks::{DecksPageRequest, Deck};
+use helpers;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -815,11 +816,13 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Cont
                         Ok(number_of_pages) => number_of_pages
                     };
 
+                    let per_page = 25;
+
                     let decks_page_request = DecksPageRequest {
                         page: 1,
-                        per_page: 25,
+                        per_page: per_page,
                         sort: DecksPageSort::DeckTitle(SortOrder::Ascending),
-                        number_of_pages: number_of_pages
+                        number_of_pages: helpers::num_of_pages(number_of_pages, per_page)
                     };
 
                     (deck_id, decks_page_request)
@@ -833,11 +836,13 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Cont
                         Ok(number_of_pages) => number_of_pages
                     };
 
+                    let per_page = 25;
+
                     let decks_page_request = DecksPageRequest {
                         page: page,
-                        per_page: 25,
+                        per_page: per_page,
                         sort: sort.clone(),
-                        number_of_pages: number_of_pages
+                        number_of_pages: helpers::num_of_pages(number_of_pages, per_page)
                     };
 
                     (deck_id, decks_page_request)
@@ -960,9 +965,9 @@ fn ChildDecksComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Cont
 
                 // fetch list of decks
                 let decks = match (&mut context).api.children_of_deck(deck_id, decks_page_request) {
-                    Err(_) => {
+                    Err(why) => {
                         // TODO: panic error
-                        panic!();
+                        panic!("{}", why);
                     },
                     Ok(decks) => decks
                 };
