@@ -59,13 +59,13 @@ pub struct Context<
 }
 
 pub struct Cache {
-    pub decks: HashMap<DeckID, Deck>
+    pub decks: HashMap<DeckID, Deck>,
 }
 
 impl Cache {
     fn new() -> Self {
         return Cache {
-            decks: HashMap::new()
+            decks: HashMap::new(),
         };
     }
 }

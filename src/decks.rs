@@ -620,67 +620,123 @@ impl<'a> APIContext<'a> {
 
     }
 
-    pub fn children_of_deck_old(&self, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
+    // pub fn children_of_deck_old(&self, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
 
-        let query = "
+    //     let query = "
+    //         SELECT
+    //             descendent
+    //         FROM
+    //             DecksClosure
+    //         INNER JOIN
+    //             Decks
+    //         ON DecksClosure.descendent = Decks.deck_id
+    //         WHERE
+    //             ancestor = :deck_id
+    //         AND
+    //             depth = 1
+    //         ORDER BY
+    //             Decks.name
+    //         COLLATE NOCASE ASC;
+    //     ";
+    //     // TODO: COLLATE NOCASE ASC necessary?
+
+    //     let params: &[(&str, &ToSql)] = &[
+    //         (":deck_id", &deck_id),
+    //     ];
+
+    //     db_read_lock!(db_conn; self.global_context.db_connection);
+    //     let db_conn: &Connection = db_conn;
+
+    //     let mut statement = match db_conn.prepare(query) {
+    //         Err(sqlite_error) => {
+    //             return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+    //         },
+    //         Ok(statement) => statement
+    //     };
+
+    //     let maybe_iter = statement.query_map_named(params, |row: &Row| -> DeckID {
+    //         return row.get(0);
+    //     });
+
+    //     match maybe_iter {
+    //         Err(sqlite_error) => {
+    //             return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+    //         },
+    //         Ok(iter) => {
+
+    //             let mut vec_of_deck_id: Vec<DeckID> = Vec::new();
+
+    //             for maybe_deck_id in iter {
+
+    //                 let deck_id: DeckID = match maybe_deck_id {
+    //                     Err(sqlite_error) => {
+    //                         return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+    //                     },
+    //                     Ok(deck_id) => deck_id
+    //                 };
+
+    //                 vec_of_deck_id.push(deck_id);
+    //             }
+
+    //             return Ok(vec_of_deck_id);
+    //         }
+    //     };
+
+    // }
+
+    pub fn path_of_deck(&mut self, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
+
+        let query = format!("
             SELECT
-                descendent
-            FROM
-                DecksClosure
-            INNER JOIN
-                Decks
-            ON DecksClosure.descendent = Decks.deck_id
+                ancestor
+            FROM DecksClosure
             WHERE
-                ancestor = :deck_id
+                descendent = {deck_id}
             AND
-                depth = 1
+                depth > 0
             ORDER BY
-                Decks.name
-            COLLATE NOCASE ASC;
-        ";
-        // TODO: COLLATE NOCASE ASC necessary?
-
-        let params: &[(&str, &ToSql)] = &[
-            (":deck_id", &deck_id),
-        ];
+                depth DESC;
+        ", deck_id = deck_id);
 
         db_read_lock!(db_conn; self.global_context.db_connection);
         let db_conn: &Connection = db_conn;
 
-        let mut statement = match db_conn.prepare(query) {
+        let mut statement = match db_conn.prepare(&query) {
             Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+                return Err(RawAPIError::SQLError(sqlite_error, query));
             },
             Ok(statement) => statement
         };
 
-        let maybe_iter = statement.query_map_named(params, |row: &Row| -> DeckID {
+        let maybe_iter = statement.query_map(&[], |row: &Row| -> DeckID {
             return row.get(0);
         });
 
         match maybe_iter {
             Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+                return Err(RawAPIError::SQLError(sqlite_error, query));
             },
             Ok(iter) => {
 
-                let mut vec_of_deck_id: Vec<DeckID> = Vec::new();
+                let mut vec_of_deck_ids: Vec<DeckID> = Vec::new();
 
                 for maybe_deck_id in iter {
 
-                    let deck_id: DeckID = match maybe_deck_id {
+                    let item = match maybe_deck_id {
                         Err(sqlite_error) => {
-                            return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+                            return Err(RawAPIError::SQLError(sqlite_error, query));
                         },
-                        Ok(deck_id) => deck_id
+                        Ok(item) => item
                     };
 
-                    vec_of_deck_id.push(deck_id);
+                    vec_of_deck_ids.push(item);
+
                 }
 
-                return Ok(vec_of_deck_id);
+                vec_of_deck_ids.push(deck_id);
+
+                return Ok(vec_of_deck_ids);
             }
         };
-
     }
 }
