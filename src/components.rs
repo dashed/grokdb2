@@ -343,23 +343,46 @@ fn SettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &mut Context<'a
     };
 }
 
-fn BreadCrumbComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &mut Context<'a, 'b>) {
+fn BreadCrumbComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &mut Context<'a, 'b>, child_deck_id: DeckID) {
+
+    let decks = match context.api.path_of_deck(child_deck_id) {
+        Err(why) => {
+            panic!("{}", why);
+        },
+        Ok(decks) => decks
+    };
+
     tmpl << html! {
         ul(class="breadcrumb") {
 
-            li(class="breadcrumb-item") {
-                a(href="#") {
-                    : "Library"
-                }
-            }
+            |tmpl| {
 
-            li(class="breadcrumb-item") {
-                a(href="#", class="text-bold") {
-                    : "Math"
-                }
+                for deck_id in decks {
+
+                    let deck = match context.api.get_deck(deck_id) {
+                        Err(why) => {
+                            panic!("{}", why);
+                        },
+                        Ok(deck) => deck
+                    };
+
+                    &mut *tmpl << html! {
+                        li(class="breadcrumb-item") {
+                            a(href = view_route_to_link(
+                                AppRoute::Deck(deck_id, DeckRoute::Decks(DecksPageQuery::NoQuery, Search::NoQuery)),
+                                context),
+                                class?= classnames!("text-bold" => deck_id == child_deck_id)
+                            ) {
+
+                                : &deck.name
+                            }
+                        }
+                    }
+                };
             }
 
             // last breadcrumb item
+            // NOTE: this is for showing trailing forward flash
             li(class="breadcrumb-item") {
             }
         }
@@ -520,7 +543,7 @@ fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Cont
         div(class="container") {
             div(class="columns") {
                 div(class="col-12") {
-                    |tmpl| BreadCrumbComponent(tmpl, &mut context);
+                    |tmpl| BreadCrumbComponent(tmpl, &mut context, deck_id);
                 }
             }
             section(class="columns") {
@@ -1325,7 +1348,7 @@ fn CardDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Cont
         div(class="container") {
             div(class="columns") {
                 div(class="col-12") {
-                    |tmpl| BreadCrumbComponent(tmpl, &mut context);
+                    |tmpl| BreadCrumbComponent(tmpl, &mut context, 1);
                 }
             }
             div(class="columns") {
