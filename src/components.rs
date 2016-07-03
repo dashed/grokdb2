@@ -361,6 +361,7 @@ fn BreadCrumbComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &mut Context<
 
                     let deck = match context.api.get_deck(deck_id) {
                         Err(why) => {
+                            // TODO: fix
                             panic!("{}", why);
                         },
                         Ok(deck) => deck
@@ -390,7 +391,7 @@ fn BreadCrumbComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &mut Context<
     };
 }
 
-fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &mut Context<'a, 'b>) {
 
     // derive deck_id from view_route
     let deck_id = match context.view_route {
@@ -400,6 +401,12 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
         _ => {
             unreachable!();
         }
+    };
+
+    let deck: Deck = match context.api.get_deck(deck_id) {
+        // TODO: fix
+        Err(_) => panic!(),
+        Ok(deck) => deck
     };
 
     tmpl << html! {
@@ -419,7 +426,8 @@ fn DeckNavComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
             li(class="menu-item") {
                 div(class="chip") {
                     div(class="chip-content text-center text-bold") {
-                        : "Deck #123"
+                        : "Deck #";
+                        : deck.id
                     }
                 }
             }
@@ -560,7 +568,7 @@ fn DeckDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Cont
                     };
                 }
                 section(class="column col-3") {
-                    |tmpl| DeckNavComponent(tmpl, &context);
+                    |tmpl| DeckNavComponent(tmpl, &mut context);
                 }
             }
         }
@@ -809,7 +817,7 @@ fn DeckListItem<'a, 'b>(tmpl: &mut TemplateBuffer, context: &mut Context<'a, 'b>
                 }
                 h6(class="card-meta") {
                     : "Deck #";
-                    : deck_id;
+                    : deck.id
                 }
             }
             div(class="card-body") {
@@ -1327,10 +1335,6 @@ fn DeckSettingsComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a
     };
 }
 
-fn DeckReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
-    CardProfileReviewComponent(tmpl, context);
-}
-
 fn CardDetailComponent<'a, 'b>(tmpl: &mut TemplateBuffer, mut context: &mut Context<'a, 'b>) {
 
     let view_route = context.view_route.clone();
@@ -1441,7 +1445,275 @@ fn CardProfileComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a,
     };
 }
 
+fn DeckReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+
+
+    // derive deck_id from view_route
+    let (deck_id, card_id) = match context.view_route {
+        AppRoute::Deck(deck_id, DeckRoute::Review) => {
+
+            let card_id = 9000;
+
+            (deck_id, card_id)
+        }
+        _ => {
+            unreachable!();
+        }
+    };
+
+    tmpl << html! {
+
+        div(class="container") {
+            div(class="columns") {
+                div(class="column") {
+                    h5(style="margin-top:0;margin-bottom:0;", class="text-break") {
+                        small(class="label") {
+                            : "Reviewing"
+                        }
+                        : " ";
+                        : "What does the fox say?"
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    span(class="label") {
+                        : "Card #123"
+                    }
+                    : " ";
+                    a(href = view_route_to_link(
+                        AppRoute::CardInDeck(deck_id, card_id, CardRoute::Profile),
+                        &context),
+                        class="btn btn-sm"
+                    ) {
+                        : "Go to card profile"
+                    }
+                }
+            }
+
+            div(id="deck-review-container") {
+                : raw!(include_str!("react_components/deck_review"))
+                // div(class="columns") {
+                //     div(class="column") {
+                //         div(class="loading") {}
+                //     }
+                // }
+            }
+
+            // TODO: clean up
+
+            // div(class="columns") {
+            //     div(class="column") {
+            //         div(class="btn-group btn-group-block") {
+            //             a(href="#", class="btn btn-primary")  {
+            //                 : "Question"
+            //             }
+            //             : " ";
+            //             a(href="#", class="btn")  {
+            //                 : "Description"
+            //             }
+            //         }
+            //     }
+            // }
+
+            // div(class="columns") {
+            //     div(class="column") {
+            //         ul(class="tab") {
+            //             li(class="tab-item active") {
+            //                 a(href="#") {
+            //                     : "Source"
+            //                 }
+            //             }
+            //             li(class="tab-item") {
+            //                 a(href="#") {
+            //                     : "Render"
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+
+            // div(class="columns") {
+            //     div(class="column col-9") {
+            //         a(href = "#",
+            //             class="btn btn-block"
+            //         ) {
+            //             : "Reveal Answer"
+            //         }
+            //     }
+
+            //     div(class="column col-3") {
+            //         a(href = "#",
+            //             class="btn btn-block"
+            //         ) {
+            //             : "Skip Card"
+            //         }
+            //     }
+            // }
+
+            hr;
+
+            div(class="columns") {
+                div(class="column col-12") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Custom Score"
+                    }
+                }
+
+            }
+
+
+            div(class="columns") {
+                div(class="column col-4") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Fail"
+                    }
+                }
+
+
+                div(class="column col-4") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Success"
+                    }
+                }
+
+                div(class="column col-4") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Reset Score"
+                    }
+                }
+
+            }
+
+            hr;
+
+            div(class="columns") {
+                div(class="column col-12") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Cancel Custom Score"
+                    }
+                }
+
+            }
+
+            div(class="columns") {
+                div(class="column col-6") {
+                    a(href = "#",
+                        class="btn btn-block btn-primary"
+                    ) {
+                        : "Append To Score"
+                    }
+                }
+
+
+                div(class="column col-6") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Set Score"
+                    }
+                }
+
+            }
+
+            div(class="columns") {
+                div(class="column col-6") {
+                    div(class="input-group") {
+
+                        span(class="input-group-addon") {
+                            : "Success Votes"
+                        }
+                        input(type="text", class="form-input", placeholder="Success Votes");
+                        button(class="btn btn-primary input-group-btn") {
+                            : "-"
+                        }
+                        button(class="btn btn-primary input-group-btn") {
+                            : "+"
+                        }
+                    }
+                }
+
+                div(class="column col-6") {
+                    div(class="input-group") {
+                        span(class="input-group-addon") {
+                            : "Fail Votes"
+                        }
+                        input(type="text", class="form-input", placeholder="Fail Votes");
+                        button(class="btn btn-primary input-group-btn") {
+                            : "-"
+                        }
+                        button(class="btn btn-primary input-group-btn") {
+                            : "+"
+                        }
+                    }
+                }
+
+
+            }
+
+            hr;
+
+            div(class="columns") {
+                div(class="column col-9") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Commit Score & Next Card"
+                    }
+                }
+
+                div(class="column col-3") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Skip Card"
+                    }
+                }
+            }
+
+            hr;
+
+            div(class="columns") {
+
+                div(class="column col-6") {
+                    a(href = "#",
+                        class="btn btn-block"
+                    ) {
+                        : "Yes, skip"
+                    }
+                }
+
+                div(class="column col-6") {
+                    a(href = "#",
+                        class="btn btn-block btn-primary"
+                    ) {
+                        : "No, don't skip"
+                    }
+                }
+            }
+
+
+        }
+
+    };
+}
+
+
 fn CardProfileReviewComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>) {
+
+    // TODO: remove
+    // println!("fuck: {:?}", context.view_route.clone());
 
     // derive deck_id from view_route
     let (deck_id, card_id) = match context.view_route {
