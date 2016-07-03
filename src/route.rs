@@ -67,7 +67,7 @@ pub mod helpers {
 
         if result.is_err() {
 
-            println!("TEMPALTE RENDERING PANIC: {:?}", result.err().unwrap());
+            println!("TEMPLATE RENDERING PANIC: {:?}", result.err().unwrap());
 
             super::routes::internal_server_error(request, response);
 
