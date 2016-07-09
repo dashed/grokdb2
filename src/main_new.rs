@@ -465,17 +465,13 @@ fn main() {
         // middleware/logging
         // TODO: complete
 
-        // middleware/router
+        /* middleware/router */
 
         let request: Rc<RefCell<_>> = Rc::new(RefCell::new(request));
-        // let response: Rc<RefCell<_>> = Rc::new(RefCell::new(response));
-
-        // let request: Rc<RefCell<_>> = Rc::new(RefCell::new(request));
-        // let response: Rc<RefCell<_>> = Rc::new(RefCell::new(response));
 
         let render = match parse_only(|i| parse_request_uri(i, request.clone()), uri.as_bytes()) {
             Ok(render_response) => {
-                // url parsing successfully
+                // url has a match
                 render_response
             },
             Err(_why) => {
@@ -487,9 +483,10 @@ fn main() {
             }
         };
 
-        let result = render_response(render, response);
+        // NOTE: This is a boundary line where the request has been transformed into
+        //       RenderResponse type. Anything from request shall be put into the RenderResponse type.
 
-        // route_not_found(request.clone(), response);
+        let result = render_response(render, response);
 
         return ();
 
