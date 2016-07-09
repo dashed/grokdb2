@@ -11,6 +11,16 @@ panic = 'unwind'   # ensures panic is unwind safe
 [profile.release]
 panic = 'unwind'   # ensures panic is unwind safe
 
+[[bin]]
+name = "grokdb2"
+# rename this
+path = "src/main_new.rs"
+
+[dependencies.chomp]
+git = "https://github.com/m4rw3r/chomp"
+rev = "9901095dd4a10da39d41c4af501cd91380356abd"
+# version = "~0.2.5"
+
 [dependencies.hyper]
 version = "0.9.8"
 
