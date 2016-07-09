@@ -1,3 +1,7 @@
+#[macro_use]
+extern crate mime;
+#[macro_use]
+extern crate horrorshow;
 extern crate hyper;
 extern crate time;
 #[macro_use]
@@ -11,8 +15,12 @@ use std::thread;
 use std::ascii::{AsciiExt};
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex, LockResult, MutexGuard, RwLock};
+use std::panic::{self, AssertUnwindSafe};
 
 /* 3rd-party imports */
+
+use horrorshow::{RenderOnce, TemplateBuffer, Template, FnRenderer};
 
 use hyper::method::Method;
 use hyper::server::{Server, Handler, Request, Response};
@@ -81,7 +89,17 @@ pub enum DecksPageSort {
     // ReviewedAt(SortOrder)
 }
 
-/* Router */
+/* database */
+
+type Database = Arc<RwLock<Mutex<i32>>>;
+
+/* App API */
+
+struct AppAPI {
+    database: Database
+}
+
+/* router */
 
 #[derive(Debug)]
 pub enum AppRoute {
@@ -150,8 +168,6 @@ fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>)
 
         skip_many(|i| token(i, b'/'));
 
-        // Rc<RefCell<T>>
-
         // NOTE: order matters
         let render_response =
 
@@ -190,6 +206,8 @@ fn parse_route_root(input: Input<u8>) -> U8Result<RenderResponse> {
 
 
         ret {
+
+            // TODO: wrong verb... 405 Method Not Allowed
 
             let home = AppRoute::Home;
 
@@ -343,6 +361,325 @@ fn route_not_found(request: Rc<RefCell<Request>>, mut response: Response) {
 
 fn render_response(render: RenderResponse, mut response: Response) {
 
+    match render {
+        RenderResponse::RenderComponent(app_route) => {
+            render_components(app_route, response);
+        },
+        _ => {
+            panic!("fix me");
+        }
+    }
+
+
+}
+
+fn render_components(app_route: AppRoute, mut response: Response) {
+
+    let app_component = {
+        FnRenderer::new(|tmpl| {
+            AppComponent(tmpl, app_route);
+        })
+    };
+
+    // Panic capture semantics:
+    // - horroshow-rs does not provide a convenient way to abort template rendering.
+    // - Template abortion can only be done via panic!(...) macro. (the convention)
+    // - If panic!(...) macro is only used for panics, then AssertUnwindSafe can be safely used.
+    // - Cargo.toml must be configured to enforce panic strategy is 'unwind' for it to be guaranteed
+    //   to be caught by the panic::catch_unwind function.
+    //
+    // see: https://github.com/rust-lang/rfcs/blob/master/text/1513-less-unwinding.md
+    // see: http://doc.crates.io/manifest.html
+    let result = panic::catch_unwind(AssertUnwindSafe(|| {
+        app_component.into_string()
+    }));
+
+
+    if result.is_err() {
+
+        println!("TEMPLATE RENDERING PANIC: {:?}", result.err().unwrap());
+
+        // TODO: fix... route_internal_server_error
+        // super::routes::internal_server_error(request, response);
+
+        return;
+    }
+
+    match result.ok().unwrap() {
+        Err(why) => {
+            println!("ERROR RENDERING: {:?}", why);
+
+            // TODO: fix
+            // super::routes::internal_server_error(request, response);
+
+            return;
+        },
+        Ok(rendered) => {
+
+            response.headers_mut().set((ContentType(
+                mime!(Text/Html)
+            )));
+
+            response.send(rendered.as_bytes()).unwrap();
+
+            return;
+        }
+    };
+
+}
+
+/* components */
+
+pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
+
+    tmpl << html! {
+        : raw!("<!DOCTYPE html>");
+        html {
+            head {
+                title { : "title" }
+                link (
+                    rel="stylesheet",
+                    href="/assets/spectre.min.css"
+                );
+
+                // custom stylesheet for specific views
+                |tmpl| {
+
+                    // TODO: css minify using build.rs
+
+                    tmpl << html! {
+                        style {
+
+                            // TODO: uncomment
+                            // custom styles for view
+                            // |tmpl| {
+                            //     match context.view_route {
+                            //         AppRoute::Deck(_, DeckRoute::NewCard) |
+                            //         AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
+                            //             tmpl << html! {
+
+                            //                 : raw!("\
+                            //                     .btn-success {\
+                            //                         border-color: #30ae40;\
+                            //                         color: #32b643;\
+                            //                     }\
+                            //                     a.btn-success:hover {\
+                            //                         background: #32b643;\
+                            //                         border-color: #30ae40;\
+                            //                         color: #fff;\
+                            //                     }\
+                            //                 ");
+
+                            //             };
+
+                            //         },
+                            //         _ => {}
+                            //     };
+                            // }
+
+                            : raw!("\
+                                body {\
+                                    display: flex;\
+                                    min-height: 100vh;\
+                                    flex-direction: column;\
+                                }\
+                                #grokdb {\
+                                    flex: 1;\
+                                }\
+                                ");
+                            : raw!("\
+                                ul.pagination li {\
+                                    margin-top: 0;\
+                                }\
+                                ");
+                            : raw!("\
+                                .grokdb-menu {\
+                                    box-shadow: none;\
+                                    border: .1rem solid #c5c5c5;\
+                                }\
+                                ");
+                            : raw!("\
+                                a:hover,\
+                                a:active,\
+                                .menu .menu-item a:hover,\
+                                .menu .menu-item a:active\
+                                {\
+                                    text-decoration: underline;\
+                                }\
+                                ");
+                            : raw!("\
+                                hr {\
+                                    height: 1px;\
+                                    background-color: #c5c5c5;\
+                                    border:none;\
+                                }\
+                                ");
+                        }
+                    };
+
+
+                }
+            }
+            body {
+                section(class="container grid-960", id="grokdb") {
+                    header(class="navbar") {
+                        section(class="navbar-section") {
+                            a(href = "#", class="navbar-brand") {
+                                : "grokdb"
+                            }
+                        }
+
+                        // TODO: uncomment
+                        // section(class="navbar-section") {
+                        //     a(
+                        //         href = view_route_to_link(AppRoute::Home, &context),
+
+                        //         // TODO: fix
+                        //         style? = stylenames!("font-weight:bold;" => {
+                        //             matches!(context.view_route, AppRoute::Deck(_, _)) ||
+                        //             matches!(context.view_route, AppRoute::Home) ||
+                        //             matches!(context.view_route, AppRoute::Card(_, _)) ||
+                        //             matches!(context.view_route, AppRoute::CardInDeck(_, _, _))
+                        //         }
+                        //         ),
+                        //         class? = classnames!("btn btn-link badge", "active" => {
+                        //             matches!(context.view_route, AppRoute::Deck(_, _)) ||
+                        //             matches!(context.view_route, AppRoute::Home) ||
+                        //             matches!(context.view_route, AppRoute::Card(_, _)) ||
+                        //             matches!(context.view_route, AppRoute::CardInDeck(_, _, _))
+                        //         }
+                        //         ),
+
+                        //         data-badge="9"
+                        //     ) {
+                        //         : "decks"
+                        //     }
+                        //     a(
+                        //         href = view_route_to_link(AppRoute::Stashes, &context),
+
+                        //         style? = stylenames!("font-weight:bold;" =>
+                        //             matches!(context.view_route, AppRoute::Stashes)
+                        //         ),
+                        //         class? = classnames!("btn btn-link badge", "active" =>
+                        //             matches!(context.view_route, AppRoute::Stashes)
+                        //         )
+
+                        //     ) {
+                        //         : "stashes"
+                        //     }
+                        //     a(
+                        //         href = view_route_to_link(AppRoute::Settings, &context),
+
+                        //         style? = stylenames!("font-weight:bold;" =>
+                        //             matches!(context.view_route, AppRoute::Settings)
+                        //         ),
+                        //         class? = classnames!("btn btn-link badge", "active" =>
+                        //             matches!(context.view_route, AppRoute::Settings)
+                        //         )
+                        //     ) {
+                        //         : "settings"
+                        //     }
+                        //     : " ";
+                        //     input(type="text", class="form-input input-inline", placeholder="search");
+                        //     : " ";
+                        //     a(href="#", class="btn btn-primary") {
+                        //         : "login"
+                        //     }
+                        // }
+                    }
+                    noscript {
+                        div(class="toast toast-danger") {
+                            : "grokdb requires JavaScript to function properly. Go to ";
+                            a(href="http://enable-javascript.com/", target="_blank", style="color: #000000") {
+                                : "http://enable-javascript.com/"
+                            }
+                            : " to enable JavaScript for your browser.";
+                        }
+                    }
+
+                    // section {
+                    // // section(class="container") {
+                    //     // : ViewRouteResolver::new(&context)
+
+
+                    // TODO: uncomment
+                    // |tmpl| {
+                    //     match context.view_route.clone() {
+                    //         AppRoute::Home => {
+                    //             // TODO: fix
+                    //             // NOTE: goes to DeckDetailComponent
+                    //             unreachable!();
+                    //             // tmpl << DeckDetailComponent::new(&context)
+                    //         }
+                    //         AppRoute::Settings => {
+                    //             SettingsComponent(tmpl, &mut context);
+                    //         }
+                    //         AppRoute::Stashes => {
+                    //             StashesComponent(tmpl, &context);
+                    //         }
+                    //         AppRoute::Deck(_deck_id, ref _deck_route) => {
+
+                    //             DeckDetailComponent(tmpl, context);
+
+                    //             // match deck_route {
+                    //             //     &DeckRoute::New => tmpl << NewDeckComponent::new(&context)
+                    //             // }
+
+                    //         },
+                    //         AppRoute::Card(_card_id, ref _card_route) => {
+                    //             CardDetailComponent(tmpl, &mut context);
+                    //         },
+                    //         AppRoute::CardInDeck(_deck_id, _card_id, ref _card_route) => {
+                    //             CardDetailComponent(tmpl, &mut context);
+                    //         }
+                    //     };
+                    // }
+
+
+                }
+
+                footer(class="container grid-960") {
+                    : "footer component"
+                }
+
+                // TODO: uncomment
+                // |tmpl| {
+                //     match context.view_route {
+                //         AppRoute::Deck(_, DeckRoute::Review) =>  {
+                //             tmpl << html! {
+                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
+                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
+                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
+
+                //                 // script(type="text/javascript", src="/assets/vendor.js") {}
+                //                 script(type="text/javascript", src="/assets/deck_review.js") {}
+                //             };
+
+                //         },
+                //         AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
+                //             tmpl << html! {
+                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
+                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
+                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
+
+                //                 // script(type="text/javascript", src="/assets/vendor.js") {}
+                //                 script(type="text/javascript") {
+                //                     // needs to be raw b/c of html escaping
+                //                     : raw!(format!("window.__PRE_RENDER_STATE__ = {};",
+                //                         view_route_to_pre_render_state(context.view_route.clone(), context)))
+                //                 }
+                //                 script(type="text/javascript", src="/assets/new_deck.js") {}
+                //             };
+
+                //         },
+                //         _ => {}
+                //     };
+                // }
+
+            }
+        }
+
+    };
 }
 
 /* LogEntry */
@@ -438,7 +775,10 @@ fn main() {
         // NOTE: this is a RAII guard
         let _entry = LogEntry::start(io::stdout(), &request);
 
-        let uri = format!("{}", request.uri);
+
+
+        // let local_context = LocalContext::new();
+        // let local_context: Rc<RefCell<_>> = Rc::new(RefCell::new(local_context));
 
         // TODO: fix
         // let mut context = Context {
@@ -467,6 +807,7 @@ fn main() {
 
         /* middleware/router */
 
+        let uri = format!("{}", request.uri);
         let request: Rc<RefCell<_>> = Rc::new(RefCell::new(request));
 
         let render = match parse_only(|i| parse_request_uri(i, request.clone()), uri.as_bytes()) {
