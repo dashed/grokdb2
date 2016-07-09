@@ -60,6 +60,27 @@ pub enum SortOrder {
     Descending
 }
 
+#[derive(Debug)]
+pub enum DecksPageQuery {
+    NoQuery,
+    Query(Page, DecksPageSort)
+}
+
+#[derive(Debug)]
+pub enum DecksPageSort {
+
+    DeckTitle(SortOrder),
+    CreatedAt(SortOrder),
+    UpdatedAt(SortOrder),
+
+    // TODO: number of cards
+    // TODO: number of decks
+
+    // last time user reviewed this deck;
+    // not based on the cards the deck contains
+    // ReviewedAt(SortOrder)
+}
+
 /* Router */
 
 #[derive(Debug)]
@@ -106,27 +127,6 @@ pub enum DeckRoute {
     // http://stackoverflow.com/a/26897298/412627
 // http://programmers.stackexchange.com/questions/114156/why-are-there-are-no-put-and-delete-methods-on-html-forms
     // Delete
-}
-
-#[derive(Debug)]
-pub enum DecksPageQuery {
-    NoQuery,
-    Query(Page, DecksPageSort)
-}
-
-#[derive(Debug)]
-pub enum DecksPageSort {
-
-    DeckTitle(SortOrder),
-    CreatedAt(SortOrder),
-    UpdatedAt(SortOrder),
-
-    // TODO: number of cards
-    // TODO: number of decks
-
-    // last time user reviewed this deck;
-    // not based on the cards the deck contains
-    // ReviewedAt(SortOrder)
 }
 
 #[derive(Debug)]
