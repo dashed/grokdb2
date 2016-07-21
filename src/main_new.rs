@@ -36,7 +36,7 @@ use chomp::buffer::{Source, Stream, StreamError};
 
 use chomp::{token};
 use chomp::parsers::{string, eof, any, satisfy};
-use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look_ahead};
+use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look_ahead, option};
 use chomp::ascii::{is_whitespace, decimal, digit};
 
 /* local imports */
@@ -62,7 +62,7 @@ pub enum Search {
     Query(String)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum SortOrder {
     Ascending,
     Descending
@@ -198,21 +198,36 @@ fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>)
 fn parse_route_root(input: Input<u8>) -> U8Result<RenderResponse> {
     parse!{input;
 
-        // parse nothing
+        let result = or(
+            |i| parse!{i;
 
-        // token(b'?');
+                or(
+                    |i| parse!{i;
+                        token(b'?');
+                        ret {()}
+                    },
+                    eof
+                );
 
+                ret {
+                    // TODO: wrong verb... 405 Method Not Allowed
 
+                    let home = AppRoute::Home;
 
+                    RenderResponse::RenderComponent(home)
+                }
+            },
+            |i| parse!{i;
 
-        ret {
+                // null parser
 
-            // TODO: wrong verb... 405 Method Not Allowed
+                ret {
+                    RenderResponse::RenderNotFound
+                }
+            }
+        );
 
-            let home = AppRoute::Home;
-
-            RenderResponse::RenderComponent(home)
-        }
+        ret result
     }
 }
 
@@ -310,6 +325,18 @@ fn parse_segment_before_eof(i: Input<u8>) -> U8Result<Segment> {
 
 /* misc parsers */
 
+// if parser sucessfully consumes, then return value instead of whatever parser returns
+#[inline]
+fn parse_then_value<'a, I, T, E, F, U: 'a>(i: Input<'a, I>, mut parser: F, value: T) -> ParseResult<'a, I, T, E>
+    where F: FnMut(Input<'a, I>) -> ParseResult<'a, I, U, E>
+{
+    parse!{i;
+        parser();
+        ret value
+    }
+}
+
+#[inline]
 fn string_ignore_case<'a>(i: Input<'a, u8>, s: &[u8])
     -> SimpleResult<'a, u8, &'a [u8]> {
     let b = i.buffer();
@@ -344,19 +371,6 @@ fn route_internal_server_error(request: Request, mut response: Response) {
     response.send(message.as_bytes()).unwrap();
 }
 
-fn route_not_found(request: Rc<RefCell<Request>>, mut response: Response) {
-
-    // let mut context = context;
-
-    let ref url = request.borrow().uri;
-    let message = format!("No route handler found for {}", url);
-
-    // 404 status code
-    *response.status_mut() = StatusCode::NotFound;
-
-    response.send(message.as_bytes()).unwrap();
-}
-
 /* rendering */
 
 fn render_response(render: RenderResponse, mut response: Response) {
@@ -364,6 +378,19 @@ fn render_response(render: RenderResponse, mut response: Response) {
     match render {
         RenderResponse::RenderComponent(app_route) => {
             render_components(app_route, response);
+        },
+        RenderResponse::RenderNotFound => {
+
+            // let ref url = request.borrow().uri;
+
+            // let message = format!("No route handler found for {}", url);
+            let message = format!("Not Found 404");
+
+            // 404 status code
+            *response.status_mut() = StatusCode::NotFound;
+
+            response.send(message.as_bytes()).unwrap();
+
         },
         _ => {
             panic!("fix me");
@@ -373,6 +400,7 @@ fn render_response(render: RenderResponse, mut response: Response) {
 
 }
 
+#[inline]
 fn render_components(app_route: AppRoute, mut response: Response) {
 
     let app_component = {
@@ -430,6 +458,7 @@ fn render_components(app_route: AppRoute, mut response: Response) {
 
 /* components */
 
+#[inline]
 pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
 
     tmpl << html! {
@@ -439,7 +468,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                 title { : "title" }
                 link (
                     rel="stylesheet",
-                    href="/assets/spectre.min.css"
+                    href="/assets/bulma.f1a3b0f.css"
                 );
 
                 // custom stylesheet for specific views
@@ -751,8 +780,6 @@ fn format_time<W>(mut out: W, time: u64) where W: Write {
 ////////////////////////////////////////////////////////////////////////////////
 
 fn main() {
-
-
 
     /* server */
 
