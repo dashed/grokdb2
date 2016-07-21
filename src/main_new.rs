@@ -570,210 +570,129 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
         : raw!("<!DOCTYPE html>");
         html {
             head {
-                title { : "title" }
+                title {
+                    : "title"
+                }
                 link (
                     rel="stylesheet",
                     href="/assets/bulma.f1a3b0f.css"
                 );
 
-                // custom stylesheet for specific views
                 |tmpl| {
-
-                    // TODO: css minify using build.rs
-
-                    tmpl << html! {
+                    tmpl << html!{
                         style {
-
-                            // TODO: uncomment
-                            // custom styles for view
-                            // |tmpl| {
-                            //     match context.view_route {
-                            //         AppRoute::Deck(_, DeckRoute::NewCard) |
-                            //         AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
-                            //             tmpl << html! {
-
-                            //                 : raw!("\
-                            //                     .btn-success {\
-                            //                         border-color: #30ae40;\
-                            //                         color: #32b643;\
-                            //                     }\
-                            //                     a.btn-success:hover {\
-                            //                         background: #32b643;\
-                            //                         border-color: #30ae40;\
-                            //                         color: #fff;\
-                            //                     }\
-                            //                 ");
-
-                            //             };
-
-                            //         },
-                            //         _ => {}
-                            //     };
-                            // }
-
                             : raw!("\
-                                body {\
+                                .Site {\
                                     display: flex;\
                                     min-height: 100vh;\
                                     flex-direction: column;\
                                 }\
+                            ");
+                            : raw!("\
                                 #grokdb {\
                                     flex: 1;\
                                 }\
-                                ");
-                            : raw!("\
-                                ul.pagination li {\
-                                    margin-top: 0;\
-                                }\
-                                ");
-                            : raw!("\
-                                .grokdb-menu {\
-                                    box-shadow: none;\
-                                    border: .1rem solid #c5c5c5;\
-                                }\
-                                ");
-                            : raw!("\
-                                a:hover,\
-                                a:active,\
-                                .menu .menu-item a:hover,\
-                                .menu .menu-item a:active\
-                                {\
-                                    text-decoration: underline;\
-                                }\
-                                ");
-                            : raw!("\
-                                hr {\
-                                    height: 1px;\
-                                    background-color: #c5c5c5;\
-                                    border:none;\
-                                }\
-                                ");
+                            ")
                         }
-                    };
-
-
+                    }
                 }
+
+                // TODO:  custom stylesheet for specific views
             }
-            body {
-                section(class="container grid-960", id="grokdb") {
-                    header(class="navbar") {
-                        section(class="navbar-section") {
-                            a(href = "#", class="navbar-brand") {
-                                : "grokdb"
+            body(class="Site") {
+
+                div(id="grokdb") {
+                    div(class="container", style="max-width:960px;") {
+                        nav(class="nav") {
+                            div(class="nav-left") {
+                                a(class="nav-item", href="#") {
+                                    : raw!("grokdb")
+                                }
                             }
-                        }
-
-                        // TODO: uncomment
-                        // section(class="navbar-section") {
-                        //     a(
-                        //         href = view_route_to_link(AppRoute::Home, &context),
-
-                        //         // TODO: fix
-                        //         style? = stylenames!("font-weight:bold;" => {
-                        //             matches!(context.view_route, AppRoute::Deck(_, _)) ||
-                        //             matches!(context.view_route, AppRoute::Home) ||
-                        //             matches!(context.view_route, AppRoute::Card(_, _)) ||
-                        //             matches!(context.view_route, AppRoute::CardInDeck(_, _, _))
-                        //         }
-                        //         ),
-                        //         class? = classnames!("btn btn-link badge", "active" => {
-                        //             matches!(context.view_route, AppRoute::Deck(_, _)) ||
-                        //             matches!(context.view_route, AppRoute::Home) ||
-                        //             matches!(context.view_route, AppRoute::Card(_, _)) ||
-                        //             matches!(context.view_route, AppRoute::CardInDeck(_, _, _))
-                        //         }
-                        //         ),
-
-                        //         data-badge="9"
-                        //     ) {
-                        //         : "decks"
-                        //     }
-                        //     a(
-                        //         href = view_route_to_link(AppRoute::Stashes, &context),
-
-                        //         style? = stylenames!("font-weight:bold;" =>
-                        //             matches!(context.view_route, AppRoute::Stashes)
-                        //         ),
-                        //         class? = classnames!("btn btn-link badge", "active" =>
-                        //             matches!(context.view_route, AppRoute::Stashes)
-                        //         )
-
-                        //     ) {
-                        //         : "stashes"
-                        //     }
-                        //     a(
-                        //         href = view_route_to_link(AppRoute::Settings, &context),
-
-                        //         style? = stylenames!("font-weight:bold;" =>
-                        //             matches!(context.view_route, AppRoute::Settings)
-                        //         ),
-                        //         class? = classnames!("btn btn-link badge", "active" =>
-                        //             matches!(context.view_route, AppRoute::Settings)
-                        //         )
-                        //     ) {
-                        //         : "settings"
-                        //     }
-                        //     : " ";
-                        //     input(type="text", class="form-input input-inline", placeholder="search");
-                        //     : " ";
-                        //     a(href="#", class="btn btn-primary") {
-                        //         : "login"
-                        //     }
-                        // }
-                    }
-                    noscript {
-                        div(class="toast toast-danger") {
-                            : "grokdb requires JavaScript to function properly. Go to ";
-                            a(href="http://enable-javascript.com/", target="_blank", style="color: #000000") {
-                                : "http://enable-javascript.com/"
+                            span(class="nav-toggle") {
+                                span {}
+                                span {}
+                                span {}
                             }
-                            : " to enable JavaScript for your browser.";
+                            div(class="nav-right nav-menu") {
+                                a(class="nav-item", href="#") {
+                                    : raw!("Decks")
+                                }
+                                a(class="nav-item", href="#") {
+                                    : raw!("Stashes")
+                                }
+                                a(class="nav-item", href="#") {
+                                    : raw!("Preferences")
+                                }
+                            }
                         }
                     }
 
-                    // section {
-                    // // section(class="container") {
-                    //     // : ViewRouteResolver::new(&context)
+                    div(class="container", style="max-width:960px;") {
+                        div(class="columns") {
 
+                            div(class="column") {
+                                div {
+                                    : raw!("/ ");
+                                    a(href="#") {
+                                        : raw!("Library");
+                                    }
+                                    : raw!(" / ");
+                                    strong {
+                                        a(href="#") {
+                                            : raw!("Math")
+                                        }
+                                    }
 
-                    // TODO: uncomment
-                    // |tmpl| {
-                    //     match context.view_route.clone() {
-                    //         AppRoute::Home => {
-                    //             // TODO: fix
-                    //             // NOTE: goes to DeckDetailComponent
-                    //             unreachable!();
-                    //             // tmpl << DeckDetailComponent::new(&context)
-                    //         }
-                    //         AppRoute::Settings => {
-                    //             SettingsComponent(tmpl, &mut context);
-                    //         }
-                    //         AppRoute::Stashes => {
-                    //             StashesComponent(tmpl, &context);
-                    //         }
-                    //         AppRoute::Deck(_deck_id, ref _deck_route) => {
+                                    // : raw!(" /")
+                                }
+                                div {
+                                    : raw!("lol")
+                                }
+                            }
 
-                    //             DeckDetailComponent(tmpl, context);
-
-                    //             // match deck_route {
-                    //             //     &DeckRoute::New => tmpl << NewDeckComponent::new(&context)
-                    //             // }
-
-                    //         },
-                    //         AppRoute::Card(_card_id, ref _card_route) => {
-                    //             CardDetailComponent(tmpl, &mut context);
-                    //         },
-                    //         AppRoute::CardInDeck(_deck_id, _card_id, ref _card_route) => {
-                    //             CardDetailComponent(tmpl, &mut context);
-                    //         }
-                    //     };
-                    // }
-
-
+                            div(class="column is-one-quarter") {
+                                aside(class="menu") {
+                                    p(class="menu-label") {
+                                        : raw!("Deck #123")
+                                    }
+                                    ul(class="menu-list") {
+                                        li {
+                                            a(href="#") {
+                                                : "Description"
+                                            }
+                                        }
+                                        li {
+                                            a(href="#") {
+                                                : "Decks"
+                                            }
+                                        }
+                                        li {
+                                            a(href="#") {
+                                                : "Cards"
+                                            }
+                                        }
+                                        li {
+                                            a(href="#") {
+                                                : "Settings"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
-                footer(class="container grid-960") {
-                    : "footer component"
+                footer(class="footer container", style="max-width:960px;padding-bottom:20px;") {
+                    div(class="content has-text-centered") {
+                        p {
+                            strong {
+                                : raw!("grokdb")
+                            }
+                            : raw!(" by Alberto Leal")
+                        }
+                    }
                 }
 
                 // TODO: uncomment
