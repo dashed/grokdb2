@@ -6,19 +6,28 @@ extern crate hyper;
 extern crate time;
 #[macro_use]
 extern crate chomp;
+#[macro_use]
+extern crate lazy_static;
+extern crate url;
+extern crate conduit_mime_types as mime_types;
 
 /* rust lib imports */
 
 use std::io;
-use std::io::{Write};
+use std::io::{Write, Read};
 use std::thread;
 use std::ascii::{AsciiExt};
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex, LockResult, MutexGuard, RwLock};
 use std::panic::{self, AssertUnwindSafe};
+use std::fs::{self, File};
+use std::path::{PathBuf, Path};
+use std::ffi::OsStr;
 
 /* 3rd-party imports */
+
+use url::percent_encoding::{percent_decode};
 
 use horrorshow::{RenderOnce, TemplateBuffer, Template, FnRenderer};
 
@@ -28,6 +37,7 @@ use hyper::header::{Headers, ContentType, TransferEncoding};
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use hyper::uri::RequestUri;
 use hyper::status::StatusCode;
+use hyper::header::{Header, HeaderFormat};
 
 use chomp::{SimpleResult, Error, ParseResult};
 use chomp::primitives::{InputBuffer};
@@ -43,6 +53,10 @@ use chomp::ascii::{is_whitespace, decimal, digit};
 
 
 ////////////////////////////////////////////////////////////////////////////////
+
+lazy_static! {
+    static ref MIME_TYPES: mime_types::Types = mime_types::Types::new().unwrap();
+}
 
 /* Types */
 
@@ -155,7 +169,9 @@ enum RenderResponse {
 
     RenderNotFound,
     RenderBadRequest,
-    RenderInternalServerError
+    RenderInternalServerError,
+
+    RenderAsset(ContentType, Vec<u8>)
 }
 
 fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>)
@@ -170,6 +186,9 @@ fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>)
 
         // NOTE: order matters
         let render_response =
+
+            // /assets/*
+            parse_assets() <|>
 
             // /cards
             // parse_route_cards() <|>
@@ -192,6 +211,75 @@ fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>)
         //       e.g. Not having to parse query strings.
 
         ret render_response
+    }
+}
+
+#[inline]
+fn decode_percents(string: &OsStr) -> String {
+
+    let string = format!("{}", string.to_string_lossy());
+
+    format!("{}", percent_decode(string.as_bytes()).decode_utf8_lossy())
+
+    // String::from_utf8(.if_any().unwrap()).unwrap()
+    // OsStr::new(&token)
+}
+
+#[inline]
+fn parse_assets(input: Input<u8>) -> U8Result<RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"assets");
+        token(b'/');
+
+        let path = string_till(eof);
+        eof();
+
+        ret {
+
+            // URL decode
+            let decoded_req_path = Path::new(&path).iter().map(decode_percents);
+
+            let mut req_path = Path::new("assets/").to_path_buf();
+            req_path.extend(decoded_req_path);
+            let req_path: PathBuf = req_path;
+
+            match fs::metadata(&req_path) {
+                Ok(metadata) => {
+
+                    if !metadata.is_file() {
+                        RenderResponse::RenderNotFound
+                    } else {
+
+                        let path_str = format!("{}", &req_path.to_string_lossy());
+
+                        // Set the content type based on the file extension
+                        let mime_str = MIME_TYPES.mime_for_path(req_path.as_path());
+
+                        let mut content_type = ContentType(Mime(TopLevel::Application, SubLevel::Json, vec![]));
+
+                        let _ = mime_str.parse().map(|mime: Mime| {
+                            content_type = ContentType(mime);
+                        });
+
+                        let mut file = File::open(req_path)
+                            .ok()
+                            .expect(&format!("No such file: {:?}", path_str));
+
+                        let mut content = Vec::new();
+
+                        file.read_to_end(&mut content).unwrap();
+
+                        RenderResponse::RenderAsset(content_type, content)
+                    }
+
+                },
+                Err(e) => {
+                    RenderResponse::RenderNotFound
+                },
+            }
+        }
+
     }
 }
 
@@ -282,6 +370,19 @@ fn parse_query_string(input: Input<u8>) {
 }
 
 /* segment parser */
+
+// parse to string till stop_at parser is satisfied. input satisfying stop_at wont be consumed.
+#[inline]
+fn string_till<'a, F>(input: Input<'a, u8>, mut stop_at: F) -> U8Result<'a, String>
+    where F: Fn(Input<'a, u8>) -> U8Result<'a, ()>  {
+
+    many_till(input, any, |i| look_ahead(i, &mut stop_at))
+        .bind(|i, line: Vec<u8>| {
+            let string: String = String::from_utf8_lossy(line.as_slice()).into_owned();
+            i.ret(string)
+        })
+
+}
 
 enum Segment {
     Empty,
@@ -391,6 +492,10 @@ fn render_response(render: RenderResponse, mut response: Response) {
 
             response.send(message.as_bytes()).unwrap();
 
+        },
+        RenderResponse::RenderAsset(header, content) => {
+            response.headers_mut().set((header));
+            response.send(&content).unwrap();
         },
         _ => {
             panic!("fix me");
