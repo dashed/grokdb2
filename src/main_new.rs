@@ -707,33 +707,44 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                             }
 
                             div(class="column is-one-quarter") {
-                                aside(class="menu") {
-                                    p(class="menu-label is-bold") {
+                                nav(class="panel") {
+                                    p(class="panel-heading") {
                                         : raw!("Deck #123")
                                     }
-                                    ul(class="menu-list") {
-                                        li {
-                                            a(href="#", class="is-bold") {
-                                                : "Description"
+                                    div(class="panel-block") {
+
+                                        aside(class="menu") {
+                                            // p(class="menu-label is-bold") {
+                                            //     : raw!("Deck #123")
+                                            // }
+                                            ul(class="menu-list") {
+                                                li {
+                                                    a(href="#", class="is-bold") {
+                                                        : "Description"
+                                                    }
+                                                }
+                                                li {
+                                                    a(href="#", class="is-active is-bold") {
+                                                        : "Decks"
+                                                    }
+                                                }
+                                                li {
+                                                    a(href="#", class="is-bold") {
+                                                        : "Cards"
+                                                    }
+                                                }
+                                                li {
+                                                    a(href="#", class="is-bold") {
+                                                        : "Settings"
+                                                    }
+                                                }
                                             }
                                         }
-                                        li {
-                                            a(href="#", class="is-active is-bold") {
-                                                : "Decks"
-                                            }
-                                        }
-                                        li {
-                                            a(href="#", class="is-bold") {
-                                                : "Cards"
-                                            }
-                                        }
-                                        li {
-                                            a(href="#", class="is-bold") {
-                                                : "Settings"
-                                            }
-                                        }
+
                                     }
                                 }
+
+
                             }
                         }
 
