@@ -671,12 +671,33 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
 
                                 div(class="columns") {
                                     div(class="column") {
-                                        a(class="button") {
+                                        a(class="button is-bold is-success") {
                                             : raw!("New Deck")
                                         }
                                     }
                                 }
 
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
                                 |tmpl| DeckListItem(tmpl);
                                 |tmpl| DeckListItem(tmpl);
                                 |tmpl| DeckListItem(tmpl);
@@ -778,7 +799,7 @@ fn DeckListItem(tmpl: &mut TemplateBuffer) {
                         : "What does the fox say?"
                     }
                 }
-                span {
+                span(style="font-size:12px;") {
                     : "Deck #123";
                     : raw!(" ");
                     a(href="#") {
