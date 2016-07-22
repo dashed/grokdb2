@@ -899,7 +899,7 @@ fn PaginationComponent(tmpl: &mut TemplateBuffer) {
                     }
                 }
                 li {
-                    a(class="button is-primary") {
+                    a(class="button is-primary is-bold") {
                         : raw!("46")
                     }
                 }
