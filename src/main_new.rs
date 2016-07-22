@@ -628,7 +628,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                         nav(class="nav") {
                             div(class="nav-left") {
                                 a(class="nav-item", href="#") {
-                                    h1(class="title") {
+                                    h1(class="title", style="font-weight:bold;") {
                                         : raw!("grokdb")
                                     }
 
@@ -687,112 +687,45 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                                     }
                                 }
 
+                                // TODO: hide
                                 div(class="columns") {
                                     div(class="column") {
-                                        nav(class="pagination") {
-                                            a(class="button") {
-                                                : raw!("Previous")
-                                            }
-                                            a(class="button") {
-                                                : raw!("Next")
-                                            }
-                                            ul {
-                                                li {
-                                                    a(class="button") {
-                                                        : raw!("1")
-                                                    }
-                                                }
-                                                li {
-                                                    a(class="button") {
-                                                        : raw!("2")
-                                                    }
-                                                }
-                                                li {
-                                                    a(class="button") {
-                                                        : raw!("3")
-                                                    }
-                                                }
-                                                li {
-                                                    span {
-                                                        : "..."
-                                                    }
-                                                }
-                                                li {
-                                                    a(class="button") {
-                                                        : raw!("44")
-                                                    }
-                                                }
-                                                li {
-                                                    a(class="button") {
-                                                        : raw!("45")
-                                                    }
-                                                }
-                                                li {
-                                                    a(class="button is-primary") {
-                                                        : raw!("46")
-                                                    }
-                                                }
-                                                li {
-                                                    a(class="button") {
-                                                        : raw!("47")
-                                                    }
-                                                }
-                                                li {
-                                                    a(class="button") {
-                                                        : raw!("48")
-                                                    }
-                                                }
-                                                li {
-                                                    span {
-                                                        : "..."
-                                                    }
-                                                }
-                                                li {
-                                                    a(class="button") {
-                                                        : raw!("100")
-                                                    }
-                                                }
-                                                li {
-                                                    a(class="button") {
-                                                        : raw!("101")
-                                                    }
-                                                }
-                                                li {
-                                                    a(class="button") {
-                                                        : raw!("102")
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        |tmpl| PaginationComponent(tmpl);
                                     }
                                 }
 
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, false);
-                                |tmpl| DeckListItem(tmpl, true);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, false);
+                                |tmpl| DeckListItemComponent(tmpl, true);
 
+                                // TODO: hide
+                                div(class="columns", style="margin-top:10px;") {
+                                    div(class="column") {
+                                        |tmpl| PaginationComponent(tmpl);
+                                    }
+                                }
 
                             }
 
@@ -901,9 +834,11 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
 }
 
 #[inline]
-fn DeckListItem(tmpl: &mut TemplateBuffer, is_bottom: bool) {
+fn DeckListItemComponent(tmpl: &mut TemplateBuffer, is_bottom: bool) {
     tmpl << html!{
-        div(class="columns is-marginless", style=labels!("border-bottom: 1px dotted #d3d6db;" => !is_bottom)) {
+        div(class="columns is-marginless",
+            style=labels!(
+                "border-bottom:1px dotted #d3d6db;" => !is_bottom)) {
             div(class="column is-side-paddingless") {
                 h5(class="title is-5 is-marginless is-bold") {
                     a(href="#") {
@@ -915,6 +850,87 @@ fn DeckListItem(tmpl: &mut TemplateBuffer, is_bottom: bool) {
                     : raw!(" ");
                     a(href="#") {
                         : raw!("View Cards")
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[inline]
+fn PaginationComponent(tmpl: &mut TemplateBuffer) {
+    tmpl << html!{
+        nav(class="pagination") {
+            a(class="button is-bold") {
+                : raw!("Previous")
+            }
+            a(class="button is-bold") {
+                : raw!("Next")
+            }
+            ul {
+                li {
+                    a(class="button is-bold") {
+                        : raw!("1")
+                    }
+                }
+                li {
+                    a(class="button is-bold") {
+                        : raw!("2")
+                    }
+                }
+                li {
+                    a(class="button is-bold") {
+                        : raw!("3")
+                    }
+                }
+                li {
+                    span(class="is-bold") {
+                        : "..."
+                    }
+                }
+                li {
+                    a(class="button is-bold") {
+                        : raw!("44")
+                    }
+                }
+                li {
+                    a(class="button is-bold") {
+                        : raw!("45")
+                    }
+                }
+                li {
+                    a(class="button is-primary") {
+                        : raw!("46")
+                    }
+                }
+                li {
+                    a(class="button is-bold") {
+                        : raw!("47")
+                    }
+                }
+                li {
+                    a(class="button is-bold") {
+                        : raw!("48")
+                    }
+                }
+                li {
+                    span(class="is-bold") {
+                        : "..."
+                    }
+                }
+                li {
+                    a(class="button is-bold") {
+                        : raw!("100")
+                    }
+                }
+                li {
+                    a(class="button is-bold") {
+                        : raw!("101")
+                    }
+                }
+                li {
+                    a(class="button is-bold") {
+                        : raw!("102")
                     }
                 }
             }
