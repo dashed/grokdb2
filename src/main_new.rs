@@ -575,14 +575,18 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                 }
                 link (
                     rel="stylesheet",
-                    href="/assets/bulma.f1a3b0f.css"
+                    href="/assets/bulma.css"
                 );
 
                 |tmpl| {
                     tmpl << html!{
                         style {
+
+                            // sticky footer
+                            // source: https://philipwalton.github.io/solved-by-flexbox/demos/sticky-footer/
+
                             : raw!("\
-                                .Site {\
+                                body {\
                                     display: flex;\
                                     min-height: 100vh;\
                                     flex-direction: column;\
@@ -591,6 +595,13 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                             : raw!("\
                                 #grokdb {\
                                     flex: 1;\
+                                }\
+                            ");
+
+                            : raw!("\
+                                .is-side-paddingless {\
+                                    padding-left: 0;\
+                                    padding-right: 0;\
                                 }\
                             ")
                         }
@@ -606,7 +617,10 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                         nav(class="nav") {
                             div(class="nav-left") {
                                 a(class="nav-item", href="#") {
-                                    : raw!("grokdb")
+                                    h1 {
+                                        : raw!("grokdb")
+                                    }
+
                                 }
                             }
                             span(class="nav-toggle") {
@@ -632,23 +646,56 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                         div(class="columns") {
 
                             div(class="column") {
-                                div {
-                                    : raw!("/ ");
-                                    a(href="#") {
-                                        : raw!("Library");
-                                    }
-                                    : raw!(" / ");
-                                    strong {
+
+                                div(class="columns") {
+                                    div(class="column") {
+                                        : raw!("/ ");
                                         a(href="#") {
-                                            : raw!("Math")
+                                            : raw!("Library");
+                                        }
+                                        : raw!(" / ");
+                                        strong {
+                                            a(href="#") {
+                                                : raw!("Math")
+                                            }
                                         }
                                     }
+                                }
 
-                                    // : raw!(" /")
+                                div(class="columns") {
+                                    div(class="column") {
+                                        a(class="button") {
+                                            : raw!("New Deck")
+                                        }
+                                    }
                                 }
-                                div {
-                                    : raw!("lol")
+
+                                div(class="columns is-marginless") {
+                                    div(class="column is-side-paddingless") {
+                                        h5(class="title is-5 is-marginless") {
+                                            a(href="#") {
+                                                : "What does the fox say?"
+                                            }
+                                        }
+                                        span {
+                                            : "Deck #123"
+                                        }
+                                    }
                                 }
+
+                                div(class="columns is-marginless") {
+                                    div(class="column is-side-paddingless") {
+                                        h5(class="title is-5 is-marginless") {
+                                            a(href="#") {
+                                                : "What does the fox say?"
+                                            }
+                                        }
+                                        span {
+                                            : "Deck #123"
+                                        }
+                                    }
+                                }
+
                             }
 
                             div(class="column is-one-quarter") {
@@ -681,6 +728,8 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                                 }
                             }
                         }
+
+
                     }
                 }
 
