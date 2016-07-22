@@ -174,6 +174,7 @@ enum RenderResponse {
     RenderAsset(ContentType, Vec<u8>)
 }
 
+#[inline]
 fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>)
     -> U8Result<'a, RenderResponse> {
     parse!{input;
@@ -474,6 +475,7 @@ fn route_internal_server_error(request: Request, mut response: Response) {
 
 /* rendering */
 
+#[inline]
 fn render_response(render: RenderResponse, mut response: Response) {
 
     match render {
@@ -658,14 +660,22 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
 
                                 div(class="columns") {
                                     div(class="column") {
-                                        : raw!("/ ");
-                                        a(href="#") {
-                                            : raw!("Library");
+                                        span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                            : raw!("/ ");
                                         }
-                                        : raw!(" / ");
-                                            a(href="#", class="is-bold") {
-                                                : raw!("Math")
+                                        span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                            a(href="#") {
+                                                : raw!("Library");
                                             }
+                                        }
+                                        span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                            : raw!(" / ");
+                                        }
+                                        span(class="title is-5 is-marginless is-bold") {
+                                            a(href="#") {
+                                                : raw!("Math");
+                                            }
+                                        }
                                     }
                                 }
 
@@ -677,31 +687,111 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                                     }
                                 }
 
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
-                                |tmpl| DeckListItem(tmpl);
+                                div(class="columns") {
+                                    div(class="column") {
+                                        nav(class="pagination") {
+                                            a(class="button") {
+                                                : raw!("Previous")
+                                            }
+                                            a(class="button") {
+                                                : raw!("Next")
+                                            }
+                                            ul {
+                                                li {
+                                                    a(class="button") {
+                                                        : raw!("1")
+                                                    }
+                                                }
+                                                li {
+                                                    a(class="button") {
+                                                        : raw!("2")
+                                                    }
+                                                }
+                                                li {
+                                                    a(class="button") {
+                                                        : raw!("3")
+                                                    }
+                                                }
+                                                li {
+                                                    span {
+                                                        : "..."
+                                                    }
+                                                }
+                                                li {
+                                                    a(class="button") {
+                                                        : raw!("44")
+                                                    }
+                                                }
+                                                li {
+                                                    a(class="button") {
+                                                        : raw!("45")
+                                                    }
+                                                }
+                                                li {
+                                                    a(class="button is-primary") {
+                                                        : raw!("46")
+                                                    }
+                                                }
+                                                li {
+                                                    a(class="button") {
+                                                        : raw!("47")
+                                                    }
+                                                }
+                                                li {
+                                                    a(class="button") {
+                                                        : raw!("48")
+                                                    }
+                                                }
+                                                li {
+                                                    span {
+                                                        : "..."
+                                                    }
+                                                }
+                                                li {
+                                                    a(class="button") {
+                                                        : raw!("100")
+                                                    }
+                                                }
+                                                li {
+                                                    a(class="button") {
+                                                        : raw!("101")
+                                                    }
+                                                }
+                                                li {
+                                                    a(class="button") {
+                                                        : raw!("102")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, false);
+                                |tmpl| DeckListItem(tmpl, true);
 
 
                             }
@@ -735,6 +825,11 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                                                 }
                                                 li {
                                                     a(href="#", class="is-bold") {
+                                                        : "Stats"
+                                                    }
+                                                }
+                                                li {
+                                                    a(href="#", class="is-bold") {
                                                         : "Settings"
                                                     }
                                                 }
@@ -757,6 +852,10 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                         p {
                             : raw!("grokdb v");
                             : env!("CARGO_PKG_VERSION");
+
+                            // TODO: use build.rs to generate:
+                            // - date/time of compiled binary
+                            // - server hostname
                         }
                     }
                 }
@@ -801,9 +900,10 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
     };
 }
 
-fn DeckListItem(tmpl: &mut TemplateBuffer) {
+#[inline]
+fn DeckListItem(tmpl: &mut TemplateBuffer, is_bottom: bool) {
     tmpl << html!{
-        div(class="columns is-marginless") {
+        div(class="columns is-marginless", style=labels!("border-bottom: 1px dotted #d3d6db;" => !is_bottom)) {
             div(class="column is-side-paddingless") {
                 h5(class="title is-5 is-marginless is-bold") {
                     a(href="#") {
@@ -849,6 +949,7 @@ pub struct LogEntry<W> where W: Write {
 
 impl<'a, W> LogEntry<W> where W: Write {
     /// Starts a `LogEntry`.
+    #[inline]
     pub fn start(output: W, rq: &Request) -> LogEntry<W> {
         LogEntry {
             line: format!("{} {}", rq.method, rq.uri),
@@ -859,6 +960,7 @@ impl<'a, W> LogEntry<W> where W: Write {
 }
 
 impl<W> Drop for LogEntry<W> where W: Write {
+    #[inline]
     fn drop(&mut self) {
         write!(self.output, "{} - ", self.line).unwrap();
 
@@ -874,6 +976,7 @@ impl<W> Drop for LogEntry<W> where W: Write {
     }
 }
 
+#[inline]
 fn format_time<W>(mut out: W, time: u64) where W: Write {
     if time < 1_000 {
         write!(out, "{}ns", time).unwrap()
