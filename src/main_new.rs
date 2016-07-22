@@ -598,10 +598,19 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                                 }\
                             ");
 
+                            // custom styles
+                            // TODO: merge back into bulma css
+
                             : raw!("\
                                 .is-side-paddingless {\
                                     padding-left: 0;\
                                     padding-right: 0;\
+                                }\
+                            ");
+
+                            : raw!("\
+                                .is-bold{\
+                                    font-weight: bold;\
                                 }\
                             ")
                         }
@@ -610,14 +619,14 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
 
                 // TODO:  custom stylesheet for specific views
             }
-            body(class="Site") {
+            body {
 
                 div(id="grokdb") {
-                    div(class="container", style="max-width:960px;") {
+                    div(class="container", style="max-width:960px;margin-top:10px;margin-bottom:10px;") {
                         nav(class="nav") {
                             div(class="nav-left") {
                                 a(class="nav-item", href="#") {
-                                    h1 {
+                                    h1(class="title") {
                                         : raw!("grokdb")
                                     }
 
@@ -629,13 +638,13 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                                 span {}
                             }
                             div(class="nav-right nav-menu") {
-                                a(class="nav-item", href="#") {
+                                a(class="nav-item is-bold", href="#") {
                                     : raw!("Decks")
                                 }
-                                a(class="nav-item", href="#") {
+                                a(class="nav-item is-bold", href="#") {
                                     : raw!("Stashes")
                                 }
-                                a(class="nav-item", href="#") {
+                                a(class="nav-item is-bold", href="#") {
                                     : raw!("Preferences")
                                 }
                             }
@@ -654,11 +663,9 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                                             : raw!("Library");
                                         }
                                         : raw!(" / ");
-                                        strong {
-                                            a(href="#") {
+                                            a(href="#", class="is-bold") {
                                                 : raw!("Math")
                                             }
-                                        }
                                     }
                                 }
 
@@ -670,57 +677,37 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                                     }
                                 }
 
-                                div(class="columns is-marginless") {
-                                    div(class="column is-side-paddingless") {
-                                        h5(class="title is-5 is-marginless") {
-                                            a(href="#") {
-                                                : "What does the fox say?"
-                                            }
-                                        }
-                                        span {
-                                            : "Deck #123"
-                                        }
-                                    }
-                                }
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
+                                |tmpl| DeckListItem(tmpl);
 
-                                div(class="columns is-marginless") {
-                                    div(class="column is-side-paddingless") {
-                                        h5(class="title is-5 is-marginless") {
-                                            a(href="#") {
-                                                : "What does the fox say?"
-                                            }
-                                        }
-                                        span {
-                                            : "Deck #123"
-                                        }
-                                    }
-                                }
 
                             }
 
                             div(class="column is-one-quarter") {
                                 aside(class="menu") {
-                                    p(class="menu-label") {
+                                    p(class="menu-label is-bold") {
                                         : raw!("Deck #123")
                                     }
                                     ul(class="menu-list") {
                                         li {
-                                            a(href="#") {
+                                            a(href="#", class="is-bold") {
                                                 : "Description"
                                             }
                                         }
                                         li {
-                                            a(href="#") {
+                                            a(href="#", class="is-active is-bold") {
                                                 : "Decks"
                                             }
                                         }
                                         li {
-                                            a(href="#") {
+                                            a(href="#", class="is-bold") {
                                                 : "Cards"
                                             }
                                         }
                                         li {
-                                            a(href="#") {
+                                            a(href="#", class="is-bold") {
                                                 : "Settings"
                                             }
                                         }
@@ -736,10 +723,8 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                 footer(class="footer container", style="max-width:960px;padding-bottom:20px;") {
                     div(class="content has-text-centered") {
                         p {
-                            strong {
-                                : raw!("grokdb")
-                            }
-                            : raw!(" by Alberto Leal")
+                            : raw!("grokdb v");
+                            : env!("CARGO_PKG_VERSION");
                         }
                     }
                 }
@@ -782,6 +767,27 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
         }
 
     };
+}
+
+fn DeckListItem(tmpl: &mut TemplateBuffer) {
+    tmpl << html!{
+        div(class="columns is-marginless") {
+            div(class="column is-side-paddingless") {
+                h5(class="title is-5 is-marginless is-bold") {
+                    a(href="#") {
+                        : "What does the fox say?"
+                    }
+                }
+                span {
+                    : "Deck #123";
+                    : raw!(" ");
+                    a(href="#") {
+                        : raw!("View Cards")
+                    }
+                }
+            }
+        }
+    }
 }
 
 /* LogEntry */
