@@ -731,7 +731,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
 
                             div(class="column is-one-quarter") {
                                 nav(class="panel") {
-                                    p(class="panel-heading") {
+                                    p(class="panel-heading", style="font-weight: normal;") {
                                         : raw!("Deck #123")
                                     }
                                     div(class="panel-block") {
