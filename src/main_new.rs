@@ -24,6 +24,7 @@ use std::panic::{self, AssertUnwindSafe};
 use std::fs::{self, File};
 use std::path::{PathBuf, Path};
 use std::ffi::OsStr;
+use std::collections::HashMap;
 
 /* 3rd-party imports */
 
@@ -173,6 +174,7 @@ enum RenderResponse {
 
     RenderAsset(ContentType, Vec<u8>)
 }
+
 
 #[inline]
 fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>)
@@ -325,6 +327,12 @@ fn parse_route_decks(input: Input<u8>) -> U8Result<RenderResponse> {
 
         string_ignore_case(b"decks");
 
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
+
+            ret Some(query_string)
+        }, None);
+
         ret {
 
             let home = AppRoute::Home;
@@ -361,9 +369,102 @@ field_value :=
     segment(&) |
     segment(eof)
  */
-fn parse_query_string(input: Input<u8>) {
+
+type QueryString = HashMap<String, Option<String>>;
+enum QueryStringKeyType {
+    Value(String),
+    NoValue(String)
+}
+
+#[inline]
+fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
+
+    let mut result = parse!{input;
+        token(b'?');
+        skip_many(|i| token(i, b'&'));
+        ret {()}
+    };
+
+    let mut query_string: QueryString = HashMap::new();
+    let mut should_break = false;
+
+    loop {
+
+        result = result.then(|i| parse!{i;
+
+            let key = string_till(|i| parse!{i;
+                token(b'&') <|> token(b'=') <|> parse_then_value(eof, b'&');
+                ret {()}
+            });
+
+            let key_type = or(
+                |i| parse!{i;
+                    token(b'&');
+                    skip_many(|i| token(i, b'&'));
+                    ret QueryStringKeyType::NoValue(key.to_lowercase().trim().to_owned())
+                },
+                |i| or(i,
+                    |i| parse!{i;
+                        token(b'=');
+                        ret QueryStringKeyType::Value(key.to_lowercase().trim().to_owned())
+                    },
+                    |i| parse!{i;
+                        eof();
+                        ret {
+                            should_break = true;
+                            QueryStringKeyType::NoValue(key.to_lowercase().trim().to_owned())
+                        }
+                    }
+                )
+            );
+
+            ret key_type
+        }).bind(|i, key_type| {
+            match key_type {
+                QueryStringKeyType::NoValue(key) => {
+                    query_string.insert(key, None);
+
+                    i.ret(())
+                },
+                QueryStringKeyType::Value(key) => {
+
+                    parse!{i;
+
+                        let value = string_till(|i| parse!{i;
+                            let res = token(b'&') <|> parse_then_value(eof, b'-');
+                            ret {
+                                if res == b'-' {
+                                    should_break = true;
+                                }
+                                ()
+                            }
+                        });
+
+                        token(b'&') <|> parse_then_value(eof, b'-');
+                        skip_many(i, |i| token(i, b'&'));
+
+                        ret {
+                            query_string.insert(key, Some(value));
+                            ()
+                        }
+                    }
 
 
+                }
+            }
+        });
+
+        if should_break {
+            break;
+        }
+    }
+
+    return result.bind(|i, _| i.ret(query_string));
+}
+
+#[test]
+fn parse_query_string_test() {
+    // TODO: complete
 }
 
 /* segment parser */
@@ -371,7 +472,7 @@ fn parse_query_string(input: Input<u8>) {
 // parse to string till stop_at parser is satisfied. input satisfying stop_at wont be consumed.
 #[inline]
 fn string_till<'a, F>(input: Input<'a, u8>, mut stop_at: F) -> U8Result<'a, String>
-    where F: Fn(Input<'a, u8>) -> U8Result<'a, ()>  {
+    where F: FnMut(Input<'a, u8>) -> U8Result<'a, ()>  {
 
     many_till(input, any, |i| look_ahead(i, &mut stop_at))
         .bind(|i, line: Vec<u8>| {
@@ -381,45 +482,46 @@ fn string_till<'a, F>(input: Input<'a, u8>, mut stop_at: F) -> U8Result<'a, Stri
 
 }
 
-enum Segment {
-    Empty,
-    NonEmpty(Vec<u8>),
-    NonEmptyEof(Vec<u8>)
-}
+// TODO: remove
+// enum Segment {
+//     Empty,
+//     NonEmpty(Vec<u8>),
+//     NonEmptyEof(Vec<u8>)
+// }
 
-fn parse_segment_before_string(i: Input<u8>, ends_with: String) -> U8Result<Segment> {
+// fn parse_segment_before_string(i: Input<u8>, ends_with: String) -> U8Result<Segment> {
 
-    or(i,
-        |i| parse!{i;
-            eof();
-            ret Segment::Empty
-        },
-        |i| parse!{i;
+//     or(i,
+//         |i| parse!{i;
+//             eof();
+//             ret Segment::Empty
+//         },
+//         |i| parse!{i;
 
-            let line: Vec<u8> = many_till(any, |i| string_ignore_case(i, ends_with.as_bytes()));
+//             let line: Vec<u8> = many_till(any, |i| string_ignore_case(i, ends_with.as_bytes()));
 
-            ret Segment::NonEmpty(line)
-        }
-    )
+//             ret Segment::NonEmpty(line)
+//         }
+//     )
 
-}
+// }
 
-fn parse_segment_before_eof(i: Input<u8>) -> U8Result<Segment> {
+// fn parse_segment_before_eof(i: Input<u8>) -> U8Result<Segment> {
 
-    or(i,
-        |i| parse!{i;
-            eof();
-            ret Segment::Empty
-        },
-        |i| parse!{i;
+//     or(i,
+//         |i| parse!{i;
+//             eof();
+//             ret Segment::Empty
+//         },
+//         |i| parse!{i;
 
-            let line: Vec<u8> = many_till(any, eof);
+//             let line: Vec<u8> = many_till(any, eof);
 
-            ret Segment::NonEmpty(line)
-        }
-    )
+//             ret Segment::NonEmpty(line)
+//         }
+//     )
 
-}
+// }
 
 /* misc parsers */
 
