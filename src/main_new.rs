@@ -181,9 +181,7 @@ fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>)
 
         // path must begin with /
         // see: https://en.wikipedia.org/wiki/Uniform_Resource_Locator#Syntax
-        token(b'/');
-
-        skip_many(|i| token(i, b'/'));
+        parse_byte_limit(b'/', 5);
 
         // NOTE: order matters
         let render_response =
@@ -231,8 +229,10 @@ fn parse_assets(input: Input<u8>) -> U8Result<RenderResponse> {
     parse!{input;
 
         string_ignore_case(b"assets");
-        token(b'/');
 
+        parse_byte_limit(b'/', 5);
+
+        // TODO: query string cache bust
         let path = string_till(eof);
         eof();
 
@@ -324,10 +324,6 @@ fn parse_route_decks(input: Input<u8>) -> U8Result<RenderResponse> {
     parse!{input;
 
         string_ignore_case(b"decks");
-
-        // TODO: necess?
-        // skip_many(token(b'/'));
-
 
         ret {
 
@@ -457,6 +453,52 @@ fn string_ignore_case<'a>(i: Input<'a, u8>, s: &[u8])
     }
 
     i.replace(&b[s.len()..]).ret(d)
+}
+
+
+#[inline]
+fn parse_byte_limit(input: Input<u8>, delim: u8, max_reoccurance: u8) -> U8Result<()> {
+
+    let mut result = parse!{input;
+        token(delim);
+        ret {()}
+    };
+
+    let mut idx = 0;
+
+    let not_delim = {
+        if delim == b'-' {
+            b'/'
+        } else {
+            b'-'
+        }
+    };
+
+    loop {
+
+        if idx >= max_reoccurance {
+            break;
+        }
+
+        result = result.then(|i| {
+            parse!{i;
+                let result = option(|i| token(i, delim), not_delim);
+                ret {
+
+                    // early bail
+                    if result == not_delim {
+                        idx = max_reoccurance;
+                    }
+
+                    ()
+                }
+            }
+        });
+
+        idx = idx + 1;
+    }
+
+    return result;
 }
 
 /* misc routes */
