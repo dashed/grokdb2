@@ -323,7 +323,7 @@ fn parse_route_root(input: Input<u8>) -> U8Result<RenderResponse> {
 fn parse_route_decks(input: Input<u8>) -> U8Result<RenderResponse> {
     parse!{input;
 
-        string_ignore_case("decks".as_bytes());
+        string_ignore_case(b"decks");
 
         // TODO: necess?
         // skip_many(token(b'/'));
