@@ -701,13 +701,14 @@ fn NewDeckComponent<'a, 'b>(tmpl: &mut TemplateBuffer, context: &Context<'a, 'b>
             }
 
             div(id="new-deck-container") {
-                // : raw!(include_str!("react_components/deck_review"))
+                : raw!(include_str!("react_components/new_deck"))
 
-                div(class="columns") {
-                    div(class="column") {
-                        div(class="loading") {}
-                    }
-                }
+                // TODO: remove
+                // div(class="columns") {
+                //     div(class="column") {
+                //         div(class="loading") {}
+                //     }
+                // }
             }
 
             // div(class="columns") {

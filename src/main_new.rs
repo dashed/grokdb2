@@ -1,3 +1,8 @@
+#![feature(custom_derive, plugin)]
+#![plugin(serde_macros)]
+
+extern crate serde;
+extern crate serde_json;
 #[macro_use]
 extern crate mime;
 #[macro_use]
@@ -10,6 +15,9 @@ extern crate chomp;
 extern crate lazy_static;
 extern crate url;
 extern crate conduit_mime_types as mime_types;
+extern crate rusqlite;
+#[macro_use(quick_error)]
+extern crate quick_error;
 
 /* rust lib imports */
 
@@ -27,6 +35,10 @@ use std::ffi::OsStr;
 use std::collections::HashMap;
 
 /* 3rd-party imports */
+
+use rusqlite::{Connection};
+use rusqlite::types::ToSql;
+use rusqlite::{Error as SqliteError};
 
 use url::percent_encoding::{percent_decode};
 
@@ -52,8 +64,21 @@ use chomp::ascii::{is_whitespace, decimal, digit};
 
 /* local imports */
 
+#[macro_use]
+mod macros;
+
+mod tables;
+
+#[macro_use]
+mod errors;
+
+use errors::{RawAPIError};
 
 ////////////////////////////////////////////////////////////////////////////////
+
+/* statics */
+
+const CONFIG_ROOT_DECK_ID_KEY: &'static str = "root_deck_id";
 
 lazy_static! {
     static ref MIME_TYPES: mime_types::Types = mime_types::Types::new().unwrap();
@@ -106,11 +131,69 @@ pub enum DecksPageSort {
 
 /* database */
 
-type Database = Arc<RwLock<Mutex<i32>>>;
+// Arc := Shared resource between threads
+// RwLock := Create critical section where multiple API Reads can co-exist
+// Mutex := Raw database operation
+type Database = Arc<RwLock<Mutex<Connection>>>;
 
-/* App API */
+/* api */
 
-struct AppAPI {
+struct Config {
+    setting: String,
+    value: String
+}
+
+fn api_get_config(database: Database, setting_key: &str) -> Result<Option<Config>, RawAPIError> {
+
+    if setting_key.trim().len() <= 0 {
+        return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
+    }
+
+    let query = "
+        SELECT
+            setting, value
+        FROM Configs
+        WHERE
+            setting = :setting
+        LIMIT 1;
+    ";
+
+    let params: &[(&str, &ToSql)] = &[
+        (":setting", &setting_key)
+    ];
+
+    db_read_lock!(db_conn; database);
+    let db_conn: &Connection = db_conn;
+
+    let results = db_conn.query_row_named(query, params, |row| -> Config {
+        return Config {
+            setting: row.get(0),
+            value: row.get(1)
+        };
+    });
+
+    match results {
+        Err(sqlite_error) => {
+
+            match sqlite_error {
+                SqliteError::QueryReturnedNoRows => {
+                    return Ok(None);
+                },
+                _ => {}
+            };
+
+            return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+        },
+        Ok(config) => {
+            return Ok(Some(config));
+        }
+    };
+
+}
+
+/* Request Context */
+
+struct Context {
     database: Database
 }
 
@@ -286,6 +369,7 @@ fn parse_assets(input: Input<u8>) -> U8Result<RenderResponse> {
     }
 }
 
+#[inline]
 fn parse_route_root(input: Input<u8>) -> U8Result<RenderResponse> {
     parse!{input;
 
@@ -322,6 +406,7 @@ fn parse_route_root(input: Input<u8>) -> U8Result<RenderResponse> {
     }
 }
 
+#[inline]
 fn parse_route_decks(input: Input<u8>) -> U8Result<RenderResponse> {
     parse!{input;
 
@@ -441,7 +526,7 @@ fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
                         });
 
                         token(b'&') <|> parse_then_value(eof, b'-');
-                        skip_many(i, |i| token(i, b'&'));
+                        skip_many(|i| token(i, b'&'));
 
                         ret {
                             query_string.insert(key, Some(value));
@@ -717,6 +802,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
         html {
             head {
                 title {
+                    // TODO: fix
                     : "title"
                 }
                 link (
@@ -1155,6 +1241,30 @@ fn format_time<W>(mut out: W, time: u64) where W: Write {
 
 fn main() {
 
+    /* database */
+
+    let db_connection = match Connection::open("test.db") {
+        Err(why) => {
+            // TODO: fix
+            panic!("{}", why);
+        },
+        Ok(db_conn) => Arc::new(RwLock::new(Mutex::new(db_conn)))
+    };
+
+    /* table setup */
+
+    match tables::setup_database(db_connection.clone()) {
+        Ok(_) => {},
+        Err(why) => {
+            handle_raw_api_error!(why);
+            return;
+        }
+    }
+
+    /* database bootstrap */
+
+    api_get_config(db_connection.clone(), CONFIG_ROOT_DECK_ID_KEY);
+
     /* server */
 
     let address = ("0.0.0.0", 3000);
@@ -1176,32 +1286,9 @@ fn main() {
         // NOTE: this is a RAII guard
         let _entry = LogEntry::start(io::stdout(), &request);
 
-
-
-        // let local_context = LocalContext::new();
-        // let local_context: Rc<RefCell<_>> = Rc::new(RefCell::new(local_context));
-
-        // TODO: fix
-        // let mut context = Context {
-
-        //     global_context: &global_context,
-
-        //     api: APIContext::new(&global_context),
-
-        //     // TODO: remove
-        //     // request: request,
-        //     // response: response,
-
-        //     // used for error handling logging
-        //     // log_entry: &_entry,
-
-        //     // router/regexset
-        //     uri: &uri,
-        //     captures: None,
-
-        //     // default view route
-        //     view_route: AppRoute::Home
-        // };
+        let context = Context {
+            database: db_connection.clone()
+        };
 
         // middleware/logging
         // TODO: complete
