@@ -15,11 +15,11 @@ use hyper::status::StatusCode;
 use hyper::header::{Header, HeaderFormat};
 
 use chomp::{SimpleResult, Error, ParseResult};
-use chomp::primitives::{InputBuffer};
+use chomp::primitives::InputBuffer;
 use chomp::{Input, U8Result, parse_only};
 use chomp::buffer::{Source, Stream, StreamError};
 
-use chomp::{token};
+use chomp::token;
 use chomp::parsers::{string, eof, any, satisfy};
 use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look_ahead, option};
 use chomp::ascii::{is_whitespace, decimal, digit};
@@ -28,7 +28,7 @@ use chomp::ascii::{is_whitespace, decimal, digit};
 
 use route::{AppRoute, RenderResponse};
 
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
 
 /* rendering */
 
@@ -38,7 +38,7 @@ pub fn render_response(render: RenderResponse, mut response: Response) {
     match render {
         RenderResponse::RenderComponent(app_route) => {
             render_components(app_route, response);
-        },
+        }
         RenderResponse::RenderNotFound => {
 
             // let ref url = request.borrow().uri;
@@ -51,11 +51,11 @@ pub fn render_response(render: RenderResponse, mut response: Response) {
 
             response.send(message.as_bytes()).unwrap();
 
-        },
+        }
         RenderResponse::RenderAsset(header, content) => {
             response.headers_mut().set((header));
             response.send(&content).unwrap();
-        },
+        }
         _ => {
             panic!("fix me");
         }
@@ -82,9 +82,7 @@ fn render_components(app_route: AppRoute, mut response: Response) {
     //
     // see: https://github.com/rust-lang/rfcs/blob/master/text/1513-less-unwinding.md
     // see: http://doc.crates.io/manifest.html
-    let result = panic::catch_unwind(AssertUnwindSafe(|| {
-        app_component.into_string()
-    }));
+    let result = panic::catch_unwind(AssertUnwindSafe(|| app_component.into_string()));
 
 
     if result.is_err() {
@@ -105,12 +103,10 @@ fn render_components(app_route: AppRoute, mut response: Response) {
             // super::routes::internal_server_error(request, response);
 
             return;
-        },
+        }
         Ok(rendered) => {
 
-            response.headers_mut().set((ContentType(
-                mime!(Text/Html)
-            )));
+            response.headers_mut().set((ContentType(mime!(Text/Html))));
 
             response.send(rendered.as_bytes()).unwrap();
 
@@ -394,7 +390,8 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
 
 #[inline]
 fn DeckListItemComponent(tmpl: &mut TemplateBuffer, is_bottom: bool) {
-    tmpl << html!{
+    tmpl <<
+    html!{
         div(class="columns is-marginless",
             style=labels!(
                 "border-bottom:1px dotted #d3d6db;" => !is_bottom)) {
@@ -418,7 +415,8 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, is_bottom: bool) {
 
 #[inline]
 fn PaginationComponent(tmpl: &mut TemplateBuffer) {
-    tmpl << html!{
+    tmpl <<
+    html!{
         nav(class="pagination") {
             a(class="button is-bold") {
                 : raw!("Previous")

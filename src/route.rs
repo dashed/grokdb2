@@ -12,7 +12,7 @@ use std::cell::RefCell;
 
 /* 3rd-party imports */
 
-use url::percent_encoding::{percent_decode};
+use url::percent_encoding::percent_decode;
 
 use horrorshow::{RenderOnce, TemplateBuffer, Template, FnRenderer};
 
@@ -25,11 +25,11 @@ use hyper::status::StatusCode;
 use hyper::header::{Header, HeaderFormat};
 
 use chomp::{SimpleResult, Error, ParseResult};
-use chomp::primitives::{InputBuffer};
+use chomp::primitives::InputBuffer;
 use chomp::{Input, U8Result, parse_only};
 use chomp::buffer::{Source, Stream, StreamError};
 
-use chomp::{token};
+use chomp::token;
 use chomp::parsers::{string, eof, any, satisfy};
 use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look_ahead, option};
 use chomp::ascii::{is_whitespace, decimal, digit};
@@ -41,7 +41,7 @@ use mime_types;
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
 use types::{DeckID, CardID, DecksPageQuery, Search};
 
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
 
 /* statics */
 
@@ -53,7 +53,6 @@ lazy_static! {
 
 #[derive(Debug)]
 pub enum AppRoute {
-
     Home,
 
     // user settings
@@ -64,7 +63,7 @@ pub enum AppRoute {
     Deck(DeckID, DeckRoute),
 
     Card(CardID, CardRoute),
-    CardInDeck(DeckID, CardID, CardRoute)
+    CardInDeck(DeckID, CardID, CardRoute),
 }
 
 #[derive(Debug)]
@@ -72,13 +71,11 @@ pub enum CardRoute {
     Profile,
     // Settings,
     // Meta,
-
-    Review
+    Review,
 }
 
 #[derive(Debug)]
 pub enum DeckRoute {
-
     NewCard,
     NewDeck,
     Description,
@@ -86,20 +83,18 @@ pub enum DeckRoute {
     Cards, // list
     Settings,
     Meta,
-    Review,
-    // CardProfile(CardID, CardRoute)
-
-    // Create,
-    // Read,
-    // Update,
-    // http://stackoverflow.com/a/26897298/412627
-// http://programmers.stackexchange.com/questions/114156/why-are-there-are-no-put-and-delete-methods-on-html-forms
-    // Delete
+    Review, /* CardProfile(CardID, CardRoute)
+             *
+             * Create,
+             * Read,
+             * Update,
+             * http://stackoverflow.com/a/26897298/412627
+             * http://programmers.stackexchange.com/questions/114156/why-are-there-are-no-put-and-delete-methods-on-html-forms
+             * Delete */
 }
 
 #[derive(Debug)]
 pub enum RenderResponse {
-
     RenderComponent(AppRoute),
     RenderJSON(String),
 
@@ -107,14 +102,13 @@ pub enum RenderResponse {
     RenderBadRequest,
     RenderInternalServerError,
 
-    RenderAsset(ContentType, Vec<u8>)
+    RenderAsset(ContentType, Vec<u8>),
 }
 
 /* route parser */
 
 #[inline]
-pub fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>)
-    -> U8Result<'a, RenderResponse> {
+pub fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
         // path must begin with /
@@ -281,38 +275,36 @@ fn parse_route_decks(input: Input<u8>) -> U8Result<RenderResponse> {
 }
 
 
-/*
-Original:
-E --> P {or P}
-P --> leaf
-
-Expanded:
-query_string = leaf rest | leaf
-rest = & leaf rest | & leaf
-
-Cases:
-?foo=42
-?foo=42&bar=9000
-?foo=42&&&&&
-?empty
- */
-/*
-query_string :=
-    skip_many(&) field_value query_string |
-    skip_many(&) field_value
-
-field_value :=
-    segment(=) segment(&) |
-    segment(=) segment(eof) |
-    segment(&) |
-    segment(&) |
-    segment(eof)
- */
+/* Original:
+ * E --> P {or P}
+ * P --> leaf
+ *
+ * Expanded:
+ * query_string = leaf rest | leaf
+ * rest = & leaf rest | & leaf
+ *
+ * Cases:
+ * ?foo=42
+ * ?foo=42&bar=9000
+ * ?foo=42&&&&&
+ * ?empty
+ * */
+/* query_string :=
+ * skip_many(&) field_value query_string |
+ * skip_many(&) field_value
+ *
+ * field_value :=
+ * segment(=) segment(&) |
+ * segment(=) segment(eof) |
+ * segment(&) |
+ * segment(&) |
+ * segment(eof)
+ * */
 
 type QueryString = HashMap<String, Option<String>>;
 enum QueryStringKeyType {
     Value(String),
-    NoValue(String)
+    NoValue(String),
 }
 
 #[inline]
@@ -329,7 +321,8 @@ fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
 
     loop {
 
-        result = result.then(|i| parse!{i;
+        result = result.then(|i| {
+                parse!{i;
 
             let key = string_till(|i| parse!{i;
                 token(b'&') <|> token(b'=') <|> parse_then_value(eof, b'&');
@@ -358,16 +351,17 @@ fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
             );
 
             ret key_type
-        }).bind(|i, key_type| {
-            match key_type {
-                QueryStringKeyType::NoValue(key) => {
-                    query_string.insert(key, None);
+        }
+            })
+            .bind(|i, key_type| {
+                match key_type {
+                    QueryStringKeyType::NoValue(key) => {
+                        query_string.insert(key, None);
 
-                    i.ret(())
-                },
-                QueryStringKeyType::Value(key) => {
-
-                    parse!{i;
+                        i.ret(())
+                    }
+                    QueryStringKeyType::Value(key) => {
+                        parse!{i;
 
                         let value = string_till(|i| parse!{i;
                             let res = token(b'&') <|> parse_then_value(eof, b'-');
@@ -387,11 +381,9 @@ fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
                             ()
                         }
                     }
-
-
+                    }
                 }
-            }
-        });
+            });
 
         if should_break {
             break;

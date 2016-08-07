@@ -5,7 +5,7 @@ macro_rules! db_read_lock(
             use std::sync::{Arc, Mutex, RwLock};
             use rusqlite::{Connection};
 
-            // hacky type checking
+// hacky type checking
             let _: Arc<RwLock<Mutex<Connection>>> = $e;
         };
 
@@ -22,7 +22,7 @@ macro_rules! db_write_lock(
             use std::sync::{Arc, Mutex, RwLock};
             use rusqlite::{Connection};
 
-            // hacky type checking
+// hacky type checking
             let _: Arc<RwLock<Mutex<Connection>>> = $e;
         };
 

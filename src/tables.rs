@@ -4,91 +4,75 @@ use std::sync::{Arc, Mutex, RwLock};
 
 /* 3rd-party imports */
 
-use rusqlite::{Connection};
+use rusqlite::Connection;
 
 /* local imports */
 
-use errors::{RawAPIError};
+use errors::RawAPIError;
 
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
 
-const SETUP: [&'static str; 26] = [
+const SETUP: [&'static str; 26] = [// configs
+                                   CONFIGS,
 
-    // configs
+                                   // configs/triggers
+                                   CONFIG_ON_UPDATE_TRIGGER,
 
-    CONFIGS,
+                                   // decks
+                                   DECKS,
+                                   DECKSCLOSURE,
 
-    // configs/triggers
+                                   // decks/indices
+                                   DECKSCLOSURE_DEPTH_INDEX,
 
-    CONFIG_ON_UPDATE_TRIGGER,
+                                   // decks/triggers
+                                   DECK_ON_UPDATE_TRIGGER,
+                                   DECKSCLOSURE_NEW_DECK_TRIGGER,
 
-    // decks
+                                   // cards
+                                   CARDS,
 
-    DECKS,
-    DECKSCLOSURE,
+                                   // cards/indices
+                                   CARD_ID_INDEX,
 
-    // decks/indices
+                                   // cards/triggers
+                                   UPDATED_CARD_TRIGGER,
 
-    DECKSCLOSURE_DEPTH_INDEX,
+                                   // cards score
+                                   CARDS_SCORE,
 
-    // decks/triggers
+                                   // cards score/triggers
+                                   CARDS_SCORE_ON_NEW_CARD_TRIGGER,
 
-    DECK_ON_UPDATE_TRIGGER,
-    DECKSCLOSURE_NEW_DECK_TRIGGER,
+                                   // cards score/indices
+                                   CARDS_SCORE_INDEX,
 
-    // cards
+                                   // cards score history
+                                   CARDS_SCORE_HISTORY,
 
-    CARDS,
+                                   // cards score history/triggers
+                                   SNAPSHOT_CARDS_SCORE_ON_UPDATED_TRIGGER,
 
-    // cards/indices
+                                   // cards score history/indices
+                                   CARDS_SCORE_HISTORY_CARD_INDEX,
+                                   CARDS_SCORE_HISTORY_OCCURRED_AT_INDEX,
 
-    CARD_ID_INDEX,
+                                   // stashes
+                                   STASHES,
+                                   STASHES_CARDS,
 
-    // cards/triggers
+                                   // stashes/triggers
+                                   STASHES_ON_UPDATE_TRIGGER,
 
-    UPDATED_CARD_TRIGGER,
+                                   // review
+                                   CACHED_DECK_REVIEW,
+                                   CACHED_STASH_REVIEW,
 
-    // cards score
-
-    CARDS_SCORE,
-
-    // cards score/triggers
-
-    CARDS_SCORE_ON_NEW_CARD_TRIGGER,
-
-    // cards score/indices
-
-    CARDS_SCORE_INDEX,
-
-    // cards score history
-
-    CARDS_SCORE_HISTORY,
-
-    // cards score history/triggers
-
-    SNAPSHOT_CARDS_SCORE_ON_UPDATED_TRIGGER,
-
-    // cards score history/indices
-    CARDS_SCORE_HISTORY_CARD_INDEX,
-    CARDS_SCORE_HISTORY_OCCURRED_AT_INDEX,
-
-    // stashes
-    STASHES,
-    STASHES_CARDS,
-
-    // stashes/triggers
-    STASHES_ON_UPDATE_TRIGGER,
-
-    // review
-    CACHED_DECK_REVIEW,
-    CACHED_STASH_REVIEW,
-
-    // FTS3/4 full-text searching sqlite module
-    CARD_SEARCH_INDEX,
-    CARD_SEARCH_FIRST_INDEX_TRIGGER,
-    CARD_SEARCH_DELETE_INDEX_TRIGGER,
-    CARD_SEARCH_UPDATE_INDEX_TRIGGER
-];
+                                   // FTS3/4 full-text searching sqlite module
+                                   CARD_SEARCH_INDEX,
+                                   CARD_SEARCH_FIRST_INDEX_TRIGGER,
+                                   CARD_SEARCH_DELETE_INDEX_TRIGGER,
+                                   CARD_SEARCH_UPDATE_INDEX_TRIGGER];
 
 /**
  * All SQL comply with syntax supported with SQLite v3.9.1
@@ -454,8 +438,10 @@ pub fn setup_database(db_connection: Arc<RwLock<Mutex<Connection>>>) -> Result<(
         match db_conn.execute_batch(query) {
             Err(sqlite_error) => {
                 return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
-            },
-            _ => {/* query sucessfully executed */},
+            }
+            _ => {
+                /* query sucessfully executed */
+            }
         }
     }
 

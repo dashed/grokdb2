@@ -8,7 +8,7 @@ use std::thread;
 use time;
 use hyper::server::{Server, Handler, Request, Response};
 
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
 
 /* LogEntry */
 
@@ -29,13 +29,17 @@ use hyper::server::{Server, Handler, Request, Response};
 /// }); // <-- the log entry is written at the end of this block
 /// ```
 ///
-pub struct LogEntry<W> where W: Write {
+pub struct LogEntry<W>
+    where W: Write
+{
     line: String,
     output: W,
     start_time: u64,
 }
 
-impl<'a, W> LogEntry<W> where W: Write {
+impl<'a, W> LogEntry<W>
+    where W: Write
+{
     /// Starts a `LogEntry`.
     #[inline]
     pub fn start(output: W, rq: &Request) -> LogEntry<W> {
@@ -47,7 +51,9 @@ impl<'a, W> LogEntry<W> where W: Write {
     }
 }
 
-impl<W> Drop for LogEntry<W> where W: Write {
+impl<W> Drop for LogEntry<W>
+    where W: Write
+{
     #[inline]
     fn drop(&mut self) {
         write!(self.output, "{} - ", self.line).unwrap();
@@ -65,7 +71,9 @@ impl<W> Drop for LogEntry<W> where W: Write {
 }
 
 #[inline]
-fn format_time<W>(mut out: W, time: u64) where W: Write {
+fn format_time<W>(mut out: W, time: u64)
+    where W: Write
+{
     if time < 1_000 {
         write!(out, "{}ns", time).unwrap()
     } else if time < 1_000_000 {

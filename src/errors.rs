@@ -2,9 +2,9 @@
 
 use hyper;
 use serde::{Serialize, Serializer};
-use rusqlite::{Error as SqliteError};
+use rusqlite::Error as SqliteError;
 
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
 
 // src: https://github.com/WhiteHouse/api-standards#error-handling
 
@@ -14,7 +14,6 @@ use rusqlite::{Error as SqliteError};
 
 #[derive(Debug, PartialEq)]
 pub enum APIStatus {
-
     // #[serde(rename = "Reques success")]
     Ok, // 200
 
@@ -22,15 +21,15 @@ pub enum APIStatus {
     BadRequest, // 400
 
     // #[serde(rename = "Failure due to server-side problem")]
-    ServerError // 500
+    ServerError, // 500
 }
 
 // NOTE: #[derive(Serialize)] is not used. Need custom serialization.
 impl Serialize for APIStatus {
-
     // serialize APIStatus to human friendly message
     fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: Serializer {
+        where S: Serializer
+    {
 
         let human_message = match self {
             &APIStatus::Ok => "Request success.",
@@ -53,15 +52,9 @@ pub struct EndPointError {
 impl EndPointError {
     pub fn status_code(&self) -> hyper::status::StatusCode {
         let status_code = match self.status {
-            APIStatus::Ok => {
-                hyper::status::StatusCode::Ok
-            },
-            APIStatus::BadRequest => {
-                hyper::status::StatusCode::BadRequest
-            },
-            APIStatus::ServerError => {
-                hyper::status::StatusCode::InternalServerError
-            }
+            APIStatus::Ok => hyper::status::StatusCode::Ok,
+            APIStatus::BadRequest => hyper::status::StatusCode::BadRequest,
+            APIStatus::ServerError => hyper::status::StatusCode::InternalServerError,
         };
 
         status_code
@@ -108,8 +101,8 @@ pub fn json_deserialize_err(reason: String) -> EndPointError {
     return EndPointError {
         status: APIStatus::BadRequest,
         developerMessage: reason.clone(),
-        userMessage: reason
-    }
+        userMessage: reason,
+    };
 }
 
 macro_rules! internal_server_error(
@@ -129,7 +122,7 @@ macro_rules! handle_raw_api_error(
         use errors;
         let _type_check: errors::RawAPIError = $reason;
 
-        // TODO: logging backend
+// TODO: logging backend
         println!("RAW API ERROR: {:?}", _type_check);
     }}
 );
@@ -139,7 +132,7 @@ macro_rules! handle_serde_error(
         use serde_json;
         let _type_check: serde_json::error::Error = $reason;
 
-        // TODO: logging backend
+// TODO: logging backend
         println!("SERDE ERROR: {:?}", _type_check);
     }}
 );

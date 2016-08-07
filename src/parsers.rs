@@ -1,33 +1,33 @@
 /* rust lib imports */
 
-use std::ascii::{AsciiExt};
+use std::ascii::AsciiExt;
 
 /* 3rd-party imports */
 
 use chomp::{SimpleResult, Error, ParseResult};
-use chomp::primitives::{InputBuffer};
+use chomp::primitives::InputBuffer;
 use chomp::{Input, U8Result, parse_only};
 use chomp::buffer::{Source, Stream, StreamError};
 
-use chomp::{token};
+use chomp::token;
 use chomp::parsers::{string, eof, any, satisfy};
 use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look_ahead, option};
 use chomp::ascii::{is_whitespace, decimal, digit};
 
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
 
 /* segment parser */
 
 // parse to string till stop_at parser is satisfied. input satisfying stop_at wont be consumed.
 #[inline]
 pub fn string_till<'a, F>(input: Input<'a, u8>, mut stop_at: F) -> U8Result<'a, String>
-    where F: FnMut(Input<'a, u8>) -> U8Result<'a, ()>  {
+    where F: FnMut(Input<'a, u8>) -> U8Result<'a, ()>
+{
 
-    many_till(input, any, |i| look_ahead(i, &mut stop_at))
-        .bind(|i, line: Vec<u8>| {
-            let string: String = String::from_utf8_lossy(line.as_slice()).into_owned();
-            i.ret(string)
-        })
+    many_till(input, any, |i| look_ahead(i, &mut stop_at)).bind(|i, line: Vec<u8>| {
+        let string: String = String::from_utf8_lossy(line.as_slice()).into_owned();
+        i.ret(string)
+    })
 
 }
 
@@ -88,8 +88,7 @@ pub fn parse_then_value<'a, I, T, E, F, U: 'a>(i: Input<'a, I>, mut parser: F, v
 }
 
 #[inline]
-pub fn string_ignore_case<'a>(i: Input<'a, u8>, s: &[u8])
-    -> SimpleResult<'a, u8, &'a [u8]> {
+pub fn string_ignore_case<'a>(i: Input<'a, u8>, s: &[u8]) -> SimpleResult<'a, u8, &'a [u8]> {
     let b = i.buffer();
 
     if s.len() > b.len() {
@@ -101,7 +100,7 @@ pub fn string_ignore_case<'a>(i: Input<'a, u8>, s: &[u8])
     for j in 0..s.len() {
 
         if !(s[j]).eq_ignore_ascii_case(&(d[j])) {
-            return i.replace(&b[j..]).err(Error::expected(d[j]))
+            return i.replace(&b[j..]).err(Error::expected(d[j]));
         }
     }
 
@@ -120,11 +119,7 @@ pub fn parse_byte_limit(input: Input<u8>, delim: u8, max_reoccurance: u8) -> U8R
     let mut idx = 0;
 
     let not_delim = {
-        if delim == b'-' {
-            b'/'
-        } else {
-            b'-'
-        }
+        if delim == b'-' { b'/' } else { b'-' }
     };
 
     loop {

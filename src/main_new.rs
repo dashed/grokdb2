@@ -1,5 +1,7 @@
 #![feature(custom_derive, plugin)]
 #![plugin(serde_macros)]
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate serde;
 extern crate serde_json;
@@ -22,7 +24,7 @@ extern crate quick_error;
 /* rust lib imports */
 
 use std::io;
-use std::ascii::{AsciiExt};
+use std::ascii::AsciiExt;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex, LockResult, MutexGuard, RwLock};
@@ -33,11 +35,11 @@ use std::collections::HashMap;
 
 /* 3rd-party imports */
 
-use rusqlite::{Connection};
+use rusqlite::Connection;
 use rusqlite::types::ToSql;
-use rusqlite::{Error as SqliteError};
+use rusqlite::Error as SqliteError;
 
-use url::percent_encoding::{percent_decode};
+use url::percent_encoding::percent_decode;
 
 use hyper::method::Method;
 use hyper::server::{Server, Handler, Request, Response};
@@ -48,11 +50,11 @@ use hyper::status::StatusCode;
 use hyper::header::{Header, HeaderFormat};
 
 use chomp::{SimpleResult, Error, ParseResult};
-use chomp::primitives::{InputBuffer};
+use chomp::primitives::InputBuffer;
 use chomp::{Input, U8Result, parse_only};
 use chomp::buffer::{Source, Stream, StreamError};
 
-use chomp::{token};
+use chomp::token;
 use chomp::parsers::{string, eof, any, satisfy};
 use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look_ahead, option};
 use chomp::ascii::{is_whitespace, decimal, digit};
@@ -75,17 +77,17 @@ mod components;
 
 use context::Context;
 use log_entry::LogEntry;
-use errors::{RawAPIError};
+use errors::RawAPIError;
 use api::configs;
 use route::parse_request_uri;
 use components::render_response;
 use route::RenderResponse;
 
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////
-// main
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// main
+/// /////////////////////////////////////////////////////////////////////////////
 
 fn main() {
 
@@ -95,14 +97,14 @@ fn main() {
         Err(why) => {
             // TODO: fix
             panic!("{}", why);
-        },
-        Ok(db_conn) => Arc::new(RwLock::new(Mutex::new(db_conn)))
+        }
+        Ok(db_conn) => Arc::new(RwLock::new(Mutex::new(db_conn))),
     };
 
     /* table setup */
 
     match tables::setup_database(db_connection.clone()) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(why) => {
             handle_raw_api_error!(why);
             return;
@@ -134,9 +136,7 @@ fn main() {
         // NOTE: this is a RAII guard
         let _entry = LogEntry::start(io::stdout(), &request);
 
-        let context = Context {
-            database: db_connection.clone()
-        };
+        let context = Context { database: db_connection.clone() };
 
         // middleware/logging
         // TODO: complete
@@ -150,7 +150,7 @@ fn main() {
             Ok(render_response) => {
                 // url has a match
                 render_response
-            },
+            }
             Err(_why) => {
 
                 // 404 error

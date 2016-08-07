@@ -41,6 +41,7 @@ rev = "b1f6920"
 # rev = "5941f1d071157923203a278c16fbaddec4077932"
 
 [dependencies]
+clippy = {version = "*", optional = true}
 serde = "0.8"
 serde_json = "0.8"
 serde_macros = "0.8"
@@ -55,3 +56,6 @@ time = "0.1.35"
 quick-error = "1.1.0"
 # html5ever = "0.5.4"
 # tendril = "0.2.2"
+
+[features]
+default = []

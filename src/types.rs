@@ -4,10 +4,10 @@ use std::sync::{Arc, Mutex, LockResult, MutexGuard, RwLock};
 
 /* 3rd-party imports */
 
-use rusqlite::{Connection};
+use rusqlite::Connection;
 use hyper::header::{Headers, ContentType, TransferEncoding};
 
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
 
 /* Types */
 
@@ -24,34 +24,31 @@ pub type PerPage = u64;
 #[derive(Debug)]
 pub enum Search {
     NoQuery,
-    Query(String)
+    Query(String),
 }
 
 #[derive(Debug)]
 pub enum SortOrder {
     Ascending,
-    Descending
+    Descending,
 }
 
 #[derive(Debug)]
 pub enum DecksPageQuery {
     NoQuery,
-    Query(Page, DecksPageSort)
+    Query(Page, DecksPageSort),
 }
 
 #[derive(Debug)]
 pub enum DecksPageSort {
-
     DeckTitle(SortOrder),
     CreatedAt(SortOrder),
-    UpdatedAt(SortOrder),
-
-    // TODO: number of cards
-    // TODO: number of decks
-
-    // last time user reviewed this deck;
-    // not based on the cards the deck contains
-    // ReviewedAt(SortOrder)
+    UpdatedAt(SortOrder), /* TODO: number of cards
+                           * TODO: number of decks
+                           *
+                           * last time user reviewed this deck;
+                           * not based on the cards the deck contains
+                           * ReviewedAt(SortOrder) */
 }
 
 /* database */
@@ -60,4 +57,3 @@ pub enum DecksPageSort {
 // RwLock := Create critical section where multiple API Reads can co-exist
 // Mutex := Raw database operation
 pub type Database = Arc<RwLock<Mutex<Connection>>>;
-
