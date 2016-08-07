@@ -50,44 +50,44 @@ const SETUP: [&'static str; 26] = [
 
     // cards score
 
-    // CARDS_SCORE,
+    CARDS_SCORE,
 
     // cards score/triggers
 
-    // CARDS_SCORE_ON_NEW_CARD_TRIGGER,
+    CARDS_SCORE_ON_NEW_CARD_TRIGGER,
 
     // cards score/indices
 
-    // CARDS_SCORE_INDEX,
+    CARDS_SCORE_INDEX,
 
     // cards score history
 
-    // CARDS_SCORE_HISTORY,
+    CARDS_SCORE_HISTORY,
 
     // cards score history/triggers
 
-    // SNAPSHOT_CARDS_SCORE_ON_UPDATED_TRIGGER,
+    SNAPSHOT_CARDS_SCORE_ON_UPDATED_TRIGGER,
 
     // cards score history/indices
-    // CARDS_SCORE_HISTORY_CARD_INDEX,
-    // CARDS_SCORE_HISTORY_OCCURRED_AT_INDEX,
+    CARDS_SCORE_HISTORY_CARD_INDEX,
+    CARDS_SCORE_HISTORY_OCCURRED_AT_INDEX,
 
     // stashes
-    // STASHES,
-    // STASHES_CARDS,
+    STASHES,
+    STASHES_CARDS,
 
     // stashes/triggers
-    // STASHES_ON_UPDATE_TRIGGER,
+    STASHES_ON_UPDATE_TRIGGER,
 
     // review
-    // CACHED_DECK_REVIEW,
-    // CACHED_STASH_REVIEW,
+    CACHED_DECK_REVIEW,
+    CACHED_STASH_REVIEW,
 
     // FTS3/4 full-text searching sqlite module
-    // CARD_SEARCH_INDEX,
-    // CARD_SEARCH_FIRST_INDEX_TRIGGER,
-    // CARD_SEARCH_DELETE_INDEX_TRIGGER,
-    // CARD_SEARCH_UPDATE_INDEX_TRIGGER
+    CARD_SEARCH_INDEX,
+    CARD_SEARCH_FIRST_INDEX_TRIGGER,
+    CARD_SEARCH_DELETE_INDEX_TRIGGER,
+    CARD_SEARCH_UPDATE_INDEX_TRIGGER
 ];
 
 /**
@@ -199,7 +199,7 @@ CREATE TABLE IF NOT EXISTS Cards (
 
     deck_id INTEGER NOT NULL,
 
-    active BOOLEAN NOT NULL DEFAULT 1,
+    is_active BOOLEAN NOT NULL DEFAULT 1,
 
     CHECK (title <> ''),
     FOREIGN KEY (deck_id) REFERENCES Decks(deck_id) ON DELETE CASCADE
