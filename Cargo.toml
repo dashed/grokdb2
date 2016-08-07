@@ -41,9 +41,9 @@ rev = "b1f6920"
 # rev = "5941f1d071157923203a278c16fbaddec4077932"
 
 [dependencies]
-serde = "*"
-serde_macros = "*"
-serde_json = "0.7.1"
+serde = "0.8"
+serde_json = "0.8"
+serde_macros = "0.8"
 regex = "0.1"
 # horrorshow = "0.5"
 url = "1.1"
