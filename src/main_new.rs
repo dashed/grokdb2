@@ -78,7 +78,7 @@ mod components;
 use context::Context;
 use log_entry::LogEntry;
 use errors::RawAPIError;
-use api::configs;
+use api::{configs, decks};
 use route::parse_request_uri;
 use components::render_response;
 use route::RenderResponse;
@@ -113,7 +113,46 @@ fn main() {
 
     /* database bootstrap */
 
-    configs::api_get_config(db_connection.clone(), configs::CONFIG_ROOT_DECK_ID_KEY);
+    let mut root_deck_id = 1;
+
+    let should_create_root_deck = match configs::get_config(
+        db_connection.clone(),
+        configs::CONFIG_ROOT_DECK_ID_KEY.to_string()
+    ).unwrap() {
+        Some(config) => {
+            let deck_id = config.value;
+
+            match deck_id.parse::<i64>() {
+                Ok(deck_id) => {
+                    root_deck_id = deck_id;
+                    false
+                },
+                Err(_) => {
+                    true
+                }
+            }
+
+        },
+        None => {
+            true
+        }
+    };
+
+    if should_create_root_deck {
+        // root deck not found.
+        // create a root deck.
+        let request = decks::CreateDeck {
+            name: "Library".to_string(),
+            description: "".to_string(),
+        };
+
+        let root_deck = decks::create_deck(db_connection.clone(), request).unwrap();
+
+        configs::set_config(
+            db_connection.clone(),
+            configs::CONFIG_ROOT_DECK_ID_KEY.to_string(), format!("{}", root_deck.id)
+        ).unwrap();
+    }
 
     /* server */
 

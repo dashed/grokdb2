@@ -11,6 +11,8 @@ use hyper::header::{Headers, ContentType, TransferEncoding};
 
 /* Types */
 
+pub type UnixTimestamp = i64;
+
 // TODO: change to u64? it's i64 b/c sqlite requires it.
 pub type DeckID = i64;
 pub type CardID = i64;
