@@ -9,7 +9,6 @@ use types::{Database, UnixTimestamp, DeckID};
 use errors::RawAPIError;
 
 /// /////////////////////////////////////////////////////////////////////////////
-
 // TODO: fix
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Deck {
@@ -17,9 +16,9 @@ pub struct Deck {
     pub name: String,
     pub description: String,
     pub created_at: UnixTimestamp, // unix timestamp
-    pub updated_at: UnixTimestamp,  // unix timestamp
-    pub reviewed_at: UnixTimestamp,  // unix timestamp
-    pub has_reviewed: bool // false if reviewed_at == created_at, otherwise true
+    pub updated_at: UnixTimestamp, // unix timestamp
+    pub reviewed_at: UnixTimestamp, // unix timestamp
+    pub has_reviewed: bool, // false if reviewed_at == created_at, otherwise true
 }
 
 // struct for requesting to create a deck
@@ -59,28 +58,26 @@ pub fn get_deck(database: Database, deck_id: DeckID) -> Result<Deck, RawAPIError
             created_at: created_at,
             updated_at: row.get(4),
             reviewed_at: reviewed_at,
-            has_reviewed: created_at != reviewed_at
+            has_reviewed: created_at != reviewed_at,
         };
     });
 
     match results {
         Err(sqlite_error) => {
             return Err(RawAPIError::SQLError(sqlite_error, query));
-        },
+        }
         Ok(deck) => {
             return Ok(deck);
         }
     };
 }
 
-pub fn create_deck(database: Database, create_deck_request:  CreateDeck) -> Result<Deck, RawAPIError> {
+pub fn create_deck(database: Database, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
 
     let query = "INSERT INTO Decks(name, description) VALUES (:name, :description);";
 
-    let params: &[(&str, &ToSql)] = &[
-        (":name", &create_deck_request.name.clone()),
-        (":description", &create_deck_request.description.clone())
-    ];
+    let params: &[(&str, &ToSql)] = &[(":name", &create_deck_request.name.clone()),
+                                      (":description", &create_deck_request.description.clone())];
 
     let deck_id: DeckID = {
         db_write_lock!(db_conn; database);
@@ -89,8 +86,10 @@ pub fn create_deck(database: Database, create_deck_request:  CreateDeck) -> Resu
         match db_conn.execute_named(query, &params[..]) {
             Err(sqlite_error) => {
                 return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
-            },
-            _ => {/* query sucessfully executed */},
+            }
+            _ => {
+                /* query sucessfully executed */
+            }
         }
 
         let row_id = db_conn.last_insert_rowid();

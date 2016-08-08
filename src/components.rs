@@ -29,9 +29,7 @@ use chomp::ascii::{is_whitespace, decimal, digit};
 use route::{AppRoute, RenderResponse};
 
 /// /////////////////////////////////////////////////////////////////////////////
-
 /* rendering */
-
 #[inline]
 pub fn render_response(render: RenderResponse, mut response: Response) {
 
@@ -106,7 +104,7 @@ fn render_components(app_route: AppRoute, mut response: Response) {
         }
         Ok(rendered) => {
 
-            response.headers_mut().set((ContentType(mime!(Text/Html))));
+            response.headers_mut().set((ContentType(mime!(Text / Html))));
 
             response.send(rendered.as_bytes()).unwrap();
 

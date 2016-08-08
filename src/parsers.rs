@@ -15,10 +15,9 @@ use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look
 use chomp::ascii::{is_whitespace, decimal, digit};
 
 /// /////////////////////////////////////////////////////////////////////////////
-
 /* segment parser */
-
-// parse to string till stop_at parser is satisfied. input satisfying stop_at wont be consumed.
+ *
+ * parse to string till stop_at parser is satisfied. input satisfying stop_at wont be consumed. */
 #[inline]
 pub fn string_till<'a, F>(input: Input<'a, u8>, mut stop_at: F) -> U8Result<'a, String>
     where F: FnMut(Input<'a, u8>) -> U8Result<'a, ()>

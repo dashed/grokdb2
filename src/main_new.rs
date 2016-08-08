@@ -115,10 +115,9 @@ fn main() {
 
     let mut root_deck_id = 1;
 
-    let should_create_root_deck = match configs::get_config(
-        db_connection.clone(),
-        configs::CONFIG_ROOT_DECK_ID_KEY.to_string()
-    ).unwrap() {
+    let should_create_root_deck = match configs::get_config(db_connection.clone(),
+                                                            configs::CONFIG_ROOT_DECK_ID_KEY.to_string())
+        .unwrap() {
         Some(config) => {
             let deck_id = config.value;
 
@@ -126,16 +125,12 @@ fn main() {
                 Ok(deck_id) => {
                     root_deck_id = deck_id;
                     false
-                },
-                Err(_) => {
-                    true
                 }
+                Err(_) => true,
             }
 
-        },
-        None => {
-            true
         }
+        None => true,
     };
 
     if should_create_root_deck {
@@ -148,10 +143,10 @@ fn main() {
 
         let root_deck = decks::create_deck(db_connection.clone(), request).unwrap();
 
-        configs::set_config(
-            db_connection.clone(),
-            configs::CONFIG_ROOT_DECK_ID_KEY.to_string(), format!("{}", root_deck.id)
-        ).unwrap();
+        configs::set_config(db_connection.clone(),
+                            configs::CONFIG_ROOT_DECK_ID_KEY.to_string(),
+                            format!("{}", root_deck.id))
+            .unwrap();
     }
 
     /* server */

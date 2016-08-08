@@ -26,7 +26,8 @@ pub fn get_config(database: Database, setting_key: String) -> Result<Option<Conf
 
     let query = "
         SELECT
-            setting, value
+            setting,
+            value
         FROM Configs
         WHERE
             setting = :setting
@@ -76,10 +77,7 @@ pub fn set_config(database: Database, setting: String, value: String) -> Result<
         VALUES (:setting, :value);
     ";
 
-    let params: &[(&str, &ToSql)] = &[
-        (":setting", &setting),
-        (":value", &value),
-    ];
+    let params: &[(&str, &ToSql)] = &[(":setting", &setting), (":value", &value)];
 
     db_write_lock!(db_conn; database);
     let db_conn: &Connection = db_conn;
@@ -87,15 +85,20 @@ pub fn set_config(database: Database, setting: String, value: String) -> Result<
     match db_conn.execute_named(query, &params[..]) {
         Err(sqlite_error) => {
             return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
-        },
-        _ => {/* query sucessfully executed */},
+        }
+        _ => {
+            /* query sucessfully executed */
+        }
     }
 
     let config = Config {
         setting: setting.clone(),
-        value: value.clone()
+        value: value.clone(),
     };
 
     return Ok(config);
 
 }
+
+#[test]
+fn configs_test() {}
