@@ -73,6 +73,32 @@ pub fn get_deck(context: Context, deck_id: DeckID) -> Result<Deck, RawAPIError> 
     };
 }
 
+pub fn deck_exists(context: Context, deck_id: DeckID) -> Result<bool, RawAPIError> {
+
+    let query = format!("
+        SELECT
+            COUNT(1)
+        FROM Decks
+        WHERE deck_id = {deck_id}
+        LIMIT 1;
+    ", deck_id = deck_id);
+
+    db_read_lock!(db_conn; context.database);
+    let db_conn: &Connection = db_conn;
+
+    let deck_exists = db_conn.query_row(&query, &[], |row| -> bool {
+        let count: i64 = row.get(0);
+        return count >= 1;
+    });
+
+    match deck_exists {
+        Ok(deck_exists) => return Ok(deck_exists),
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+}
+
 pub fn create_deck(context: Context, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
 
     let query = "INSERT INTO Decks(name, description) VALUES (:name, :description);";
@@ -208,7 +234,32 @@ fn decks_test() {
 
     // deck exists
 
-    // TODO: complete
+    {
+        // case: doesn't exist
+
+        match decks::deck_exists(Context::new(db_connection.clone()), 3) {
+            Ok(actual) => {
+                assert_eq!(actual, false);
+            }
+            Err(_) => assert!(false),
+        }
+
+        // case: exists
+
+        match decks::deck_exists(Context::new(db_connection.clone()), 1) {
+            Ok(actual) => {
+                assert_eq!(actual, true);
+            }
+            Err(_) => assert!(false),
+        }
+
+        match decks::deck_exists(Context::new(db_connection.clone()), 2) {
+            Ok(actual) => {
+                assert_eq!(actual, true);
+            }
+            Err(_) => assert!(false),
+        }
+    };
 
     /* teardown */
 
