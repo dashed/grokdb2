@@ -13,6 +13,7 @@ use errors::RawAPIError;
 
 pub const CONFIG_ROOT_DECK_ID_KEY: &'static str = "root_deck_id";
 
+#[derive(PartialEq, Debug)]
 pub struct Config {
     pub setting: String,
     pub value: String,
@@ -107,22 +108,80 @@ fn configs_test() {
 
     use std::fs;
     use database;
+    use api::configs;
 
     /* setup */
 
     let file_path = "test/assets/configs_test.db".to_string();
 
-    database::get_database(file_path.clone());
+    let db_connection = database::get_database(file_path.clone());
 
     // config doesn't exist
 
+    {
+        match configs::get_config(Context::new(db_connection.clone()), "config_key_1".to_string()).unwrap() {
+            Some(_) => assert!(false),
+            None => assert!(true)
+        };
+    };
+
     // set a config
+
+    {
+        let actual = configs::set_config(Context::new(db_connection.clone()),
+            "config_key_2".to_string(),
+            "value_1".to_string()).unwrap();
+
+        let expected = Config {
+            setting: "config_key_2".to_string(),
+            value: "value_1".to_string()
+        };
+        assert_eq!(actual, expected);
+    };
 
     // retrieve a config
 
+    {
+        match configs::get_config(Context::new(db_connection.clone()), "config_key_2".to_string()).unwrap() {
+            Some(actual) => {
+                let expected = Config {
+                    setting: "config_key_2".to_string(),
+                    value: "value_1".to_string()
+                };
+                assert_eq!(actual, expected);
+            },
+            None => assert!(false)
+        };
+    };
+
     // overwrite a config
+
+    {
+        let actual = configs::set_config(Context::new(db_connection.clone()),
+            "config_key_2".to_string(),
+            "value_2".to_string()).unwrap();
+
+        let expected = Config {
+            setting: "config_key_2".to_string(),
+            value: "value_2".to_string()
+        };
+        assert_eq!(actual, expected);
+    };
+
+    {
+        match configs::get_config(Context::new(db_connection.clone()), "config_key_2".to_string()).unwrap() {
+            Some(actual) => {
+                let expected = Config {
+                    setting: "config_key_2".to_string(),
+                    value: "value_2".to_string()
+                };
+                assert_eq!(actual, expected);
+            },
+            None => assert!(false)
+        };
+    };
 
     /* teardown */
 
-    fs::remove_file(file_path).unwrap();
+    fs::remove_file(file_path.clone()).unwrap();
 }
