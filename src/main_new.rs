@@ -64,15 +64,16 @@ use chomp::ascii::{is_whitespace, decimal, digit};
 mod types;
 #[macro_use]
 mod macros;
+#[macro_use]
+mod errors;
 mod parsers;
 mod tables;
 mod context;
 mod api;
-#[macro_use]
-mod errors;
 mod log_entry;
 mod route;
 mod components;
+mod database;
 
 
 use context::Context;
@@ -93,23 +94,7 @@ fn main() {
 
     /* database */
 
-    let db_connection = match Connection::open("test.db") {
-        Err(why) => {
-            // TODO: fix
-            panic!("{}", why);
-        }
-        Ok(db_conn) => Arc::new(RwLock::new(Mutex::new(db_conn))),
-    };
-
-    /* table setup */
-
-    match tables::setup_database(db_connection.clone()) {
-        Ok(_) => {}
-        Err(why) => {
-            handle_raw_api_error!(why);
-            return;
-        }
-    }
+    let db_connection = database::get_database("test.db".to_string());
 
     /* database bootstrap */
 

@@ -8,11 +8,12 @@ use std::thread;
 use time;
 use hyper::server::{Server, Handler, Request, Response};
 
-/// /////////////////////////////////////////////////////////////////////////////
+/* ////////////////////////////////////////////////////////////////////////// */
+
 /* LogEntry */
- *
- * Shamelessly taken from:
- * https://github.com/tomaka/rouille/blob/68b9c65886f8aa75107f0ce3423a790f95ab675a/src/log.rs */
+
+// Shamelessly taken from:
+// https://github.com/tomaka/rouille/blob/68b9c65886f8aa75107f0ce3423a790f95ab675a/src/log.rs
 /// RAII guard that ensures that a log entry corresponding to a request will be written.
 ///
 /// # Example

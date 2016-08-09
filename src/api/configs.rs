@@ -9,7 +9,7 @@ use rusqlite::Error as SqliteError;
 use types::Database;
 use errors::RawAPIError;
 
-/// /////////////////////////////////////////////////////////////////////////////
+/* ////////////////////////////////////////////////////////////////////////// */
 
 pub const CONFIG_ROOT_DECK_ID_KEY: &'static str = "root_deck_id";
 
@@ -101,4 +101,10 @@ pub fn set_config(database: Database, setting: String, value: String) -> Result<
 }
 
 #[test]
-fn configs_test() {}
+fn configs_test() {
+
+    use database;
+
+    get_database::get_database("test/assets/configs_test.db");
+
+}
