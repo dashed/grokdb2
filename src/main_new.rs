@@ -85,6 +85,7 @@ use api::{configs, decks};
 use route::parse_request_uri;
 use components::render_response;
 use route::RenderResponse;
+use types::DeckID;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -106,10 +107,26 @@ fn main() {
         Some(config) => {
             let deck_id = config.value;
 
-            match deck_id.parse::<i64>() {
+            match deck_id.parse::<DeckID>() {
                 Ok(deck_id) => {
-                    root_deck_id = deck_id;
-                    false
+
+                    match decks::deck_exists(bootstrap_context.clone(), deck_id) {
+                        Ok(exists) => {
+
+                            if exists {
+                                root_deck_id = deck_id;
+                            }
+
+                            !exists
+                        },
+                        Err(why) => {
+                            handle_raw_api_error!(why);
+
+                            // TODO: fix
+                            panic!("decks::deck_exists");
+                        }
+                    }
+
                 }
                 Err(_) => true,
             }
@@ -132,6 +149,8 @@ fn main() {
                             configs::CONFIG_ROOT_DECK_ID_KEY.to_string(),
                             format!("{}", root_deck.id))
             .unwrap();
+
+        root_deck_id = root_deck.id;
     }
 
     drop(bootstrap_context);
