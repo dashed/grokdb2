@@ -91,69 +91,76 @@ use types::DeckID;
 
 fn main() {
 
+    /* global vars */
+
+    let mut root_deck_id = 1;
+
     /* database */
 
     let db_connection = database::get_database("test.db".to_string());
 
     /* database bootstrap */
 
-    let bootstrap_context = Context::new(db_connection.clone());
+    {
+        let bootstrap_context = Context::new(db_connection.clone());
 
-    let mut root_deck_id = 1;
+        let should_create_root_deck = match configs::get_config(bootstrap_context.clone(),
+                                                                configs::CONFIG_ROOT_DECK_ID_KEY.to_string())
+            .unwrap() {
+            Some(config) => {
+                let deck_id = config.value;
 
-    let should_create_root_deck = match configs::get_config(bootstrap_context.clone(),
-                                                            configs::CONFIG_ROOT_DECK_ID_KEY.to_string())
-        .unwrap() {
-        Some(config) => {
-            let deck_id = config.value;
+                match deck_id.parse::<DeckID>() {
+                    Ok(deck_id) => {
 
-            match deck_id.parse::<DeckID>() {
-                Ok(deck_id) => {
+                        match decks::deck_exists(bootstrap_context.clone(), deck_id) {
+                            Ok(exists) => {
 
-                    match decks::deck_exists(bootstrap_context.clone(), deck_id) {
-                        Ok(exists) => {
+                                if exists {
+                                    root_deck_id = deck_id;
+                                }
 
-                            if exists {
-                                root_deck_id = deck_id;
+                                !exists
+                            },
+                            Err(why) => {
+                                handle_raw_api_error!(why);
+
+                                // TODO: fix
+                                panic!("decks::deck_exists");
                             }
-
-                            !exists
-                        },
-                        Err(why) => {
-                            handle_raw_api_error!(why);
-
-                            // TODO: fix
-                            panic!("decks::deck_exists");
                         }
+
                     }
-
+                    Err(_) => true,
                 }
-                Err(_) => true,
+
             }
-
-        }
-        None => true,
-    };
-
-    if should_create_root_deck {
-        // root deck not found.
-        // create a root deck.
-        let request = decks::CreateDeck {
-            name: "Library".to_string(),
-            description: "".to_string(),
+            None => true,
         };
 
-        let root_deck = decks::create_deck(bootstrap_context.clone(), request).unwrap();
 
-        configs::set_config(bootstrap_context.clone(),
-                            configs::CONFIG_ROOT_DECK_ID_KEY.to_string(),
-                            format!("{}", root_deck.id))
-            .unwrap();
+        if should_create_root_deck {
+            // root deck not found.
+            // create a root deck.
+            let request = decks::CreateDeck {
+                name: "Library".to_string(),
+                description: "".to_string(),
+            };
 
-        root_deck_id = root_deck.id;
-    }
+            let root_deck = decks::create_deck(bootstrap_context.clone(), request).unwrap();
 
-    drop(bootstrap_context);
+            configs::set_config(bootstrap_context.clone(),
+                                configs::CONFIG_ROOT_DECK_ID_KEY.to_string(),
+                                format!("{}", root_deck.id))
+                .unwrap();
+
+            root_deck_id = root_deck.id;
+        }
+
+    };
+
+    // freeze root_deck_id
+    let root_deck_id = root_deck_id;
 
     /* server */
 
@@ -176,7 +183,10 @@ fn main() {
         // NOTE: this is a RAII guard
         let _entry = LogEntry::start(io::stdout(), &request);
 
-        let context = Context { database: db_connection.clone() };
+        let context = Context {
+            root_deck_id: root_deck_id,
+            database: db_connection.clone()
+        };
 
         // middleware/logging
         // TODO: complete
