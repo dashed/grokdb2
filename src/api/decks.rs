@@ -5,7 +5,8 @@ use rusqlite::types::ToSql;
 
 /* local imports */
 
-use types::{Database, UnixTimestamp, DeckID};
+use context::Context;
+use types::{UnixTimestamp, DeckID};
 use errors::RawAPIError;
 
 /// /////////////////////////////////////////////////////////////////////////////
@@ -28,7 +29,7 @@ pub struct CreateDeck {
     pub description: String, // required, but may be empty
 }
 
-pub fn get_deck(database: Database, deck_id: DeckID) -> Result<Deck, RawAPIError> {
+pub fn get_deck(context: Context, deck_id: DeckID) -> Result<Deck, RawAPIError> {
 
     let query = format!("
         SELECT
@@ -43,7 +44,7 @@ pub fn get_deck(database: Database, deck_id: DeckID) -> Result<Deck, RawAPIError
         LIMIT 1;
     ", deck_id = deck_id);
 
-    db_read_lock!(db_conn; database);
+    db_read_lock!(db_conn; context.database);
     let db_conn: &Connection = db_conn;
 
     let results = db_conn.query_row(&query, &[], |row| -> Deck {
@@ -72,7 +73,7 @@ pub fn get_deck(database: Database, deck_id: DeckID) -> Result<Deck, RawAPIError
     };
 }
 
-pub fn create_deck(database: Database, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
+pub fn create_deck(context: Context, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
 
     let query = "INSERT INTO Decks(name, description) VALUES (:name, :description);";
 
@@ -80,7 +81,7 @@ pub fn create_deck(database: Database, create_deck_request: CreateDeck) -> Resul
                                       (":description", &create_deck_request.description.clone())];
 
     let deck_id: DeckID = {
-        db_write_lock!(db_conn; database);
+        db_write_lock!(db_conn; context.database);
         let db_conn: &Connection = db_conn;
 
         match db_conn.execute_named(query, &params[..]) {
@@ -96,5 +97,5 @@ pub fn create_deck(database: Database, create_deck_request: CreateDeck) -> Resul
         row_id
     };
 
-    return get_deck(database, deck_id);
+    return get_deck(context, deck_id);
 }

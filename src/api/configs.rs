@@ -6,7 +6,7 @@ use rusqlite::Error as SqliteError;
 
 /* local imports */
 
-use types::Database;
+use context::Context;
 use errors::RawAPIError;
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -18,7 +18,7 @@ pub struct Config {
     pub value: String,
 }
 
-pub fn get_config(database: Database, setting_key: String) -> Result<Option<Config>, RawAPIError> {
+pub fn get_config(context: Context, setting_key: String) -> Result<Option<Config>, RawAPIError> {
 
     if setting_key.trim().len() <= 0 {
         return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
@@ -36,7 +36,7 @@ pub fn get_config(database: Database, setting_key: String) -> Result<Option<Conf
 
     let params: &[(&str, &ToSql)] = &[(":setting", &setting_key)];
 
-    db_read_lock!(db_conn; database);
+    db_read_lock!(db_conn; context.database);
     let db_conn: &Connection = db_conn;
 
     let results = db_conn.query_row_named(query, params, |row| -> Config {
@@ -66,7 +66,7 @@ pub fn get_config(database: Database, setting_key: String) -> Result<Option<Conf
 }
 
 // on success, return the config set into the db
-pub fn set_config(database: Database, setting: String, value: String) -> Result<Config, RawAPIError> {
+pub fn set_config(context: Context, setting: String, value: String) -> Result<Config, RawAPIError> {
 
     if setting.trim().len() <= 0 {
         return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
@@ -79,7 +79,7 @@ pub fn set_config(database: Database, setting: String, value: String) -> Result<
 
     let params: &[(&str, &ToSql)] = &[(":setting", &setting), (":value", &value)];
 
-    db_write_lock!(db_conn; database);
+    db_write_lock!(db_conn; context.database);
     let db_conn: &Connection = db_conn;
 
     match db_conn.execute_named(query, &params[..]) {
@@ -103,10 +103,26 @@ pub fn set_config(database: Database, setting: String, value: String) -> Result<
 #[test]
 fn configs_test() {
 
+    /* imports */
+
+    use std::fs;
     use database;
 
-    database::get_database("test/assets/configs_test.db".to_string());
+    /* setup */
 
-    // TODO: complete
+    let file_path = "test/assets/configs_test.db".to_string();
 
+    database::get_database(file_path.clone());
+
+    // config doesn't exist
+
+    // set a config
+
+    // retrieve a config
+
+    // overwrite a config
+
+    /* teardown */
+
+    fs::remove_file(file_path).unwrap();
 }

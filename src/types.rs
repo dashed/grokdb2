@@ -52,10 +52,3 @@ pub enum DecksPageSort {
                            * not based on the cards the deck contains
                            * ReviewedAt(SortOrder) */
 }
-
-/* database */
-
-// Arc := Shared resource between threads
-// RwLock := Create critical section where multiple API Reads can co-exist
-// Mutex := Raw database operation
-pub type Database = Arc<RwLock<Mutex<Connection>>>;

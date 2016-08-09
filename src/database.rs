@@ -8,10 +8,46 @@ use rusqlite::Connection;
 
 /* local imports */
 
-use types::Database;
 use tables;
 
 /* ////////////////////////////////////////////////////////////////////////// */
+
+// Arc := Shared resource between threads
+// RwLock := Create critical section where multiple API Reads can co-exist
+// Mutex := Raw database operation
+pub type Database = Arc<Mutex<Connection>>;
+
+macro_rules! db_read_lock(
+    ($ident:ident; $e:expr) => (
+
+        {
+            use database::{Database};
+
+            // hacky type checking
+            let _: Database = $e;
+        };
+
+        let db_conn_guard = $e.lock().unwrap();
+        let ref $ident = *db_conn_guard;
+    )
+);
+
+macro_rules! db_write_lock(
+    ($ident:ident; $e:expr) => (
+
+        {
+            use database::{Database};
+
+            // hacky type checking
+            let _: Database = $e;
+        };
+
+        let db_conn_guard = $e.lock().unwrap();
+        let ref $ident = *db_conn_guard;
+    )
+);
+
+/* API */
 
 pub fn get_database(file_path: String) -> Database {
 
@@ -20,7 +56,7 @@ pub fn get_database(file_path: String) -> Database {
             // TODO: fix
             panic!("{}", why);
         }
-        Ok(db_conn) => Arc::new(RwLock::new(Mutex::new(db_conn))),
+        Ok(db_conn) => Arc::new(Mutex::new(db_conn)),
     };
 
     /* table setup */

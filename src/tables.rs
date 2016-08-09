@@ -9,6 +9,7 @@ use rusqlite::Connection;
 /* local imports */
 
 use errors::RawAPIError;
+use database::Database;
 
 /// /////////////////////////////////////////////////////////////////////////////
 
@@ -427,7 +428,7 @@ BEGIN
 END;
 ";
 
-pub fn setup_database(db_connection: Arc<RwLock<Mutex<Connection>>>) -> Result<(), RawAPIError> {
+pub fn setup_database(db_connection: Database) -> Result<(), RawAPIError> {
 
     db_write_lock!(db_conn; db_connection);
     let db_conn: &Connection = db_conn;

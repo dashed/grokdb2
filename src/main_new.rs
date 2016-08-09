@@ -62,10 +62,13 @@ use chomp::ascii::{is_whitespace, decimal, digit};
 /* local imports */
 
 mod types;
-#[macro_use]
-mod macros;
+// TODO: remove; cleanup
+// #[macro_use]
+// mod macros;
 #[macro_use]
 mod errors;
+#[macro_use]
+mod database;
 mod parsers;
 mod tables;
 mod context;
@@ -73,7 +76,6 @@ mod api;
 mod log_entry;
 mod route;
 mod components;
-mod database;
 
 
 use context::Context;
@@ -98,9 +100,11 @@ fn main() {
 
     /* database bootstrap */
 
+    let bootstrap_context = Context::new(db_connection.clone());
+
     let mut root_deck_id = 1;
 
-    let should_create_root_deck = match configs::get_config(db_connection.clone(),
+    let should_create_root_deck = match configs::get_config(bootstrap_context.clone(),
                                                             configs::CONFIG_ROOT_DECK_ID_KEY.to_string())
         .unwrap() {
         Some(config) => {
@@ -126,13 +130,15 @@ fn main() {
             description: "".to_string(),
         };
 
-        let root_deck = decks::create_deck(db_connection.clone(), request).unwrap();
+        let root_deck = decks::create_deck(bootstrap_context.clone(), request).unwrap();
 
-        configs::set_config(db_connection.clone(),
+        configs::set_config(bootstrap_context.clone(),
                             configs::CONFIG_ROOT_DECK_ID_KEY.to_string(),
                             format!("{}", root_deck.id))
             .unwrap();
     }
+
+    drop(bootstrap_context);
 
     /* server */
 
