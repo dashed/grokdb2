@@ -99,3 +99,90 @@ pub fn create_deck(context: Context, create_deck_request: CreateDeck) -> Result<
 
     return get_deck(context, deck_id);
 }
+
+#[test]
+fn decks_test() {
+
+    /* imports */
+
+    use std::fs;
+    use database;
+    use api::decks;
+
+    /* setup */
+
+    let file_path = "test/assets/decks_test.db".to_string();
+
+    let db_connection = database::get_database(file_path.clone());
+
+    // deck doesn't exist
+
+    {
+        match decks::get_deck(Context::new(db_connection.clone()), 1) {
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
+        }
+    };
+
+    // create deck
+
+    {
+        // case: don't allow empty deck name
+
+        let request = CreateDeck {
+            name: format!(""),
+            description: format!(""),
+        };
+
+        match decks::create_deck(Context::new(db_connection.clone()), request) {
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
+        }
+    };
+
+    {
+        // case: add new deck
+
+        let request = CreateDeck {
+            name: format!("Foo"),
+            description: format!(""),
+        };
+
+        match decks::create_deck(Context::new(db_connection.clone()), request) {
+            Ok(actual) => {
+                assert_eq!(actual.id, 1);
+                assert_eq!(actual.name, format!("Foo"));
+                assert_eq!(actual.description, format!(""));
+                assert_eq!(actual.created_at, actual.updated_at);
+                assert_eq!(actual.created_at, actual.reviewed_at);
+                assert_eq!(actual.has_reviewed, false);
+            },
+            Err(_) => assert!(false),
+        }
+
+        let request = CreateDeck {
+            name: format!("Bar"),
+            description: format!("Amazing description of this deck."),
+        };
+
+        match decks::create_deck(Context::new(db_connection.clone()), request) {
+            Ok(actual) => {
+                assert_eq!(actual.id, 2); // ensure increment
+                assert_eq!(actual.name, format!("Bar"));
+                assert_eq!(actual.description, format!("Amazing description of this deck."));
+                assert_eq!(actual.created_at, actual.updated_at);
+                assert_eq!(actual.created_at, actual.reviewed_at);
+                assert_eq!(actual.has_reviewed, false);
+            },
+            Err(_) => assert!(false),
+        }
+    };
+
+    // deck exists
+
+    // TODO: complete
+
+    /* teardown */
+
+    fs::remove_file(file_path.clone()).unwrap();
+}
