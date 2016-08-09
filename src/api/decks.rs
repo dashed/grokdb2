@@ -178,6 +178,34 @@ fn decks_test() {
         }
     };
 
+    {
+        // case: retrieve created decks
+
+        match decks::get_deck(Context::new(db_connection.clone()), 2) {
+            Ok(actual) => {
+                assert_eq!(actual.id, 2);
+                assert_eq!(actual.name, format!("Bar"));
+                assert_eq!(actual.description, format!("Amazing description of this deck."));
+                assert_eq!(actual.created_at, actual.updated_at);
+                assert_eq!(actual.created_at, actual.reviewed_at);
+                assert_eq!(actual.has_reviewed, false);
+            },
+            Err(_) => assert!(false),
+        }
+
+        match decks::get_deck(Context::new(db_connection.clone()), 1) {
+            Ok(actual) => {
+                assert_eq!(actual.id, 1);
+                assert_eq!(actual.name, format!("Foo"));
+                assert_eq!(actual.description, format!(""));
+                assert_eq!(actual.created_at, actual.updated_at);
+                assert_eq!(actual.created_at, actual.reviewed_at);
+                assert_eq!(actual.has_reviewed, false);
+            },
+            Err(_) => assert!(false),
+        }
+    };
+
     // deck exists
 
     // TODO: complete
