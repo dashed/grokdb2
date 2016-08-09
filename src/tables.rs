@@ -379,7 +379,7 @@ CREATE TABLE IF NOT EXISTS CachedStashReview (
     card_id INTEGER NOT NULL,
     created_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
 
-    PRIMARY KEY(stash),
+    PRIMARY KEY(stash_id),
 
     FOREIGN KEY (stash_id) REFERENCES Stashes(stash_id) ON DELETE CASCADE,
     FOREIGN KEY (card_id) REFERENCES Cards(card_id) ON DELETE CASCADE

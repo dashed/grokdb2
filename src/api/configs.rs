@@ -105,6 +105,8 @@ fn configs_test() {
 
     use database;
 
-    get_database::get_database("test/assets/configs_test.db");
+    database::get_database("test/assets/configs_test.db".to_string());
+
+    // TODO: complete
 
 }
