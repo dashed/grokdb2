@@ -53,8 +53,7 @@ use context::Context;
 use log_entry::LogEntry;
 use api::{configs, decks};
 use route::parse_request_uri;
-use components::render_response;
-use route::RenderResponse;
+use route::{RenderResponse, render_response};
 use types::DeckID;
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -156,6 +155,7 @@ fn main() {
         let _entry = LogEntry::start(io::stdout(), &request);
 
         let context = Context {
+            request_uri: format!("{}", request.uri),
             root_deck_id: root_deck_id,
             database: db_connection.clone()
         };
@@ -187,7 +187,7 @@ fn main() {
         // NOTE: This is a boundary line where the request has been transformed into
         //       RenderResponse type. Anything from request shall be put into the RenderResponse type.
 
-        let result = render_response(context, render, response);
+        render_response(context, render, response);
 
         return ();
 

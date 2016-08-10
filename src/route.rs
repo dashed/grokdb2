@@ -7,7 +7,6 @@ use std::io::Read;
 use std::path::{PathBuf, Path};
 use std::ffi::OsStr;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex, LockResult, MutexGuard, RwLock};
 use std::cell::RefCell;
 
 /* 3rd-party imports */
@@ -41,8 +40,9 @@ use mime_types;
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
 use types::{DeckID, CardID, DecksPageQuery, Search};
 use context::Context;
+use components::AppComponent;
 
-/// /////////////////////////////////////////////////////////////////////////////
+/* ////////////////////////////////////////////////////////////////////////// */
 
 /* statics */
 
@@ -497,4 +497,89 @@ fn route_internal_server_error(request: Request, mut response: Response) {
     *response.status_mut() = StatusCode::InternalServerError;
 
     response.send(message.as_bytes()).unwrap();
+}
+
+/* rendering */
+
+#[inline]
+pub fn render_response(context: Rc<Context>, render: RenderResponse, mut response: Response) {
+
+    match render {
+        RenderResponse::RenderComponent(app_route) => {
+            render_components(context, app_route, response);
+        }
+        RenderResponse::RenderNotFound => {
+
+            // let ref url = request.borrow().uri;
+
+            // let message = format!("No route handler found for {}", url);
+            let message = format!("Not Found 404");
+
+            // 404 status code
+            *response.status_mut() = StatusCode::NotFound;
+
+            response.send(message.as_bytes()).unwrap();
+
+        }
+        RenderResponse::RenderAsset(header, content) => {
+            response.headers_mut().set((header));
+            response.send(&content).unwrap();
+        }
+        _ => {
+            panic!("fix me");
+        }
+    }
+
+
+}
+
+#[inline]
+fn render_components(context: Rc<Context>, app_route: AppRoute, mut response: Response) {
+
+    let app_component = {
+        FnRenderer::new(|tmpl| {
+            AppComponent(tmpl, app_route);
+        })
+    };
+
+    // Panic capture semantics:
+    // - horroshow-rs does not provide a convenient way to abort template rendering.
+    // - Template abortion can only be done via panic!(...) macro. (the convention)
+    // - If panic!(...) macro is only used for panics, then AssertUnwindSafe can be safely used.
+    // - Cargo.toml must be configured to enforce panic strategy is 'unwind' for it to be guaranteed
+    //   to be caught by the panic::catch_unwind function.
+    //
+    // see: https://github.com/rust-lang/rfcs/blob/master/text/1513-less-unwinding.md
+    // see: http://doc.crates.io/manifest.html
+    let result = panic::catch_unwind(AssertUnwindSafe(|| app_component.into_string()));
+
+    if result.is_err() {
+
+        println!("TEMPLATE RENDERING PANIC: {:?}", result.err().unwrap());
+
+        // TODO: fix... route_internal_server_error
+        // super::routes::internal_server_error(request, response);
+
+        return;
+    }
+
+    match result.ok().unwrap() {
+        Err(why) => {
+            println!("ERROR RENDERING: {:?}", why);
+
+            // TODO: fix
+            // super::routes::internal_server_error(request, response);
+
+            return;
+        }
+        Ok(rendered) => {
+
+            response.headers_mut().set((ContentType(mime!(Text / Html))));
+
+            response.send(rendered.as_bytes()).unwrap();
+
+            return;
+        }
+    };
+
 }

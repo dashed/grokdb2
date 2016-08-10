@@ -9,10 +9,11 @@ use database::Database;
 
 #[derive(Clone)]
 pub struct Context {
-
-    pub root_deck_id: DeckID,
-
     pub database: Database,
+    pub root_deck_id: DeckID,
+    pub request_uri: String
+
+    /* cache */
 
     // TODO: cache
 }
@@ -20,8 +21,9 @@ pub struct Context {
 impl Context {
     pub fn new(db_connection: Database) -> Self {
         Context {
-            root_deck_id: 1, // default
-            database: db_connection
+            database: db_connection,
+            root_deck_id: 1,
+            request_uri: "".to_string()
         }
     }
 }
