@@ -316,10 +316,12 @@ fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
         ret {()}
     };
 
-    let mut query_string: QueryString = HashMap::new();
     let mut should_break = false;
+    let mut query_string: QueryString = HashMap::new();
 
     loop {
+
+        let mut looped = false;
 
         result = result.then(|i| {
                 parse!{i;
@@ -356,7 +358,12 @@ fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
             .bind(|i, key_type| {
                 match key_type {
                     QueryStringKeyType::NoValue(key) => {
-                        query_string.insert(key, None);
+
+                        if key.len() > 0 {
+                            query_string.insert(key, None);
+                        }
+
+                        looped = true;
 
                         i.ret(())
                     }
@@ -377,7 +384,13 @@ fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
                         skip_many(|i| token(i, b'&'));
 
                         ret {
-                            query_string.insert(key, Some(value));
+
+                            if key.len() > 0 {
+                                query_string.insert(key, Some(value));
+                            }
+
+                            looped = true;
+
                             ()
                         }
                     }
@@ -385,7 +398,7 @@ fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
                 }
             });
 
-        if should_break {
+        if should_break || !looped {
             break;
         }
     }
@@ -395,7 +408,72 @@ fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
 
 #[test]
 fn parse_query_string_test() {
-    // TODO: complete
+
+    let fails = vec!["", "&", " ", "\t"];
+
+    for input in fails {
+        match parse_only(parse_query_string, input.as_bytes()) {
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true)
+        }
+    }
+
+    let inputs = vec![
+        "?",
+        "?&&&"
+    ];
+
+    for input in inputs {
+        match parse_only(parse_query_string, input.as_bytes()) {
+            Ok(actual) => {
+                let expected: QueryString = HashMap::new();
+                assert_eq!(actual, expected);
+            }
+            Err(_) => assert!(false)
+        }
+    }
+
+    let inputs = vec![
+        "?page=1",
+        "?page=1&&&",
+        "?page=3333&page=1",
+        "?page=3333&page=1&&&",
+        "?page=3333&&&&&page=1",
+        "?page=3333&&&&&page=1&&&",
+        "?page&page=1"
+    ];
+
+    for input in inputs {
+        match parse_only(parse_query_string, input.as_bytes()) {
+            Ok(actual) => {
+
+                let mut expected: QueryString = HashMap::new();
+                expected.insert(format!("page"), Some(format!("1")));
+
+                assert_eq!(actual, expected);
+            }
+            Err(_) => assert!(false)
+        }
+    }
+
+    let inputs = vec![
+        "?page=1&page&sort=desc",
+    ];
+
+    for input in inputs {
+        match parse_only(parse_query_string, input.as_bytes()) {
+            Ok(actual) => {
+
+                let mut expected: QueryString = HashMap::new();
+                expected.insert(format!("page"), None);
+                expected.insert(format!("sort"), Some(format!("desc")));
+
+                assert_eq!(actual, expected);
+            }
+            Err(_) => assert!(false)
+        }
+    }
+
 }
 
 /* misc routes */
