@@ -22,6 +22,22 @@ use context::Context;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
+/* macro helpers */
+
+// alias wrapper
+macro_rules! classnames {
+    ($($tail:tt)+) => {{
+        let classes = labels!($($tail)*).into_string().unwrap();
+        if classes.len() > 0 {
+            Some(classes)
+        } else {
+            None
+        }
+    }};
+}
+
+/* components */
+
 #[inline]
 pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
 
@@ -98,15 +114,45 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                                 span {}
                             }
                             div(class="nav-right nav-menu") {
-                                a(class="nav-item is-bold", href="#") {
-                                    : raw!("Decks")
+
+                                div(class="nav-item") {
+                                    a(
+                                        class? = classnames!(
+                                            "is-bold",
+                                            "button is-primary" => {
+                                                matches!(app_route, AppRoute::Deck(_, _)) ||
+                                                matches!(app_route, AppRoute::Card(_, _)) ||
+                                                matches!(app_route, AppRoute::CardInDeck(_, _, _))
+                                            }),
+                                        href="#") {
+                                        : raw!("Decks")
+                                    }
                                 }
-                                a(class="nav-item is-bold", href="#") {
-                                    : raw!("Stashes")
+
+                                div(class="nav-item") {
+                                    a(
+                                        class? = classnames!(
+                                            "is-bold",
+                                            "button is-primary" => {
+                                                matches!(app_route, AppRoute::Stashes)
+                                            }),
+                                        href="#") {
+                                        : raw!("Stashes")
+                                    }
                                 }
-                                a(class="nav-item is-bold", href="#") {
-                                    : raw!("Preferences")
+
+                                div(class="nav-item") {
+                                    a(
+                                        class? = classnames!(
+                                            "is-bold",
+                                            "button is-primary" => {
+                                                matches!(app_route, AppRoute::Preferences)
+                                            }),
+                                        href="#") {
+                                        : raw!("Preferences")
+                                    }
                                 }
+
                             }
                         }
                     }

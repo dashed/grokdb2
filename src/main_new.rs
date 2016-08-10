@@ -20,6 +20,8 @@ extern crate conduit_mime_types as mime_types;
 extern crate rusqlite;
 #[macro_use(quick_error)]
 extern crate quick_error;
+#[macro_use]
+extern crate matches;
 
 /* rust lib imports */
 

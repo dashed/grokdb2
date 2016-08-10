@@ -59,7 +59,7 @@ pub enum AppRoute {
     // Home,
 
     // user settings
-    Settings,
+    Preferences,
 
     Stashes,
 
