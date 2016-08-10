@@ -3,13 +3,14 @@ name = "grokdb2"
 version = "0.1.0"
 authors = ["Alberto Leal <mailforalberto@gmail.com>"]
 
-[profile.dev]
-opt-level = 0      # controls the `--opt-level` the compiler builds with
-debug = true       # controls whether the compiler passes `-g`
-panic = 'unwind'   # ensures panic is unwind safe
+# [profile.test]
+# panic = 'unwind'   # ensures panic is unwind safe
 
-[profile.release]
-panic = 'unwind'   # ensures panic is unwind safe
+# [profile.dev]
+# panic = 'unwind'   # ensures panic is unwind safe
+
+# [profile.release]
+# panic = 'unwind'   # ensures panic is unwind safe
 
 [[bin]]
 name = "grokdb2"
