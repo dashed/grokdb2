@@ -5,7 +5,7 @@ dependencies = [
  "chomp 0.2.5 (git+https://github.com/m4rw3r/chomp?rev=9901095dd4a10da39d41c4af501cd91380356abd)",
  "clippy 0.0.80 (registry+https://github.com/rust-lang/crates.io-index)",
  "conduit-mime-types 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "horrorshow 0.5.5 (git+https://github.com/dashed/horrorshow-rs?rev=b1f6920)",
+ "horrorshow 0.5.6 (git+https://github.com/Stebalien/horrorshow-rs?rev=c5caa64979866aa7a99d60de595b74c7d9d4ad01)",
  "hyper 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "matches 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -178,8 +178,8 @@ dependencies = [
 
 [[package]]
 name = "horrorshow"
-version = "0.5.5"
-source = "git+https://github.com/dashed/horrorshow-rs?rev=b1f6920#b1f69203657ab463bbbe9239be3d5b0d0606e0f8"
+version = "0.5.6"
+source = "git+https://github.com/Stebalien/horrorshow-rs?rev=c5caa64979866aa7a99d60de595b74c7d9d4ad01#c5caa64979866aa7a99d60de595b74c7d9d4ad01"
 
 [[package]]
 name = "hpack"
@@ -656,7 +656,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum dtoa 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "0dd841b58510c9618291ffa448da2e4e0f699d984d436122372f446dae62263d"
 "checksum gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)" = "3da3a2cbaeb01363c8e3704fd9fd0eb2ceb17c6f27abd4c1ef040fb57d20dc79"
 "checksum gdi32-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0912515a8ff24ba900422ecda800b52f4016a56251922d397c576bf92c690518"
-"checksum horrorshow 0.5.5 (git+https://github.com/dashed/horrorshow-rs?rev=b1f6920)" = "<none>"
+"checksum horrorshow 0.5.6 (git+https://github.com/Stebalien/horrorshow-rs?rev=c5caa64979866aa7a99d60de595b74c7d9d4ad01)" = "<none>"
 "checksum hpack 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3d2da7d3a34cf6406d9d700111b8eafafe9a251de41ae71d8052748259343b58"
 "checksum httparse 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "46534074dbb80b070d60a5cb8ecadd8963a00a438ae1a95268850a7ef73b67ae"
 "checksum hyper 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)" = "fc5e7b07bb51a58a5f4c0831d85d461a62334a71d0080cb4685848217ea84688"

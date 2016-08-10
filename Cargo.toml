@@ -33,8 +33,8 @@ version = "0.7.3"
 features = ["functions", "backup"]
 
 [dependencies.horrorshow]
-git = "https://github.com/dashed/horrorshow-rs"
-rev = "b1f6920"
+git = "https://github.com/Stebalien/horrorshow-rs"
+rev = "c5caa64979866aa7a99d60de595b74c7d9d4ad01"
 
 # [dependencies.serde_macros]
 # git = "https://github.com/serde-rs/serde"
