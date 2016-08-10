@@ -52,7 +52,7 @@ lazy_static! {
 
 /* router types */
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum AppRoute {
 
     // TODO: remove
@@ -69,7 +69,7 @@ pub enum AppRoute {
     CardInDeck(DeckID, CardID, CardRoute),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum CardRoute {
     Profile,
     // Settings,
@@ -77,7 +77,7 @@ pub enum CardRoute {
     Review,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum DeckRoute {
     NewCard,
     NewDeck,
@@ -582,7 +582,7 @@ fn render_components(context: Rc<Context>, app_route: AppRoute, mut response: Re
 
     let app_component = {
         FnRenderer::new(|tmpl| {
-            AppComponent(tmpl, context.clone(), app_route);
+            AppComponent(tmpl, context.clone(), &app_route);
         })
     };
 

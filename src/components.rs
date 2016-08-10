@@ -56,7 +56,7 @@ fn view_route_to_link(context: Rc<Context>, app_route: AppRoute) -> String {
 /* components */
 
 #[inline]
-pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: AppRoute) {
+pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: &AppRoute) {
 
     tmpl << html! {
         : raw!("<!DOCTYPE html>");
@@ -138,11 +138,11 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                                             "is-bold",
                                             "button is-primary" => {
                                                 // TODO: re-review this
-                                                matches!(app_route, AppRoute::Deck(_, _)) ||
-                                                matches!(app_route, AppRoute::Card(_, _)) ||
-                                                matches!(app_route, AppRoute::CardInDeck(_, _, _))
+                                                matches!(*app_route, AppRoute::Deck(_, _)) ||
+                                                matches!(*app_route, AppRoute::Card(_, _)) ||
+                                                matches!(*app_route, AppRoute::CardInDeck(_, _, _))
                                             }),
-                                        href="#") {
+                                        href="/") {
                                         : raw!("Decks")
                                     }
                                 }
@@ -153,7 +153,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                                             "is-bold",
                                             "button is-primary" => {
                                                 // TODO: re-review this
-                                                matches!(app_route, AppRoute::Stashes)
+                                                matches!(*app_route, AppRoute::Stashes)
                                             }),
                                         href="#") {
                                         : raw!("Stashes")
@@ -166,7 +166,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                                             "is-bold",
                                             "button is-primary" => {
                                                 // TODO: re-review this
-                                                matches!(app_route, AppRoute::Preferences)
+                                                matches!(*app_route, AppRoute::Preferences)
                                             }),
                                         href="#") {
                                         : raw!("Preferences")
@@ -181,8 +181,8 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                         div(class="columns") {
 
                             |tmpl| {
-                                match app_route.clone() {
-                                    AppRoute::Deck(deck_id, deck_route) => {
+                                match *app_route {
+                                    AppRoute::Deck(deck_id, ref deck_route) => {
                                         DeckDetail(tmpl, context.clone(), deck_id, deck_route)
                                     },
                                     _ => {
@@ -211,39 +211,38 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                     }
                 }
 
-                // TODO: uncomment
-                // |tmpl| {
-                //     match context.view_route {
-                //         AppRoute::Deck(_, DeckRoute::Review) =>  {
-                //             tmpl << html! {
-                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
-                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
-                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
+                |tmpl| {
+                    match *app_route {
+                        // TODO: fix
+                        // AppRoute::Deck(_, DeckRoute::Review) =>  {
+                        //     tmpl << html! {
+                        //         script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
+                        //         script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
+                        //         script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
 
-                //                 // script(type="text/javascript", src="/assets/vendor.js") {}
-                //                 script(type="text/javascript", src="/assets/deck_review.js") {}
-                //             };
+                        //         // script(type="text/javascript", src="/assets/vendor.js") {}
+                        //         script(type="text/javascript", src="/assets/deck_review.js") {}
+                        //     };
 
-                //         },
-                //         AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
-                //             tmpl << html! {
-                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
-                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
-                //                 script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
+                        // },
+                        AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
+                            tmpl << html! {
+                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
+                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
+                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
 
-                //                 // script(type="text/javascript", src="/assets/vendor.js") {}
-                //                 script(type="text/javascript") {
-                //                     // needs to be raw b/c of html escaping
-                //                     : raw!(format!("window.__PRE_RENDER_STATE__ = {};",
-                //                         view_route_to_pre_render_state(context.view_route.clone(), context)))
-                //                 }
-                //                 script(type="text/javascript", src="/assets/new_deck.js") {}
-                //             };
+                                // script(type="text/javascript") {
+                                //     // needs to be raw b/c of html escaping
+                                //     : raw!(format!("window.__PRE_RENDER_STATE__ = {};",
+                                //         view_route_to_pre_render_state(context.view_route.clone(), context)))
+                                // }
+                                script(type="text/javascript", src="/assets/new_deck.js") {}
+                            };
 
-                //         },
-                //         _ => {}
-                //     };
-                // }
+                        },
+                        _ => {}
+                    };
+                }
 
             }
         }
@@ -252,7 +251,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
 }
 
 #[inline]
-fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, deck_route: DeckRoute) {
+fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, deck_route: &DeckRoute) {
     tmpl << html!{
         // TODO: path generator
 
@@ -276,19 +275,19 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, de
 }
 
 #[inline]
-fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, deck_route: DeckRoute) {
+fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, deck_route: &DeckRoute) {
     tmpl << html!{
         div(class="column") {
 
             div(class="columns") {
                 div(class="column") {
-                    |tmpl| DeckPath(tmpl, context.clone(), deck_id, deck_route.clone());
+                    |tmpl| DeckPath(tmpl, context.clone(), deck_id, deck_route);
                 }
             }
 
             |tmpl| {
-                match deck_route.clone() {
-                    DeckRoute::Decks(deck_page_query, search) => {
+                match *deck_route {
+                    DeckRoute::Decks(ref deck_page_query, ref search) => {
                         DecksChildren(
                             tmpl,
                             context.clone(),
@@ -364,15 +363,19 @@ fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID) {
     tmpl << html!{
         div(class="columns") {
             div(class="column") {
-                : raw!("new deck")
+                h1(class="title") {
+                    : raw!("Add New Deck")
+                }
             }
         }
+
+        div(id="new_deck") {}
     }
 }
 
 #[inline]
 fn DecksChildren(tmpl: &mut TemplateBuffer,
-    context: Rc<Context>, deck_id: DeckID, deck_page_query: DecksPageQuery, search: Search) {
+    context: Rc<Context>, deck_id: DeckID, deck_page_query: &DecksPageQuery, search: &Search) {
     tmpl << html!{
 
         div(class="columns") {
