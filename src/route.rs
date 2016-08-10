@@ -106,6 +106,8 @@ pub enum RenderResponse {
     RenderBadRequest,
     RenderInternalServerError,
 
+    StatusCode(StatusCode),
+
     RenderAsset(ContentType, Vec<u8>),
 }
 
@@ -124,13 +126,13 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<Context>, request
         let render_response =
 
             // /assets/*
-            parse_assets() <|>
+            parse_assets(request.clone()) <|>
 
             // /card/*
             // parse_route_cards() <|>
 
             // /deck/*
-            parse_route_deck(context.clone()) <|>
+            parse_route_deck(context.clone(), request.clone()) <|>
 
             // /stashes/*
             // parse_route_stashes() <|>
@@ -139,7 +141,7 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<Context>, request
             // parse_route_settings() <|>
 
             // /
-            parse_route_root(context.clone());
+            parse_route_root(context.clone(), request.clone());
 
         // NOTE: don't put query string parser or eof parser here
 
@@ -164,7 +166,7 @@ fn decode_percents(string: &OsStr) -> String {
 }
 
 #[inline]
-fn parse_assets(input: Input<u8>) -> U8Result<RenderResponse> {
+fn parse_assets<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
         string_ignore_case(b"assets");
@@ -177,54 +179,62 @@ fn parse_assets(input: Input<u8>) -> U8Result<RenderResponse> {
 
         ret {
 
-            // URL decode
-            let decoded_req_path = Path::new(&path).iter().map(decode_percents);
+            // Allow only GET requests
 
-            let mut req_path = Path::new("assets/").to_path_buf();
-            req_path.extend(decoded_req_path);
-            let req_path: PathBuf = req_path;
+            if request.borrow().method != Method::Get {
+                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+            } else {
+                // URL decode
+                let decoded_req_path = Path::new(&path).iter().map(decode_percents);
 
-            match fs::metadata(&req_path) {
-                Ok(metadata) => {
+                let mut req_path = Path::new("assets/").to_path_buf();
+                req_path.extend(decoded_req_path);
+                let req_path: PathBuf = req_path;
 
-                    if !metadata.is_file() {
+                match fs::metadata(&req_path) {
+                    Ok(metadata) => {
+
+                        if !metadata.is_file() {
+                            RenderResponse::RenderNotFound
+                        } else {
+
+                            let path_str = format!("{}", &req_path.to_string_lossy());
+
+                            // Set the content type based on the file extension
+                            let mime_str = MIME_TYPES.mime_for_path(req_path.as_path());
+
+                            let mut content_type = ContentType(Mime(TopLevel::Application, SubLevel::Json, vec![]));
+
+                            let _ = mime_str.parse().map(|mime: Mime| {
+                                content_type = ContentType(mime);
+                            });
+
+                            let mut file = File::open(req_path)
+                                .ok()
+                                .expect(&format!("No such file: {:?}", path_str));
+
+                            let mut content = Vec::new();
+
+                            file.read_to_end(&mut content).unwrap();
+
+                            RenderResponse::RenderAsset(content_type, content)
+                        }
+
+                    },
+                    Err(e) => {
                         RenderResponse::RenderNotFound
-                    } else {
-
-                        let path_str = format!("{}", &req_path.to_string_lossy());
-
-                        // Set the content type based on the file extension
-                        let mime_str = MIME_TYPES.mime_for_path(req_path.as_path());
-
-                        let mut content_type = ContentType(Mime(TopLevel::Application, SubLevel::Json, vec![]));
-
-                        let _ = mime_str.parse().map(|mime: Mime| {
-                            content_type = ContentType(mime);
-                        });
-
-                        let mut file = File::open(req_path)
-                            .ok()
-                            .expect(&format!("No such file: {:?}", path_str));
-
-                        let mut content = Vec::new();
-
-                        file.read_to_end(&mut content).unwrap();
-
-                        RenderResponse::RenderAsset(content_type, content)
-                    }
-
-                },
-                Err(e) => {
-                    RenderResponse::RenderNotFound
-                },
+                    },
+                }
             }
+
         }
 
     }
 }
 
 #[inline]
-fn parse_route_root(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderResponse> {
+fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>)
+-> U8Result<'a, RenderResponse> {
     parse!{input;
 
         let result = or(
@@ -239,13 +249,18 @@ fn parse_route_root(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderRe
                 );
 
                 ret {
-                    // TODO: wrong verb... 405 Method Not Allowed
+                    // Allow only GET requests
 
-                    let deck_route = DeckRoute::Decks(Default::default(), Default::default());
+                    if request.borrow().method != Method::Get {
+                        RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                    } else {
 
-                    let default_home = AppRoute::Deck(context.root_deck_id, deck_route);
+                        let deck_route = DeckRoute::Decks(Default::default(), Default::default());
 
-                    RenderResponse::RenderComponent(default_home)
+                        let default_home = AppRoute::Deck(context.root_deck_id, deck_route);
+
+                        RenderResponse::RenderComponent(default_home)
+                    }
                 }
             },
             |i| parse!{i;
@@ -263,7 +278,8 @@ fn parse_route_root(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderRe
 }
 
 #[inline]
-fn parse_route_deck(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderResponse> {
+fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>)
+-> U8Result<'a, RenderResponse> {
     parse!{input;
 
         string_ignore_case(b"deck");
@@ -271,7 +287,7 @@ fn parse_route_deck(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderRe
         let deck_id = decimal();
         parse_byte_limit(b'/', 5);
 
-        let render_response = parse_route_deck_new_deck(context.clone(), deck_id);
+        let render_response = parse_route_deck_new_deck(context.clone(), request.clone(), deck_id);
 
 
         // TODO: remove
@@ -286,7 +302,8 @@ fn parse_route_deck(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderRe
 }
 
 #[inline]
-fn parse_route_deck_new_deck(input: Input<u8>, context: Rc<Context>, deck_id: DeckID) -> U8Result<RenderResponse> {
+fn parse_route_deck_new_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>, deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
     parse!{input;
 
         string_ignore_case(b"new");
@@ -294,8 +311,14 @@ fn parse_route_deck_new_deck(input: Input<u8>, context: Rc<Context>, deck_id: De
         string_ignore_case(b"deck");
 
         ret {
-            let route = AppRoute::Deck(deck_id, DeckRoute::NewDeck);
-            RenderResponse::RenderComponent(route)
+            // Allow only GET requests
+
+            if request.borrow().method != Method::Get {
+                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+            } else {
+                let route = AppRoute::Deck(deck_id, DeckRoute::NewDeck);
+                RenderResponse::RenderComponent(route)
+            }
         }
     }
 }
@@ -523,7 +546,7 @@ pub fn render_response(context: Rc<Context>, render: RenderResponse, mut respons
     match render {
         RenderResponse::RenderComponent(app_route) => {
             render_components(context, app_route, response);
-        }
+        },
         RenderResponse::RenderNotFound => {
 
             // let ref url = request.borrow().uri;
@@ -536,11 +559,16 @@ pub fn render_response(context: Rc<Context>, render: RenderResponse, mut respons
 
             response.send(message.as_bytes()).unwrap();
 
-        }
+        },
         RenderResponse::RenderAsset(header, content) => {
             response.headers_mut().set((header));
             response.send(&content).unwrap();
-        }
+        },
+        RenderResponse::StatusCode(status_code) => {
+            *response.status_mut() = status_code;
+            let message = format!("{}", status_code);
+            response.send(message.as_bytes()).unwrap();
+        },
         _ => {
             panic!("fix me");
         }
