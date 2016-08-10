@@ -10,6 +10,12 @@ const rehydrate = require('helpers/hydrate');
 
 module.exports = (maker, preRenderState, postRenderState, mountTarget) => {
 
+    // NOTES:
+    // - preRenderState := inject state before initial render.
+    //                     useful for injecting state that doesn't cause UI change
+    //
+    // - postRenderState := inject state after initial render. this is used for statically compiled react components
+
     const { component, store } = maker(preRenderState);
 
     if(process.env.NODE_ENV !== 'production') {

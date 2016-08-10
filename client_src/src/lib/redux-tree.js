@@ -16,6 +16,8 @@ const NOT_SET = {};
 // NOTE: needed b/c
 // _.merge([1,2,3],[undefined]) => [1,2,3]
 // _.merge({a: void 0}, {b: void 0}) => {a: void 0}
+//
+// Above are undesired merging behaviours.
 const customMerge = (_oldValue, newValue, key, destObject) => {
     if(newValue === void 0) {
         // TODO: necessary?
@@ -131,6 +133,8 @@ const makeReducer = ({reducer: fallbackReducer = NOT_SET} = {}) => {
 // The returned action is flux standard action (FSA) compliant.
 //
 const reduceIn = (reducer, path, action, getIn = __getIn, setIn = __setIn, shouldPollute = false) => {
+
+    // NOTE: shouldPollute allows pollution of action object (in-place overwriting)
 
     const patch = {
         meta: {
