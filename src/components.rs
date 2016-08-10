@@ -1,6 +1,7 @@
 /* rust lib imports */
 
 use std::panic::{self, AssertUnwindSafe};
+use std::rc::Rc;
 
 /* 3rd-party imports */
 
@@ -14,24 +15,15 @@ use hyper::uri::RequestUri;
 use hyper::status::StatusCode;
 use hyper::header::{Header, HeaderFormat};
 
-use chomp::{SimpleResult, Error, ParseResult};
-use chomp::primitives::InputBuffer;
-use chomp::{Input, U8Result, parse_only};
-use chomp::buffer::{Source, Stream, StreamError};
-
-use chomp::token;
-use chomp::parsers::{string, eof, any, satisfy};
-use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look_ahead, option};
-use chomp::ascii::{is_whitespace, decimal, digit};
-
 /* local imports */
 
 use route::{AppRoute, RenderResponse};
+use context::Context;
 
 /// /////////////////////////////////////////////////////////////////////////////
 /* rendering */
 #[inline]
-pub fn render_response(render: RenderResponse, mut response: Response) {
+pub fn render_response(context: Rc<Context>, render: RenderResponse, mut response: Response) {
 
     match render {
         RenderResponse::RenderComponent(app_route) => {

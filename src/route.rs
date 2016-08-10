@@ -40,6 +40,7 @@ use mime_types;
 
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
 use types::{DeckID, CardID, DecksPageQuery, Search};
+use context::Context;
 
 /// /////////////////////////////////////////////////////////////////////////////
 
@@ -53,7 +54,9 @@ lazy_static! {
 
 #[derive(Debug)]
 pub enum AppRoute {
-    Home,
+
+    // TODO: remove
+    // Home,
 
     // user settings
     Settings,
@@ -83,14 +86,15 @@ pub enum DeckRoute {
     Cards, // list
     Settings,
     Meta,
-    Review, /* CardProfile(CardID, CardRoute)
-             *
-             * Create,
-             * Read,
-             * Update,
-             * http://stackoverflow.com/a/26897298/412627
-             * http://programmers.stackexchange.com/questions/114156/why-are-there-are-no-put-and-delete-methods-on-html-forms
-             * Delete */
+    Review,
+
+    // CardProfile(CardID, CardRoute)
+    // Create,
+    // Read,
+    // Update,
+    // http://stackoverflow.com/a/26897298/412627
+    // http://programmers.stackexchange.com/questions/114156/why-are-there-are-no-put-and-delete-methods-on-html-forms
+    // Delete
 }
 
 #[derive(Debug)]
@@ -108,7 +112,8 @@ pub enum RenderResponse {
 /* route parser */
 
 #[inline]
-pub fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Result<'a, RenderResponse> {
+pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>)
+-> U8Result<'a, RenderResponse> {
     parse!{input;
 
         // path must begin with /
@@ -125,7 +130,7 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>
             // parse_route_cards() <|>
 
             // /decks
-            parse_route_decks() <|>
+            parse_route_decks(context.clone()) <|>
 
             // /stashes
             // parse_route_stashes() <|>
@@ -134,7 +139,7 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>
             // parse_route_settings() <|>
 
             // /
-            parse_route_root();
+            parse_route_root(context.clone());
 
         // NOTE: Thou shalt not put parsers after this line.
         //       Why?
@@ -217,7 +222,7 @@ fn parse_assets(input: Input<u8>) -> U8Result<RenderResponse> {
 }
 
 #[inline]
-fn parse_route_root(input: Input<u8>) -> U8Result<RenderResponse> {
+fn parse_route_root(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderResponse> {
     parse!{input;
 
         let result = or(
@@ -234,9 +239,11 @@ fn parse_route_root(input: Input<u8>) -> U8Result<RenderResponse> {
                 ret {
                     // TODO: wrong verb... 405 Method Not Allowed
 
-                    let home = AppRoute::Home;
+                    let deck_route = DeckRoute::Decks(Default::default(), Default::default());
 
-                    RenderResponse::RenderComponent(home)
+                    let default_home = AppRoute::Deck(context.root_deck_id, deck_route);
+
+                    RenderResponse::RenderComponent(default_home)
                 }
             },
             |i| parse!{i;
@@ -254,7 +261,7 @@ fn parse_route_root(input: Input<u8>) -> U8Result<RenderResponse> {
 }
 
 #[inline]
-fn parse_route_decks(input: Input<u8>) -> U8Result<RenderResponse> {
+fn parse_route_decks(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderResponse> {
     parse!{input;
 
         string_ignore_case(b"decks");
@@ -267,9 +274,11 @@ fn parse_route_decks(input: Input<u8>) -> U8Result<RenderResponse> {
 
         ret {
 
-            let home = AppRoute::Home;
+            let deck_route = DeckRoute::Decks(Default::default(), Default::default());
 
-            RenderResponse::RenderComponent(home)
+            let default_home = AppRoute::Deck(context.root_deck_id, deck_route);
+
+            RenderResponse::RenderComponent(default_home)
         }
     }
 }

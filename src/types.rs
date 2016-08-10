@@ -18,6 +18,12 @@ pub enum Search {
     Query(String),
 }
 
+impl Default for Search {
+    fn default() -> Self {
+        Search::NoQuery
+    }
+}
+
 #[derive(Debug)]
 pub enum SortOrder {
     Ascending,
@@ -28,6 +34,12 @@ pub enum SortOrder {
 pub enum DecksPageQuery {
     NoQuery,
     Query(Page, DecksPageSort),
+}
+
+impl Default for DecksPageQuery {
+    fn default() -> Self {
+        DecksPageQuery::NoQuery
+    }
 }
 
 #[derive(Debug)]

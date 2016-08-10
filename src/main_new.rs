@@ -51,7 +51,6 @@ mod components;
 
 use context::Context;
 use log_entry::LogEntry;
-use errors::RawAPIError;
 use api::{configs, decks};
 use route::parse_request_uri;
 use components::render_response;
@@ -161,6 +160,8 @@ fn main() {
             database: db_connection.clone()
         };
 
+        let context = Rc::new(context);
+
         // middleware/logging
         // TODO: complete
 
@@ -169,7 +170,7 @@ fn main() {
         let uri = format!("{}", request.uri);
         let request: Rc<RefCell<_>> = Rc::new(RefCell::new(request));
 
-        let render = match parse_only(|i| parse_request_uri(i, request.clone()), uri.as_bytes()) {
+        let render = match parse_only(|i| parse_request_uri(i, context.clone(), request.clone()), uri.as_bytes()) {
             Ok(render_response) => {
                 // url has a match
                 render_response
@@ -186,7 +187,7 @@ fn main() {
         // NOTE: This is a boundary line where the request has been transformed into
         //       RenderResponse type. Anything from request shall be put into the RenderResponse type.
 
-        let result = render_response(render, response);
+        let result = render_response(context, render, response);
 
         return ();
 
