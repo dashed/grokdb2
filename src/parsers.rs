@@ -124,6 +124,8 @@ pub fn parse_byte_limit(input: Input<u8>, delim: u8, max_reoccurance: u8) -> U8R
 
     loop {
 
+        let mut looped = false;
+
         if idx >= max_reoccurance {
             break;
         }
@@ -138,12 +140,18 @@ pub fn parse_byte_limit(input: Input<u8>, delim: u8, max_reoccurance: u8) -> U8R
                         idx = max_reoccurance;
                     }
 
+                    looped = true;
+
                     ()
                 }
             }
         });
 
         idx = idx + 1;
+
+        if !looped {
+            break;
+        }
     }
 
     return result;
