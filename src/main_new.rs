@@ -36,9 +36,6 @@ use chomp::{parse_only};
 /* local imports */
 
 mod types;
-// TODO: remove; cleanup
-// #[macro_use]
-// mod macros;
 #[macro_use]
 mod errors;
 #[macro_use]
