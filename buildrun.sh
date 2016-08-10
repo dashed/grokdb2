@@ -9,5 +9,6 @@ cargo build
 # --show-overdue --show-incomplete --show-deferred --show-done
 
 
+rm test.db
 RUST_BACKTRACE=1 target/debug/grokdb2
 # RUST_BACKTRACE=1 target/debug/gtdtxt test3.gtd
