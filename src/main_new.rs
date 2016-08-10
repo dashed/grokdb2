@@ -24,40 +24,14 @@ extern crate quick_error;
 /* rust lib imports */
 
 use std::io;
-use std::ascii::AsciiExt;
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex, LockResult, MutexGuard, RwLock};
-use std::fs::{self, File};
-use std::path::{PathBuf, Path};
-use std::ffi::OsStr;
-use std::collections::HashMap;
 
 /* 3rd-party imports */
 
-use rusqlite::Connection;
-use rusqlite::types::ToSql;
-use rusqlite::Error as SqliteError;
+use hyper::server::{Server, Request, Response};
 
-use url::percent_encoding::percent_decode;
-
-use hyper::method::Method;
-use hyper::server::{Server, Handler, Request, Response};
-use hyper::header::{Headers, ContentType, TransferEncoding};
-use hyper::mime::{Mime, TopLevel, SubLevel};
-use hyper::uri::RequestUri;
-use hyper::status::StatusCode;
-use hyper::header::{Header, HeaderFormat};
-
-use chomp::{SimpleResult, Error, ParseResult};
-use chomp::primitives::InputBuffer;
-use chomp::{Input, U8Result, parse_only};
-use chomp::buffer::{Source, Stream, StreamError};
-
-use chomp::token;
-use chomp::parsers::{string, eof, any, satisfy};
-use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look_ahead, option};
-use chomp::ascii::{is_whitespace, decimal, digit};
+use chomp::{parse_only};
 
 /* local imports */
 
@@ -161,6 +135,8 @@ fn main() {
 
     // freeze root_deck_id
     let root_deck_id = root_deck_id;
+
+    println!("Root deck id: {}", root_deck_id);
 
     /* server */
 

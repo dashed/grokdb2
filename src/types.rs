@@ -1,14 +1,3 @@
-/* rust lib imports */
-
-use std::sync::{Arc, Mutex, LockResult, MutexGuard, RwLock};
-
-/* 3rd-party imports */
-
-use rusqlite::Connection;
-use hyper::header::{Headers, ContentType, TransferEncoding};
-
-/// /////////////////////////////////////////////////////////////////////////////
-
 /* Types */
 
 pub type UnixTimestamp = i64;

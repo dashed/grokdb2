@@ -1,6 +1,6 @@
 /* rust lib imports */
 
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, Mutex};
 
 /* 3rd-party imports */
 
@@ -13,7 +13,6 @@ use tables;
 /* ////////////////////////////////////////////////////////////////////////// */
 
 // Arc := Shared resource between threads
-// RwLock := Create critical section where multiple API Reads can co-exist
 // Mutex := Raw database operation
 pub type Database = Arc<Mutex<Connection>>;
 
