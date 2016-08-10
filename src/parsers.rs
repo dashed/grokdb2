@@ -119,16 +119,16 @@ pub fn parse_byte_limit(input: Input<u8>, delim: u8, max_reoccurance: u8) -> U8R
     let mut idx = 0;
 
     let not_delim = {
-        if delim == b'-' { b'/' } else { b'-' }
+        if delim == b'a' { b'b' } else { b'a' }
     };
 
     loop {
 
-        let mut looped = false;
-
         if idx >= max_reoccurance {
             break;
         }
+
+        let mut looped = false;
 
         result = result.then(|i| {
             parse!{i;

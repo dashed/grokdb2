@@ -137,6 +137,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                                         class? = classnames!(
                                             "is-bold",
                                             "button is-primary" => {
+                                                // TODO: re-review this
                                                 matches!(app_route, AppRoute::Deck(_, _)) ||
                                                 matches!(app_route, AppRoute::Card(_, _)) ||
                                                 matches!(app_route, AppRoute::CardInDeck(_, _, _))
@@ -151,6 +152,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                                         class? = classnames!(
                                             "is-bold",
                                             "button is-primary" => {
+                                                // TODO: re-review this
                                                 matches!(app_route, AppRoute::Stashes)
                                             }),
                                         href="#") {
@@ -163,6 +165,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                                         class? = classnames!(
                                             "is-bold",
                                             "button is-primary" => {
+                                                // TODO: re-review this
                                                 matches!(app_route, AppRoute::Preferences)
                                             }),
                                         href="#") {
@@ -180,20 +183,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                             |tmpl| {
                                 match app_route.clone() {
                                     AppRoute::Deck(deck_id, deck_route) => {
-                                        match deck_route {
-                                            DeckRoute::Decks(deck_page_query, search) => {
-                                                DecksChildren(
-                                                    tmpl,
-                                                    context.clone(),
-                                                    deck_id,
-                                                    deck_page_query,
-                                                    search
-                                                )
-                                            },
-                                            _ => {
-                                                // TODO: complete this shit
-                                            }
-                                        }
+                                        DeckDetail(tmpl, context.clone(), deck_id, deck_route)
                                     },
                                     _ => {
                                         // TODO: complete this shit
@@ -262,82 +252,61 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
 }
 
 #[inline]
-fn DecksChildren(tmpl: &mut TemplateBuffer,
-    context: Rc<Context>, deck_id: DeckID, deck_page_query: DecksPageQuery, search: Search) {
+fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, deck_route: DeckRoute) {
     tmpl << html!{
+        // TODO: path generator
 
+        span(class="title is-5 is-marginless", style="font-weight:normal;") {
+            : raw!("/ ");
+        }
+        span(class="title is-5 is-marginless", style="font-weight:normal;") {
+            a(href="#") {
+                : raw!("Library");
+            }
+        }
+        span(class="title is-5 is-marginless", style="font-weight:normal;") {
+            : raw!(" / ");
+        }
+        span(class="title is-5 is-marginless is-bold") {
+            a(href="#") {
+                : raw!("Math");
+            }
+        }
+    }
+}
+
+#[inline]
+fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, deck_route: DeckRoute) {
+    tmpl << html!{
         div(class="column") {
 
             div(class="columns") {
                 div(class="column") {
-
-                    // TODO: path generator
-
-                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                        : raw!("/ ");
-                    }
-                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                        a(href="#") {
-                            : raw!("Library");
-                        }
-                    }
-                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                        : raw!(" / ");
-                    }
-                    span(class="title is-5 is-marginless is-bold") {
-                        a(href="#") {
-                            : raw!("Math");
-                        }
-                    }
+                    |tmpl| DeckPath(tmpl, context.clone(), deck_id, deck_route.clone());
                 }
             }
 
-            div(class="columns") {
-                div(class="column") {
-                    a(class="button is-bold is-success",
-                        href = view_route_to_link(context.clone(), AppRoute::Deck(deck_id, DeckRoute::NewDeck))) {
-                        : raw!("New Deck")
+            |tmpl| {
+                match deck_route.clone() {
+                    DeckRoute::Decks(deck_page_query, search) => {
+                        DecksChildren(
+                            tmpl,
+                            context.clone(),
+                            deck_id,
+                            deck_page_query,
+                            search
+                        )
+                    },
+                    DeckRoute::NewDeck => {
+                        NewDeck(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
+                    },
+                    _ => {
+                        // TODO: complete this shit
                     }
-                }
-            }
-
-            // TODO: hide
-            div(class="columns") {
-                div(class="column") {
-                    |tmpl| PaginationComponent(tmpl);
-                }
-            }
-
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, false);
-            |tmpl| DeckListItemComponent(tmpl, true);
-
-            // TODO: hide
-            div(class="columns", style="margin-top:10px;") {
-                div(class="column") {
-                    |tmpl| PaginationComponent(tmpl);
                 }
             }
 
@@ -386,8 +355,73 @@ fn DecksChildren(tmpl: &mut TemplateBuffer,
 
                 }
             }
+        }
+    }
+}
 
+#[inline]
+fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID) {
+    tmpl << html!{
+        div(class="columns") {
+            div(class="column") {
+                : raw!("new deck")
+            }
+        }
+    }
+}
 
+#[inline]
+fn DecksChildren(tmpl: &mut TemplateBuffer,
+    context: Rc<Context>, deck_id: DeckID, deck_page_query: DecksPageQuery, search: Search) {
+    tmpl << html!{
+
+        div(class="columns") {
+            div(class="column") {
+                a(class="button is-bold is-success",
+                    href = view_route_to_link(context.clone(), AppRoute::Deck(deck_id, DeckRoute::NewDeck))) {
+                    : raw!("New Deck")
+                }
+            }
+        }
+
+        // TODO: hide
+        div(class="columns") {
+            div(class="column") {
+                |tmpl| PaginationComponent(tmpl);
+            }
+        }
+
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, false);
+        |tmpl| DeckListItemComponent(tmpl, true);
+
+        // TODO: hide
+        div(class="columns", style="margin-top:10px;") {
+            div(class="column") {
+                |tmpl| PaginationComponent(tmpl);
+            }
         }
     }
 }

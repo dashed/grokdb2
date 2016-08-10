@@ -126,13 +126,13 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<Context>, request
             // /assets/*
             parse_assets() <|>
 
-            // /cards
+            // /card/*
             // parse_route_cards() <|>
 
-            // /decks
-            parse_route_decks(context.clone()) <|>
+            // /deck/*
+            parse_route_deck(context.clone()) <|>
 
-            // /stashes
+            // /stashes/*
             // parse_route_stashes() <|>
 
             // /settings
@@ -140,6 +140,8 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<Context>, request
 
             // /
             parse_route_root(context.clone());
+
+        // NOTE: don't put query string parser or eof parser here
 
         // NOTE: Thou shalt not put parsers after this line.
         //       Why?
@@ -261,28 +263,42 @@ fn parse_route_root(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderRe
 }
 
 #[inline]
-fn parse_route_decks(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderResponse> {
+fn parse_route_deck(input: Input<u8>, context: Rc<Context>) -> U8Result<RenderResponse> {
     parse!{input;
 
-        string_ignore_case(b"decks");
+        string_ignore_case(b"deck");
+        parse_byte_limit(b'/', 5);
+        let deck_id = decimal();
+        parse_byte_limit(b'/', 5);
 
-        let query_string = option(|i| parse!{i;
-            let query_string = parse_query_string();
+        let render_response = parse_route_deck_new_deck(context.clone(), deck_id);
 
-            ret Some(query_string)
-        }, None);
 
-        ret {
+        // TODO: remove
+        // let query_string = option(|i| parse!{i;
+        //     let query_string = parse_query_string();
 
-            let deck_route = DeckRoute::Decks(Default::default(), Default::default());
+        //     ret Some(query_string)
+        // }, None);
 
-            let default_home = AppRoute::Deck(context.root_deck_id, deck_route);
-
-            RenderResponse::RenderComponent(default_home)
-        }
+        ret render_response
     }
 }
 
+#[inline]
+fn parse_route_deck_new_deck(input: Input<u8>, context: Rc<Context>, deck_id: DeckID) -> U8Result<RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"new");
+        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"deck");
+
+        ret {
+            let route = AppRoute::Deck(deck_id, DeckRoute::NewDeck);
+            RenderResponse::RenderComponent(route)
+        }
+    }
+}
 
 /* Original:
  * E --> P {or P}
