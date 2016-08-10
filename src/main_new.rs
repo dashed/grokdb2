@@ -22,6 +22,7 @@ extern crate rusqlite;
 extern crate quick_error;
 #[macro_use]
 extern crate matches;
+extern crate chrono;
 
 /* rust lib imports */
 

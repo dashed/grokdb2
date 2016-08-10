@@ -6,6 +6,7 @@ use std::thread;
 /* 3rd-party imports */
 
 use time;
+use chrono;
 use hyper::server::{Server, Handler, Request, Response};
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -59,11 +60,14 @@ impl<W> Drop for LogEntry<W>
 
         if thread::panicking() {
             write!(self.output, " - PANIC!").unwrap();
-
         } else {
             let elapsed = time::precise_time_ns() - self.start_time;
             format_time(self.output.by_ref(), elapsed);
         }
+
+        let utc: chrono::DateTime<chrono::UTC> = chrono::UTC::now();
+        // TODO: needs ms and ns granularity
+        write!(self.output, " - {}", utc.to_rfc2822());
 
         writeln!(self.output, "").unwrap();
     }
