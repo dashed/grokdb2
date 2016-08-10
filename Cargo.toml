@@ -54,6 +54,7 @@ mime = "0.2.0"
 matches = "0.1.2"
 time = "0.1.35"
 quick-error = "1.1.0"
+chrono = "0.2"
 # html5ever = "0.5.4"
 # tendril = "0.2.2"
 
