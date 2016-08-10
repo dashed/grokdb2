@@ -52,7 +52,7 @@ lazy_static! {
 
 /* router types */
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum AppRoute {
 
     // TODO: remove
@@ -69,7 +69,7 @@ pub enum AppRoute {
     CardInDeck(DeckID, CardID, CardRoute),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CardRoute {
     Profile,
     // Settings,
@@ -77,7 +77,7 @@ pub enum CardRoute {
     Review,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DeckRoute {
     NewCard,
     NewDeck,

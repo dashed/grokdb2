@@ -12,7 +12,7 @@ pub type StashID = i64;
 pub type Page = u64;
 pub type PerPage = u64;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Search {
     NoQuery,
     Query(String),
@@ -24,13 +24,13 @@ impl Default for Search {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SortOrder {
     Ascending,
     Descending,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DecksPageQuery {
     NoQuery,
     Query(Page, DecksPageSort),
@@ -42,7 +42,7 @@ impl Default for DecksPageQuery {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DecksPageSort {
     DeckTitle(SortOrder),
     CreatedAt(SortOrder),
