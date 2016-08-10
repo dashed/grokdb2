@@ -5,8 +5,8 @@ const ReactDOMServer = require('react-dom/server');
 
 const componentPath = args[0];
 
-// TODO: not used
-// const destPath = args[1];
+// disables redux-logger
+process.env.NODE_ENV = 'production'
 
 require("babel-register");
 
@@ -19,5 +19,4 @@ const result = ReactDOMServer.renderToString(
 
 // NOTE: this adds trailing newline
 // console.log(result);
-
 process.stdout.write(result);
