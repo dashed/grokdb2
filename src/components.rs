@@ -37,10 +37,26 @@ macro_rules! classnames {
     }};
 }
 
+/* link generator */
+
+fn view_route_to_link(context: Rc<Context>, app_route: AppRoute) -> String {
+    match app_route {
+        AppRoute::Deck(deck_id, deck_route) => {
+            match deck_route {
+                DeckRoute::NewDeck => format!("/deck/{}/new/deck", deck_id),
+                _ => panic!("fix")
+            }
+        },
+        _ => {
+            panic!("fix this");
+        }
+    }
+}
+
 /* components */
 
 #[inline]
-pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
+pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: AppRoute) {
 
     tmpl << html! {
         : raw!("<!DOCTYPE html>");
@@ -166,7 +182,13 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
                                     AppRoute::Deck(deck_id, deck_route) => {
                                         match deck_route {
                                             DeckRoute::Decks(deck_page_query, search) => {
-                                                DecksChildren(tmpl, deck_id, deck_page_query, search)
+                                                DecksChildren(
+                                                    tmpl,
+                                                    context.clone(),
+                                                    deck_id,
+                                                    deck_page_query,
+                                                    search
+                                                )
                                             },
                                             _ => {
                                                 // TODO: complete this shit
@@ -240,13 +262,17 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, app_route: AppRoute) {
 }
 
 #[inline]
-fn DecksChildren(tmpl: &mut TemplateBuffer, deck_id: DeckID, deck_page_query: DecksPageQuery, search: Search) {
+fn DecksChildren(tmpl: &mut TemplateBuffer,
+    context: Rc<Context>, deck_id: DeckID, deck_page_query: DecksPageQuery, search: Search) {
     tmpl << html!{
 
         div(class="column") {
 
             div(class="columns") {
                 div(class="column") {
+
+                    // TODO: path generator
+
                     span(class="title is-5 is-marginless", style="font-weight:normal;") {
                         : raw!("/ ");
                     }
@@ -268,7 +294,8 @@ fn DecksChildren(tmpl: &mut TemplateBuffer, deck_id: DeckID, deck_page_query: De
 
             div(class="columns") {
                 div(class="column") {
-                    a(class="button is-bold is-success") {
+                    a(class="button is-bold is-success",
+                        href = view_route_to_link(context.clone(), AppRoute::Deck(deck_id, DeckRoute::NewDeck))) {
                         : raw!("New Deck")
                     }
                 }

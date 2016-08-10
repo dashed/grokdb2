@@ -538,7 +538,7 @@ fn render_components(context: Rc<Context>, app_route: AppRoute, mut response: Re
 
     let app_component = {
         FnRenderer::new(|tmpl| {
-            AppComponent(tmpl, app_route);
+            AppComponent(tmpl, context.clone(), app_route);
         })
     };
 
