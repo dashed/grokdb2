@@ -369,7 +369,7 @@ fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID) {
             }
         }
 
-        div(id="new_deck") {}
+        div(id="new_deck_container") {}
     }
 }
 
