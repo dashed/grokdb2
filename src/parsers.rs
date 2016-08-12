@@ -107,7 +107,7 @@ pub fn string_ignore_case<'a>(i: Input<'a, u8>, s: &[u8]) -> SimpleResult<'a, u8
     i.replace(&b[s.len()..]).ret(d)
 }
 
-
+// parse delim 1-time, and then optionally max_reoccurance more times.
 #[inline]
 pub fn parse_byte_limit(input: Input<u8>, delim: u8, max_reoccurance: u8) -> U8Result<()> {
 

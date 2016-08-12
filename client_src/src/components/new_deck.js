@@ -1,6 +1,10 @@
+require('babel-polyfill');
+
 global.Promise = require('bluebird');
 
 const React = require('react');
+
+const assign = require('lodash/assign');
 
 const {createStore, applyMiddleware} = require('redux');
 const {Provider, connect} = require('react-redux');
@@ -21,8 +25,6 @@ const {
     DECK_DESCRIPTION,
     DECK_NAME,
 
-    POST_TO,
-
 } = require('global/constants');
 
 const {reduceIn, makeReducer} = require('lib/redux-tree');
@@ -31,80 +33,71 @@ const {reduceIn, makeReducer} = require('lib/redux-tree');
 
 const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
+const MathJaxLine = require('components/dumb/mathjax_line');
 
-const RenderSourceComponent = connect(
+// const __DeckDescriptionComponent = function(props) {
 
-    // mapStateToProps
-    (state) => {
-        return {
-            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
-            switchTab: (dispatch, markdownView) => switchMarkdownView(dispatch, markdownView)
-        };
-    }
-)(require('components/dumb/source_render'));
+//     const markdownView = props[MARKDOWN_VIEW];
+//     const contents = props[MARKDOWN_CONTENTS];
 
-const __DeckDescriptionComponent = function(props) {
+//     let sourceStyle = {};
+//     let renderStyle = {};
 
-    const markdownView = props[MARKDOWN_VIEW];
-    const contents = props[MARKDOWN_CONTENTS];
+//     switch(markdownView) {
+//     case MARKDOWN_VIEW_RENDER:
+//         sourceStyle.display = 'none';
+//         break;
 
-    let sourceStyle = {};
-    let renderStyle = {};
+//     case MARKDOWN_VIEW_SOURCE:
+//     default:
+//         renderStyle.display = 'none';
+//     }
 
-    switch(markdownView) {
-    case MARKDOWN_VIEW_RENDER:
-        sourceStyle.display = 'none';
-        break;
+//     return (
+//         <div>
+//             <div style={renderStyle}>
+//                 <MarkdownRender contents={contents} />
+//             </div>
+//             <div>
+//                 <div className='form-group' style={sourceStyle}>
+//                     <MarkdownSource
+//                         contents={contents}
+//                         placeholder={'Description for new deck'}
+//                         assignProps={props.assignProps}
+//                         editable
+//                     />
+//                 </div>
+//             </div>
+//         </div>
+//     );
 
-    case MARKDOWN_VIEW_SOURCE:
-    default:
-        renderStyle.display = 'none';
-    }
+// }
 
-    return (
-        <div>
-            <div style={renderStyle}>
-                <MarkdownRender contents={contents} />
-            </div>
-            <div>
-                <div className='form-group' style={sourceStyle}>
-                    <MarkdownSource
-                        contents={contents}
-                        placeholder={'Description for new deck'}
-                        assignProps={props.assignProps}
-                        editable
-                    />
-                </div>
-            </div>
-        </div>
-    );
+// if(process.env.NODE_ENV !== 'production') {
+//     __DeckDescriptionComponent.propTypes = {
+//         assignProps: React.PropTypes.object,
+//     };
+// }
 
-}
+// const DeckDescriptionComponent = connect(
 
-if(process.env.NODE_ENV !== 'production') {
-    __DeckDescriptionComponent.propTypes = {
-        assignProps: React.PropTypes.object,
-    };
-}
+//     // mapStateToProps
+//     (state, ownProps) => {
 
-const DeckDescriptionComponent = connect(
+//         return {
 
-    // mapStateToProps
-    (state, ownProps) => {
+//             [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
 
-        return {
+//             // [MARKDOWN_CONTENTS]: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+//             // from redux-form
+//             [MARKDOWN_CONTENTS]: ownProps.assignProps.value
 
-            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
+//         };
+//     }
+// )(__DeckDescriptionComponent);
 
-            // [MARKDOWN_CONTENTS]: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
-            // from redux-form
-            [MARKDOWN_CONTENTS]: ownProps.assignProps.value
-
-        };
-    }
-)(__DeckDescriptionComponent);
-
-const __NewDeckContainer = function(props) {
+// TODO: remove
+const old__NewDeckContainer = function(props) {
     const {
         fields: { name, description},
         handleSubmit,
@@ -113,7 +106,7 @@ const __NewDeckContainer = function(props) {
         error
     } = props;
 
-    const postURL = props[POST_TO];
+    const postURL = '/api/deck';
 
     return (
         <div>
@@ -193,55 +186,255 @@ const __NewDeckContainer = function(props) {
     );
 }
 
+
+// TODO: remove
+// const old_NewDeckContainer = reduxForm(
+//     {
+//         form: 'new_deck',
+//         fields: ['name', 'description'],
+//         validate: (values) => {
+//             const errors = {};
+
+//             if (!values.name) {
+//                 errors.name = 'Deck name is required';
+//             } else if(values.name.trim().length <= 0) {
+//                 errors.name = 'Deck name cannot be entirely spaces (or whitespace).';
+//             }
+
+//             return errors;
+//         },
+//         initialValues: {
+//             name: '',
+//             description: ''
+//         }
+//     },
+//     // mapStateToProps
+//     // (state) => {
+
+//     //     return {
+//     //         [POST_TO]: state[POST_TO]
+//     //     };
+//     // }
+//     // mapDispatchToProps
+//     // (dispatch) => {
+//     //     return {
+//     //         addNewDeck
+//     //     };
+//     // }
+// )(__NewDeckContainer);
+
+////////////////////////////////////////////////////////////////////////////////
+
+const RenderSourceNameComponent = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            [MARKDOWN_VIEW]: state[DECK_NAME][MARKDOWN_VIEW]
+        };
+    },
+    // mapDispatchToProps
+    (dispatch) => {
+        return {
+            // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
+            switchTab: (markdownView) => {
+                return switchMarkdownView(dispatch, [DECK_NAME, MARKDOWN_VIEW], markdownView);
+            }
+        };
+    }
+)(require('components/dumb/render_source'));
+
+const RenderSourceDescriptionComponent = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW]
+        };
+    },
+    // mapDispatchToProps
+    (dispatch) => {
+        return {
+            // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
+            switchTab: (markdownView) => {
+                return switchMarkdownView(dispatch, [DECK_DESCRIPTION, MARKDOWN_VIEW], markdownView);
+            }
+        };
+    }
+)(require('components/dumb/render_source'));
+
+
+const __DeckDescriptionComponent = function(props) {
+
+    const markdownView = props[MARKDOWN_VIEW];
+    const contents = props[MARKDOWN_CONTENTS];
+
+    let sourceStyle = {};
+    let renderStyle = {};
+
+    switch(markdownView) {
+    case MARKDOWN_VIEW_RENDER:
+        sourceStyle.display = 'none';
+        break;
+
+    case MARKDOWN_VIEW_SOURCE:
+    default:
+        renderStyle.display = 'none';
+    }
+
+    return (
+        <div>
+            <div style={renderStyle}>
+                <MarkdownRender contents={contents} />
+            </div>
+            <div>
+                <div style={sourceStyle}>
+                    <MarkdownSource
+                        id='input-deck-description'
+                        contents={contents}
+                        placeholder={'Description for new deck'}
+                        assignProps={props.assignProps}
+                        editable
+                    />
+                </div>
+            </div>
+        </div>
+    );
+
+}
+
 if(process.env.NODE_ENV !== 'production') {
-    __NewDeckContainer.propTypes = {
-        fields: React.PropTypes.object.isRequired,
-        handleSubmit: React.PropTypes.func.isRequired,
-        submitting: React.PropTypes.bool.isRequired,
-        [POST_TO]: React.PropTypes.string.isRequired,
-        // addNewDeck: React.PropTypes.func.isRequired,
+    __DeckDescriptionComponent.propTypes = {
+        assignProps: React.PropTypes.object,
     };
 }
 
+const DeckDescriptionComponent = connect(
+
+    // mapStateToProps
+    (state, ownProps) => {
+
+        return {
+
+            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
+
+            // from redux-form
+            [MARKDOWN_CONTENTS]: ownProps.assignProps.value
+
+        };
+    }
+
+)(__DeckDescriptionComponent);
+
+const __NewDeckContainer = function(props) {
+
+    const {
+        mathjaxifyDeckName,
+        fields: { name, description}
+    } = props;
+
+    // const __name = assign({}, name);
+    const __description = assign({}, description);
+
+    return (
+        <div>
+            <div className='columns' style={{marginBottom: 0}}>
+                <div className='column'>
+                    <label className='label' htmlFor='input-deck-name'>{'Name'}</label>
+                        <MathJaxLine
+                            content={name.value}
+                            mathjaxify={mathjaxifyDeckName}
+                        >
+                            <p className='control'>
+                                <input
+                                    id='input-deck-name'
+                                    className='input'
+                                    type='text'
+                                    placeholder='Name for new deck'
+                                    {...assign({}, name)}
+                                />
+                            </p>
+                        </MathJaxLine>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <RenderSourceNameComponent
+                        extraClasses='is-small'
+                        reverse
+                    />
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <hr className='is-marginless'/>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <div className='columns' style={{marginBottom: 0}}>
+                        <div className='column'>
+                            <label className='label' htmlFor='input-deck-description'>{'Description'}</label>
+                            <RenderSourceDescriptionComponent
+                                reverse
+                            />
+                        </div>
+                    </div>
+                    <div className='columns'>
+                        <div className='column'>
+                            <DeckDescriptionComponent assignProps={__description} />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <hr className='is-marginless'/>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <a className='button is-success'>{'Add Deck'}</a>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const NewDeckContainer = reduxForm(
+
+    // config
     {
         form: 'new_deck',
         fields: ['name', 'description'],
-        validate: (values) => {
-            const errors = {};
-
-            if (!values.name) {
-                errors.name = 'Deck name is required';
-            } else if(values.name.trim().length <= 0) {
-                errors.name = 'Deck name cannot be entirely spaces (or whitespace).';
-            }
-
-            return errors;
-        },
         initialValues: {
             name: '',
             description: ''
         }
     },
+
     // mapStateToProps
     (state) => {
-
         return {
-            [POST_TO]: state[POST_TO]
+            mathjaxifyDeckName: state[DECK_NAME][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER
         };
     }
-    // mapDispatchToProps
-    // (dispatch) => {
-    //     return {
-    //         addNewDeck
-    //     };
-    // }
+
 )(__NewDeckContainer);
 
+if(process.env.NODE_ENV !== 'production') {
+    __NewDeckContainer.propTypes = {
+        fields: React.PropTypes.object.isRequired,
+        handleSubmit: React.PropTypes.func.isRequired,
+        submitting: React.PropTypes.bool.isRequired,
+        mathjaxifyDeckName: React.PropTypes.bool.isRequired
+        // TODO: fix
+        // addNewDeck: React.PropTypes.func.isRequired,
+    };
+}
 
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
+// TODO: refactor
 const addNewDeck = function(postURL, formData) {
     return new Promise((resolve, reject) => {
 
@@ -331,7 +524,7 @@ const addNewDeck = function(postURL, formData) {
     });
 };
 
-const switchMarkdownView = function(dispatch, markdownView) {
+const switchMarkdownView = function(dispatch, path, markdownView) {
     return function(event) {
         event.preventDefault();
         dispatch(
@@ -339,7 +532,7 @@ const switchMarkdownView = function(dispatch, markdownView) {
                 // reducer
                 markdownViewReducer,
                 // path
-                [DECK_DESCRIPTION, MARKDOWN_VIEW],
+                path,
                 // action
                 {
                     type: markdownView
@@ -347,8 +540,7 @@ const switchMarkdownView = function(dispatch, markdownView) {
             )
         );
     }
-}
-
+};
 
 /* redux reducers */
 
@@ -365,24 +557,23 @@ const markdownViewReducer = function(state = MARKDOWN_VIEW_RENDER, action) {
     }
 
     return state;
-}
+};
 
 /* default state */
 
 const initialState = {
 
-    [POST_TO]: '',
-
     [DECK_NAME]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
+        // NOTE: contents is stored and handled by redux-form
     },
 
     [DECK_DESCRIPTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
-        // [MARKDOWN_CONTENTS]: '' // not used; value is stored and handled by redux-form
+        // NOTE: contents is stored and handled by redux-form
     },
 
-    // redux-form
+    // redux-form. generate initial state.
     form: reduxformReducer()
 
 };
@@ -393,7 +584,8 @@ const merge = require('lodash/merge');
 
 const formReducer = (state, action) => {
 
-    // NOTE: we're not using combineReducers from redux
+    // NOTE: We're not using combineReducers from redux as redux-form expects.
+    //       Defer any un-captured action to redux-form.
 
     const newForm = reduxformReducer(state.form, action);
     const newState = merge({}, state);
@@ -404,6 +596,7 @@ const formReducer = (state, action) => {
 
 const rehydrateFactory = require('helpers/hydrate');
 
+// TODO: refactor to module
 const middleware = () => {
 
     if(process.env.NODE_ENV !== 'production') {

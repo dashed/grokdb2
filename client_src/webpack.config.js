@@ -6,6 +6,7 @@ var is_production = process.env.NODE_ENV === 'production';
 
 var appRoot = __dirname;
 
+// TODO: delete this
 var vendor = [
 
     // babel
@@ -37,8 +38,8 @@ var vendor = [
 
     // TODO: deferred to cdn via webpack externals
     // react
-    // 'react',
-    // 'react-dom',
+    'react',
+    'react-dom',
 
 
 
@@ -60,6 +61,7 @@ module.exports = {
     entry: {
         deck_review: "./src/deck_review.js",
         new_deck: "./src/new_deck.js",
+        // TODO: remove
         // vendor: vendor
     },
 
@@ -113,8 +115,9 @@ module.exports = {
 
 
     externals: {
+        // TODO: cdn only for saas
         // served via cdnjs.com
-        react: 'React',
-        'react-dom': 'ReactDOM'
+        // react: 'React',
+        // 'react-dom': 'ReactDOM'
     }
 };

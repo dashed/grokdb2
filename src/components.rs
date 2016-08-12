@@ -44,6 +44,7 @@ fn view_route_to_link(context: Rc<Context>, app_route: AppRoute) -> String {
         AppRoute::Deck(deck_id, deck_route) => {
             match deck_route {
                 DeckRoute::NewDeck => format!("/deck/{}/new/deck", deck_id),
+                DeckRoute::Decks(page_query, search) => format!("/deck/{}/decks", deck_id),
                 _ => panic!("fix")
             }
         },
@@ -66,6 +67,23 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                     // TODO: fix
                     : "title"
                 }
+
+                // http://docs.mathjax.org/en/latest/configuration.html
+                script(type="text/x-mathjax-config") {
+                    : raw!(r"
+                        MathJax.Hub.Config({
+                            skipStartupTypeset: true,
+                            tex2jax: {
+                                inlineMath: [ ['$', '$'], ['\\\\(','\\\\)'] ],
+                                displayMath: [ ['$$','$$'], ['\\[', '\\]'] ],
+                                processEscapes: true
+                            }
+                        });
+                    ");
+                }
+
+                script(type="text/javascript", async, src="/assets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML") {}
+
                 link (
                     rel="stylesheet",
                     href="/assets/bulma.css"
@@ -227,9 +245,9 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                         // },
                         AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
                             tmpl << html! {
-                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
-                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js") {}
-                                script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js") {}
+                                // script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
+                                // script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.3.0/react.js") {}
+                                // script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/react/15.3.0/react-dom.js") {}
 
                                 // script(type="text/javascript") {
                                 //     // needs to be raw b/c of html escaping
@@ -330,7 +348,16 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, 
                                 }
                             }
                             li {
-                                a(href="#", class="is-active is-bold") {
+                                a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id, DeckRoute::Decks(Default::default(), Default::default()))),
+                                    class? = classnames!(
+                                        "is-bold",
+                                        "is-active" => {
+                                            // TODO: re-review this
+                                            matches!(*deck_route, DeckRoute::NewDeck) ||
+                                            matches!(*deck_route, DeckRoute::Decks(_, _))
+                                        })
+                                ) {
                                     : "Decks"
                                 }
                             }

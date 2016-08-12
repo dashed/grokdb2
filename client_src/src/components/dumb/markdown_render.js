@@ -1,20 +1,88 @@
+/*global MathJax: true */
+/*eslint new-cap: [2, {"capIsNewExceptions": ["MathJax.Hub.Queue", "Remove"]}]*/
+
 const React = require('react');
+const ReactDOM = require('react-dom');
+const each = require('lodash/each');
 
 const markdownParser = require('markdown-it')({
+    // TODO: disable this for saas app
     html: true,
     linkify: true
+
+    // TODO: https://github.com/markdown-it/markdown-it#syntax-highlighting
 })
 // custom plugin to mark mathjax markup to not be escaped by markdown-it
 // and related plugins
 // .use(require('helpers/mathjaxinline'))
-
-// load with plugins (officially supported by markdown-it org)
 .use(require('markdown-it-link-target'));
+// load with plugins (officially supported by markdown-it org)
+// .....
 
 
 const MarkdownRender = React.createClass({
+
     propTypes: {
         contents: React.PropTypes.string.isRequired
+    },
+
+    componentDidUpdate() {
+
+        if(!MathJax) {
+
+            if(process.env.NODE_ENV !== 'production') {
+                const invariant = require('invariant');
+                invariant(MathJax, 'no MathJax loaded');
+            }
+
+            return;
+        }
+
+        if(!this.refs.markdown_render) {
+            return;
+        }
+
+        MathJax.Hub.Queue(['Typeset', MathJax.Hub, ReactDOM.findDOMNode(this.refs.markdown_render)]);
+    },
+
+    componentDidMount() {
+
+        if(!MathJax) {
+
+            if(process.env.NODE_ENV !== 'production') {
+                const invariant = require('invariant');
+                invariant(MathJax, 'no MathJax loaded');
+            }
+
+            return;
+        }
+
+        if(!this.refs.markdown_render) {
+            return;
+        }
+
+        MathJax.Hub.Queue(['Typeset', MathJax.Hub, ReactDOM.findDOMNode(this.refs.markdown_render)]);
+    },
+
+    componentWillUnmount() {
+
+        if(!MathJax) {
+
+            if(process.env.NODE_ENV !== 'production') {
+                const invariant = require('invariant');
+                invariant(MathJax, 'no MathJax loaded');
+            }
+
+            return;
+        }
+
+        if(!this.refs.markdown_render) {
+            return;
+        }
+
+        each(MathJax.Hub.getAllJax(ReactDOM.findDOMNode(this.refs.markdown_render)), function(jax) {
+            jax.Remove();
+        });
     },
 
     render() {
@@ -24,6 +92,7 @@ const MarkdownRender = React.createClass({
         if(content.length > 0) {
             return (
                 <div
+                    className='content'
                     ref='markdown_render'
                     dangerouslySetInnerHTML={{__html: content}}
                 />
@@ -33,7 +102,7 @@ const MarkdownRender = React.createClass({
         // NOTE: dangerouslySetInnerHTML is not applied here
 
         return (
-            <div>
+            <div className='content'>
                 <div className='toast toast-primary'>
                     {'No content was rendered. Click on source tab and enter some text.'}
                 </div>

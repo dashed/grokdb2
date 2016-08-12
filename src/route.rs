@@ -128,6 +128,9 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<Context>, request
             // /assets/*
             parse_assets(request.clone()) <|>
 
+            // /api/*
+            parse_route_api(context.clone(), request.clone()) <|>
+
             // /card/*
             // parse_route_cards() <|>
 
@@ -174,8 +177,7 @@ fn parse_assets<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Re
         parse_byte_limit(b'/', 5);
 
         // TODO: query string cache bust
-        let path = string_till(eof);
-        eof();
+        let path = string_till(|i| or(i, |i| parse_then_value(i, |i| token(i, b'?'), ()), eof));
 
         ret {
 
@@ -240,6 +242,8 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<
         let result = or(
             |i| parse!{i;
 
+                option(|i| parse_byte_limit(i, b'/', 5), ());
+
                 or(
                     |i| parse!{i;
                         token(b'?');
@@ -274,6 +278,53 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<
         );
 
         ret result
+    }
+}
+
+#[inline]
+fn parse_route_api<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>)
+-> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"api");
+
+        parse_byte_limit(b'/', 5);
+
+        let render_response = parse_route_api_deck(context.clone(), request.clone());
+
+        ret render_response
+
+    }
+}
+
+#[inline]
+fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>)
+-> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"deck");
+
+        ret {
+
+            // TODO: clean
+            // let request: CreateDeckRequest = match serde_json::from_reader(request) {
+            //     Ok(request) => request,
+            //     Err(err) => {
+            //         let payload = json_deserialize_err(format!("Malformed request. Unable to create deck."));
+            //         respond_json!(response; payload);
+            //         return;
+            //     }
+            // };
+
+            if request.borrow().method == Method::Post {
+                // TODO: fix
+                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+            } else {
+                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+            }
+
+        }
+
     }
 }
 

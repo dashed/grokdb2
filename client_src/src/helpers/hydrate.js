@@ -10,7 +10,9 @@ const merge = require('lodash/merge');
 const REHYDRATE = ['REHYDRATE'];
 const HOT_PATH = ['HOT_PATH'];
 
-const IDENTITY = (x) => x;
+const IDENTITY = function(x) {
+    return x;
+};
 
 // reducer factory
 module.exports = (fallbackReducer = IDENTITY) => {

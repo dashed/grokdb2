@@ -9,53 +9,77 @@ const {
 
 } = require('global/constants');
 
-const BOLD = {
-    fontWeight: 'bold'
-};
-const EMPTY_OBJ = {};
-
-const boldTest = (conditionTest) => {
-    return conditionTest ? BOLD : EMPTY_OBJ;
-};
-
-// API:
-// type props[MARKDOWN_VIEW] = MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
-// type props.switchTab = (dispatch: dispatch, next_view: MARKDOWN_VIEW) => (event) => void 0;
-//
 const RenderSourceComponent = function(props) {
 
-    // NOTE: switchTab(dispatch: dispatch, next_view: MARKDOWN_VIEW) => (event) => void 0;
-
-    const {dispatch, switchTab} = props;
+    const {switchTab, extraClasses, reverse} = props;
     const currentTab = props[MARKDOWN_VIEW];
 
-    return (
-        <ul className='tab'>
-            <li className = {classnames('tab-item', {'active': currentTab === MARKDOWN_VIEW_RENDER})}>
-                <a
-                    href='#render'
-                    style={boldTest(currentTab === MARKDOWN_VIEW_RENDER)}
-                    onClick={switchTab(dispatch, MARKDOWN_VIEW_RENDER)}>
-                    {'Render'}
-                </a>
-            </li>
-            <li className = {classnames('tab-item', {'active': currentTab === MARKDOWN_VIEW_SOURCE})}>
+    if (reverse) {
+
+        return (
+            <div>
                 <a
                     href='#source'
-                    style={boldTest(currentTab === MARKDOWN_VIEW_SOURCE)}
-                    onClick={switchTab(dispatch, MARKDOWN_VIEW_SOURCE)}>
-                    {'Source'}
-                </a>
-            </li>
-        </ul>
+                    className={classnames(
+                        extraClasses,
+                        'button',
+                        {'is-primary': currentTab === MARKDOWN_VIEW_SOURCE}
+                    )}
+                    onClick={switchTab(MARKDOWN_VIEW_SOURCE)}
+                >{'Source'}</a>
+                {' '}
+                <a
+                    href='#render'
+                    className={classnames(
+                        extraClasses,
+                        'button',
+                        {'is-primary': currentTab === MARKDOWN_VIEW_RENDER}
+                    )}
+                    onClick={switchTab(MARKDOWN_VIEW_RENDER)}
+                >{'Render'}</a>
+            </div>
+        );
+
+    }
+
+    return (
+        <div>
+            <a
+                href='#render'
+                className={classnames(
+                    extraClasses,
+                    'button',
+                    {'is-primary': currentTab === MARKDOWN_VIEW_RENDER}
+                )}
+                onClick={switchTab(MARKDOWN_VIEW_RENDER)}
+            >{'Render'}</a>
+            {' '}
+            <a
+                href='#source'
+                className={classnames(
+                    extraClasses,
+                    'button',
+                    {'is-primary': currentTab === MARKDOWN_VIEW_SOURCE}
+                )}
+                onClick={switchTab(MARKDOWN_VIEW_SOURCE)}
+            >{'Source'}</a>
+        </div>
     );
+
 };
 
 if(process.env.NODE_ENV !== 'production') {
+
     RenderSourceComponent.propTypes = {
-        dispatch: React.PropTypes.func,
+        [MARKDOWN_VIEW]: React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE]),
         switchTab: React.PropTypes.func,
-        [MARKDOWN_VIEW]: React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE])
+        extraClasses: React.PropTypes.string,
+        reverse: React.PropTypes.bool
+    };
+
+    RenderSourceComponent.defaultProps = {
+        extraClasses: '',
+        reverse: false
     };
 }
 
