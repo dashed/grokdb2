@@ -102,13 +102,10 @@ const MarkdownRender = React.createClass({
         // NOTE: dangerouslySetInnerHTML is not applied here
 
         return (
-            <div className='content'>
-                <div className='toast toast-primary'>
-                    {'No content was rendered. Click on source tab and enter some text.'}
+            <div className='message is-info'>
+                <div className='message-body'>
+                    {'No content was rendered. Click on "Source" tab and enter some text.'}
                 </div>
-                <div
-                    ref='markdown_render'
-                />
             </div>
         );
 
