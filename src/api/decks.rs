@@ -23,7 +23,7 @@ pub struct Deck {
 }
 
 // struct for requesting to create a deck
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct CreateDeck {
     pub name: String, // required
     pub description: String, // required, but may be empty

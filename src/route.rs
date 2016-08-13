@@ -35,12 +35,15 @@ use chomp::ascii::{is_whitespace, decimal, digit};
 
 use mime_types;
 
+use serde_json;
+
 /* local imports */
 
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
 use types::{DeckID, CardID, DecksPageQuery, Search};
 use context::Context;
 use components::AppComponent;
+use api::decks::CreateDeck;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -304,6 +307,10 @@ fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request:
 
         string_ignore_case(b"deck");
 
+        parse_byte_limit(b'/', 5);
+
+        let deck_id: DeckID = decimal();
+
         ret {
 
             // TODO: clean
@@ -316,9 +323,46 @@ fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request:
             //     }
             // };
 
-            if request.borrow().method == Method::Post {
-                // TODO: fix
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+            let mut request = request.borrow_mut();
+
+            if request.method == Method::Post {
+
+                // POST /api/deck/:id => create a new deck within this deck
+
+                let mut buffer = String::new();
+
+                match request.read_to_string(&mut buffer) {
+                    Ok(_num_bytes_parsed) => {
+
+                        match serde_json::from_str(&buffer) {
+                            Ok(request) => {
+                                let request: CreateDeck = request;
+
+                                println!("{:?}", request);
+
+                                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                            },
+                            Err(err) => {
+                                println!("{:?}", err);
+                                // let payload = json_deserialize_err(format!("Malformed request. Unable to create deck."));
+                                // respond_json!(response; payload);
+                                // return;
+
+                                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                            }
+                        }
+
+                    },
+                    Err(err) => {
+
+                        // TODO: fix
+
+                        RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                    }
+                }
+
+
+
             } else {
                 RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
             }
