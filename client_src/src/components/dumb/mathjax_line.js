@@ -7,11 +7,40 @@ const ReactDOM = require('react-dom');
 
 // TODO: http://meta.math.stackexchange.com/questions/16946/using-block-displayed-equations-in-question-titles
 
+const Content = function(props) {
+
+    const content = props.content.trim();
+
+    if(content.length <= 0) {
+        return (
+            <div className='message is-info'>
+                <div className='message-body'>
+                    {props.notice}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            {content}
+        </div>
+    );
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    Content.propTypes = {
+        content: React.PropTypes.string.isRequired,
+        notice: React.PropTypes.string.isRequired,
+    };
+}
+
 const MathJaxLine = React.createClass({
 
     propTypes: {
         mathjaxify: React.PropTypes.bool.isRequired,
         content: React.PropTypes.string.isRequired,
+        notice: React.PropTypes.string.isRequired,
         children: React.PropTypes.node.isRequired
     },
 
@@ -88,7 +117,10 @@ const MathJaxLine = React.createClass({
         return (
             <div>
                 <div style={renderStyle} ref='mathjax_line'>
-                    {this.props.content}
+                    <Content
+                        content={this.props.content || ''}
+                        notice={this.props.notice}
+                    />
                 </div>
                 <div style={sourceStyle}>
                     {this.props.children}

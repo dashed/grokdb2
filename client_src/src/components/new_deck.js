@@ -35,67 +35,6 @@ const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
 const MathJaxLine = require('components/dumb/mathjax_line');
 
-// const __DeckDescriptionComponent = function(props) {
-
-//     const markdownView = props[MARKDOWN_VIEW];
-//     const contents = props[MARKDOWN_CONTENTS];
-
-//     let sourceStyle = {};
-//     let renderStyle = {};
-
-//     switch(markdownView) {
-//     case MARKDOWN_VIEW_RENDER:
-//         sourceStyle.display = 'none';
-//         break;
-
-//     case MARKDOWN_VIEW_SOURCE:
-//     default:
-//         renderStyle.display = 'none';
-//     }
-
-//     return (
-//         <div>
-//             <div style={renderStyle}>
-//                 <MarkdownRender contents={contents} />
-//             </div>
-//             <div>
-//                 <div className='form-group' style={sourceStyle}>
-//                     <MarkdownSource
-//                         contents={contents}
-//                         placeholder={'Description for new deck'}
-//                         assignProps={props.assignProps}
-//                         editable
-//                     />
-//                 </div>
-//             </div>
-//         </div>
-//     );
-
-// }
-
-// if(process.env.NODE_ENV !== 'production') {
-//     __DeckDescriptionComponent.propTypes = {
-//         assignProps: React.PropTypes.object,
-//     };
-// }
-
-// const DeckDescriptionComponent = connect(
-
-//     // mapStateToProps
-//     (state, ownProps) => {
-
-//         return {
-
-//             [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
-
-//             // [MARKDOWN_CONTENTS]: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
-//             // from redux-form
-//             [MARKDOWN_CONTENTS]: ownProps.assignProps.value
-
-//         };
-//     }
-// )(__DeckDescriptionComponent);
-
 // TODO: remove
 const old__NewDeckContainer = function(props) {
     const {
@@ -342,6 +281,7 @@ const __NewDeckContainer = function(props) {
                         <MathJaxLine
                             content={name.value}
                             mathjaxify={mathjaxifyDeckName}
+                            notice={'No deck name rendered.  Click on "Source" tab and enter a name.'}
                         >
                             <p className='control'>
                                 <input

@@ -109,7 +109,6 @@ const MarkdownRender = React.createClass({
             </div>
         );
 
-
     }
 });
 
