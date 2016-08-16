@@ -54,6 +54,39 @@ fn view_route_to_link(context: Rc<Context>, app_route: AppRoute) -> String {
     }
 }
 
+/* javascript generator */
+
+fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: &AppRoute) {
+
+    // invariant: already inside script tag
+
+    // needs to be raw b/c of html escaping
+
+    // window.__PRE_RENDER_STATE__
+    match *app_route {
+        AppRoute::Deck(deck_id, ref deck_route) => {
+            match *deck_route {
+                DeckRoute::NewDeck => {
+                    tmpl << html! {
+                        : raw!(
+                            format!(
+                                "window.__PRE_RENDER_STATE__ = {{POST_TO: '/api/deck/{}'}};",
+                                deck_id
+                            )
+                        )
+                    }
+                }
+                _ => {
+                    // nothing
+                }
+            }
+        },
+        _ => {
+            // nothing
+        }
+    }
+}
+
 /* components */
 
 #[inline]
@@ -254,6 +287,13 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                                 //     : raw!(format!("window.__PRE_RENDER_STATE__ = {};",
                                 //         view_route_to_pre_render_state(context.view_route.clone(), context)))
                                 // }
+
+                                script(type="text/javascript") {
+                                    |tmpl| {
+                                        pre_render_state(tmpl, context.clone(), &app_route);
+                                    }
+                                }
+
                                 script(type="text/javascript", src="/assets/new_deck.js") {}
                             };
 

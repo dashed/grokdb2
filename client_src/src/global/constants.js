@@ -55,6 +55,7 @@ const DECK_DESCRIPTION = 'DECK_DESCRIPTION';
 
 const CARD_CONTENTS = 'CARD_CONTENTS'; // change to MARKDOWN_CONTENTS
 const MARKDOWN_CONTENTS = 'MARKDOWN_CONTENTS';
+const POST_TO = 'POST_TO';
 
 module.exports = {
 
@@ -80,5 +81,5 @@ module.exports = {
     DECK_DESCRIPTION,
     CARD_CONTENTS,
     MARKDOWN_CONTENTS,
-
+    POST_TO
 };

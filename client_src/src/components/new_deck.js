@@ -25,6 +25,7 @@ const {
     DECK_DESCRIPTION,
     DECK_NAME,
 
+    POST_TO
 } = require('global/constants');
 
 const {reduceIn, makeReducer} = require('lib/redux-tree');
@@ -268,7 +269,9 @@ const __NewDeckContainer = function(props) {
     const {
         mathjaxifyDeckName,
         fields: { name, description},
-        submitting
+        submitting,
+        handleSubmit,
+        postURL
     } = props;
 
     // const __name = assign({}, name);
@@ -334,10 +337,12 @@ const __NewDeckContainer = function(props) {
             </div>
             <div className='columns'>
                 <div className='column'>
-                    <a className={classnames('button is-success', {
+                    <a
+                    className={classnames('button is-success', {
                         'is-disabled': submitting || String(name.value).trim().length <= 0,
                         'is-loading': submitting
-                    })}>
+                    })}
+                    onClick={handleSubmit(addNewDeck.bind(null, postURL))}>
                         {'Add Deck'}
                     </a>
                 </div>
@@ -361,7 +366,8 @@ const NewDeckContainer = reduxForm(
     // mapStateToProps
     (state) => {
         return {
-            mathjaxifyDeckName: state[DECK_NAME][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER
+            mathjaxifyDeckName: state[DECK_NAME][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
+            postURL: state[POST_TO]
         };
     }
 
@@ -372,7 +378,8 @@ if(process.env.NODE_ENV !== 'production') {
         fields: React.PropTypes.object.isRequired,
         handleSubmit: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
-        mathjaxifyDeckName: React.PropTypes.bool.isRequired
+        mathjaxifyDeckName: React.PropTypes.bool.isRequired,
+        postURL: React.PropTypes.string.isRequired,
         // TODO: fix
         // addNewDeck: React.PropTypes.func.isRequired,
     };
@@ -383,6 +390,7 @@ if(process.env.NODE_ENV !== 'production') {
 
 // TODO: refactor
 const addNewDeck = function(postURL, formData) {
+
     return new Promise((resolve, reject) => {
 
         fetch(postURL, {
@@ -509,6 +517,8 @@ const markdownViewReducer = function(state = MARKDOWN_VIEW_RENDER, action) {
 /* default state */
 
 const initialState = {
+
+    [POST_TO]: '',
 
     [DECK_NAME]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,

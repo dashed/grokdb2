@@ -18,11 +18,11 @@ module.exports = (maker, preRenderState, postRenderState, mountTarget) => {
 
     const { component, store } = maker(preRenderState);
 
-    if(process.env.NODE_ENV !== 'production') {
-        if(!postRenderState) {
-            console.warn('postRenderState not given');
-            postRenderState = maker.initialState;
+    if(!postRenderState) {
+        if(process.env.NODE_ENV !== 'production') {
+            invariant(maker.initialState, 'maker.initialState not set');
         }
+        postRenderState = maker.initialState;
     }
 
     let firstRender = false;

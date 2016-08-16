@@ -149,12 +149,12 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<Context>, request
             // /
             parse_route_root(context.clone(), request.clone());
 
-        // NOTE: don't put query string parser or eof parser here
+            // NOTE: don't put query string parser or eof parser here
 
-        // NOTE: Thou shalt not put parsers after this line.
-        //       Why?
-        //       Allow previous parsers to bail early.
-        //       e.g. Not having to parse query strings.
+            // NOTE: Thou shalt not put parsers after this line.
+            //       Why?
+            //       Allow previous parsers to bail early.
+            //       e.g. Not having to parse query strings.
 
         ret render_response
     }
