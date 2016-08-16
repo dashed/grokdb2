@@ -340,24 +340,22 @@ fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request:
 
                                 println!("{:?}", request);
 
+                                // TODO: change
+
                                 RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
                             },
                             Err(err) => {
-                                println!("{:?}", err);
-                                // let payload = json_deserialize_err(format!("Malformed request. Unable to create deck."));
-                                // respond_json!(response; payload);
-                                // return;
-
-                                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                                // TODO: error logging
+                                // println!("{:?}", err);
+                                RenderResponse::RenderBadRequest
                             }
                         }
 
                     },
                     Err(err) => {
-
-                        // TODO: fix
-
-                        RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                        // invalid utf8 input
+                        // TODO: error logging
+                        RenderResponse::RenderBadRequest
                     }
                 }
 
@@ -642,18 +640,22 @@ pub fn render_response(context: Rc<Context>, render: RenderResponse, mut respons
         RenderResponse::RenderComponent(app_route) => {
             render_components(context, app_route, response);
         },
-        RenderResponse::RenderNotFound => {
-
-            // let ref url = request.borrow().uri;
-
-            // let message = format!("No route handler found for {}", url);
-            let message = format!("Not Found 404");
-
-            // 404 status code
-            *response.status_mut() = StatusCode::NotFound;
-
+        RenderResponse::RenderBadRequest => {
+            let message = format!("400 Bad Request");
+            *response.status_mut() = StatusCode::BadRequest;
             response.send(message.as_bytes()).unwrap();
-
+        },
+        RenderResponse::RenderNotFound => {
+            // TODO: better 404 page
+            let message = format!("404 Not Found");
+            *response.status_mut() = StatusCode::NotFound;
+            response.send(message.as_bytes()).unwrap();
+        },
+        RenderResponse::InternalServerError => {
+            // TODO: better 404 page
+            let message = format!("500 Internal Server Error");
+            *response.status_mut() = StatusCode::NotFound;
+            response.send(message.as_bytes()).unwrap();
         },
         RenderResponse::RenderAsset(header, content) => {
             response.headers_mut().set((header));

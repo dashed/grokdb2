@@ -24,6 +24,7 @@ pub struct Deck {
 
 // struct for requesting to create a deck
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CreateDeck {
     pub name: String, // required
     pub description: String, // required, but may be empty
