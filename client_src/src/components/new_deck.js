@@ -267,7 +267,8 @@ const __NewDeckContainer = function(props) {
 
     const {
         mathjaxifyDeckName,
-        fields: { name, description}
+        fields: { name, description},
+        submitting
     } = props;
 
     // const __name = assign({}, name);
@@ -289,6 +290,7 @@ const __NewDeckContainer = function(props) {
                                     className='input'
                                     type='text'
                                     placeholder='Name for new deck'
+                                    autoFocus
                                     {...assign({}, name)}
                                 />
                             </p>
@@ -332,7 +334,12 @@ const __NewDeckContainer = function(props) {
             </div>
             <div className='columns'>
                 <div className='column'>
-                    <a className='button is-success'>{'Add Deck'}</a>
+                    <a className={classnames('button is-success', {
+                        'is-disabled': submitting || String(name.value).trim().length <= 0,
+                        'is-loading': submitting
+                    })}>
+                        {'Add Deck'}
+                    </a>
                 </div>
             </div>
         </div>
