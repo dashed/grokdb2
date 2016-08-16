@@ -651,7 +651,7 @@ pub fn render_response(context: Rc<Context>, render: RenderResponse, mut respons
             *response.status_mut() = StatusCode::NotFound;
             response.send(message.as_bytes()).unwrap();
         },
-        RenderResponse::InternalServerError => {
+        RenderResponse::RenderInternalServerError => {
             // TODO: better 404 page
             let message = format!("500 Internal Server Error");
             *response.status_mut() = StatusCode::NotFound;
