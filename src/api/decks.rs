@@ -2,6 +2,7 @@
 
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
+use rusqlite::Error as SqliteError;
 
 /* local imports */
 
@@ -9,7 +10,8 @@ use context::Context;
 use types::{UnixTimestamp, DeckID};
 use errors::RawAPIError;
 
-/// /////////////////////////////////////////////////////////////////////////////
+/* ////////////////////////////////////////////////////////////////////////// */
+
 // TODO: fix
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Deck {
@@ -127,6 +129,157 @@ pub fn create_deck(context: Context, create_deck_request: CreateDeck) -> Result<
     return get_deck(context, deck_id);
 }
 
+pub fn connect_decks(context: Context, child: DeckID, parent: DeckID) -> Result<(), RawAPIError> {
+
+    // moving a child deck subtree consists of two procedures:
+    // 1. delete any and all subtree connections between child (and its descendants)
+    //    and the child's ancestors
+    let query_delete = format!("
+        DELETE FROM DecksClosure
+
+        /* select all descendents of child */
+        WHERE descendent IN (
+            SELECT descendent
+            FROM DecksClosure
+            WHERE ancestor = {child}
+        )
+        AND
+
+        /* select all ancestors of child but not child itself */
+        ancestor IN (
+            SELECT ancestor
+            FROM DecksClosure
+            WHERE descendent = {child}
+            AND ancestor != descendent
+        )
+        AND descendent != ancestor;
+    ", child = child);
+
+    db_write_lock!(db_conn; context.database);
+    let db_conn: &Connection = db_conn;
+
+    match db_conn.execute(&query_delete, &[]) {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query_delete));
+        },
+        _ => {/* query sucessfully executed */},
+    }
+
+    // 2. make parent (and its ancestors) be ancestors of child deck (and its descendants)
+    let query_insert = format!("
+        INSERT OR IGNORE INTO DecksClosure(ancestor, descendent, depth)
+        SELECT p.ancestor, c.descendent, p.depth+c.depth+1
+            FROM DecksClosure AS p, DecksClosure AS c
+        WHERE
+            c.ancestor = {child}
+            AND p.descendent = {parent};
+    ", child = child, parent = parent);
+
+    match db_conn.execute(&query_insert, &[]) {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query_insert));
+        },
+        _ => {/* query sucessfully executed */},
+    }
+
+    return Ok(());
+}
+
+// TODO: complete?
+// pub fn deck_has_parent(context: Context, child: DeckID) -> Result<(), RawAPIError> {
+// }
+
+pub fn get_parent_id_of_deck(context: Context, child: DeckID) -> Result<Option<DeckID>, RawAPIError> {
+
+    let query = format!("
+        SELECT
+            ancestor
+        FROM DecksClosure
+        WHERE
+        descendent = {deck_id}
+        AND depth = 1
+        LIMIT 1;
+    ", deck_id = child);
+
+    db_read_lock!(db_conn; context.database);
+    let db_conn: &Connection = db_conn;
+
+    let results = db_conn.query_row(&query, &[], |row| -> DeckID {
+        return row.get(0);
+    });
+
+    match results {
+        Err(sqlite_error) => {
+
+            match sqlite_error {
+                SqliteError::QueryReturnedNoRows => {
+                    return Ok(None);
+                }
+                _ => {}
+            };
+
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+        Ok(parent) => {
+            return Ok(Some(parent));
+        }
+    };
+}
+
+pub fn get_path_of_deck(context: Context, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
+
+    let query = format!("
+        SELECT
+            ancestor
+        FROM DecksClosure
+        WHERE
+            descendent = {deck_id}
+        AND
+            depth >= 0
+        ORDER BY
+            depth DESC;
+    ", deck_id = deck_id);
+
+    db_read_lock!(db_conn; context.database);
+    let db_conn: &Connection = db_conn;
+
+    let mut statement = match db_conn.prepare(&query) {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        },
+        Ok(statement) => statement
+    };
+
+    let maybe_iter = statement.query_map(&[], |row| -> DeckID {
+        return row.get(0);
+    });
+
+    match maybe_iter {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        },
+        Ok(iter) => {
+
+            let mut vec_of_deck_ids: Vec<DeckID> = Vec::new();
+
+            for maybe_deck_id in iter {
+
+                let item = match maybe_deck_id {
+                    Err(sqlite_error) => {
+                        return Err(RawAPIError::SQLError(sqlite_error, query));
+                    },
+                    Ok(item) => item
+                };
+
+                vec_of_deck_ids.push(item);
+
+            }
+
+            return Ok(vec_of_deck_ids);
+        }
+    };
+}
+
 #[test]
 fn decks_test() {
 
@@ -139,6 +292,7 @@ fn decks_test() {
     /* setup */
 
     let file_path = "test/assets/decks_test.db".to_string();
+    fs::remove_file(file_path.clone());
 
     let db_connection = database::get_database(file_path.clone());
 
@@ -260,6 +414,68 @@ fn decks_test() {
             }
             Err(_) => assert!(false),
         }
+    };
+
+    // connect decks and fetching deck parents
+
+    {
+
+        match decks::get_parent_id_of_deck(Context::new(db_connection.clone()), 1) {
+            Ok(actual) => assert_eq!(actual, None),
+            Err(_) => assert!(false)
+        }
+
+        match decks::get_parent_id_of_deck(Context::new(db_connection.clone()), 2) {
+            Ok(actual) => assert_eq!(actual, None),
+            Err(_) => assert!(false)
+        }
+
+        // set 2 to be child of 1
+        match decks::connect_decks(Context::new(db_connection.clone()), 2, 1) {
+            Ok(_) => assert!(true),
+            Err(_) => assert!(false)
+        }
+
+        // verify
+
+        match decks::get_parent_id_of_deck(Context::new(db_connection.clone()), 1) {
+            Ok(actual) => assert_eq!(actual, None),
+            Err(_) => assert!(false)
+        }
+
+        match decks::get_parent_id_of_deck(Context::new(db_connection.clone()), 2) {
+            Ok(actual) => assert_eq!(actual, Some(1)),
+            Err(_) => assert!(false)
+        }
+
+        // parent id of non-existent deck doesn't exist
+
+        match decks::get_parent_id_of_deck(Context::new(db_connection.clone()), 42) {
+            Ok(actual) => assert_eq!(actual, None),
+            Err(_) => assert!(false)
+        }
+
+    };
+
+    // deck paths
+
+    {
+
+        match decks::get_path_of_deck(Context::new(db_connection.clone()), 1) {
+            Ok(actual) => assert_eq!(actual, vec![1]),
+            Err(_) => assert!(false)
+        }
+
+        match decks::get_path_of_deck(Context::new(db_connection.clone()), 2) {
+            Ok(actual) => assert_eq!(actual, vec![1, 2]),
+            Err(_) => assert!(false)
+        }
+
+        match decks::get_path_of_deck(Context::new(db_connection.clone()), 42) {
+            Ok(actual) => assert_eq!(actual, vec![]),
+            Err(_) => assert!(false)
+        }
+
     };
 
     /* teardown */

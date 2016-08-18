@@ -113,6 +113,7 @@ fn configs_test() {
     /* setup */
 
     let file_path = "test/assets/configs_test.db".to_string();
+    fs::remove_file(file_path.clone());
 
     let db_connection = database::get_database(file_path.clone());
 
