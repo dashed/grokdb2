@@ -15,6 +15,7 @@ pub struct Context {
 
     /* cache */
 
+    pub should_cache: bool
     // TODO: cache
 }
 
@@ -23,7 +24,10 @@ impl Context {
         Context {
             database: db_connection,
             root_deck_id: 1,
-            request_uri: "".to_string()
+            request_uri: "".to_string(),
+
+            // cache
+            should_cache: false
         }
     }
 }

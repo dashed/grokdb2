@@ -15,7 +15,7 @@ authors = ["Alberto Leal <mailforalberto@gmail.com>"]
 [[bin]]
 name = "grokdb2"
 # rename this
-path = "src/main_new.rs"
+path = "src/main.rs"
 
 [dependencies.chomp]
 git = "https://github.com/m4rw3r/chomp"
