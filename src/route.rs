@@ -420,17 +420,74 @@ fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
         let deck_id = decimal();
         parse_byte_limit(b'/', 5);
 
-        let render_response = parse_route_deck_new_deck(context.clone(), request.clone(), deck_id);
+        let render_response = parse_route_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
+            parse_route_deck_decks(context.clone(), request.clone(), deck_id);
 
+        ret render_response
+    }
+}
 
-        // TODO: remove
+#[inline]
+fn __parse_route_deck_decks(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    deck_route: DeckRoute) -> RenderResponse {
+
+    // TODO: lint
+    match deck_route {
+        DeckRoute::Decks(_, _) => {},
+        _ => {
+            // TODO: internal error logging
+            return RenderResponse::RenderInternalServerError;
+        }
+    }
+
+    if request.borrow().method != Method::Get {
+        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+    }
+
+    match decks::deck_exists(context, deck_id) {
+        Ok(exists) => {
+
+            if exists {
+
+                // TODO: fix
+
+                let decks = AppRoute::Deck(deck_id, deck_route);
+                return RenderResponse::RenderComponent(decks);
+            } else {
+                return RenderResponse::RenderNotFound;
+            }
+        },
+        Err(_) => {
+            return RenderResponse::RenderInternalServerError;
+        }
+    }
+
+}
+
+#[inline]
+fn parse_route_deck_decks<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>, deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"decks");
+
+        // TODO: refactor
         // let query_string = option(|i| parse!{i;
         //     let query_string = parse_query_string();
 
         //     ret Some(query_string)
         // }, None);
 
-        ret render_response
+        ret {
+
+            // TODO: build from query string
+            let deck_route = DeckRoute::Decks(Default::default(), Default::default());
+
+            __parse_route_deck_decks(context, request, deck_id, deck_route)
+        }
     }
 }
 

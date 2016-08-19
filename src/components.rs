@@ -327,10 +327,23 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
         }
     };
 
+    let mut is_first = true;
+
     tmpl << html!{
         @ for deck_id in deck_path {
             span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                : raw!("/ ");
+                |tmpl| {
+                    if is_first {
+                        is_first = false;
+                        tmpl << html!{
+                            : raw!("/ ");
+                        }
+                    } else {
+                        tmpl << html!{
+                            : raw!(" / ");
+                        }
+                    }
+                }
             }
             |tmpl| {
 
@@ -338,7 +351,9 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                     Ok(deck) => {
                         tmpl << html!{
                             span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                a(href="#") {
+                                a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id, DeckRoute::Decks(Default::default(), Default::default())))
+                                ) {
                                     : &deck.name;
                                 }
                             }
@@ -459,7 +474,9 @@ fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: De
             }
         }
 
-        div(id="new_deck_container") {}
+        div(id="new_deck_container") {
+            : raw!(include_str!("react_components/new_deck"))
+        }
     }
 }
 
