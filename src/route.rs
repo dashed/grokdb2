@@ -15,6 +15,7 @@ use url::percent_encoding::percent_decode;
 
 use horrorshow::{RenderOnce, TemplateBuffer, Template, FnRenderer};
 
+use hyper;
 use hyper::method::Method;
 use hyper::server::{Server, Handler, Request, Response};
 use hyper::header::{Headers, ContentType, TransferEncoding};
@@ -36,14 +37,15 @@ use chomp::ascii::{is_whitespace, decimal, digit};
 use mime_types;
 
 use serde_json;
+use serde;
 
 /* local imports */
 
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
 use types::{DeckID, CardID, DecksPageQuery, Search};
 use context::Context;
-use components::AppComponent;
-use api::decks::CreateDeck;
+use components::{AppComponent, view_route_to_link};
+use api::decks::{self, CreateDeck, DeckResponse};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -117,7 +119,7 @@ pub enum RenderResponse {
 /* route parser */
 
 #[inline]
-pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>)
+pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
 -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -238,7 +240,7 @@ fn parse_assets<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Re
 }
 
 #[inline]
-fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>)
+fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
 -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -264,7 +266,7 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<
 
                         let deck_route = DeckRoute::Decks(Default::default(), Default::default());
 
-                        let default_home = AppRoute::Deck(context.root_deck_id, deck_route);
+                        let default_home = AppRoute::Deck(context.borrow().root_deck_id, deck_route);
 
                         RenderResponse::RenderComponent(default_home)
                     }
@@ -285,7 +287,7 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<
 }
 
 #[inline]
-fn parse_route_api<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>)
+fn parse_route_api<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
 -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -301,7 +303,83 @@ fn parse_route_api<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<R
 }
 
 #[inline]
-fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>)
+fn __parse_route_api_deck(context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>, parent_deck_id: DeckID)
+-> RenderResponse {
+
+    let mut request = request.borrow_mut();
+
+    if request.method == Method::Post {
+
+        // POST /api/deck/:id => create a new deck within this deck
+
+        let mut buffer = String::new();
+
+        match request.read_to_string(&mut buffer) {
+            Ok(_num_bytes_parsed) => {
+
+                let request: CreateDeck = match serde_json::from_str(&buffer) {
+                    Ok(request) => request,
+                    Err(err) => {
+                        // TODO: error logging
+                        // println!("{:?}", err);
+                        return RenderResponse::RenderBadRequest;
+                    }
+                };
+
+                match decks::create_deck(context.clone(), request) {
+                    Ok(new_deck) => {
+
+                        // connect new deck as child of parent deck
+
+                        match decks::connect_decks(context.clone(), new_deck.id, parent_deck_id) {
+                            Ok(_) => {
+
+                                let deck_route = DeckRoute::Decks(Default::default(), Default::default());
+                                let app_route = AppRoute::Deck(new_deck.id, deck_route);
+
+                                let response = DeckResponse {
+                                    profile_url: view_route_to_link(context.clone(), app_route),
+                                    deck: new_deck,
+                                    has_parent: true,
+                                    parent_id: Some(parent_deck_id)
+                                };
+
+                                return respond_json!(response);
+                            },
+                            Err(_) => {
+                                // TODO: error logging
+                                return RenderResponse::RenderInternalServerError;
+                            }
+                        }
+
+                    },
+                    Err(_) => {
+                        // TODO: error logging
+                        return RenderResponse::RenderInternalServerError;
+                    }
+                }
+
+                // println!("{:?}", request);
+
+                // TODO: change
+
+                return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+
+            },
+            Err(err) => {
+                // invalid utf8 input
+                // TODO: error logging
+                return RenderResponse::RenderBadRequest;
+            }
+        }
+
+    }
+
+    return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+}
+
+#[inline]
+fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
 -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -313,56 +391,18 @@ fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request:
 
         ret {
 
-            // TODO: clean
-            // let request: CreateDeckRequest = match serde_json::from_reader(request) {
-            //     Ok(request) => request,
-            //     Err(err) => {
-            //         let payload = json_deserialize_err(format!("Malformed request. Unable to create deck."));
-            //         respond_json!(response; payload);
-            //         return;
-            //     }
-            // };
+            match decks::deck_exists(context.clone(), deck_id) {
+                Ok(exists) => {
 
-            let mut request = request.borrow_mut();
-
-            if request.method == Method::Post {
-
-                // POST /api/deck/:id => create a new deck within this deck
-
-                let mut buffer = String::new();
-
-                match request.read_to_string(&mut buffer) {
-                    Ok(_num_bytes_parsed) => {
-
-                        match serde_json::from_str(&buffer) {
-                            Ok(request) => {
-                                let request: CreateDeck = request;
-
-                                println!("{:?}", request);
-
-                                // TODO: change
-
-                                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
-                            },
-                            Err(err) => {
-                                // TODO: error logging
-                                // println!("{:?}", err);
-                                RenderResponse::RenderBadRequest
-                            }
-                        }
-
-                    },
-                    Err(err) => {
-                        // invalid utf8 input
-                        // TODO: error logging
+                    if exists {
+                        __parse_route_api_deck(context, request, deck_id)
+                    } else {
                         RenderResponse::RenderBadRequest
                     }
-                }
 
-
-
-            } else {
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                },
+                // TODO: internal error logging
+                Err(_) => RenderResponse::RenderInternalServerError
             }
 
         }
@@ -371,7 +411,7 @@ fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request:
 }
 
 #[inline]
-fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>)
+fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
 -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -395,7 +435,7 @@ fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<
 }
 
 #[inline]
-fn parse_route_deck_new_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, request: Rc<RefCell<Request>>, deck_id: DeckID)
+fn parse_route_deck_new_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>, deck_id: DeckID)
 -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -416,31 +456,34 @@ fn parse_route_deck_new_deck<'a>(input: Input<'a, u8>, context: Rc<Context>, req
     }
 }
 
-/* Original:
- * E --> P {or P}
- * P --> leaf
- *
- * Expanded:
- * query_string = leaf rest | leaf
- * rest = & leaf rest | & leaf
- *
- * Cases:
- * ?foo=42
- * ?foo=42&bar=9000
- * ?foo=42&&&&&
- * ?empty
- * */
-/* query_string :=
- * skip_many(&) field_value query_string |
- * skip_many(&) field_value
- *
- * field_value :=
- * segment(=) segment(&) |
- * segment(=) segment(eof) |
- * segment(&) |
- * segment(&) |
- * segment(eof)
- * */
+/*
+
+Original:
+E --> P {or P}
+P --> leaf
+
+Expanded:
+query_string = leaf rest | leaf
+rest = & leaf rest | & leaf
+
+Cases:
+?foo=42
+?foo=42&bar=9000
+?foo=42&&&&&
+?empty
+
+query_string :=
+    skip_many(&) field_value query_string |
+    skip_many(&) field_value
+
+field_value :=
+    segment(=) segment(&) |
+    segment(=) segment(eof) |
+    segment(&) |
+    segment(&) |
+    segment(eof)
+
+*/
 
 type QueryString = HashMap<String, Option<String>>;
 enum QueryStringKeyType {
@@ -634,11 +677,22 @@ fn route_internal_server_error(request: Request, mut response: Response) {
 /* rendering */
 
 #[inline]
-pub fn render_response(context: Rc<Context>, render: RenderResponse, mut response: Response) {
+pub fn render_response(context: Rc<RefCell<Context>>, render: RenderResponse, mut response: Response) {
 
     match render {
         RenderResponse::RenderComponent(app_route) => {
             render_components(context, app_route, response);
+        },
+        RenderResponse::RenderJSON(json_response) => {
+
+            *response.status_mut() = StatusCode::Ok;
+
+            response.headers_mut().set((hyper::header::ContentType(
+                mime!(Application/Json)
+            )));
+
+            response.send(json_response.as_bytes()).unwrap();
+
         },
         RenderResponse::RenderBadRequest => {
             let message = format!("400 Bad Request");
@@ -665,9 +719,6 @@ pub fn render_response(context: Rc<Context>, render: RenderResponse, mut respons
             *response.status_mut() = status_code;
             let message = format!("{}", status_code);
             response.send(message.as_bytes()).unwrap();
-        },
-        _ => {
-            panic!("fix me");
         }
     }
 
@@ -675,7 +726,7 @@ pub fn render_response(context: Rc<Context>, render: RenderResponse, mut respons
 }
 
 #[inline]
-fn render_components(context: Rc<Context>, app_route: AppRoute, mut response: Response) {
+fn render_components(context: Rc<RefCell<Context>>, app_route: AppRoute, mut response: Response) {
 
     let app_component = {
         FnRenderer::new(|tmpl| {
@@ -714,6 +765,8 @@ fn render_components(context: Rc<Context>, app_route: AppRoute, mut response: Re
             return;
         }
         Ok(rendered) => {
+
+            *response.status_mut() = StatusCode::Ok;
 
             response.headers_mut().set((ContentType(mime!(Text / Html))));
 

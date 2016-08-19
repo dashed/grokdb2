@@ -1,3 +1,8 @@
+/* rust lib imports */
+
+use std::cell::RefCell;
+use std::rc::Rc;
+
 /* 3rd-party imports */
 
 use rusqlite::Connection;
@@ -19,7 +24,7 @@ pub struct Config {
     pub value: String,
 }
 
-pub fn get_config(context: Context, setting_key: String) -> Result<Option<Config>, RawAPIError> {
+pub fn get_config(context: Rc<RefCell<Context>>, setting_key: String) -> Result<Option<Config>, RawAPIError> {
 
     if setting_key.trim().len() <= 0 {
         return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
@@ -37,6 +42,7 @@ pub fn get_config(context: Context, setting_key: String) -> Result<Option<Config
 
     let params: &[(&str, &ToSql)] = &[(":setting", &setting_key)];
 
+    let context = context.borrow();
     db_read_lock!(db_conn; context.database);
     let db_conn: &Connection = db_conn;
 
@@ -67,7 +73,7 @@ pub fn get_config(context: Context, setting_key: String) -> Result<Option<Config
 }
 
 // on success, return the config set into the db
-pub fn set_config(context: Context, setting: String, value: String) -> Result<Config, RawAPIError> {
+pub fn set_config(context: Rc<RefCell<Context>>, setting: String, value: String) -> Result<Config, RawAPIError> {
 
     if setting.trim().len() <= 0 {
         return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
@@ -80,6 +86,7 @@ pub fn set_config(context: Context, setting: String, value: String) -> Result<Co
 
     let params: &[(&str, &ToSql)] = &[(":setting", &setting), (":value", &value)];
 
+    let context = context.borrow();
     db_write_lock!(db_conn; context.database);
     let db_conn: &Connection = db_conn;
 

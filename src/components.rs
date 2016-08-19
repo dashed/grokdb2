@@ -2,6 +2,7 @@
 
 use std::panic::{self, AssertUnwindSafe};
 use std::rc::Rc;
+use std::cell::RefCell;
 
 /* 3rd-party imports */
 
@@ -39,7 +40,7 @@ macro_rules! classnames {
 
 /* link generator */
 
-fn view_route_to_link(context: Rc<Context>, app_route: AppRoute) -> String {
+pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) -> String {
     match app_route {
         AppRoute::Deck(deck_id, deck_route) => {
             match deck_route {
@@ -56,11 +57,13 @@ fn view_route_to_link(context: Rc<Context>, app_route: AppRoute) -> String {
 
 /* javascript generator */
 
-fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: &AppRoute) {
+fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, app_route: &AppRoute) {
 
-    // invariant: already inside script tag
+    // invariant: this function is excuted inside a script tag
 
-    // needs to be raw b/c of html escaping
+    // NOTES:
+    // - use raw! macro
+    // - if possible, write JSON manually
 
     // window.__PRE_RENDER_STATE__
     match *app_route {
@@ -70,7 +73,11 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
                     tmpl << html! {
                         : raw!(
                             format!(
-                                "window.__PRE_RENDER_STATE__ = {{POST_TO: '/api/deck/{}'}};",
+                                "window.__PRE_RENDER_STATE__ = \
+                                    {{\
+                                        POST_TO: '/api/deck/{}'\
+                                    }};\
+                                ",
                                 deck_id
                             )
                         )
@@ -90,7 +97,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
 /* components */
 
 #[inline]
-pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: &AppRoute) {
+pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, app_route: &AppRoute) {
 
     tmpl << html! {
         : raw!("<!DOCTYPE html>");
@@ -309,7 +316,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<Context>, app_route: 
 }
 
 #[inline]
-fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, deck_route: &DeckRoute) {
+fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID, deck_route: &DeckRoute) {
     tmpl << html!{
         // TODO: path generator
 
@@ -333,7 +340,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, de
 }
 
 #[inline]
-fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, deck_route: &DeckRoute) {
+fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID, deck_route: &DeckRoute) {
     tmpl << html!{
         div(class="column") {
 
@@ -426,7 +433,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID, 
 }
 
 #[inline]
-fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID) {
+fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
     tmpl << html!{
         div(class="columns") {
             div(class="column") {
@@ -442,7 +449,7 @@ fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<Context>, deck_id: DeckID) {
 
 #[inline]
 fn DecksChildren(tmpl: &mut TemplateBuffer,
-    context: Rc<Context>, deck_id: DeckID, deck_page_query: &DecksPageQuery, search: &Search) {
+    context: Rc<RefCell<Context>>, deck_id: DeckID, deck_page_query: &DecksPageQuery, search: &Search) {
     tmpl << html!{
 
         div(class="columns") {

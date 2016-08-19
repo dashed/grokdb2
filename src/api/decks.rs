@@ -1,3 +1,8 @@
+/* rust lib imports */
+
+use std::cell::RefCell;
+use std::rc::Rc;
+
 /* 3rd-party imports */
 
 use rusqlite::Connection;
@@ -12,8 +17,7 @@ use errors::RawAPIError;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
-// TODO: fix
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Deck {
     pub id: DeckID,
     pub name: String,
@@ -32,7 +36,19 @@ pub struct CreateDeck {
     pub description: String, // required, but may be empty
 }
 
-pub fn get_deck(context: Context, deck_id: DeckID) -> Result<Deck, RawAPIError> {
+#[derive(Debug, Serialize)]
+pub struct DeckResponse {
+
+    pub profile_url: String,
+
+    // the resource
+    pub deck: Deck,
+
+    pub has_parent: bool,
+    pub parent_id: Option<DeckID>
+}
+
+pub fn get_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Deck, RawAPIError> {
 
     let query = format!("
         SELECT
@@ -47,6 +63,7 @@ pub fn get_deck(context: Context, deck_id: DeckID) -> Result<Deck, RawAPIError> 
         LIMIT 1;
     ", deck_id = deck_id);
 
+    let context = context.borrow();
     db_read_lock!(db_conn; context.database);
     let db_conn: &Connection = db_conn;
 
@@ -76,7 +93,7 @@ pub fn get_deck(context: Context, deck_id: DeckID) -> Result<Deck, RawAPIError> 
     };
 }
 
-pub fn deck_exists(context: Context, deck_id: DeckID) -> Result<bool, RawAPIError> {
+pub fn deck_exists(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<bool, RawAPIError> {
 
     let query = format!("
         SELECT
@@ -86,6 +103,7 @@ pub fn deck_exists(context: Context, deck_id: DeckID) -> Result<bool, RawAPIErro
         LIMIT 1;
     ", deck_id = deck_id);
 
+    let context = context.borrow();
     db_read_lock!(db_conn; context.database);
     let db_conn: &Connection = db_conn;
 
@@ -102,7 +120,7 @@ pub fn deck_exists(context: Context, deck_id: DeckID) -> Result<bool, RawAPIErro
     }
 }
 
-pub fn create_deck(context: Context, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
+pub fn create_deck(context: Rc<RefCell<Context>>, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
 
     let query = "INSERT INTO Decks(name, description) VALUES (:name, :description);";
 
@@ -110,6 +128,8 @@ pub fn create_deck(context: Context, create_deck_request: CreateDeck) -> Result<
                                       (":description", &create_deck_request.description.clone())];
 
     let deck_id: DeckID = {
+
+        let context = context.borrow();
         db_write_lock!(db_conn; context.database);
         let db_conn: &Connection = db_conn;
 
@@ -129,7 +149,7 @@ pub fn create_deck(context: Context, create_deck_request: CreateDeck) -> Result<
     return get_deck(context, deck_id);
 }
 
-pub fn connect_decks(context: Context, child: DeckID, parent: DeckID) -> Result<(), RawAPIError> {
+pub fn connect_decks(context: Rc<RefCell<Context>>, child: DeckID, parent: DeckID) -> Result<(), RawAPIError> {
 
     // moving a child deck subtree consists of two procedures:
     // 1. delete any and all subtree connections between child (and its descendants)
@@ -155,6 +175,7 @@ pub fn connect_decks(context: Context, child: DeckID, parent: DeckID) -> Result<
         AND descendent != ancestor;
     ", child = child);
 
+    let context = context.borrow();
     db_write_lock!(db_conn; context.database);
     let db_conn: &Connection = db_conn;
 
@@ -186,10 +207,10 @@ pub fn connect_decks(context: Context, child: DeckID, parent: DeckID) -> Result<
 }
 
 // TODO: complete?
-// pub fn deck_has_parent(context: Context, child: DeckID) -> Result<(), RawAPIError> {
+// pub fn deck_has_parent(context: Rc<RefCell<Context>>, child: DeckID) -> Result<(), RawAPIError> {
 // }
 
-pub fn get_parent_id_of_deck(context: Context, child: DeckID) -> Result<Option<DeckID>, RawAPIError> {
+pub fn get_parent_id_of_deck(context: Rc<RefCell<Context>>, child: DeckID) -> Result<Option<DeckID>, RawAPIError> {
 
     let query = format!("
         SELECT
@@ -201,6 +222,7 @@ pub fn get_parent_id_of_deck(context: Context, child: DeckID) -> Result<Option<D
         LIMIT 1;
     ", deck_id = child);
 
+    let context = context.borrow();
     db_read_lock!(db_conn; context.database);
     let db_conn: &Connection = db_conn;
 
@@ -226,7 +248,7 @@ pub fn get_parent_id_of_deck(context: Context, child: DeckID) -> Result<Option<D
     };
 }
 
-pub fn get_path_of_deck(context: Context, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
+pub fn get_path_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
 
     let query = format!("
         SELECT
@@ -240,6 +262,7 @@ pub fn get_path_of_deck(context: Context, deck_id: DeckID) -> Result<Vec<DeckID>
             depth DESC;
     ", deck_id = deck_id);
 
+    let context = context.borrow();
     db_read_lock!(db_conn; context.database);
     let db_conn: &Connection = db_conn;
 

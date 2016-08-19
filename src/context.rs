@@ -11,7 +11,7 @@ use database::Database;
 pub struct Context {
     pub database: Database,
     pub root_deck_id: DeckID,
-    pub request_uri: String
+    pub request_uri: String,
 
     /* cache */
 

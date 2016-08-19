@@ -40,6 +40,8 @@ use chomp::{parse_only};
 
 mod types;
 #[macro_use]
+mod global_macros;
+#[macro_use]
 mod errors;
 #[macro_use]
 mod database;
@@ -74,7 +76,7 @@ fn main() {
     /* database bootstrap */
 
     {
-        let bootstrap_context = Context::new(db_connection.clone());
+        let bootstrap_context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
 
         let should_create_root_deck = match configs::get_config(bootstrap_context.clone(),
                                                                 configs::CONFIG_ROOT_DECK_ID_KEY.to_string())
@@ -160,10 +162,11 @@ fn main() {
         let context = Context {
             request_uri: format!("{}", request.uri),
             root_deck_id: root_deck_id,
-            database: db_connection.clone()
+            database: db_connection.clone(),
+            should_cache: true
         };
 
-        let context = Rc::new(context);
+        let context = Rc::new(RefCell::new(context));
 
         // middleware/logging
         // TODO: complete

@@ -26,8 +26,8 @@ macro_rules! db_read_lock(
             let _: Database = $e;
         };
 
-        let db_conn_guard = $e.lock().unwrap();
-        let ref $ident = *db_conn_guard;
+        let __db_conn_guard = $e.lock().unwrap();
+        let ref $ident = *__db_conn_guard;
     )
 );
 
@@ -41,8 +41,8 @@ macro_rules! db_write_lock(
             let _: Database = $e;
         };
 
-        let db_conn_guard = $e.lock().unwrap();
-        let ref $ident = *db_conn_guard;
+        let __db_conn_guard = $e.lock().unwrap();
+        let ref $ident = *__db_conn_guard;
     )
 );
 

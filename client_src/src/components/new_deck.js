@@ -438,6 +438,7 @@ const addNewDeck = function(postURL, formData) {
                         message: jsonResponse.userMessage
                     }
                 });
+
                 return;
                 break;
 
@@ -455,8 +456,9 @@ const addNewDeck = function(postURL, formData) {
             }
 
         }, function(err) {
-            // TODO: handle on json parsing fail
 
+
+            // TODO: handle on json parsing fail
             console.log('err:', err);
 
             reject({
@@ -466,6 +468,7 @@ const addNewDeck = function(postURL, formData) {
             });
         })
         .catch(function(err) {
+
             // TODO: handle
             console.log('err:', err);
 
