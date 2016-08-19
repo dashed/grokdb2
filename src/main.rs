@@ -29,6 +29,7 @@ extern crate chrono;
 use std::io;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::collections::HashMap;
 
 /* 3rd-party imports */
 
@@ -163,7 +164,8 @@ fn main() {
             request_uri: format!("{}", request.uri),
             root_deck_id: root_deck_id,
             database: db_connection.clone(),
-            should_cache: true
+            should_cache: true,
+            decks: HashMap::new()
         };
 
         let context = Rc::new(RefCell::new(context));

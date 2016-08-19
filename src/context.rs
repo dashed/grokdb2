@@ -1,6 +1,11 @@
+/* rust lib imports */
+
+use std::collections::HashMap;
+
 /* local imports */
 
 use types::DeckID;
+use api::decks::Deck;
 use database::Database;
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -15,7 +20,8 @@ pub struct Context {
 
     /* cache */
 
-    pub should_cache: bool
+    pub should_cache: bool,
+    pub decks: HashMap<DeckID, Deck>
     // TODO: cache
 }
 
@@ -27,7 +33,8 @@ impl Context {
             request_uri: "".to_string(),
 
             // cache
-            should_cache: false
+            should_cache: false,
+            decks: HashMap::new()
         }
     }
 }

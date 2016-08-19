@@ -50,6 +50,18 @@ pub struct DeckResponse {
 
 pub fn get_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Deck, RawAPIError> {
 
+    {
+        let context = context.borrow();
+        if context.should_cache {
+            match context.decks.get(&deck_id) {
+                None => {},
+                Some(deck) => {
+                    return Ok(deck.clone());
+                }
+            }
+        }
+    };
+
     let query = format!("
         SELECT
             deck_id,
@@ -63,31 +75,42 @@ pub fn get_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Deck, 
         LIMIT 1;
     ", deck_id = deck_id);
 
-    let context = context.borrow();
-    db_read_lock!(db_conn; context.database);
-    let db_conn: &Connection = db_conn;
+    let results = {
+        let context = context.borrow();
+        db_read_lock!(db_conn; context.database);
+        let db_conn: &Connection = db_conn;
 
-    let results = db_conn.query_row(&query, &[], |row| -> Deck {
+        let results = db_conn.query_row(&query, &[], |row| -> Deck {
 
-        let created_at: UnixTimestamp = row.get(3);
-        let reviewed_at: UnixTimestamp = row.get(5);
+            let created_at: UnixTimestamp = row.get(3);
+            let reviewed_at: UnixTimestamp = row.get(5);
 
-        return Deck {
-            id: row.get(0),
-            name: row.get(1),
-            description: row.get(2),
-            created_at: created_at,
-            updated_at: row.get(4),
-            reviewed_at: reviewed_at,
-            has_reviewed: created_at != reviewed_at,
-        };
-    });
+            return Deck {
+                id: row.get(0),
+                name: row.get(1),
+                description: row.get(2),
+                created_at: created_at,
+                updated_at: row.get(4),
+                reviewed_at: reviewed_at,
+                has_reviewed: created_at != reviewed_at,
+            };
+        });
+
+        results
+    };
 
     match results {
         Err(sqlite_error) => {
             return Err(RawAPIError::SQLError(sqlite_error, query));
         }
         Ok(deck) => {
+
+            let mut context = context.borrow_mut();
+
+            if context.should_cache {
+                context.decks.insert(deck.id, deck.clone());
+            }
+
             return Ok(deck);
         }
     };
@@ -390,7 +413,7 @@ fn decks_test() {
         // case: retrieve created decks
 
         let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
-        match decks::get_deck(context, 2) {
+        match decks::get_deck(context.clone(), 2) {
             Ok(actual) => {
                 assert_eq!(actual.id, 2);
                 assert_eq!(actual.name, format!("Bar"));
@@ -402,8 +425,12 @@ fn decks_test() {
             Err(_) => assert!(false),
         }
 
+        // ensure nothing was cached
+        assert_eq!(context.borrow().should_cache, false);
+        assert_eq!(context.borrow().decks.len(), 0);
+
         let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
-        match decks::get_deck(context, 1) {
+        match decks::get_deck(context.clone(), 1) {
             Ok(actual) => {
                 assert_eq!(actual.id, 1);
                 assert_eq!(actual.name, format!("Foo"));
@@ -414,6 +441,41 @@ fn decks_test() {
             },
             Err(_) => assert!(false),
         }
+
+        // ensure nothing was cached
+        assert_eq!(context.borrow().should_cache, false);
+        assert_eq!(context.borrow().decks.len(), 0);
+
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        (*context.borrow_mut()).should_cache = true;
+
+        match decks::get_deck(context.clone(), 1) {
+            Ok(actual) => {
+                assert_eq!(actual.id, 1);
+                assert_eq!(actual.name, format!("Foo"));
+                assert_eq!(actual.description, format!(""));
+                assert_eq!(actual.created_at, actual.updated_at);
+                assert_eq!(actual.created_at, actual.reviewed_at);
+                assert_eq!(actual.has_reviewed, false);
+            },
+            Err(_) => assert!(false),
+        }
+
+        // ensure deck was cached
+        assert_eq!(context.borrow().should_cache, true);
+        assert_eq!(context.borrow().decks.len(), 1);
+
+        {
+            let context = context.borrow();
+            let actual = context.decks.get(&1).unwrap();
+            assert_eq!(actual.id, 1);
+            assert_eq!(actual.name, format!("Foo"));
+            assert_eq!(actual.description, format!(""));
+            assert_eq!(actual.created_at, actual.updated_at);
+            assert_eq!(actual.created_at, actual.reviewed_at);
+            assert_eq!(actual.has_reviewed, false);
+        };
+
     };
 
     // deck exists
