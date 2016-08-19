@@ -164,7 +164,11 @@ fn main() {
             request_uri: format!("{}", request.uri),
             root_deck_id: root_deck_id,
             database: db_connection.clone(),
+
+            /* caching */
+
             should_cache: true,
+
             decks: HashMap::new()
         };
 

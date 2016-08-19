@@ -747,11 +747,11 @@ fn render_components(context: Rc<RefCell<Context>>, app_route: AppRoute, mut res
 
     if result.is_err() {
 
+        // TODO: internal error logging
+
         println!("TEMPLATE RENDERING PANIC: {:?}", result.err().unwrap());
 
-        // TODO: fix... route_internal_server_error
-        // super::routes::internal_server_error(request, response);
-
+        render_response(context.clone(), RenderResponse::RenderInternalServerError, response);
         return;
     }
 
@@ -759,9 +759,9 @@ fn render_components(context: Rc<RefCell<Context>>, app_route: AppRoute, mut res
         Err(why) => {
             println!("ERROR RENDERING: {:?}", why);
 
-            // TODO: fix
-            // super::routes::internal_server_error(request, response);
+            // TODO: internal error logging
 
+            render_response(context.clone(), RenderResponse::RenderInternalServerError, response);
             return;
         }
         Ok(rendered) => {

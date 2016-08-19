@@ -21,6 +21,7 @@ use hyper::header::{Header, HeaderFormat};
 use route::{AppRoute, RenderResponse, DeckRoute};
 use context::Context;
 use types::{DeckID, DecksPageQuery, Search};
+use api::decks;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -317,26 +318,41 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
 #[inline]
 fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID, deck_route: &DeckRoute) {
-    tmpl << html!{
-        // TODO: path generator
 
-        span(class="title is-5 is-marginless", style="font-weight:normal;") {
-            : raw!("/ ");
+    let deck_path = match decks::get_path_of_deck(context.clone(), deck_id) {
+        Ok(path) => path,
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
         }
-        span(class="title is-5 is-marginless", style="font-weight:normal;") {
-            a(href="#") {
-                : raw!("Library");
+    };
+
+    tmpl << html!{
+        @ for deck_id in deck_path {
+            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                : raw!("/ ");
             }
-        }
-        span(class="title is-5 is-marginless", style="font-weight:normal;") {
-            : raw!(" / ");
-        }
-        span(class="title is-5 is-marginless is-bold") {
-            a(href="#") {
-                : raw!("Math");
+            |tmpl| {
+
+                match decks::get_deck(context.clone(), deck_id) {
+                    Ok(deck) => {
+                        tmpl << html!{
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                a(href="#") {
+                                    : &deck.name;
+                                }
+                            }
+                        }
+                    },
+                    Err(_) => {
+                        // TODO: internal error logging
+                        panic!();
+                    }
+                }
             }
         }
     }
+
 }
 
 #[inline]
