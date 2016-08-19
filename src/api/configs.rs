@@ -127,7 +127,8 @@ fn configs_test() {
     // config doesn't exist
 
     {
-        match configs::get_config(Context::new(db_connection.clone()), "config_key_1".to_string()).unwrap() {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match configs::get_config(context, "config_key_1".to_string()).unwrap() {
             Some(_) => assert!(false),
             None => assert!(true)
         };
@@ -136,7 +137,8 @@ fn configs_test() {
     // set a config
 
     {
-        let actual = configs::set_config(Context::new(db_connection.clone()),
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        let actual = configs::set_config(context,
             "config_key_2".to_string(),
             "value_1".to_string()).unwrap();
 
@@ -150,7 +152,8 @@ fn configs_test() {
     // retrieve a config
 
     {
-        match configs::get_config(Context::new(db_connection.clone()), "config_key_2".to_string()).unwrap() {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match configs::get_config(context, "config_key_2".to_string()).unwrap() {
             Some(actual) => {
                 let expected = Config {
                     setting: "config_key_2".to_string(),
@@ -165,7 +168,8 @@ fn configs_test() {
     // overwrite a config
 
     {
-        let actual = configs::set_config(Context::new(db_connection.clone()),
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        let actual = configs::set_config(context,
             "config_key_2".to_string(),
             "value_2".to_string()).unwrap();
 
@@ -177,7 +181,8 @@ fn configs_test() {
     };
 
     {
-        match configs::get_config(Context::new(db_connection.clone()), "config_key_2".to_string()).unwrap() {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match configs::get_config(context, "config_key_2".to_string()).unwrap() {
             Some(actual) => {
                 let expected = Config {
                     setting: "config_key_2".to_string(),

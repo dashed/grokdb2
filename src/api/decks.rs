@@ -322,7 +322,8 @@ fn decks_test() {
     // deck doesn't exist
 
     {
-        match decks::get_deck(Context::new(db_connection.clone()), 1) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_deck(context, 1) {
             Ok(_) => assert!(false),
             Err(_) => assert!(true),
         }
@@ -338,7 +339,8 @@ fn decks_test() {
             description: format!(""),
         };
 
-        match decks::create_deck(Context::new(db_connection.clone()), request) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::create_deck(context, request) {
             Ok(_) => assert!(false),
             Err(_) => assert!(true),
         }
@@ -352,7 +354,8 @@ fn decks_test() {
             description: format!(""),
         };
 
-        match decks::create_deck(Context::new(db_connection.clone()), request) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::create_deck(context, request) {
             Ok(actual) => {
                 assert_eq!(actual.id, 1);
                 assert_eq!(actual.name, format!("Foo"));
@@ -369,7 +372,8 @@ fn decks_test() {
             description: format!("Amazing description of this deck."),
         };
 
-        match decks::create_deck(Context::new(db_connection.clone()), request) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::create_deck(context, request) {
             Ok(actual) => {
                 assert_eq!(actual.id, 2); // ensure increment
                 assert_eq!(actual.name, format!("Bar"));
@@ -385,7 +389,8 @@ fn decks_test() {
     {
         // case: retrieve created decks
 
-        match decks::get_deck(Context::new(db_connection.clone()), 2) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_deck(context, 2) {
             Ok(actual) => {
                 assert_eq!(actual.id, 2);
                 assert_eq!(actual.name, format!("Bar"));
@@ -397,7 +402,8 @@ fn decks_test() {
             Err(_) => assert!(false),
         }
 
-        match decks::get_deck(Context::new(db_connection.clone()), 1) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_deck(context, 1) {
             Ok(actual) => {
                 assert_eq!(actual.id, 1);
                 assert_eq!(actual.name, format!("Foo"));
@@ -415,7 +421,8 @@ fn decks_test() {
     {
         // case: doesn't exist
 
-        match decks::deck_exists(Context::new(db_connection.clone()), 3) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::deck_exists(context, 3) {
             Ok(actual) => {
                 assert_eq!(actual, false);
             }
@@ -424,14 +431,16 @@ fn decks_test() {
 
         // case: exists
 
-        match decks::deck_exists(Context::new(db_connection.clone()), 1) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::deck_exists(context, 1) {
             Ok(actual) => {
                 assert_eq!(actual, true);
             }
             Err(_) => assert!(false),
         }
 
-        match decks::deck_exists(Context::new(db_connection.clone()), 2) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::deck_exists(context, 2) {
             Ok(actual) => {
                 assert_eq!(actual, true);
             }
@@ -443,37 +452,43 @@ fn decks_test() {
 
     {
 
-        match decks::get_parent_id_of_deck(Context::new(db_connection.clone()), 1) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_parent_id_of_deck(context, 1) {
             Ok(actual) => assert_eq!(actual, None),
             Err(_) => assert!(false)
         }
 
-        match decks::get_parent_id_of_deck(Context::new(db_connection.clone()), 2) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_parent_id_of_deck(context, 2) {
             Ok(actual) => assert_eq!(actual, None),
             Err(_) => assert!(false)
         }
 
         // set 2 to be child of 1
-        match decks::connect_decks(Context::new(db_connection.clone()), 2, 1) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::connect_decks(context, 2, 1) {
             Ok(_) => assert!(true),
             Err(_) => assert!(false)
         }
 
         // verify
 
-        match decks::get_parent_id_of_deck(Context::new(db_connection.clone()), 1) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_parent_id_of_deck(context, 1) {
             Ok(actual) => assert_eq!(actual, None),
             Err(_) => assert!(false)
         }
 
-        match decks::get_parent_id_of_deck(Context::new(db_connection.clone()), 2) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_parent_id_of_deck(context, 2) {
             Ok(actual) => assert_eq!(actual, Some(1)),
             Err(_) => assert!(false)
         }
 
         // parent id of non-existent deck doesn't exist
 
-        match decks::get_parent_id_of_deck(Context::new(db_connection.clone()), 42) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_parent_id_of_deck(context, 42) {
             Ok(actual) => assert_eq!(actual, None),
             Err(_) => assert!(false)
         }
@@ -484,17 +499,20 @@ fn decks_test() {
 
     {
 
-        match decks::get_path_of_deck(Context::new(db_connection.clone()), 1) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_path_of_deck(context, 1) {
             Ok(actual) => assert_eq!(actual, vec![1]),
             Err(_) => assert!(false)
         }
 
-        match decks::get_path_of_deck(Context::new(db_connection.clone()), 2) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_path_of_deck(context, 2) {
             Ok(actual) => assert_eq!(actual, vec![1, 2]),
             Err(_) => assert!(false)
         }
 
-        match decks::get_path_of_deck(Context::new(db_connection.clone()), 42) {
+        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        match decks::get_path_of_deck(context, 42) {
             Ok(actual) => assert_eq!(actual, vec![]),
             Err(_) => assert!(false)
         }
