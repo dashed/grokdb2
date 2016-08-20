@@ -428,24 +428,26 @@ fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
 }
 
 #[inline]
-fn __parse_route_deck_decks(
+fn route_deck_decks(
     context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
     deck_id: DeckID,
-    deck_route: DeckRoute) -> RenderResponse {
-
-    // TODO: lint
-    match deck_route {
-        DeckRoute::Decks(_, _) => {},
-        _ => {
-            // TODO: internal error logging
-            return RenderResponse::RenderInternalServerError;
-        }
-    }
+    query_string: Option<QueryString>) -> RenderResponse {
 
     if request.borrow().method != Method::Get {
         return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
     }
+
+    let deck_route = match query_string {
+        None => DeckRoute::Decks(Default::default(), Default::default()),
+        Some(query_string) => {
+
+            let page_query = DecksPageQuery::parse(&query_string);
+            let search = Search::parse(&query_string);
+
+            DeckRoute::Decks(page_query, search)
+        }
+    };
 
     match decks::deck_exists(context, deck_id) {
         Ok(exists) => {
@@ -474,19 +476,14 @@ fn parse_route_deck_decks<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>
 
         string_ignore_case(b"decks");
 
-        // TODO: refactor
-        // let query_string = option(|i| parse!{i;
-        //     let query_string = parse_query_string();
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
 
-        //     ret Some(query_string)
-        // }, None);
+            ret Some(query_string)
+        }, None);
 
         ret {
-
-            // TODO: build from query string
-            let deck_route = DeckRoute::Decks(Default::default(), Default::default());
-
-            __parse_route_deck_decks(context, request, deck_id, deck_route)
+            route_deck_decks(context, request, deck_id, query_string)
         }
     }
 }
@@ -542,7 +539,9 @@ field_value :=
 
 */
 
-type QueryString = HashMap<String, Option<String>>;
+pub type QueryString = HashMap<String, Option<String>>;
+
+// NOTE: this is for parsing
 enum QueryStringKeyType {
     Value(String),
     NoValue(String),
@@ -550,6 +549,8 @@ enum QueryStringKeyType {
 
 #[inline]
 fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
+
+    // TODO: ; delimeter
 
     let mut result = parse!{input;
         token(b'?');
