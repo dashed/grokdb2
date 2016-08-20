@@ -40,6 +40,8 @@ impl Search {
     }
 }
 
+// TODO: test for Search::parse
+
 // conventions:
 //
 // timestamps:
@@ -114,6 +116,8 @@ impl DecksPageQuery {
         return DecksPageQuery(page_num, decks_page_sort);
     }
 }
+
+// TODO: test for DecksPageQuery::parse
 
 #[derive(Debug)]
 pub enum DecksPageSort {
