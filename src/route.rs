@@ -249,27 +249,41 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
 
                 option(|i| parse_byte_limit(i, b'/', 5), ());
 
-                or(
-                    |i| parse!{i;
-                        token(b'?');
-                        ret {()}
-                    },
-                    eof
-                );
+                let query_string = option(|i| parse!{i;
+                    let query_string = parse_query_string();
+
+                    ret Some(query_string)
+                }, None);
+
+                // TODO: remove
+                // or(
+                //     |i| parse!{i;
+                //         token(b'?');
+                //         ret {()}
+                //     },
+                //     eof
+                // );
 
                 ret {
+
+                    let root_deck_id = context.borrow().root_deck_id;
+
+                    route_deck_decks(context, request, root_deck_id, query_string)
+
+                    // TODO: remove
+
                     // Allow only GET requests
 
-                    if request.borrow().method != Method::Get {
-                        RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
-                    } else {
+                    // if request.borrow().method != Method::Get {
+                    //     RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                    // } else {
 
-                        let deck_route = DeckRoute::Decks(Default::default(), Default::default());
+                    //     let deck_route = DeckRoute::Decks(Default::default(), Default::default());
 
-                        let default_home = AppRoute::Deck(context.borrow().root_deck_id, deck_route);
+                    //     let default_home = AppRoute::Deck(context.borrow().root_deck_id, deck_route);
 
-                        RenderResponse::RenderComponent(default_home)
-                    }
+                    //     RenderResponse::RenderComponent(default_home)
+                    // }
                 }
             },
             |i| parse!{i;
