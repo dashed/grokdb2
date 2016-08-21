@@ -6,6 +6,7 @@ dependencies = [
  "chrono 0.2.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.80 (registry+https://github.com/rust-lang/crates.io-index)",
  "conduit-mime-types 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "guardian 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "horrorshow 0.5.6 (git+https://github.com/Stebalien/horrorshow-rs?rev=c5caa64979866aa7a99d60de595b74c7d9d4ad01)",
  "hyper 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -185,6 +186,11 @@ dependencies = [
  "winapi 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "guardian"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "horrorshow"
@@ -694,6 +700,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum dtoa 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "0dd841b58510c9618291ffa448da2e4e0f699d984d436122372f446dae62263d"
 "checksum gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)" = "3da3a2cbaeb01363c8e3704fd9fd0eb2ceb17c6f27abd4c1ef040fb57d20dc79"
 "checksum gdi32-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0912515a8ff24ba900422ecda800b52f4016a56251922d397c576bf92c690518"
+"checksum guardian 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3f9cfcb0595b27bf14bd54651964b8f83aa956c9a46f8ddf731b96ee09e4368f"
 "checksum horrorshow 0.5.6 (git+https://github.com/Stebalien/horrorshow-rs?rev=c5caa64979866aa7a99d60de595b74c7d9d4ad01)" = "<none>"
 "checksum hpack 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3d2da7d3a34cf6406d9d700111b8eafafe9a251de41ae71d8052748259343b58"
 "checksum httparse 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "46534074dbb80b070d60a5cb8ecadd8963a00a438ae1a95268850a7ef73b67ae"
