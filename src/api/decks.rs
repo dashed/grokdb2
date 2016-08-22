@@ -346,6 +346,18 @@ pub fn get_deck_children_total_count(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID) -> Result<ItemCount, RawAPIError> {
 
+    {
+        let context = context.borrow();
+        if context.should_cache && context.deck_children_count.len() > 0 {
+            match context.deck_children_count.get(&deck_id) {
+                None => {},
+                Some(count) => {
+                    return Ok(*count);
+                }
+            }
+        }
+    };
+
     assert!(context.borrow().is_read_locked());
 
     let query = format!(indoc!("
@@ -361,19 +373,31 @@ pub fn get_deck_children_total_count(
         AND
             depth = 1"), deck_id = deck_id);
 
-    let context = context.borrow();
-    db_read_lock!(db_conn; context.database());
-    let db_conn: &Connection = db_conn;
+    let result = {
+        let context = context.borrow();
+        db_read_lock!(db_conn; context.database());
+        let db_conn: &Connection = db_conn;
 
-    let result = db_conn.query_row(&query, &[], |row| -> i64 {
-        return row.get(0);
-    });
+        let result = db_conn.query_row(&query, &[], |row| -> i64 {
+            return row.get(0);
+        });
+        result
+    };
 
     match result {
         Ok(count) => {
             // TODO: dev mode
             assert!(count >= 0);
-            return Ok(count as ItemCount)
+
+            let count = count as ItemCount;
+
+            let mut context = context.borrow_mut();
+
+            if context.should_cache {
+                context.deck_children_count.insert(deck_id, count);
+            }
+
+            return Ok(count)
         },
         Err(sqlite_error) => {
             return Err(RawAPIError::SQLError(sqlite_error, query));
@@ -828,11 +852,23 @@ fn decks_test() {
 
         {
             let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            (*context.borrow_mut()).should_cache = true;
             let _guard = context::read_lock(context.clone());
-            match decks::get_deck_children_total_count(context, 1) {
+            match decks::get_deck_children_total_count(context.clone(), 1) {
                 Ok(actual) => assert_eq!(actual, 1),
                 Err(_) => assert!(false)
             }
+
+            // ensure deck was cached
+            assert_eq!(context.borrow().should_cache, true);
+            assert_eq!(context.borrow().deck_children_count.len(), 1);
+
+            // cache check
+
+            let context = context.borrow();
+            let actual = context.deck_children_count.get(&1).unwrap();
+            assert_eq!(*actual, 1);
+
         };
 
         // deck with no children

@@ -11,7 +11,7 @@ use guardian::{ArcRwLockReadGuardian, ArcRwLockWriteGuardian};
 
 /* local imports */
 
-use types::DeckID;
+use types::{DeckID, ItemCount};
 use api::decks::Deck;
 use database::Database;
 
@@ -39,11 +39,13 @@ pub struct Context {
     /* cache */
 
     pub should_cache: bool,
-    pub decks: HashMap<DeckID, Deck>
-    // TODO: cache
+    pub decks: HashMap<DeckID, Deck>,
+    pub deck_children_count: HashMap<DeckID, ItemCount>,
+    // TODO: cache more resources
 }
 
 impl Context {
+
     pub fn new(global_lock: Arc<RwLock<Database>>) -> Self {
         Context {
 
@@ -57,7 +59,8 @@ impl Context {
 
             // cache
             should_cache: false,
-            decks: HashMap::new()
+            decks: HashMap::new(),
+            deck_children_count: HashMap::new()
         }
     }
 
