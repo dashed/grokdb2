@@ -460,7 +460,7 @@ fn route_deck_decks(
         None => DeckRoute::Decks(Default::default(), Default::default()),
         Some(query_string) => {
 
-            let page_query = DecksPageQuery::parse(&query_string);
+            let page_query = DecksPageQuery::parse(&query_string, context.clone(), deck_id);
             let search = Search::parse(&query_string);
 
             DeckRoute::Decks(page_query, search)

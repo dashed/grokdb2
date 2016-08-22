@@ -1,5 +1,14 @@
+/* rust lib imports */
+
+use std::rc::Rc;
+use std::cell::RefCell;
+
+/* local imports */
+
+use context::Context;
 use route::QueryString;
 use constants;
+use api::decks;
 
 /* Types */
 
@@ -84,9 +93,11 @@ impl Default for DecksPageQuery {
 }
 
 impl DecksPageQuery {
-    pub fn parse(query_string: &QueryString) -> Self {
+    pub fn parse(query_string: &QueryString, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
 
-        let page_num = match query_string.get("page") {
+        let default_per_page = constants::DECKS_PER_PAGE;
+
+        let page_num: Page = match query_string.get("page") {
             None => 1,
             Some(maybe_page_num_string) => {
                 match *maybe_page_num_string {
@@ -94,7 +105,21 @@ impl DecksPageQuery {
                     Some(ref page_num_string) => {
                         match page_num_string.parse::<Page>() {
                             Err(_) => 1,
-                            Ok(page_num) => page_num
+                            Ok(page_num) => {
+
+                                let children_count = match decks::get_deck_children_total_count(context, deck_id) {
+                                    Ok(count) => count,
+                                    Err(_) => {
+                                        // TODO: internal error logging
+                                        panic!();
+                                    }
+                                };
+
+                                let num_of_pages = get_num_pages(children_count, default_per_page);
+
+                                get_page_num(num_of_pages, page_num)
+
+                            }
                         }
                     }
                 }
@@ -146,7 +171,31 @@ impl DecksPageQuery {
     pub fn get_per_page(&self) -> PerPage {
         return constants::DECKS_PER_PAGE;
     }
+
 }
 
 // TODO: test for DecksPageQuery::parse
+// TODO: test for DecksPageQuery::get_offset
+// TODO: test for DecksPageQuery::get_per_page
 
+// helper to get number of pages
+#[inline]
+fn get_num_pages(item_count: ItemCount, per_page: PerPage) -> Page {
+    let item_count = item_count as f64;
+    let per_page = per_page as f64;
+
+    let num_of_pages = (item_count / per_page).ceil();
+
+    return num_of_pages as Page;
+}
+
+#[inline]
+fn get_page_num(num_of_pages: Page, page_num: Page) -> Page {
+    if num_of_pages <= 0 {
+        1
+    } else if page_num <= num_of_pages {
+        page_num
+    } else {
+        1
+    }
+}
