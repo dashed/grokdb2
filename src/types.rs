@@ -15,6 +15,7 @@ pub type StashID = i64;
 pub type Page = u64; // >= 1
 pub type PerPage = u64; // >= 1
 pub type Offset = u64; // >= 0
+pub type ItemCount = u64;
 
 #[derive(Debug)]
 pub enum Search {
@@ -56,7 +57,25 @@ pub enum SortOrder {
 }
 
 #[derive(Debug)]
-pub struct DecksPageQuery(Page, DecksPageSort);
+pub enum DecksPageSort {
+    DeckTitle(SortOrder),
+    CreatedAt(SortOrder),
+    UpdatedAt(SortOrder), /* TODO: number of cards
+                           * TODO: number of decks
+                           *
+                           * last time user reviewed this deck;
+                           * not based on the cards the deck contains
+                           * ReviewedAt(SortOrder) */
+}
+
+impl Default for DecksPageSort {
+    fn default() -> Self {
+        DecksPageSort::UpdatedAt(SortOrder::Descending)
+    }
+}
+
+#[derive(Debug)]
+pub struct DecksPageQuery(pub Page, pub DecksPageSort);
 
 impl Default for DecksPageQuery {
     fn default() -> Self {
@@ -131,14 +150,3 @@ impl DecksPageQuery {
 
 // TODO: test for DecksPageQuery::parse
 
-#[derive(Debug)]
-pub enum DecksPageSort {
-    DeckTitle(SortOrder),
-    CreatedAt(SortOrder),
-    UpdatedAt(SortOrder), /* TODO: number of cards
-                           * TODO: number of decks
-                           *
-                           * last time user reviewed this deck;
-                           * not based on the cards the deck contains
-                           * ReviewedAt(SortOrder) */
-}

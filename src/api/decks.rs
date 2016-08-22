@@ -12,7 +12,7 @@ use rusqlite::Error as SqliteError;
 /* local imports */
 
 use context::Context;
-use types::{UnixTimestamp, DeckID, DecksPageQuery, Search};
+use types::{UnixTimestamp, DeckID, DecksPageQuery, Search, ItemCount};
 use errors::RawAPIError;
 use constants;
 
@@ -340,6 +340,45 @@ pub fn get_path_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Resul
             return Ok(vec_of_deck_ids);
         }
     };
+}
+
+pub fn get_deck_children_total_count(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID) -> Result<ItemCount, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let query = format!(indoc!("
+        SELECT
+            COUNT(1)
+        FROM
+            DecksClosure
+        INNER JOIN
+            Decks
+        ON DecksClosure.descendent = Decks.deck_id
+        WHERE
+            ancestor = {deck_id}
+        AND
+            depth = 1"), deck_id = deck_id);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let result = db_conn.query_row(&query, &[], |row| -> i64 {
+        return row.get(0);
+    });
+
+    match result {
+        Ok(count) => {
+            // TODO: dev mode
+            assert!(count >= 0);
+            return Ok(count as ItemCount)
+        },
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
 }
 
 pub fn get_deck_children(
@@ -779,6 +818,45 @@ fn decks_test() {
         // TODO: pagination + search
 
         // TODO: search
+    };
+
+    // deck children count
+
+    {
+
+        // deck with a child
+
+        {
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::read_lock(context.clone());
+            match decks::get_deck_children_total_count(context, 1) {
+                Ok(actual) => assert_eq!(actual, 1),
+                Err(_) => assert!(false)
+            }
+        };
+
+        // deck with no children
+
+        {
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::read_lock(context.clone());
+            match decks::get_deck_children_total_count(context, 2) {
+                Ok(actual) => assert_eq!(actual, 0),
+                Err(_) => assert!(false)
+            }
+        };
+
+        // non-existent deck
+
+        {
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::read_lock(context.clone());
+            match decks::get_deck_children_total_count(context, 42) {
+                Ok(actual) => assert_eq!(actual, 0),
+                Err(_) => assert!(false)
+            }
+        };
+
     };
 
     /* teardown */
