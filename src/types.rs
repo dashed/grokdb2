@@ -1,4 +1,5 @@
 use route::QueryString;
+use constants;
 
 /* Types */
 
@@ -11,8 +12,9 @@ pub type StashID = i64;
 
 // pagination
 // TODO: need compile-time check to ensure >= 1 constraint (rust doesn't support this yet)
-pub type Page = u64;
-pub type PerPage = u64;
+pub type Page = u64; // >= 1
+pub type PerPage = u64; // >= 1
+pub type Offset = u64; // >= 0
 
 #[derive(Debug)]
 pub enum Search {
@@ -114,6 +116,16 @@ impl DecksPageQuery {
         };
 
         return DecksPageQuery(page_num, decks_page_sort);
+    }
+
+    pub fn get_offset(&self) -> Offset {
+        let page = self.0;
+        let offset = (page - 1) * self.get_per_page();
+        return offset;
+    }
+
+    pub fn get_per_page(&self) -> PerPage {
+        return constants::DECKS_PER_PAGE;
     }
 }
 

@@ -12,8 +12,9 @@ use rusqlite::Error as SqliteError;
 /* local imports */
 
 use context::Context;
-use types::{UnixTimestamp, DeckID};
+use types::{UnixTimestamp, DeckID, DecksPageQuery, Search};
 use errors::RawAPIError;
+use constants;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -244,10 +245,6 @@ pub fn connect_decks(context: Rc<RefCell<Context>>, child: DeckID, parent: DeckI
     return Ok(());
 }
 
-// TODO: complete?
-// pub fn deck_has_parent(context: Rc<RefCell<Context>>, child: DeckID) -> Result<(), RawAPIError> {
-// }
-
 pub fn get_parent_id_of_deck(context: Rc<RefCell<Context>>, child: DeckID) -> Result<Option<DeckID>, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
@@ -345,15 +342,81 @@ pub fn get_path_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Resul
     };
 }
 
-// pub fn get_deck_children(
-//     context: Rc<RefCell<Context>>,
-//     deck_id: DeckID,
-//     deck_page_query: &DecksPageQuery,
-//     search: &Search) -> Result<Vec<DeckID>, RawAPIError> {
+pub fn get_deck_children(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    deck_page_query: &DecksPageQuery,
+    search: &Search) -> Result<Vec<DeckID>, RawAPIError> {
 
+    assert!(context.borrow().is_read_locked());
 
+    let offset = deck_page_query.get_offset();
+    let per_page = deck_page_query.get_per_page();
 
-// }
+    // TODO: cache support?
+
+    // TODO: search
+    // TODO: sort
+
+    let select_sql = indoc!("
+        SELECT
+            DecksClosure.descendent
+        FROM
+            DecksClosure
+        INNER JOIN
+            Decks
+        ON DecksClosure.descendent = Decks.deck_id");
+
+    let where_order_sql = format!(indoc!("
+            ancestor = {deck_id}
+        AND
+            depth = 1
+        ORDER BY
+            Decks.name
+        COLLATE NOCASE ASC"), deck_id = deck_id);
+
+    let query = pagination!(select_sql; where_order_sql; "DecksClosure.descendent"; per_page; offset);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let mut statement = match db_conn.prepare(&query) {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        },
+        Ok(statement) => statement
+    };
+
+    let maybe_iter = statement.query_map(&[], |row| -> DeckID {
+        return row.get(0);
+    });
+
+    match maybe_iter {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        },
+        Ok(iter) => {
+
+            let mut vec_of_deck_ids: Vec<DeckID> = Vec::new();
+
+            for maybe_deck_id in iter {
+
+                let item = match maybe_deck_id {
+                    Err(sqlite_error) => {
+                        return Err(RawAPIError::SQLError(sqlite_error, query));
+                    },
+                    Ok(item) => item
+                };
+
+                vec_of_deck_ids.push(item);
+
+            }
+
+            return Ok(vec_of_deck_ids);
+        }
+    }
+}
 
 #[test]
 fn decks_test() {
@@ -663,6 +726,59 @@ fn decks_test() {
             }
         };
 
+    };
+
+    // deck children
+
+    {
+
+        // deck with a child
+
+        {
+            let deck_page_query = DecksPageQuery(1, Default::default());
+            let search = Search::NoQuery;
+
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::read_lock(context.clone());
+            match decks::get_deck_children(context, 1, &deck_page_query, &search) {
+                Ok(actual) => assert_eq!(actual, vec![2]),
+                Err(_) => assert!(false)
+            }
+        };
+
+        // deck with no children
+
+        {
+            let deck_page_query = DecksPageQuery(1, Default::default());
+            let search = Search::NoQuery;
+
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::read_lock(context.clone());
+            match decks::get_deck_children(context, 2, &deck_page_query, &search) {
+                Ok(actual) => assert_eq!(actual, vec![]),
+                Err(_) => assert!(false)
+            }
+        };
+
+        // non-existent deck
+
+        {
+            let deck_page_query = DecksPageQuery(1, Default::default());
+            let search = Search::NoQuery;
+
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::read_lock(context.clone());
+            match decks::get_deck_children(context, 42, &deck_page_query, &search) {
+                Ok(actual) => assert_eq!(actual, vec![]),
+                Err(_) => assert!(false)
+            }
+        };
+
+        // TODO: pagination
+
+        // TODO: pagination + search
+
+        // TODO: search
     };
 
     /* teardown */

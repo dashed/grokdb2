@@ -55,9 +55,10 @@ macro_rules! db_write_lock(
 macro_rules! pagination(
     ($pre_sql:expr; $post_sql:expr; $not_in:expr; $per_page:expr; $offset:expr) => {{
 
+        use types;
         // TODO: compile-time type check other args
-        let per_page: i64 = $per_page;
-        let offset: i64 = $offset;
+        let per_page: types::PerPage = $per_page;
+        let offset: types::Offset = $offset;
 
         format!(indoc!("
             {pre_sql}
