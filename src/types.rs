@@ -3,6 +3,10 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
+/* 3rd-party imports */
+
+use url::percent_encoding::{QUERY_ENCODE_SET, utf8_percent_encode};
+
 /* local imports */
 
 use context::Context;
@@ -39,6 +43,8 @@ impl Default for Search {
 }
 
 impl Search {
+
+    // TODO: test
     pub fn parse(query_string: &QueryString) -> Self {
         match query_string.get("search") {
             None => Search::NoQuery,
@@ -47,6 +53,20 @@ impl Search {
                     None => Search::NoQuery,
                     Some(ref query) => Search::Query(query.clone())
                 }
+            }
+        }
+    }
+
+    // TODO: test
+    pub fn generate_query_string(&self) -> Option<String> {
+        match *self {
+            Search::NoQuery => None,
+            Search::Query(ref search_query) => {
+
+                let search_query = utf8_percent_encode(search_query, QUERY_ENCODE_SET)
+                    .collect::<String>();
+
+                Some(format!("search={}", search_query))
             }
         }
     }
@@ -172,6 +192,24 @@ impl DecksPageQuery {
         return constants::DECKS_PER_PAGE;
     }
 
+    pub fn generate_query_string(&self) -> String {
+
+        let &DecksPageQuery(page, ref page_sort) = self;
+
+        let (order_by, sort_order) = match *page_sort {
+            DecksPageSort::DeckTitle(ref sort_order) => ("deck_title", sort_order),
+            DecksPageSort::CreatedAt(ref sort_order) => ("created_at", sort_order),
+            DecksPageSort::UpdatedAt(ref sort_order) => ("updated_at", sort_order)
+        };
+
+        let sort_by = match *sort_order {
+            SortOrder::Ascending => "asc",
+            SortOrder::Descending => "desc"
+        };
+
+        format!("page={page}&order_by={order_by}&sort_by={sort_by}",
+            page = page, order_by = order_by, sort_by = sort_by)
+    }
 }
 
 // TODO: test for DecksPageQuery::parse
