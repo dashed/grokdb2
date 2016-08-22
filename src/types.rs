@@ -9,7 +9,7 @@ use url::percent_encoding::{QUERY_ENCODE_SET, utf8_percent_encode};
 
 /* local imports */
 
-use context::Context;
+use context::{self, Context};
 use route::QueryString;
 use constants;
 use api::decks;
@@ -126,6 +126,8 @@ impl DecksPageQuery {
                         match page_num_string.parse::<Page>() {
                             Err(_) => 1,
                             Ok(page_num) => {
+
+                                let _guard = context::read_lock(context.clone());
 
                                 let children_count = match decks::get_deck_children_total_count(context, deck_id) {
                                     Ok(count) => count,
