@@ -26,6 +26,8 @@ pub struct Config {
 
 pub fn get_config(context: Rc<RefCell<Context>>, setting_key: String) -> Result<Option<Config>, RawAPIError> {
 
+    assert!(context.borrow().is_read_locked());
+
     if setting_key.trim().len() <= 0 {
         return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
     }
@@ -43,7 +45,8 @@ pub fn get_config(context: Rc<RefCell<Context>>, setting_key: String) -> Result<
     let params: &[(&str, &ToSql)] = &[(":setting", &setting_key)];
 
     let context = context.borrow();
-    db_read_lock!(db_conn; context.database);
+
+    db_read_lock!(db_conn; context.database());
     let db_conn: &Connection = db_conn;
 
     let results = db_conn.query_row_named(query, params, |row| -> Config {
@@ -75,6 +78,8 @@ pub fn get_config(context: Rc<RefCell<Context>>, setting_key: String) -> Result<
 // on success, return the config set into the db
 pub fn set_config(context: Rc<RefCell<Context>>, setting: String, value: String) -> Result<Config, RawAPIError> {
 
+    assert!(context.borrow().is_write_locked());
+
     if setting.trim().len() <= 0 {
         return Err(RawAPIError::BadInput("configs::get_config", "setting is empty string"));
     }
@@ -87,7 +92,7 @@ pub fn set_config(context: Rc<RefCell<Context>>, setting: String, value: String)
     let params: &[(&str, &ToSql)] = &[(":setting", &setting), (":value", &value)];
 
     let context = context.borrow();
-    db_write_lock!(db_conn; context.database);
+    db_write_lock!(db_conn; context.database());
     let db_conn: &Connection = db_conn;
 
     match db_conn.execute_named(query, &params[..]) {
@@ -113,9 +118,11 @@ fn configs_test() {
 
     /* imports */
 
+    use std::sync::{Arc, RwLock};
     use std::fs;
     use database;
     use api::configs;
+    use context;
 
     /* setup */
 
@@ -123,11 +130,13 @@ fn configs_test() {
     fs::remove_file(file_path.clone());
 
     let db_connection = database::get_database(file_path.clone());
+    let global_lock = Arc::new(RwLock::new(db_connection));
 
     // config doesn't exist
 
     {
-        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::read_lock(context.clone());
         match configs::get_config(context, "config_key_1".to_string()).unwrap() {
             Some(_) => assert!(false),
             None => assert!(true)
@@ -137,7 +146,8 @@ fn configs_test() {
     // set a config
 
     {
-        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::write_lock(context.clone());
         let actual = configs::set_config(context,
             "config_key_2".to_string(),
             "value_1".to_string()).unwrap();
@@ -152,7 +162,8 @@ fn configs_test() {
     // retrieve a config
 
     {
-        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::read_lock(context.clone());
         match configs::get_config(context, "config_key_2".to_string()).unwrap() {
             Some(actual) => {
                 let expected = Config {
@@ -168,7 +179,8 @@ fn configs_test() {
     // overwrite a config
 
     {
-        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::write_lock(context.clone());
         let actual = configs::set_config(context,
             "config_key_2".to_string(),
             "value_2".to_string()).unwrap();
@@ -181,7 +193,8 @@ fn configs_test() {
     };
 
     {
-        let context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::read_lock(context.clone());
         match configs::get_config(context, "config_key_2".to_string()).unwrap() {
             Some(actual) => {
                 let expected = Config {

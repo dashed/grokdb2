@@ -3,6 +3,7 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate guardian;
 extern crate serde;
 extern crate serde_json;
 #[macro_use]
@@ -26,9 +27,11 @@ extern crate chrono;
 
 /* rust lib imports */
 
+use std::panic::{self, AssertUnwindSafe};
 use std::io;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
 
 /* 3rd-party imports */
@@ -55,7 +58,7 @@ mod route;
 mod components;
 
 
-use context::Context;
+use context::{Context};
 use log_entry::LogEntry;
 use api::{configs, decks};
 use route::parse_request_uri;
@@ -72,12 +75,18 @@ fn main() {
 
     /* database */
 
-    let db_connection = database::get_database("test.db".to_string());
+    let global_lock = {
+        let db_connection = database::get_database("test.db".to_string());
+        let global_lock = Arc::new(RwLock::new(db_connection));
+        global_lock
+    };
 
     /* database bootstrap */
 
     {
-        let bootstrap_context = Rc::new(RefCell::new(Context::new(db_connection.clone())));
+        let bootstrap_context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+
+        let _read_guard = context::write_lock(bootstrap_context.clone());
 
         let should_create_root_deck = match configs::get_config(bootstrap_context.clone(),
                                                                 configs::CONFIG_ROOT_DECK_ID_KEY.to_string())
@@ -161,9 +170,14 @@ fn main() {
         let _entry = LogEntry::start(io::stdout(), &request);
 
         let context = Context {
-            request_uri: format!("{}", request.uri),
+
+            global_lock: global_lock.clone(),
+            lock_state: None,
+            lock_state_ref_read_count: 0,
+            lock_state_ref_write_count: 0,
+
             root_deck_id: root_deck_id,
-            database: db_connection.clone(),
+            request_uri: format!("{}", request.uri),
 
             /* caching */
 
@@ -182,26 +196,51 @@ fn main() {
         let uri = format!("{}", request.uri);
         let request: Rc<RefCell<_>> = Rc::new(RefCell::new(request));
 
-        let render = match parse_only(|i| parse_request_uri(i, context.clone(), request.clone()), uri.as_bytes()) {
-            Ok(render_response) => {
-                // url has a match
-                render_response
-            }
-            Err(_why) => {
+        let result = panic::catch_unwind(AssertUnwindSafe(|| {
+            let render = match parse_only(|i| parse_request_uri(i, context.clone(), request.clone()), uri.as_bytes()) {
+                Ok(render_response) => {
+                    // url has a match
+                    render_response
+                }
+                Err(_why) => {
 
-                // 404 error
+                    // 404 error
+                    // TODO: internal error logging
 
-                // panic!("{:?}", e);
-                RenderResponse::RenderNotFound
-            }
-        };
+                    // panic!("{:?}", e);
+                    RenderResponse::RenderNotFound
+                }
+            };
+            render
+        }));
 
         // NOTE: This is a boundary line where the request has been transformed into
         //       RenderResponse type. Anything from request shall be put into the RenderResponse type.
 
-        render_response(context, render, response);
+        match result {
+            Err(why) => {
+                // TODO: internal error logging
 
-        return ();
+                let reason: String = if let Some(why) = why.downcast_ref::<String>() {
+                    format!("{}", why)
+                } else if let Some(why) = why.downcast_ref::<&str>() {
+                    format!("{}", why)
+                } else {
+                    format!("{:?}", why)
+                };
+
+                println!("PANIC REASON: {}", reason);
+
+                render_response(context.clone(), RenderResponse::RenderInternalServerError, response);
+                return;
+            },
+            Ok(render) => {
+                render_response(context, render, response);
+                return;
+            }
+        }
+
+        return;
 
     });
 

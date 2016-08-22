@@ -1,6 +1,6 @@
 /* rust lib imports */
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 
 /* 3rd-party imports */
 
@@ -26,7 +26,8 @@ macro_rules! db_read_lock(
             let _: Database = $e;
         };
 
-        let __db_conn_guard = $e.lock().unwrap();
+        let __db_read_lock = $e;
+        let __db_conn_guard = __db_read_lock.lock().unwrap();
         let ref $ident = *__db_conn_guard;
     )
 );
@@ -41,7 +42,8 @@ macro_rules! db_write_lock(
             let _: Database = $e;
         };
 
-        let __db_conn_guard = $e.lock().unwrap();
+        let __db_write_lock = $e;
+        let __db_conn_guard = __db_write_lock.lock().unwrap();
         let ref $ident = *__db_conn_guard;
     )
 );

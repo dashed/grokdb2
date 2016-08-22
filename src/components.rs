@@ -1,6 +1,5 @@
 /* rust lib imports */
 
-use std::panic::{self, AssertUnwindSafe};
 use std::rc::Rc;
 use std::cell::RefCell;
 

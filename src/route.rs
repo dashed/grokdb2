@@ -43,7 +43,7 @@ use serde;
 
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
 use types::{DeckID, CardID, DecksPageQuery, Search};
-use context::Context;
+use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
 use api::decks::{self, CreateDeck, DeckResponse};
 
@@ -340,6 +340,8 @@ fn __parse_route_api_deck(context: Rc<RefCell<Context>>, request: Rc<RefCell<Req
                     }
                 };
 
+                let _guard = context::write_lock(context.clone());
+
                 match decks::create_deck(context.clone(), request) {
                     Ok(new_deck) => {
 
@@ -352,7 +354,7 @@ fn __parse_route_api_deck(context: Rc<RefCell<Context>>, request: Rc<RefCell<Req
                                 let app_route = AppRoute::Deck(new_deck.id, deck_route);
 
                                 let response = DeckResponse {
-                                    profile_url: view_route_to_link(context.clone(), app_route),
+                                    profile_url: view_route_to_link(context, app_route),
                                     deck: new_deck,
                                     has_parent: true,
                                     parent_id: Some(parent_deck_id)
@@ -404,6 +406,8 @@ fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>,
         let deck_id: DeckID = decimal();
 
         ret {
+
+            let _guard = context::write_lock(context.clone());
 
             match decks::deck_exists(context.clone(), deck_id) {
                 Ok(exists) => {
@@ -462,6 +466,8 @@ fn route_deck_decks(
             DeckRoute::Decks(page_query, search)
         }
     };
+
+    let _guard = context::read_lock(context.clone());
 
     match decks::deck_exists(context, deck_id) {
         Ok(exists) => {
@@ -732,20 +738,6 @@ fn parse_query_string_test() {
 
 }
 
-/* misc routes */
-
-fn route_internal_server_error(request: Request, mut response: Response) {
-
-    // let mut context = context;
-
-    let message = format!("Internal server error for {}", request.uri);
-
-    // 500 status code
-    *response.status_mut() = StatusCode::InternalServerError;
-
-    response.send(message.as_bytes()).unwrap();
-}
-
 /* rendering */
 
 #[inline]
@@ -800,8 +792,15 @@ pub fn render_response(context: Rc<RefCell<Context>>, render: RenderResponse, mu
 #[inline]
 fn render_components(context: Rc<RefCell<Context>>, app_route: AppRoute, mut response: Response) {
 
+    assert!(!context.borrow().is_read_locked());
+    assert!(!context.borrow().is_write_locked());
+
     let app_component = {
         FnRenderer::new(|tmpl| {
+
+            // NOTE: only API reads are allowed
+            let _guard = context::read_lock(context.clone());
+
             AppComponent(tmpl, context.clone(), &app_route);
         })
     };
@@ -821,7 +820,17 @@ fn render_components(context: Rc<RefCell<Context>>, app_route: AppRoute, mut res
 
         // TODO: internal error logging
 
-        println!("TEMPLATE RENDERING PANIC: {:?}", result.err().unwrap());
+        let why = result.err().unwrap();
+
+        let reason: String = if let Some(why) = why.downcast_ref::<String>() {
+            format!("{}", why)
+        } else if let Some(why) = why.downcast_ref::<&str>() {
+            format!("{}", why)
+        } else {
+            format!("{:?}", why)
+        };
+
+        println!("TEMPLATE RENDERING PANIC: {}", reason);
 
         render_response(context.clone(), RenderResponse::RenderInternalServerError, response);
         return;
