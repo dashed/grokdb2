@@ -493,6 +493,8 @@ fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: De
 #[inline]
 fn DecksChildren(tmpl: &mut TemplateBuffer,
     context: Rc<RefCell<Context>>, deck_id: DeckID, deck_page_query: &DecksPageQuery, search: &Search) {
+
+
     tmpl << html!{
 
         div(class="columns") {
@@ -504,62 +506,75 @@ fn DecksChildren(tmpl: &mut TemplateBuffer,
             }
         }
 
-        // TODO: hide
-        div(class="columns") {
-            div(class="column") {
-                |tmpl| DeckChildrenPaginationComponent(tmpl, context.clone(), deck_id, &deck_page_query, &search);
-            }
-        }
-
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, false);
-        |tmpl| DeckListItemComponent(tmpl, true);
-
-        // TODO: hide
-        div(class="columns", style="margin-top:10px;") {
-            div(class="column") {
-                |tmpl| DeckChildrenPaginationComponent(tmpl, context.clone(), deck_id, &deck_page_query, &search);
-            }
-        }
+        |tmpl| DeckChildrenPaginationComponent(tmpl, context.clone(), deck_id, &deck_page_query, &search);
+        |tmpl| DecksChildrenList(tmpl, context.clone(), deck_id, &deck_page_query, &search);
+        |tmpl| DeckChildrenPaginationComponent(tmpl, context.clone(), deck_id, &deck_page_query, &search);
     }
 }
 
 #[inline]
-fn DeckListItemComponent(tmpl: &mut TemplateBuffer, is_bottom: bool) {
+#[inline]
+fn DecksChildrenList(tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>, deck_id: DeckID, deck_page_query: &DecksPageQuery, search: &Search) {
+
+    let children = match decks::get_deck_children(context.clone(), deck_id, deck_page_query, search) {
+        Ok(children) => children,
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        }
+    };
+
+    let number_of_items = children.len();
+
+    if number_of_items <= 0 {
+        tmpl << html!{
+            div(class="columns") {
+                div(class="column") {
+                    article(class="message") {
+                        div(class="message-body") {
+                            : raw!("There are no decks to display. You may create one within this deck.")
+                        }
+                    }
+                }
+            }
+        };
+
+        return;
+    }
+
+    tmpl << html!{
+        @ for (index, deck_id) in children.iter().enumerate() {
+            |tmpl| DeckListItemComponent(tmpl, context.clone(), *deck_id, (index + 1) >= number_of_items);
+        }
+    };
+}
+
+#[inline]
+fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID, is_bottom: bool) {
+
+    let deck = match decks::get_deck(context.clone(), deck_id) {
+        Ok(deck) => deck,
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        }
+    };
+
     tmpl << html!{
         div(class="columns is-marginless",
             style=labels!(
                 "border-bottom:1px dotted #d3d6db;" => !is_bottom)) {
             div(class="column is-side-paddingless") {
                 h5(class="title is-5 is-marginless is-bold") {
-                    a(href="#") {
-                        : "What does the fox say?"
+                    a(href = view_route_to_link(context,
+                                    AppRoute::Deck(deck_id, DeckRoute::Decks(Default::default(), Default::default())))
+                    ) {
+                        : &deck.name
                     }
                 }
                 span(style="font-size:12px;") {
-                    : "Deck #123";
+                    : format!("Deck #{}", deck.id);
                     : raw!(" ");
                     a(href="#") {
                         : raw!("View Cards")
@@ -585,37 +600,82 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
     let current_href = view_route_to_link(context.clone(), current_app_route);
 
     tmpl << html!{
-        nav(class="pagination") {
+        div(class="columns") {
+            div(class="column") {
+                nav(class="pagination") {
 
-            |tmpl| {
+                    |tmpl| {
 
-                match deck_page_query.previous() {
-                    None => {},
-                    Some(page_query) => {
+                        match deck_page_query.previous() {
+                            None => {},
+                            Some(page_query) => {
 
-                        let app_route = AppRoute::Deck(deck_id, DeckRoute::Decks(page_query, search.clone()));
-                        let href = view_route_to_link(context.clone(), app_route);
+                                let app_route = AppRoute::Deck(deck_id, DeckRoute::Decks(page_query, search.clone()));
+                                let href = view_route_to_link(context.clone(), app_route);
 
-                        tmpl << html!(
-                            a(class="button is-bold", href = href) {
-                                : raw!("Previous")
+                                tmpl << html!(
+                                    a(class="button is-bold", href = href) {
+                                        : raw!("Previous")
+                                    }
+                                );
                             }
-                        );
+                        }
+
                     }
-                }
 
-            }
+                    ul {
 
-            ul {
+                        // trailing left side
+                        |tmpl| {
 
-                // trailing left side
-                |tmpl| {
+                            match deck_page_query.get_trailing_left_side() {
+                                None => {},
+                                Some(list) => {
+                                    tmpl << html!{
+                                        @ for page_query in list {
+                                            |tmpl| {
 
-                    match deck_page_query.get_trailing_left_side() {
-                        None => {},
-                        Some(list) => {
+                                                let current_page = page_query.current_page();
+
+                                                let app_route = AppRoute::Deck(deck_id,
+                                                    DeckRoute::Decks(page_query, search.clone()));
+                                                let href = view_route_to_link(context.clone(), app_route);
+
+                                                tmpl << html!(
+                                                    li {
+                                                        a(class="button is-bold", href = href) {
+                                                            : current_page
+                                                        }
+                                                    }
+                                                );
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
+
+                        }
+
+                        // trailing left side delimeter
+                        |tmpl| {
+
+                            if deck_page_query.has_trailing_left_side_delimeter() {
+                                tmpl << html!{
+                                    li {
+                                        span(class="is-bold") {
+                                            : "..."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // left side
+                        |tmpl| {
+
                             tmpl << html!{
-                                @ for page_query in list {
+                                @ for page_query in deck_page_query.get_left_side() {
                                     |tmpl| {
 
                                         let current_page = page_query.current_page();
@@ -636,105 +696,19 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
                             }
 
                         }
-                    }
 
-                }
-
-                // trailing left side delimeter
-                |tmpl| {
-
-                    if deck_page_query.has_trailing_left_side_delimeter() {
-                        tmpl << html!{
-                            li {
-                                span(class="is-bold") {
-                                    : "..."
-                                }
+                        // current page
+                        li {
+                            a(class="button is-primary is-bold", href = current_href) {
+                                : deck_page_query.current_page()
                             }
                         }
-                    }
-                }
 
-                // left side
-                |tmpl| {
+                        // right side
+                        |tmpl| {
 
-                    tmpl << html!{
-                        @ for page_query in deck_page_query.get_left_side() {
-                            |tmpl| {
-
-                                let current_page = page_query.current_page();
-
-                                let app_route = AppRoute::Deck(deck_id,
-                                    DeckRoute::Decks(page_query, search.clone()));
-                                let href = view_route_to_link(context.clone(), app_route);
-
-                                tmpl << html!(
-                                    li {
-                                        a(class="button is-bold", href = href) {
-                                            : current_page
-                                        }
-                                    }
-                                );
-                            }
-                        }
-                    }
-
-                }
-
-                // current page
-                li {
-                    a(class="button is-primary is-bold", href = current_href) {
-                        : deck_page_query.current_page()
-                    }
-                }
-
-                // right side
-                |tmpl| {
-
-                    tmpl << html!{
-                        @ for page_query in deck_page_query.get_right_side(context.clone(), deck_id) {
-                            |tmpl| {
-
-                                let current_page = page_query.current_page();
-
-                                let app_route = AppRoute::Deck(deck_id,
-                                    DeckRoute::Decks(page_query, search.clone()));
-                                let href = view_route_to_link(context.clone(), app_route);
-
-                                tmpl << html!(
-                                    li {
-                                        a(class="button is-bold", href = href) {
-                                            : current_page
-                                        }
-                                    }
-                                );
-                            }
-                        }
-                    }
-
-                }
-
-                // trailing right side delimeter
-                |tmpl| {
-
-                    if deck_page_query.has_trailing_right_side_delimeter(context.clone(), deck_id) {
-                        tmpl << html!{
-                            li {
-                                span(class="is-bold") {
-                                    : "..."
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // trailing right side
-                |tmpl| {
-
-                    match deck_page_query.get_trailing_right_side(context.clone(), deck_id) {
-                        None => {},
-                        Some(list) => {
                             tmpl << html!{
-                                @ for page_query in list {
+                                @ for page_query in deck_page_query.get_right_side(context.clone(), deck_id) {
                                     |tmpl| {
 
                                         let current_page = page_query.current_page();
@@ -755,31 +729,76 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
                             }
 
                         }
-                    }
 
-                }
+                        // trailing right side delimeter
+                        |tmpl| {
 
-            }
-
-            |tmpl| {
-
-                match deck_page_query.next(context.clone(), deck_id) {
-                    None => {},
-                    Some(page_query) => {
-
-                        let app_route = AppRoute::Deck(deck_id, DeckRoute::Decks(page_query, search.clone()));
-                        let href = view_route_to_link(context.clone(), app_route);
-
-                        tmpl << html!(
-                            a(class="button is-bold", href = href) {
-                                : raw!("Next")
+                            if deck_page_query.has_trailing_right_side_delimeter(context.clone(), deck_id) {
+                                tmpl << html!{
+                                    li {
+                                        span(class="is-bold") {
+                                            : "..."
+                                        }
+                                    }
+                                }
                             }
-                        );
+                        }
+
+                        // trailing right side
+                        |tmpl| {
+
+                            match deck_page_query.get_trailing_right_side(context.clone(), deck_id) {
+                                None => {},
+                                Some(list) => {
+                                    tmpl << html!{
+                                        @ for page_query in list {
+                                            |tmpl| {
+
+                                                let current_page = page_query.current_page();
+
+                                                let app_route = AppRoute::Deck(deck_id,
+                                                    DeckRoute::Decks(page_query, search.clone()));
+                                                let href = view_route_to_link(context.clone(), app_route);
+
+                                                tmpl << html!(
+                                                    li {
+                                                        a(class="button is-bold", href = href) {
+                                                            : current_page
+                                                        }
+                                                    }
+                                                );
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
+
+                        }
+
                     }
+
+                    |tmpl| {
+
+                        match deck_page_query.next(context.clone(), deck_id) {
+                            None => {},
+                            Some(page_query) => {
+
+                                let app_route = AppRoute::Deck(deck_id, DeckRoute::Decks(page_query, search.clone()));
+                                let href = view_route_to_link(context.clone(), app_route);
+
+                                tmpl << html!(
+                                    a(class="button is-bold", href = href) {
+                                        : raw!("Next")
+                                    }
+                                );
+                            }
+                        }
+
+                    }
+
                 }
-
             }
-
         }
     }
 }
