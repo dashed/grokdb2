@@ -16,6 +16,8 @@ use tables;
 // Mutex := Raw database operation
 pub type Database = Arc<Mutex<Connection>>;
 
+/* macro helpers */
+
 macro_rules! db_read_lock(
     ($ident:ident; $e:expr) => (
 
@@ -47,6 +49,98 @@ macro_rules! db_write_lock(
         let ref $ident = *__db_conn_guard;
     )
 );
+
+// macro to generate efficient pagination sqlite query
+// http://blog.ssokolow.com/archives/2009/12/23/sql-pagination-without-offset/
+macro_rules! pagination(
+    ($pre_sql:expr; $post_sql:expr; $not_in:expr; $per_page:expr; $offset:expr) => {{
+
+        // TODO: compile-time type check other args
+        let per_page: i64 = $per_page;
+        let offset: i64 = $offset;
+
+        format!(indoc!("
+            {pre_sql}
+            WHERE
+                {not_in} NOT IN (
+            {pre_sql}
+                    WHERE
+            {post_sql}
+                    LIMIT {offset}
+                )
+            AND
+            {post_sql}
+            LIMIT {per_page};\
+        "),pre_sql = $pre_sql, not_in = $not_in, post_sql = $post_sql, offset = offset, per_page = per_page)
+
+    }}
+);
+
+#[test]
+fn pagination_macro_test() {
+
+    let deck_id = 42;
+    let per_page = 25;
+    let offset = 0;
+
+    let query = format!(indoc!("
+        SELECT
+            DecksClosure.descendent
+        FROM
+            DecksClosure
+        INNER JOIN
+            Decks
+        ON DecksClosure.descendent = Decks.deck_id
+        WHERE
+            DecksClosure.descendent NOT IN (
+        SELECT
+            DecksClosure.descendent
+        FROM
+            DecksClosure
+        INNER JOIN
+            Decks
+        ON DecksClosure.descendent = Decks.deck_id
+                WHERE
+            ancestor = {deck_id}
+        AND
+            depth = 1
+        ORDER BY
+            Decks.name
+        COLLATE NOCASE ASC
+                LIMIT {offset}
+            )
+        AND
+            ancestor = {deck_id}
+        AND
+            depth = 1
+        ORDER BY
+            Decks.name
+        COLLATE NOCASE ASC
+        LIMIT {per_page};"), deck_id = deck_id, per_page = per_page, offset = offset);
+
+    let pre_sql = indoc!("
+        SELECT
+            DecksClosure.descendent
+        FROM
+            DecksClosure
+        INNER JOIN
+            Decks
+        ON DecksClosure.descendent = Decks.deck_id");
+
+    let post_sql = format!(indoc!("
+            ancestor = {deck_id}
+        AND
+            depth = 1
+        ORDER BY
+            Decks.name
+        COLLATE NOCASE ASC"), deck_id = deck_id);
+
+    let actual = pagination!(pre_sql; post_sql; "DecksClosure.descendent"; per_page; offset);
+
+    // println!("'{}'", query);
+    // println!("'{}'", actual);
+    assert_eq!(query, actual);
+}
 
 /* API */
 

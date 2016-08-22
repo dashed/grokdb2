@@ -60,6 +60,7 @@ chrono = "0.2"
 # html5ever = "0.5.4"
 # tendril = "0.2.2"
 guardian = "0.3.0"
+indoc = "^0.1"
 
 [features]
 default = []
