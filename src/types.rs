@@ -30,7 +30,7 @@ pub type PerPage = u64; // >= 1
 pub type Offset = u64; // >= 0
 pub type ItemCount = u64;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Search {
     NoQuery,
     Query(String),
@@ -79,13 +79,13 @@ impl Search {
 // timestamps:
 //      - ascending: oldest to newest
 //      - descending: newest to oldest
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SortOrder {
     Ascending,
     Descending,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DecksPageSort {
     DeckTitle(SortOrder),
     CreatedAt(SortOrder),
@@ -103,7 +103,7 @@ impl Default for DecksPageSort {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DecksPageQuery(pub Page, pub DecksPageSort);
 
 impl Default for DecksPageQuery {
@@ -113,6 +113,7 @@ impl Default for DecksPageQuery {
 }
 
 impl DecksPageQuery {
+
     pub fn parse(query_string: &QueryString, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
 
         let default_per_page = constants::DECKS_PER_PAGE;
@@ -184,16 +185,21 @@ impl DecksPageQuery {
         return DecksPageQuery(page_num, decks_page_sort);
     }
 
+    // TODO: test
+    // TODO: move to some trait
     pub fn get_offset(&self) -> Offset {
         let page = self.0;
         let offset = (page - 1) * self.get_per_page();
         return offset;
     }
 
+    // TODO: test
+    // TODO: move to pagination trait
     pub fn get_per_page(&self) -> PerPage {
         return constants::DECKS_PER_PAGE;
     }
 
+    // TODO: test
     pub fn generate_query_string(&self) -> String {
 
         let &DecksPageQuery(page, ref page_sort) = self;
@@ -214,11 +220,235 @@ impl DecksPageQuery {
     }
 }
 
-// TODO: test for DecksPageQuery::parse
-// TODO: test for DecksPageQuery::get_offset
-// TODO: test for DecksPageQuery::get_per_page
+impl Pagination for DecksPageQuery {
+
+    fn previous(&self) -> Option<Self> {
+        let page_num = self.current_page();
+
+        if page_num <= 1 {
+            return None;
+        }
+
+        return Some(DecksPageQuery(page_num - 1, self.1.clone()));
+    }
+
+    fn next(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Self> {
+
+        let _guard = context::read_lock(context.clone());
+
+        let children_count = match decks::get_deck_children_total_count(context, deck_id) {
+            Ok(count) => count,
+            Err(_) => {
+                // TODO: internal error logging
+                panic!();
+            }
+        };
+
+        let num_of_pages = get_num_pages(children_count, self.get_per_page());
+
+        let next_page = self.current_page() + 1;
+
+        if next_page > num_of_pages {
+            return None;
+        }
+
+        return Some(DecksPageQuery(next_page, self.1.clone()));
+    }
+
+    fn current_page(&self) -> Page {
+        self.0
+    }
+
+    fn num_of_pages(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Page {
+
+        let _guard = context::read_lock(context.clone());
+
+        let children_count = match decks::get_deck_children_total_count(context, deck_id) {
+            Ok(count) => count,
+            Err(_) => {
+                // TODO: internal error logging
+                panic!();
+            }
+        };
+
+        let num_of_pages = get_num_pages(children_count, self.get_per_page());
+
+        return num_of_pages;
+    }
+
+    fn should_show_pagination(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool {
+        return self.num_of_pages(context, deck_id) > 1;
+    }
+
+    fn get_trailing_left_side(&self) -> Option<Vec<Self>> {
+
+        let current_page = self.current_page() as i64;
+        let start: i64 = current_page - __PAGINATION__ALPHA - 1 - __PAGINATION_TRAIL_SIZE;
+
+        let mut trailing_left_side: Vec<Self> = Vec::new();
+
+        // overlapping exists; if possible, populate with rest of buttons
+        if start <= 0 {
+
+            let end = current_page - __PAGINATION__ALPHA - 1;
+
+            if end <= 0 {
+                return None;
+            }
+
+            // 1 to end
+            for page in 1..(end + 1) {
+                let page_query = DecksPageQuery(page as Page, self.1.clone());
+                trailing_left_side.push(page_query);
+            }
+
+            return Some(trailing_left_side);
+        }
+
+
+
+        // 1 to __PAGINATION_TRAIL_SIZE
+        for page in 1..(__PAGINATION_TRAIL_SIZE + 1) {
+            let page_query = DecksPageQuery(page as Page, self.1.clone());
+            trailing_left_side.push(page_query);
+        }
+
+        // add extra button
+        if start == 1 {
+
+            let extra_page_num = 1 + __PAGINATION_TRAIL_SIZE;
+
+            let page_query = DecksPageQuery(extra_page_num as Page, self.1.clone());
+            trailing_left_side.push(page_query);
+
+        }
+
+        return Some(trailing_left_side);
+    }
+
+    fn has_trailing_left_side_delimeter(&self) -> bool {
+
+        let current_page = self.current_page() as i64;
+        let start: i64 = current_page - __PAGINATION__ALPHA - 1 - __PAGINATION_TRAIL_SIZE;
+
+        return start > 1;
+    }
+
+    fn get_left_side(&self) -> Vec<Self> {
+
+        let current_page = self.current_page() as i64;
+
+        let beta = current_page - __PAGINATION__ALPHA;
+
+        let mut left_side: Vec<Self> = Vec::new();
+
+        let start = if beta <= 1 {
+            1
+        } else {
+            beta
+        };
+
+        let end = current_page - 1;
+
+        // start to end
+        for page in start..(end + 1) {
+            let page_query = DecksPageQuery(page as Page, self.1.clone());
+            left_side.push(page_query);
+        }
+
+        return left_side;
+    }
+
+    fn get_right_side(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Vec<Self> {
+
+        let current_page = self.current_page() as i64;
+        let num_of_pages = self.num_of_pages(context, deck_id) as i64;
+
+        let beta = current_page + __PAGINATION__ALPHA;
+
+        let mut right_side: Vec<Self> = Vec::new();
+
+        let start = current_page + 1;
+        let end = if beta >= num_of_pages {
+            num_of_pages
+        } else {
+            beta
+        };
+
+        for page in start..(end + 1) {
+            let page_query = DecksPageQuery(page as Page, self.1.clone());
+            right_side.push(page_query);
+        }
+
+        return right_side;
+
+    }
+
+    fn has_trailing_right_side_delimeter(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool {
+
+        let current_page = self.current_page() as i64;
+        let num_of_pages = self.num_of_pages(context, deck_id) as i64;
+
+        let end = current_page + __PAGINATION__ALPHA + 1 + __PAGINATION_TRAIL_SIZE;
+
+        return end < num_of_pages;
+    }
+
+    fn get_trailing_right_side(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Vec<Self>> {
+
+        let current_page = self.current_page() as i64;
+        let num_of_pages = self.num_of_pages(context, deck_id) as i64;
+
+        let mut trailing_right_side: Vec<Self> = Vec::new();
+
+        let end = current_page + __PAGINATION__ALPHA + 1 + __PAGINATION_TRAIL_SIZE;
+
+        // overlapping exists; if possible, populate with rest of buttons
+        if end > num_of_pages {
+
+            let start = current_page + __PAGINATION__ALPHA + 1;
+
+            if start > num_of_pages {
+                return None;
+            }
+
+            for page in start..(num_of_pages + 1) {
+                let page_query = DecksPageQuery(page as Page, self.1.clone());
+                trailing_right_side.push(page_query);
+            }
+
+            return Some(trailing_right_side);
+        }
+
+        // invariant: end <= num_of_pages
+
+        // add extra button
+        if end == num_of_pages {
+
+            let extra_page_num = (num_of_pages - __PAGINATION_TRAIL_SIZE + 1) - 1;
+
+
+            let page_query = DecksPageQuery(extra_page_num as Page, self.1.clone());
+            trailing_right_side.push(page_query);
+
+        } else {
+            // insert delimeter
+        }
+
+        let start = num_of_pages - __PAGINATION_TRAIL_SIZE + 1;
+
+        for page in start..(num_of_pages + 1) {
+            let page_query = DecksPageQuery(page as Page, self.1.clone());
+            trailing_right_side.push(page_query);
+        }
+
+        return Some(trailing_right_side);
+
+    }
+}
 
 // helper to get number of pages
+// TODO: test
 #[inline]
 fn get_num_pages(item_count: ItemCount, per_page: PerPage) -> Page {
     let item_count = item_count as f64;
@@ -229,6 +459,7 @@ fn get_num_pages(item_count: ItemCount, per_page: PerPage) -> Page {
     return num_of_pages as Page;
 }
 
+// TODO: test
 #[inline]
 fn get_page_num(num_of_pages: Page, page_num: Page) -> Page {
     if num_of_pages <= 0 {
@@ -238,4 +469,26 @@ fn get_page_num(num_of_pages: Page, page_num: Page) -> Page {
     } else {
         1
     }
+}
+
+// amount of page buttons after/before current
+const __PAGINATION__ALPHA: i64 = 3;
+// amount of page buttons on the ends
+const __PAGINATION_TRAIL_SIZE: i64 = 2;
+
+pub trait Pagination where Self: Sized {
+    fn previous(&self) -> Option<Self>;
+    fn next(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Self>;
+    fn current_page(&self) -> Page;
+    fn num_of_pages(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Page;
+
+    fn should_show_pagination(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool;
+
+    fn get_trailing_left_side(&self) -> Option<Vec<Self>>;
+    fn has_trailing_left_side_delimeter(&self) -> bool;
+    fn get_left_side(&self) -> Vec<Self>;
+
+    fn get_right_side(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Vec<Self>;
+    fn has_trailing_right_side_delimeter(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool;
+    fn get_trailing_right_side(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Vec<Self>>;
 }
