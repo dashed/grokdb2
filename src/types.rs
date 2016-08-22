@@ -85,6 +85,13 @@ pub enum SortOrder {
     Descending,
 }
 
+pub trait SortOrderable {
+    fn order_by(&self) -> SortOrder;
+    fn ascending(&self) -> Self;
+    fn descending(&self) -> Self;
+    fn sort_order_string(&self) -> String;
+}
+
 #[derive(Debug, Clone)]
 pub enum DecksPageSort {
     DeckTitle(SortOrder),
@@ -100,6 +107,54 @@ pub enum DecksPageSort {
 impl Default for DecksPageSort {
     fn default() -> Self {
         DecksPageSort::UpdatedAt(SortOrder::Descending)
+    }
+}
+
+impl SortOrderable for DecksPageSort {
+
+    fn order_by(&self) -> SortOrder {
+        match *self {
+            DecksPageSort::DeckTitle(ref order_by) |
+            DecksPageSort::CreatedAt(ref order_by) |
+            DecksPageSort::UpdatedAt(ref order_by) => {
+                order_by.clone()
+            }
+        }
+    }
+
+    fn ascending(&self) -> Self {
+        let new_value = SortOrder::Ascending;
+        match *self {
+            DecksPageSort::DeckTitle(_) => DecksPageSort::DeckTitle(new_value),
+            DecksPageSort::CreatedAt(_) => DecksPageSort::CreatedAt(new_value),
+            DecksPageSort::UpdatedAt(_) => DecksPageSort::UpdatedAt(new_value)
+        }
+    }
+
+    fn descending(&self) -> Self {
+        let new_value = SortOrder::Descending;
+        match *self {
+            DecksPageSort::DeckTitle(_) => DecksPageSort::DeckTitle(new_value),
+            DecksPageSort::CreatedAt(_) => DecksPageSort::CreatedAt(new_value),
+            DecksPageSort::UpdatedAt(_) => DecksPageSort::UpdatedAt(new_value)
+        }
+    }
+
+    fn sort_order_string(&self) -> String {
+        match *self {
+            DecksPageSort::DeckTitle(ref order_by) => {
+                match *order_by {
+                    SortOrder::Ascending => "Ascending".to_owned(),
+                    SortOrder::Descending => "Descending".to_owned(),
+                }
+            },
+            DecksPageSort::CreatedAt(ref order_by) | DecksPageSort::UpdatedAt(ref order_by) => {
+                match *order_by {
+                    SortOrder::Ascending => "Least Recent".to_owned(),
+                    SortOrder::Descending => "Most Recent".to_owned(),
+                }
+            }
+        }
     }
 }
 
@@ -218,9 +273,52 @@ impl DecksPageQuery {
         format!("page={page}&order_by={order_by}&sort_by={sort_by}",
             page = page, order_by = order_by, sort_by = sort_by)
     }
+
+    pub fn sort_by_string(&self) -> String {
+        match self.1 {
+            DecksPageSort::DeckTitle(_) => "Deck Title".to_owned(),
+            DecksPageSort::CreatedAt(_) => "Created At".to_owned(),
+            DecksPageSort::UpdatedAt(_) => "Updated At".to_owned()
+        }
+    }
+
+    pub fn updated_at(&self) -> Self {
+        return DecksPageQuery(self.0, DecksPageSort::UpdatedAt(self.1.order_by()))
+    }
+
+    pub fn created_at(&self) -> Self {
+        return DecksPageQuery(self.0, DecksPageSort::CreatedAt(self.1.order_by()))
+    }
+
+    pub fn deck_title(&self) -> Self {
+        return DecksPageQuery(self.0, DecksPageSort::DeckTitle(self.1.order_by()))
+    }
+}
+
+impl SortOrderable for DecksPageQuery {
+
+    fn order_by(&self) -> SortOrder {
+        self.1.order_by()
+    }
+
+    fn ascending(&self) -> Self {
+        DecksPageQuery(self.0, self.1.ascending())
+    }
+
+    fn descending(&self) -> Self {
+        DecksPageQuery(self.0, self.1.descending())
+    }
+
+    fn sort_order_string(&self) -> String {
+        self.1.sort_order_string()
+    }
 }
 
 impl Pagination for DecksPageQuery {
+
+    fn first(&self) -> Self {
+        DecksPageQuery(1, self.1.clone())
+    }
 
     fn previous(&self) -> Option<Self> {
         let page_num = self.current_page();
@@ -477,6 +575,9 @@ const __PAGINATION__ALPHA: i64 = 3;
 const __PAGINATION_TRAIL_SIZE: i64 = 2;
 
 pub trait Pagination where Self: Sized {
+
+    fn first(&self) -> Self;
+
     fn previous(&self) -> Option<Self>;
     fn next(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Self>;
     fn current_page(&self) -> Page;

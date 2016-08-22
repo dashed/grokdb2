@@ -19,7 +19,7 @@ use hyper::header::{Header, HeaderFormat};
 
 use route::{AppRoute, RenderResponse, DeckRoute};
 use context::{self, Context};
-use types::{DeckID, DecksPageQuery, Search, Pagination};
+use types::{DeckID, DecksPageQuery, Search, Pagination, SortOrderable};
 use api::decks;
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -119,21 +119,10 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     : "title"
                 }
 
-                // http://docs.mathjax.org/en/latest/configuration.html
-                script(type="text/x-mathjax-config") {
-                    : raw!(r"
-                        MathJax.Hub.Config({
-                            skipStartupTypeset: true,
-                            tex2jax: {
-                                inlineMath: [ ['$', '$'], ['\\\\(','\\\\)'] ],
-                                displayMath: [ ['$$','$$'], ['\\[', '\\]'] ],
-                                processEscapes: true
-                            }
-                        });
-                    ");
-                }
-
-                script(type="text/javascript", async, src="/assets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML") {}
+                // TODO: necessary?
+                // style(type="text/css") {
+                //     : raw!(include_str!("../assets/bulma.css"))
+                // }
 
                 link (
                     rel="stylesheet",
@@ -179,7 +168,22 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     }
                 }
 
-                // TODO:  custom stylesheet for specific views
+                // http://docs.mathjax.org/en/latest/configuration.html
+                script(type="text/x-mathjax-config") {
+                    : raw!(r"
+                        MathJax.Hub.Config({
+                            skipStartupTypeset: true,
+                            tex2jax: {
+                                inlineMath: [ ['$', '$'], ['\\\\(','\\\\)'] ],
+                                displayMath: [ ['$$','$$'], ['\\[', '\\]'] ],
+                                processEscapes: true
+                            }
+                        });
+                    ");
+                }
+
+                script(type="text/javascript", async, src="/assets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML") {}
+
             }
             body {
 
@@ -194,6 +198,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                                 }
                             }
+                            // TODO: what is this?
                             span(class="nav-toggle") {
                                 span {}
                                 span {}
@@ -437,7 +442,8 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             }
                             li {
                                 a(href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(deck_id, DeckRoute::Decks(Default::default(), Default::default()))),
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::Decks(Default::default(), Default::default()))),
                                     class? = classnames!(
                                         "is-bold",
                                         "is-active" => {
@@ -499,9 +505,78 @@ fn DecksChildren(tmpl: &mut TemplateBuffer,
 
         div(class="columns") {
             div(class="column") {
-                a(class="button is-bold is-success",
-                    href = view_route_to_link(context.clone(), AppRoute::Deck(deck_id, DeckRoute::NewDeck))) {
-                    : raw!("New Deck")
+                div(class="level") {
+                    div(class="level-left") {
+                        div(class="level-item") {
+                            a(class="button is-bold is-success",
+                                href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id, DeckRoute::NewDeck))) {
+                                : raw!("New Deck")
+                            }
+                        }
+                    }
+
+                    div(class="level-right") {
+                        div(class="level-item") {
+                            span(class="select") {
+                                select(onchange="if(this.value && this.value.length > 0) window.location.href = this.value;") {
+                                    option(value = "") {
+                                        : format!("Order By: {}", deck_page_query.sort_order_string())
+                                    }
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Decks(deck_page_query.descending(), search.clone())))
+                                    ) {
+                                        : deck_page_query.descending().sort_order_string()
+                                    }
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Decks(deck_page_query.ascending(), search.clone())))
+                                    ) {
+                                        : deck_page_query.ascending().sort_order_string()
+                                    }
+                                }
+                            }
+                        }
+                        div(class="level-item") {
+                            span(class="select") {
+                                select(onchange="if(this.value && this.value.length > 0) window.location.href = this.value;") {
+                                    option(value="") {
+                                        : format!("Sort By: {}", deck_page_query.sort_by_string())
+                                    }
+
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Decks(deck_page_query.updated_at(),
+                                                    search.clone())))
+                                    ) {
+                                        : deck_page_query.updated_at().sort_by_string()
+                                    }
+
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Decks(deck_page_query.deck_title(),
+                                                    search.clone())))
+                                    ) {
+                                        : deck_page_query.deck_title().sort_by_string()
+                                    }
+
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Decks(deck_page_query.created_at(),
+                                                    search.clone())))
+                                    ) {
+                                        : deck_page_query.created_at().sort_by_string()
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -551,7 +626,8 @@ fn DecksChildrenList(tmpl: &mut TemplateBuffer,
 }
 
 #[inline]
-fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID, is_bottom: bool) {
+fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>,
+    deck_id: DeckID, is_bottom: bool) {
 
     let deck = match decks::get_deck(context.clone(), deck_id) {
         Ok(deck) => deck,
@@ -568,7 +644,8 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
             div(class="column is-side-paddingless") {
                 h5(class="title is-5 is-marginless is-bold") {
                     a(href = view_route_to_link(context,
-                                    AppRoute::Deck(deck_id, DeckRoute::Decks(Default::default(), Default::default())))
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::Decks(Default::default(), Default::default())))
                     ) {
                         : &deck.name
                     }
