@@ -43,6 +43,7 @@ use chomp::{parse_only};
 /* local imports */
 
 mod types;
+mod constants;
 #[macro_use]
 mod global_macros;
 #[macro_use]
