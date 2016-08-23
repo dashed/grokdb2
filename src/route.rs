@@ -174,6 +174,78 @@ fn decode_percents(string: &OsStr) -> String {
 }
 
 #[inline]
+fn fetch_assets(request: Rc<RefCell<Request>>, path: String) -> RenderResponse {
+
+    // Allow only GET requests
+
+    if request.borrow().method != Method::Get {
+        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+    }
+
+    // URL decode
+    let decoded_req_path = Path::new(&path).iter().map(decode_percents);
+
+    let starts_with = Path::new("./assets/").to_path_buf().canonicalize().unwrap();
+
+    let mut req_path = starts_with.clone();
+    req_path.extend(decoded_req_path);
+    let req_path: PathBuf = req_path;
+
+    let req_path = match req_path.canonicalize() {
+        Err(_) => {
+            return RenderResponse::RenderNotFound;
+        },
+        Ok(req_path) => {
+
+            if !req_path.starts_with(starts_with.as_path()) {
+                return RenderResponse::RenderNotFound;
+            }
+
+            req_path
+        }
+    };
+
+
+    match fs::metadata(&req_path) {
+        Ok(metadata) => {
+
+            if !metadata.is_file() {
+                return RenderResponse::RenderNotFound;
+            }
+
+            // TODO: better way?
+            let path_str = format!("{}", &req_path.to_string_lossy());
+
+            // println!("req_path.as_path() = {:?}", req_path.as_path().clone());
+
+            // Set the content type based on the file extension
+            let mime_str = MIME_TYPES.mime_for_path(req_path.as_path());
+
+            let mut content_type = ContentType(Mime(TopLevel::Application, SubLevel::Json, vec![]));
+
+            let _ = mime_str.parse().map(|mime: Mime| {
+                content_type = ContentType(mime);
+            });
+
+            let mut file = File::open(req_path)
+                .ok()
+                .expect(&format!("No such file: {:?}", path_str));
+
+            let mut content = Vec::new();
+
+            file.read_to_end(&mut content).unwrap();
+
+            RenderResponse::RenderAsset(content_type, content)
+
+        },
+        Err(e) => {
+            return RenderResponse::RenderNotFound;
+        },
+    }
+
+}
+
+#[inline]
 fn parse_assets<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -185,57 +257,8 @@ fn parse_assets<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Re
         let path = string_till(|i| or(i, |i| parse_then_value(i, |i| token(i, b'?'), ()), eof));
 
         ret {
-
-            // Allow only GET requests
-
-            if request.borrow().method != Method::Get {
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
-            } else {
-                // URL decode
-                let decoded_req_path = Path::new(&path).iter().map(decode_percents);
-
-                let mut req_path = Path::new("assets/").to_path_buf();
-                req_path.extend(decoded_req_path);
-                let req_path: PathBuf = req_path;
-
-                match fs::metadata(&req_path) {
-                    Ok(metadata) => {
-
-                        if !metadata.is_file() {
-                            RenderResponse::RenderNotFound
-                        } else {
-
-                            let path_str = format!("{}", &req_path.to_string_lossy());
-
-                            // Set the content type based on the file extension
-                            let mime_str = MIME_TYPES.mime_for_path(req_path.as_path());
-
-                            let mut content_type = ContentType(Mime(TopLevel::Application, SubLevel::Json, vec![]));
-
-                            let _ = mime_str.parse().map(|mime: Mime| {
-                                content_type = ContentType(mime);
-                            });
-
-                            let mut file = File::open(req_path)
-                                .ok()
-                                .expect(&format!("No such file: {:?}", path_str));
-
-                            let mut content = Vec::new();
-
-                            file.read_to_end(&mut content).unwrap();
-
-                            RenderResponse::RenderAsset(content_type, content)
-                        }
-
-                    },
-                    Err(e) => {
-                        RenderResponse::RenderNotFound
-                    },
-                }
-            }
-
+            fetch_assets(request, path)
         }
-
     }
 }
 
