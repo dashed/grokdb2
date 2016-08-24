@@ -23,7 +23,14 @@ const markdownParser = require('markdown-it')({
 const MarkdownRender = React.createClass({
 
     propTypes: {
-        contents: React.PropTypes.string.isRequired
+        contents: React.PropTypes.string.isRequired,
+        noContentMessage: React.PropTypes.string.isRequired
+    },
+
+    getDefaultProps() {
+        return {
+            noContentMessage: 'No content was rendered. Click on "Source" tab and enter some text.'
+        };
     },
 
     componentDidUpdate() {
@@ -104,7 +111,7 @@ const MarkdownRender = React.createClass({
         return (
             <div className='message is-info'>
                 <div className='message-body'>
-                    {'No content was rendered. Click on "Source" tab and enter some text.'}
+                    {this.props.noContentMessage}
                 </div>
             </div>
         );

@@ -32,12 +32,17 @@ const {reduceIn} = require('lib/redux-tree');
 
 /* react components */
 
+const MarkdownRender = require('components/dumb/markdown_render');
+const MarkdownSource = require('components/dumb/markdown_source');
+const MathJaxLine = require('components/dumb/mathjax_line');
+
 const __ToolBar = function(props) {
 
     const {isEditing, dispatch} = props;
 
     if(isEditing) {
         return (
+            // TODO: disable unless there are changes
             <div className='level'>
                 <div className='level-left'>
                     <div className='level-item'>
@@ -61,19 +66,19 @@ const __ToolBar = function(props) {
         );
     }
 
-        return (
-            <div className='level'>
-                <div className='level-left'>
-                    <div className='level-item'>
-                        <a
-                            className={classnames('button is-success')}
-                            onClick={switchEditMode(dispatch, true)}>
-                            {'Edit'}
-                        </a>
-                    </div>
+    return (
+        <div className='level'>
+            <div className='level-left'>
+                <div className='level-item'>
+                    <a
+                        className={classnames('button is-success')}
+                        onClick={switchEditMode(dispatch, true)}>
+                        {'Edit'}
+                    </a>
                 </div>
             </div>
-        );
+        </div>
+    );
 };
 
 if(process.env.NODE_ENV !== 'production') {
@@ -84,7 +89,6 @@ if(process.env.NODE_ENV !== 'production') {
 }
 
 const ToolBar = connect(
-
     // mapStateToProps
     (state) => {
         return {
@@ -94,18 +98,76 @@ const ToolBar = connect(
 
 )(__ToolBar);
 
+const DeckDescriptionEditing = function() {
+    return (
+        <div>
+            editing
+        </div>
+    );
+};
+
+const __DeckDescriptionMarkdown = function(props) {
+    return (<MarkdownRender
+        contents={props.contents}
+        noContentMessage={'No description set for this deck. Click "Edit" button to add a description.'}
+        />
+    );
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __DeckDescriptionMarkdown.propTypes = {
+        contents: React.PropTypes.string.isRequired
+    };
+}
+
+const DeckDescriptionMarkdown = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            contents: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+        };
+    }
+
+)(__DeckDescriptionMarkdown);
+
+const __DeckDescription = function(props) {
+
+    const {isEditing} = props;
+
+    if(isEditing) {
+        return (<DeckDescriptionEditing />);
+    }
+
+    return (<DeckDescriptionMarkdown />);
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __DeckDescription.propTypes = {
+        isEditing: React.PropTypes.bool.isRequired
+    };
+}
+
+const DeckDescription = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            isEditing: state[DECK_DESCRIPTION][IS_EDITING]
+        };
+    }
+
+)(__DeckDescription);
 
 const __DeckDescriptionContainer = function(props) {
 
     const {
         mathjaxifyDeckName,
-        fields: { description},
+        fields: { description },
         submitting,
         handleSubmit,
+        resetForm,
         postURL
     } = props;
 
-    // const __name = assign({}, name);
     const __description = assign({}, description);
 
     return (
@@ -117,7 +179,15 @@ const __DeckDescriptionContainer = function(props) {
             </div>
             <div className='columns'>
                 <div className='column'>
-                    adasd
+                    <hr className='is-marginless'/>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <DeckDescription
+                        editedContents={description.value}
+                        resetForm={resetForm}
+                    />
                 </div>
             </div>
         </div>
@@ -217,6 +287,7 @@ const initialState = {
     [DECK_DESCRIPTION]: {
         [IS_EDITING]: false,
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
+        [MARKDOWN_CONTENTS]: ''
         // NOTE: contents is stored and handled by redux-form
     },
 
