@@ -281,35 +281,13 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
                     ret Some(query_string)
                 }, None);
 
-                // TODO: remove
-                // or(
-                //     |i| parse!{i;
-                //         token(b'?');
-                //         ret {()}
-                //     },
-                //     eof
-                // );
+                eof();
 
                 ret {
 
                     let root_deck_id = context.borrow().root_deck_id;
 
                     route_deck_decks(context, request, root_deck_id, query_string)
-
-                    // TODO: remove
-
-                    // Allow only GET requests
-
-                    // if request.borrow().method != Method::Get {
-                    //     RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
-                    // } else {
-
-                    //     let deck_route = DeckRoute::Decks(Default::default(), Default::default());
-
-                    //     let default_home = AppRoute::Deck(context.borrow().root_deck_id, deck_route);
-
-                    //     RenderResponse::RenderComponent(default_home)
-                    // }
                 }
             },
             |i| parse!{i;
@@ -496,6 +474,9 @@ fn parse_route_api_deck_description<'a>(
     parent_deck_id: DeckID)
 -> U8Result<'a, RenderResponse> {
     parse!{input;
+
+        string_ignore_case(b"description");
+
         // TODO: complete
         ret RenderResponse::RenderBadRequest
     }
