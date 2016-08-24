@@ -119,7 +119,8 @@ const RenderSourceDescriptionComponent = connect(
 const __DeckDescriptionEditing = function(props) {
 
     const markdownView = props[MARKDOWN_VIEW];
-    const contents = props[MARKDOWN_CONTENTS];
+    const description = props.description;
+    const contents = description.value;
 
     let sourceStyle = {};
     let renderStyle = {};
@@ -153,7 +154,7 @@ const __DeckDescriptionEditing = function(props) {
                         id='input-deck-description'
                         contents={contents}
                         placeholder={'Deck Description'}
-                        assignProps={props.assignProps}
+                        assignProps={description}
                         editable
                     />
                 </div>
@@ -163,14 +164,17 @@ const __DeckDescriptionEditing = function(props) {
 
 };
 
+if(process.env.NODE_ENV !== 'production') {
+    __DeckDescriptionEditing.propTypes = {
+        description: React.PropTypes.object.isRequired
+    };
+}
+
 const DeckDescriptionEditing = connect(
     // mapStateToProps
     (state, ownedProps) => {
         return {
             [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
-
-            // from redux-form
-            [MARKDOWN_CONTENTS]: ownedProps.contents
         };
     }
 
@@ -206,10 +210,10 @@ const DeckDescriptionMarkdown = connect(
 
 const __DeckDescription = function(props) {
 
-    const {isEditing, editedContents} = props;
+    const {isEditing, description} = props;
 
     if(isEditing) {
-        return (<DeckDescriptionEditing contents={editedContents} />);
+        return (<DeckDescriptionEditing description={description} />);
     }
 
     return (<DeckDescriptionMarkdown />);
@@ -218,7 +222,7 @@ const __DeckDescription = function(props) {
 if(process.env.NODE_ENV !== 'production') {
     __DeckDescription.propTypes = {
         isEditing: React.PropTypes.bool.isRequired,
-        editedContents: React.PropTypes.string.isRequired
+        description: React.PropTypes.object.isRequired
     };
 }
 
@@ -262,7 +266,7 @@ const __DeckDescriptionContainer = function(props) {
             <div className='columns'>
                 <div className='column'>
                     <DeckDescription
-                        editedContents={description.value || ''}
+                        description={__description}
                     />
                 </div>
             </div>
