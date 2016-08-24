@@ -34,20 +34,25 @@ const {reduceIn} = require('lib/redux-tree');
 
 const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
-const MathJaxLine = require('components/dumb/mathjax_line');
 
 const __ToolBar = function(props) {
 
-    const {isEditing, dispatch} = props;
+    const {isEditing, dispatch, submitting, initialContent, newContent} = props;
 
     if(isEditing) {
+
+        const shouldNotSave = String(newContent).trim() == String(initialContent).trim();
+
         return (
             // TODO: disable unless there are changes
             <div className='level'>
                 <div className='level-left'>
                     <div className='level-item'>
                         <a
-                            className={classnames('button is-success')}
+                            className={classnames('button is-success', {
+                                'is-disabled': submitting || shouldNotSave,
+                                'is-loading': submitting
+                            })}
                             onClick={switchEditMode(dispatch, false)}>
                             {'Save'}
                         </a>
@@ -85,6 +90,9 @@ if(process.env.NODE_ENV !== 'production') {
     __ToolBar.propTypes = {
         isEditing: React.PropTypes.bool.isRequired,
         dispatch: React.PropTypes.func.isRequired,
+        submitting: React.PropTypes.bool.isRequired,
+        initialContent: React.PropTypes.string.isRequired,
+        newContent: React.PropTypes.string.isRequired
     };
 }
 
@@ -92,7 +100,8 @@ const ToolBar = connect(
     // mapStateToProps
     (state) => {
         return {
-            isEditing: state[DECK_DESCRIPTION][IS_EDITING]
+            isEditing: state[DECK_DESCRIPTION][IS_EDITING],
+            initialContent: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
         };
     }
 
@@ -172,7 +181,7 @@ if(process.env.NODE_ENV !== 'production') {
 
 const DeckDescriptionEditing = connect(
     // mapStateToProps
-    (state, ownedProps) => {
+    (state) => {
         return {
             [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
         };
@@ -239,7 +248,6 @@ const DeckDescription = connect(
 const __DeckDescriptionContainer = function(props) {
 
     const {
-        mathjaxifyDeckName,
         fields: { description },
         submitting,
         handleSubmit,
@@ -255,6 +263,8 @@ const __DeckDescriptionContainer = function(props) {
                 <div className='column'>
                     <ToolBar
                         resetForm={resetForm}
+                        submitting={submitting}
+                        newContent={description.value}
                     />
                 </div>
             </div>
@@ -274,6 +284,16 @@ const __DeckDescriptionContainer = function(props) {
     );
 
 };
+
+if(process.env.NODE_ENV !== 'production') {
+    __DeckDescriptionContainer.propTypes = {
+        fields: React.PropTypes.object.isRequired,
+        handleSubmit: React.PropTypes.func.isRequired,
+        submitting: React.PropTypes.bool.isRequired,
+        postURL: React.PropTypes.string.isRequired,
+    };
+}
+
 
 const deckDescriptionContainerFactory = function(preRenderState) {
 
@@ -302,6 +322,12 @@ const deckDescriptionContainerFactory = function(preRenderState) {
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
+const saveDescription = function(postURL, formData) {
+
+
+
+};
+
 const switchEditMode = function(dispatch, isEditing) {
     return function(event) {
         event.preventDefault();
@@ -318,7 +344,7 @@ const switchEditMode = function(dispatch, isEditing) {
             )
         );
     }
-}
+};
 
 const switchMarkdownView = function(dispatch, path, markdownView) {
     return function(event) {

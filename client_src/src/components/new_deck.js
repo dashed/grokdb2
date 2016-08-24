@@ -143,7 +143,6 @@ const __NewDeckContainer = function(props) {
         postURL
     } = props;
 
-    // const __name = assign({}, name);
     const __description = assign({}, description);
 
     return (
@@ -248,16 +247,13 @@ if(process.env.NODE_ENV !== 'production') {
         handleSubmit: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
         mathjaxifyDeckName: React.PropTypes.bool.isRequired,
-        postURL: React.PropTypes.string.isRequired,
-        // TODO: fix
-        // addNewDeck: React.PropTypes.func.isRequired,
+        postURL: React.PropTypes.string.isRequired
     };
 }
 
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
-// TODO: refactor
 const addNewDeck = function(postURL, formData) {
 
     return new Promise((resolve, reject) => {
@@ -298,7 +294,7 @@ const addNewDeck = function(postURL, formData) {
 
                 // response.userMessage
 
-                // TODO: description
+                // TODO: error fix
                 //
                 // http://redux-form.com/5.2.5/#/api/props
                 // how to detect errors
