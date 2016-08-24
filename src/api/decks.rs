@@ -689,6 +689,45 @@ fn decks_test() {
         };
     };
 
+    {
+
+        // case: update deck description
+
+        {
+            let request = UpdateDeckDescription {
+                description: "this is a description".to_string()
+            };
+
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::write_lock(context.clone());
+            match decks::update_deck_description(context, 1, request) {
+                Ok(_) => assert!(true),
+                Err(_) => assert!(false),
+            };
+        };
+
+        {
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::read_lock(context.clone());
+            match decks::get_deck(context.clone(), 1) {
+                Ok(actual) => {
+                    assert_eq!(actual.id, 1);
+                    assert_eq!(actual.name, format!("Foo"));
+                    assert_eq!(actual.description, format!("this is a description"));
+                    assert_eq!(actual.created_at, actual.updated_at);
+                    assert_eq!(actual.created_at, actual.reviewed_at);
+                    assert_eq!(actual.has_reviewed, false);
+                },
+                Err(_) => assert!(false),
+            }
+
+            // ensure nothing was cached
+            assert_eq!(context.borrow().should_cache, false);
+            assert_eq!(context.borrow().decks.len(), 0);
+        };
+
+    };
+
     // deck exists
 
     {
