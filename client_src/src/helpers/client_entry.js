@@ -32,6 +32,7 @@ module.exports = (maker, preRenderState, postRenderState, mountTarget) => {
         if(firstRender) {
             return;
         }
+
         firstRender = true;
 
         store.dispatch(rehydrate.hydrate(postRenderState));
@@ -42,6 +43,10 @@ module.exports = (maker, preRenderState, postRenderState, mountTarget) => {
         }
 
     };
+
+    if(maker.preRender) {
+        maker.preRender();
+    }
 
     ReactDOM.render(
         component,

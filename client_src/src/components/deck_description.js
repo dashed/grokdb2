@@ -396,3 +396,7 @@ module.exports = componentCreator(initialState, function(store) {
 }, formReducer);
 
 module.exports.initialState = initialState;
+
+module.exports.preRender = function() {
+    window.document.getElementById('deck_description_container_stub').style.display = 'none';
+};
