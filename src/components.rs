@@ -15,6 +15,8 @@ use hyper::uri::RequestUri;
 use hyper::status::StatusCode;
 use hyper::header::{Header, HeaderFormat};
 
+use serde_json;
+
 /* local imports */
 
 use route::{AppRoute, RenderResponse, DeckRoute};
@@ -72,6 +74,11 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
 
 /* javascript generator */
 
+#[derive(Serialize)]
+struct MarkdownContents {
+    MARKDOWN_CONTENTS: String
+}
+
 fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, app_route: &AppRoute) {
 
     // invariant: this function is excuted inside a script tag
@@ -99,15 +106,30 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     }
                 },
                 DeckRoute::Description => {
+
+                    let markdown_contents: String = match decks::get_deck(context.clone(), deck_id) {
+                        Ok(deck) => {
+                            let markdown_contents = MarkdownContents {
+                                MARKDOWN_CONTENTS: deck.description
+                            };
+                            serde_json::to_string(&markdown_contents).unwrap()
+                        },
+                        Err(_) => {
+                            // TODO: internal error logging
+                            panic!();
+                        }
+                    };
+
                     tmpl << html! {
                         : raw!(
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
-                                        POST_TO: '/api/deck/{}/description'\
+                                        POST_TO: '/api/deck/{deck_id}/description',\
+                                        DECK_DESCRIPTION: {markdown_contents}\
                                     }};\
                                 ",
-                                deck_id
+                                deck_id = deck_id, markdown_contents = markdown_contents
                             )
                         )
                     }
