@@ -98,19 +98,93 @@ const ToolBar = connect(
 
 )(__ToolBar);
 
-const DeckDescriptionEditing = function() {
+const RenderSourceDescriptionComponent = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW]
+        };
+    },
+    // mapDispatchToProps
+    (dispatch) => {
+        return {
+            // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
+            switchTab: (markdownView) => {
+                return switchMarkdownView(dispatch, [DECK_DESCRIPTION, MARKDOWN_VIEW], markdownView);
+            }
+        };
+    }
+)(require('components/dumb/render_source'));
+
+const __DeckDescriptionEditing = function(props) {
+
+    const markdownView = props[MARKDOWN_VIEW];
+    const contents = props[MARKDOWN_CONTENTS];
+
+    let sourceStyle = {};
+    let renderStyle = {};
+
+    switch(markdownView) {
+    case MARKDOWN_VIEW_RENDER:
+        sourceStyle.display = 'none';
+        break;
+
+    case MARKDOWN_VIEW_SOURCE:
+    default:
+        renderStyle.display = 'none';
+    }
+
     return (
         <div>
-            editing
+            <div className='columns' style={{marginBottom: 0}}>
+                <div className='column'>
+                    <RenderSourceDescriptionComponent
+                        reverse
+                    />
+                </div>
+            </div>
+
+            <div style={renderStyle}>
+                <MarkdownRender contents={contents} />
+            </div>
+            <div>
+                <div style={sourceStyle}>
+                    <MarkdownSource
+                        id='input-deck-description'
+                        contents={contents}
+                        placeholder={'Deck Description'}
+                        assignProps={props.assignProps}
+                        editable
+                    />
+                </div>
+            </div>
         </div>
     );
+
 };
 
+const DeckDescriptionEditing = connect(
+    // mapStateToProps
+    (state, ownedProps) => {
+        return {
+            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
+
+            // from redux-form
+            [MARKDOWN_CONTENTS]: ownedProps.contents
+        };
+    }
+
+)(__DeckDescriptionEditing);
+
+
 const __DeckDescriptionMarkdown = function(props) {
-    return (<MarkdownRender
-        contents={props.contents}
-        noContentMessage={'No description set for this deck. Click "Edit" button to add a description.'}
-        />
+    return (
+        <div>
+            <MarkdownRender
+            contents={props.contents}
+            noContentMessage={'No description set for this deck. Click "Edit" button to add a description.'}
+            />
+        </div>
     );
 };
 
@@ -132,10 +206,10 @@ const DeckDescriptionMarkdown = connect(
 
 const __DeckDescription = function(props) {
 
-    const {isEditing} = props;
+    const {isEditing, editedContents} = props;
 
     if(isEditing) {
-        return (<DeckDescriptionEditing />);
+        return (<DeckDescriptionEditing contents={editedContents} />);
     }
 
     return (<DeckDescriptionMarkdown />);
@@ -143,7 +217,8 @@ const __DeckDescription = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     __DeckDescription.propTypes = {
-        isEditing: React.PropTypes.bool.isRequired
+        isEditing: React.PropTypes.bool.isRequired,
+        editedContents: React.PropTypes.string.isRequired
     };
 }
 
@@ -174,7 +249,9 @@ const __DeckDescriptionContainer = function(props) {
         <div>
             <div className='columns' style={{marginBottom: 0}}>
                 <div className='column'>
-                    <ToolBar />
+                    <ToolBar
+                        resetForm={resetForm}
+                    />
                 </div>
             </div>
             <div className='columns'>
@@ -185,8 +262,7 @@ const __DeckDescriptionContainer = function(props) {
             <div className='columns'>
                 <div className='column'>
                     <DeckDescription
-                        editedContents={description.value}
-                        resetForm={resetForm}
+                        editedContents={description.value || ''}
                     />
                 </div>
             </div>
