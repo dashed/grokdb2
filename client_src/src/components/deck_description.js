@@ -3,6 +3,8 @@ global.Promise = require('bluebird');
 
 const React = require('react');
 
+const assign = require('lodash/assign');
+
 const {Provider, connect} = require('react-redux');
 const {reduxForm, reducer: reduxformReducer} = require('redux-form');
 const classnames = require('classnames');
@@ -17,26 +19,84 @@ const {
     MARKDOWN_VIEW,
     MARKDOWN_VIEW_RENDER,
     MARKDOWN_VIEW_SOURCE,
+    MARKDOWN_CONTENTS,
 
     DECK_DESCRIPTION,
 
     POST_TO
 } = require('global/constants');
 
-const {reduceIn, makeReducer} = require('lib/redux-tree');
+const {reduceIn} = require('lib/redux-tree');
 
 /* react components */
 
-const DeckDescriptionContainer = function() {
+const ToolBar = function() {
     return (
-        <div>lol</div>
+        <a className={classnames('button is-success')}>
+            {'Edit'}
+        </a>
     );
+};
+
+const __DeckDescriptionContainer = function(props) {
+
+    const {
+        mathjaxifyDeckName,
+        fields: { description},
+        submitting,
+        handleSubmit,
+        postURL
+    } = props;
+
+    // const __name = assign({}, name);
+    const __description = assign({}, description);
+
+    return (
+        <div>
+            <div className='columns' style={{marginBottom: 0}}>
+                <div className='column'>
+                    <ToolBar />
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    adasd
+                </div>
+            </div>
+        </div>
+    );
+
+};
+
+const deckDescriptionContainerFactory = function(preRenderState) {
+
+    return reduxForm(
+
+        // config
+        {
+            form: 'deck_description',
+            fields: ['description'],
+            initialValues: {
+                description: preRenderState[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+            }
+        },
+
+        // mapStateToProps
+        (state) => {
+            return {
+                postURL: state[POST_TO]
+            };
+        }
+
+    )(__DeckDescriptionContainer);
+
 };
 
 /* default state */
 
 const initialState = {
 
+    // NOTE: populated by window.__PRE_RENDER_STATE__
     [POST_TO]: '',
 
     [DECK_DESCRIPTION]: {
@@ -51,61 +111,21 @@ const initialState = {
 
 /* exports */
 
-const merge = require('lodash/merge');
+const formReducer = require('helpers/form_reducer');
+const componentCreator = require('helpers/component_factory');
 
-const formReducer = (state, action) => {
+module.exports = componentCreator(initialState, function(store) {
 
-    // NOTE: We're not using combineReducers from redux as redux-form expects.
-    //       Defer any un-captured action to redux-form.
-
-    const newForm = reduxformReducer(state.form, action);
-    const newState = merge({}, state);
-    newState.form = newForm;
-
-    return newState;
-};
-
-
-module.exports = function(preRenderState) {
-
-    if(preRenderState) {
-        preRenderState = merge({}, initialState, preRenderState);
-    } else {
-        preRenderState = initialState;
-    }
-
-    const rehydrateFactory = require('helpers/hydrate');
-    const {createStore, applyMiddleware} = require('redux');
-
-    // TODO: refactor to module
-    const middleware = () => {
-
-        if(process.env.NODE_ENV !== 'production') {
-
-            const createLogger = require('redux-logger');
-            const logger = createLogger();
-
-            return applyMiddleware(logger);
-        }
-
-        return applyMiddleware();
-    };
-
-    const store = createStore(makeReducer({
-        reducer: rehydrateFactory(formReducer)
-    }), preRenderState, middleware());
+    const __Component = deckDescriptionContainerFactory(preRenderState);
 
     const component = (
         <Provider store={store}>
-            <DeckDescriptionContainer />
+            <__Component />
         </Provider>
     );
 
-    return {
-        store,
-        component
-    };
+    return component;
 
-};
+}, formReducer);
 
 module.exports.initialState = initialState;

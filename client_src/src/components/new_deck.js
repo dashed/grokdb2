@@ -26,7 +26,7 @@ const {
     POST_TO
 } = require('global/constants');
 
-const {reduceIn, makeReducer} = require('lib/redux-tree');
+const {reduceIn} = require('lib/redux-tree');
 
 /* react components */
 
@@ -409,48 +409,10 @@ const initialState = {
 
 /* exports */
 
-const merge = require('lodash/merge');
+const formReducer = require('helpers/form_reducer');
+const componentCreator = require('helpers/component_factory');
 
-const formReducer = (state, action) => {
-
-    // NOTE: We're not using combineReducers from redux as redux-form expects.
-    //       Defer any un-captured action to redux-form.
-
-    const newForm = reduxformReducer(state.form, action);
-    const newState = merge({}, state);
-    newState.form = newForm;
-
-    return newState;
-};
-
-module.exports = function(preRenderState) {
-
-    if(preRenderState) {
-        preRenderState = merge({}, initialState, preRenderState);
-    } else {
-        preRenderState = initialState;
-    }
-
-    const rehydrateFactory = require('helpers/hydrate');
-    const {createStore, applyMiddleware} = require('redux');
-
-    // TODO: refactor to module
-    const middleware = () => {
-
-        if(process.env.NODE_ENV !== 'production') {
-
-            const createLogger = require('redux-logger');
-            const logger = createLogger();
-
-            return applyMiddleware(logger);
-        }
-
-        return applyMiddleware();
-    };
-
-    const store = createStore(makeReducer({
-        reducer: rehydrateFactory(formReducer)
-    }), preRenderState, middleware());
+module.exports = componentCreator(initialState, function(store) {
 
     const component = (
         <Provider store={store}>
@@ -458,11 +420,8 @@ module.exports = function(preRenderState) {
         </Provider>
     );
 
-    return {
-        store,
-        component
-    };
+    return component;
 
-};
+}, formReducer);
 
 module.exports.initialState = initialState;
