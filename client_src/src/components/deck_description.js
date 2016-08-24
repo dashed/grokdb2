@@ -37,14 +37,32 @@ const MarkdownSource = require('components/dumb/markdown_source');
 
 const __ToolBar = function(props) {
 
-    const {isEditing, dispatch, submitting, initialContent, newContent} = props;
+    const {isEditing, dispatch, submitting} = props;
 
     if(isEditing) {
 
+        const {handleSubmit, initialContent, newContent, postURL, resetForm} = props;
+
         const shouldNotSave = String(newContent).trim() == String(initialContent).trim();
 
+        const cancel = function() {
+            resetForm();
+
+            dispatch(
+                reduceIn(
+                    // reducer
+                    markdownViewReducer,
+                    // path
+                    [DECK_DESCRIPTION, MARKDOWN_VIEW],
+                    // action
+                    {
+                        type: MARKDOWN_VIEW_SOURCE
+                    }
+                )
+            );
+        };
+
         return (
-            // TODO: disable unless there are changes
             <div className='level'>
                 <div className='level-left'>
                     <div className='level-item'>
@@ -53,7 +71,7 @@ const __ToolBar = function(props) {
                                 'is-disabled': submitting || shouldNotSave,
                                 'is-loading': submitting
                             })}
-                            onClick={switchEditMode(dispatch, false)}>
+                            onClick={handleSubmit(saveDescription.bind(null, dispatch, postURL))}>
                             {'Save'}
                         </a>
                     </div>
@@ -62,7 +80,7 @@ const __ToolBar = function(props) {
                     <div className='level-item'>
                         <a
                             className={classnames('button is-danger')}
-                            onClick={switchEditMode(dispatch, false)}>
+                            onClick={switchEditMode(dispatch, false, cancel)}>
                             {'Cancel & Discard'}
                         </a>
                     </div>
@@ -92,7 +110,10 @@ if(process.env.NODE_ENV !== 'production') {
         dispatch: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
         initialContent: React.PropTypes.string.isRequired,
-        newContent: React.PropTypes.string.isRequired
+        newContent: React.PropTypes.string.isRequired,
+        postURL: React.PropTypes.string.isRequired,
+        handleSubmit: React.PropTypes.func.isRequired,
+        resetForm: React.PropTypes.func.isRequired,
     };
 }
 
@@ -101,7 +122,8 @@ const ToolBar = connect(
     (state) => {
         return {
             isEditing: state[DECK_DESCRIPTION][IS_EDITING],
-            initialContent: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+            initialContent: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS],
+            postURL: state[POST_TO]
         };
     }
 
@@ -129,7 +151,7 @@ const __DeckDescriptionEditing = function(props) {
 
     const markdownView = props[MARKDOWN_VIEW];
     const description = props.description;
-    const contents = description.value;
+    const editedContents = description.value;
 
     let sourceStyle = {};
     let renderStyle = {};
@@ -155,13 +177,13 @@ const __DeckDescriptionEditing = function(props) {
             </div>
 
             <div style={renderStyle}>
-                <MarkdownRender contents={contents} />
+                <MarkdownRender contents={editedContents} />
             </div>
             <div>
                 <div style={sourceStyle}>
                     <MarkdownSource
                         id='input-deck-description'
-                        contents={contents}
+                        contents={editedContents}
                         placeholder={'Deck Description'}
                         assignProps={description}
                         editable
@@ -175,7 +197,7 @@ const __DeckDescriptionEditing = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     __DeckDescriptionEditing.propTypes = {
-        description: React.PropTypes.object.isRequired
+        description: React.PropTypes.object.isRequired,
     };
 }
 
@@ -183,7 +205,7 @@ const DeckDescriptionEditing = connect(
     // mapStateToProps
     (state) => {
         return {
-            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
+            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW]
         };
     }
 
@@ -251,8 +273,7 @@ const __DeckDescriptionContainer = function(props) {
         fields: { description },
         submitting,
         handleSubmit,
-        resetForm,
-        postURL
+        resetForm
     } = props;
 
     const __description = assign({}, description);
@@ -262,6 +283,7 @@ const __DeckDescriptionContainer = function(props) {
             <div className='columns' style={{marginBottom: 0}}>
                 <div className='column'>
                     <ToolBar
+                        handleSubmit={handleSubmit}
                         resetForm={resetForm}
                         submitting={submitting}
                         newContent={description.value}
@@ -291,13 +313,14 @@ if(process.env.NODE_ENV !== 'production') {
         handleSubmit: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
         postURL: React.PropTypes.string.isRequired,
+        resetForm: React.PropTypes.func.isRequired,
     };
 }
 
 
 const deckDescriptionContainerFactory = function(preRenderState) {
 
-    return reduxForm(
+    const component = reduxForm(
 
         // config
         {
@@ -317,18 +340,146 @@ const deckDescriptionContainerFactory = function(preRenderState) {
 
     )(__DeckDescriptionContainer);
 
+    return connect(
+        // mapStateToProps
+        (state) => {
+            return {
+                initialValues: {
+                    description: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+                }
+            };
+        }
+    )(component);
+
 };
 
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
-const saveDescription = function(postURL, formData) {
+const saveDescription = function(dispatch, postURL, formData) {
 
+    return new Promise((resolve, reject) => {
 
+        const finalDescription = String(formData.description).trim();
+
+        fetch(postURL, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                description: finalDescription
+            })
+        })
+        .then(function(response) {
+
+            return Promise.all([response.status]);
+        }, function(err) {
+
+            // TODO: handle on network failure, etc
+
+            console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to update deck description.'
+                }
+            });
+        })
+        .then(function([statusCode]) {
+
+            switch(statusCode) {
+            case 400: // Bad Request
+            case 500: // Internal Server Error
+
+                // response.userMessage
+
+                // TODO: error fix
+                //
+                // http://redux-form.com/5.2.5/#/api/props
+                // how to detect errors
+                reject({
+                    _error: {
+                        message: 'Unable to update deck description.'
+                    }
+                });
+
+                return;
+                break;
+
+            case 200: // Ok
+
+                // update deck description
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownContentsReducer,
+                        // path
+                        [DECK_DESCRIPTION, MARKDOWN_CONTENTS],
+                        // action
+                        {
+                            type: MARKDOWN_CONTENTS,
+                            payload: finalDescription
+                        }
+                    )
+                );
+
+                // switch out of edit mode
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        editingReducer,
+                        // path
+                        [DECK_DESCRIPTION, IS_EDITING],
+                        // action
+                        {
+                            type: false
+                        }
+                    )
+                );
+
+                resolve();
+
+                break;
+
+            default: // Unexpected http status code
+                reject({
+                    _error: {
+                        message: 'Unable to update deck description.'
+                    }
+                });
+            }
+
+        }, function(err) {
+
+            // TODO: handle on json parsing fail
+            console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to update deck description.'
+                }
+            });
+        })
+        .catch(function(err) {
+
+            // TODO: handle
+            console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to update deck description.'
+                }
+            });
+        });
+
+    });
 
 };
 
-const switchEditMode = function(dispatch, isEditing) {
+const NOTHING = function() {};
+const switchEditMode = function(dispatch, isEditing, after = NOTHING) {
     return function(event) {
         event.preventDefault();
         dispatch(
@@ -343,6 +494,7 @@ const switchEditMode = function(dispatch, isEditing) {
                 }
             )
         );
+        after();
     }
 };
 
@@ -367,6 +519,19 @@ const switchMarkdownView = function(dispatch, path, markdownView) {
 /* redux reducers */
 
 const markdownViewReducer = require('reducers/markdown_view');
+
+const markdownContentsReducer = function(state = '', action) {
+
+    switch(action.type) {
+    case MARKDOWN_CONTENTS:
+        state = String(action.payload);
+        break;
+    default:
+        state = '';
+    }
+
+    return state;
+}
 
 const editingReducer = function(state = false, action) {
 
