@@ -343,131 +343,251 @@ fn parse_route_api<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, requ
 }
 
 #[inline]
-fn __parse_route_api_deck(context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>, parent_deck_id: DeckID)
+fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
+-> U8Result<'a, RenderResponse> {
+    (parse!{input;
+
+        string_ignore_case(b"deck");
+        parse_byte_limit(b'/', 5);
+        let deck_id: DeckID = decimal();
+        parse_byte_limit(b'/', 5);
+
+        ret deck_id
+
+    }).bind(|i, deck_id| {
+
+        let _guard = context::write_lock(context.clone());
+
+        match decks::deck_exists(context.clone(), deck_id) {
+            Ok(exists) => {
+
+                if exists {
+                    __parse_route_api_deck(i, context.clone(), request, deck_id)
+                } else {
+                    i.ret(RenderResponse::RenderBadRequest)
+                }
+
+            },
+            // TODO: internal error logging
+            Err(_) => i.ret(RenderResponse::RenderInternalServerError)
+        }
+    })
+
+}
+
+#[inline]
+fn __parse_route_api_deck<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        let render_response = parse_route_api_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
+            parse_route_api_deck_description(context.clone(), request.clone(), deck_id);
+
+        ret render_response
+    }
+}
+
+#[inline]
+fn parse_route_api_deck_new_deck<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    parent_deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
+
+    parse!{input;
+
+        string_ignore_case(b"new");
+        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"deck");
+
+        ret {
+            __parse_route_api_deck_new_deck(context, request, parent_deck_id)
+        }
+
+    }
+}
+
+#[inline]
+fn __parse_route_api_deck_new_deck(context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>, parent_deck_id: DeckID)
 -> RenderResponse {
 
     let mut request = request.borrow_mut();
 
-    if request.method == Method::Post {
-
-        // POST /api/deck/:id => create a new deck within this deck
-
-        let mut buffer = String::new();
-
-        match request.read_to_string(&mut buffer) {
-            Ok(_num_bytes_parsed) => {
-
-                let request: CreateDeck = match serde_json::from_str(&buffer) {
-                    Ok(request) => request,
-                    Err(err) => {
-                        // TODO: error logging
-                        // println!("{:?}", err);
-                        return RenderResponse::RenderBadRequest;
-                    }
-                };
-
-                let _guard = context::write_lock(context.clone());
-
-                match decks::create_deck(context.clone(), request) {
-                    Ok(new_deck) => {
-
-                        // connect new deck as child of parent deck
-
-                        match decks::connect_decks(context.clone(), new_deck.id, parent_deck_id) {
-                            Ok(_) => {
-
-                                let deck_route = DeckRoute::Decks(Default::default(), Default::default());
-                                let app_route = AppRoute::Deck(new_deck.id, deck_route);
-
-                                let response = DeckResponse {
-                                    profile_url: view_route_to_link(context, app_route),
-                                    deck: new_deck,
-                                    has_parent: true,
-                                    parent_id: Some(parent_deck_id)
-                                };
-
-                                return respond_json!(response);
-                            },
-                            Err(_) => {
-                                // TODO: error logging
-                                return RenderResponse::RenderInternalServerError;
-                            }
-                        }
-
-                    },
-                    Err(_) => {
-                        // TODO: error logging
-                        return RenderResponse::RenderInternalServerError;
-                    }
-                }
-
-                // println!("{:?}", request);
-
-                // TODO: change
-
-                return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
-
-            },
-            Err(err) => {
-                // invalid utf8 input
-                // TODO: error logging
-                return RenderResponse::RenderBadRequest;
-            }
-        }
-
+    if request.method != Method::Post {
+        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
     }
 
-    return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
-}
+    // POST /api/deck/:id => create a new deck within this deck
 
-#[inline]
-fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
--> U8Result<'a, RenderResponse> {
-    parse!{input;
+    let mut buffer = String::new();
 
-        string_ignore_case(b"deck");
+    match request.read_to_string(&mut buffer) {
+        Ok(_num_bytes_parsed) => {
 
-        parse_byte_limit(b'/', 5);
-
-        let deck_id: DeckID = decimal();
-
-        ret {
+            let request: CreateDeck = match serde_json::from_str(&buffer) {
+                Ok(request) => request,
+                Err(err) => {
+                    // TODO: error logging
+                    // println!("{:?}", err);
+                    return RenderResponse::RenderBadRequest;
+                }
+            };
 
             let _guard = context::write_lock(context.clone());
 
-            match decks::deck_exists(context.clone(), deck_id) {
-                Ok(exists) => {
+            match decks::create_deck(context.clone(), request) {
+                Ok(new_deck) => {
 
-                    if exists {
-                        __parse_route_api_deck(context, request, deck_id)
-                    } else {
-                        RenderResponse::RenderBadRequest
+                    // connect new deck as child of parent deck
+
+                    match decks::connect_decks(context.clone(), new_deck.id, parent_deck_id) {
+                        Ok(_) => {
+
+                            let deck_route = DeckRoute::Decks(Default::default(), Default::default());
+                            let app_route = AppRoute::Deck(new_deck.id, deck_route);
+
+                            let response = DeckResponse {
+                                profile_url: view_route_to_link(context, app_route),
+                                deck: new_deck,
+                                has_parent: true,
+                                parent_id: Some(parent_deck_id)
+                            };
+
+                            return respond_json!(response);
+                        },
+                        Err(_) => {
+                            // TODO: error logging
+                            return RenderResponse::RenderInternalServerError;
+                        }
                     }
 
                 },
-                // TODO: internal error logging
-                Err(_) => RenderResponse::RenderInternalServerError
+                Err(_) => {
+                    // TODO: error logging
+                    return RenderResponse::RenderInternalServerError;
+                }
             }
 
-        }
+            // println!("{:?}", request);
 
+            // TODO: change
+
+            return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+
+        },
+        Err(err) => {
+            // invalid utf8 input
+            // TODO: error logging
+            return RenderResponse::RenderBadRequest;
+        }
+    }
+}
+
+#[inline]
+fn parse_route_api_deck_description<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    parent_deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
+    parse!{input;
+        // TODO: complete
+        ret RenderResponse::RenderBadRequest
     }
 }
 
 #[inline]
 fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
 -> U8Result<'a, RenderResponse> {
-    parse!{input;
+    (parse!{input;
 
         string_ignore_case(b"deck");
         parse_byte_limit(b'/', 5);
         let deck_id = decimal();
         parse_byte_limit(b'/', 5);
 
-        let render_response = parse_route_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
+        ret deck_id
+
+    }).bind(|i, deck_id| {
+
+        let _guard = context::read_lock(context.clone());
+
+        match decks::deck_exists(context.clone(), deck_id) {
+            Ok(exists) => {
+
+                if exists {
+                    __parse_route_deck(i, context.clone(), request, deck_id)
+                } else {
+                    i.ret(RenderResponse::RenderNotFound)
+                }
+
+            },
+            // TODO: internal error logging
+            Err(_) => i.ret(RenderResponse::RenderInternalServerError)
+        }
+
+    })
+}
+
+#[inline]
+fn __parse_route_deck<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+
+    parse!{input;
+        let render_response = parse_route_deck_new_deck(request.clone(), deck_id) <|>
+            parse_route_deck_description(request.clone(), deck_id) <|>
             parse_route_deck_decks(context.clone(), request.clone(), deck_id);
 
         ret render_response
+    }
+}
+
+#[inline]
+fn parse_route_deck_description<'a>(
+    input: Input<'a, u8>,
+    // NOTE: not needed
+    // context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"description");
+
+        ret {
+            if request.borrow().method != Method::Get {
+                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+            } else {
+                let route = AppRoute::Deck(deck_id, DeckRoute::Description);
+                RenderResponse::RenderComponent(route)
+            }
+        }
+    }
+}
+
+#[inline]
+fn parse_route_deck_decks<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>, deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"decks");
+
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
+
+            ret Some(query_string)
+        }, None);
+
+        ret {
+            route_deck_decks(context, request, deck_id, query_string)
+        }
     }
 }
 
@@ -493,50 +613,18 @@ fn route_deck_decks(
         }
     };
 
-    let _guard = context::read_lock(context.clone());
-
-    match decks::deck_exists(context, deck_id) {
-        Ok(exists) => {
-
-            if exists {
-
-                // TODO: fix
-
-                let decks = AppRoute::Deck(deck_id, deck_route);
-                return RenderResponse::RenderComponent(decks);
-            } else {
-                return RenderResponse::RenderNotFound;
-            }
-        },
-        Err(_) => {
-            return RenderResponse::RenderInternalServerError;
-        }
-    }
+    let decks = AppRoute::Deck(deck_id, deck_route);
+    return RenderResponse::RenderComponent(decks);
 
 }
 
 #[inline]
-fn parse_route_deck_decks<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>, deck_id: DeckID)
--> U8Result<'a, RenderResponse> {
-    parse!{input;
-
-        string_ignore_case(b"decks");
-
-        let query_string = option(|i| parse!{i;
-            let query_string = parse_query_string();
-
-            ret Some(query_string)
-        }, None);
-
-        ret {
-            route_deck_decks(context, request, deck_id, query_string)
-        }
-    }
-}
-
-#[inline]
-fn parse_route_deck_new_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>, deck_id: DeckID)
--> U8Result<'a, RenderResponse> {
+fn parse_route_deck_new_deck<'a>(
+    input: Input<'a, u8>,
+    // NOTE: not needed
+    // context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
         string_ignore_case(b"new");

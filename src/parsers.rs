@@ -31,49 +31,6 @@ pub fn string_till<'a, F>(input: Input<'a, u8>, mut stop_at: F) -> U8Result<'a, 
 
 }
 
-
-
-// TODO: remove
-// enum Segment {
-//     Empty,
-//     NonEmpty(Vec<u8>),
-//     NonEmptyEof(Vec<u8>)
-// }
-
-// fn parse_segment_before_string(i: Input<u8>, ends_with: String) -> U8Result<Segment> {
-
-//     or(i,
-//         |i| parse!{i;
-//             eof();
-//             ret Segment::Empty
-//         },
-//         |i| parse!{i;
-
-//             let line: Vec<u8> = many_till(any, |i| string_ignore_case(i, ends_with.as_bytes()));
-
-//             ret Segment::NonEmpty(line)
-//         }
-//     )
-
-// }
-
-// fn parse_segment_before_eof(i: Input<u8>) -> U8Result<Segment> {
-
-//     or(i,
-//         |i| parse!{i;
-//             eof();
-//             ret Segment::Empty
-//         },
-//         |i| parse!{i;
-
-//             let line: Vec<u8> = many_till(any, eof);
-
-//             ret Segment::NonEmpty(line)
-//         }
-//     )
-
-// }
-
 /* misc parsers */
 
 // if parser sucessfully consumes, then return value instead of whatever parser returns
