@@ -23,20 +23,77 @@ const {
 
     DECK_DESCRIPTION,
 
-    POST_TO
+    POST_TO,
+
+    IS_EDITING
 } = require('global/constants');
 
 const {reduceIn} = require('lib/redux-tree');
 
 /* react components */
 
-const ToolBar = function() {
-    return (
-        <a className={classnames('button is-success')}>
-            {'Edit'}
-        </a>
-    );
+const __ToolBar = function(props) {
+
+    const {isEditing, dispatch} = props;
+
+    if(isEditing) {
+        return (
+            <div className='level'>
+                <div className='level-left'>
+                    <div className='level-item'>
+                        <a
+                            className={classnames('button is-success')}
+                            onClick={switchEditMode(dispatch, false)}>
+                            {'Save'}
+                        </a>
+                    </div>
+                </div>
+                <div className='level-right'>
+                    <div className='level-item'>
+                        <a
+                            className={classnames('button is-danger')}
+                            onClick={switchEditMode(dispatch, false)}>
+                            {'Cancel & Discard'}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+        return (
+            <div className='level'>
+                <div className='level-left'>
+                    <div className='level-item'>
+                        <a
+                            className={classnames('button is-success')}
+                            onClick={switchEditMode(dispatch, true)}>
+                            {'Edit'}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
 };
+
+if(process.env.NODE_ENV !== 'production') {
+    __ToolBar.propTypes = {
+        isEditing: React.PropTypes.bool.isRequired,
+        dispatch: React.PropTypes.func.isRequired,
+    };
+}
+
+const ToolBar = connect(
+
+    // mapStateToProps
+    (state) => {
+        return {
+            isEditing: state[DECK_DESCRIPTION][IS_EDITING]
+        };
+    }
+
+)(__ToolBar);
+
 
 const __DeckDescriptionContainer = function(props) {
 
@@ -92,6 +149,64 @@ const deckDescriptionContainerFactory = function(preRenderState) {
 
 };
 
+/* redux action dispatchers */
+// NOTE: FSA compliant
+
+const switchEditMode = function(dispatch, isEditing) {
+    return function(event) {
+        event.preventDefault();
+        dispatch(
+            reduceIn(
+                // reducer
+                editingReducer,
+                // path
+                [DECK_DESCRIPTION, IS_EDITING],
+                // action
+                {
+                    type: isEditing
+                }
+            )
+        );
+    }
+}
+
+const switchMarkdownView = function(dispatch, path, markdownView) {
+    return function(event) {
+        event.preventDefault();
+        dispatch(
+            reduceIn(
+                // reducer
+                markdownViewReducer,
+                // path
+                path,
+                // action
+                {
+                    type: markdownView
+                }
+            )
+        );
+    }
+};
+
+/* redux reducers */
+
+const markdownViewReducer = require('reducers/markdown_view');
+
+const editingReducer = function(state = false, action) {
+
+    switch(action.type) {
+    case true:
+    case false:
+        state = action.type;
+        break;
+
+    default:
+        state = false;
+    }
+
+    return state;
+};
+
 /* default state */
 
 const initialState = {
@@ -100,6 +215,7 @@ const initialState = {
     [POST_TO]: '',
 
     [DECK_DESCRIPTION]: {
+        [IS_EDITING]: false,
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
         // NOTE: contents is stored and handled by redux-form
     },
@@ -116,7 +232,7 @@ const componentCreator = require('helpers/component_factory');
 
 module.exports = componentCreator(initialState, function(store) {
 
-    const __Component = deckDescriptionContainerFactory(preRenderState);
+    const __Component = deckDescriptionContainerFactory(store.getState());
 
     const component = (
         <Provider store={store}>

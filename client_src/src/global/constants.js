@@ -56,6 +56,7 @@ const DECK_DESCRIPTION = 'DECK_DESCRIPTION';
 const CARD_CONTENTS = 'CARD_CONTENTS'; // change to MARKDOWN_CONTENTS
 const MARKDOWN_CONTENTS = 'MARKDOWN_CONTENTS';
 const POST_TO = 'POST_TO'; // URL to send POST request
+const IS_EDITING = 'IS_EDITING';
 
 module.exports = {
 
@@ -81,5 +82,6 @@ module.exports = {
     DECK_DESCRIPTION,
     CARD_CONTENTS,
     MARKDOWN_CONTENTS,
-    POST_TO
+    POST_TO,
+    IS_EDITING
 };

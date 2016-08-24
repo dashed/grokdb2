@@ -371,20 +371,7 @@ const switchMarkdownView = function(dispatch, path, markdownView) {
 
 /* redux reducers */
 
-const markdownViewReducer = function(state = MARKDOWN_VIEW_RENDER, action) {
-
-    switch(action.type) {
-    case MARKDOWN_VIEW_RENDER:
-    case MARKDOWN_VIEW_SOURCE:
-        state = action.type;
-        break;
-
-    default:
-        state = MARKDOWN_VIEW_RENDER;
-    }
-
-    return state;
-};
+const markdownViewReducer = require('reducers/markdown_view');
 
 /* default state */
 
