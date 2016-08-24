@@ -339,6 +339,17 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             };
 
                         },
+                        AppRoute::Deck(_, DeckRoute::Description) =>  {
+                            tmpl << html! {
+                                script(type="text/javascript") {
+                                    |tmpl| {
+                                        pre_render_state(tmpl, context.clone(), &app_route);
+                                    }
+                                }
+
+                                script(type="text/javascript", src="/assets/deck_description.js") {}
+                            }
+                        },
                         _ => {}
                     };
                 }

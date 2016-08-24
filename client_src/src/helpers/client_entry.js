@@ -20,6 +20,7 @@ module.exports = (maker, preRenderState, postRenderState, mountTarget) => {
 
     if(!postRenderState) {
         if(process.env.NODE_ENV !== 'production') {
+            const invariant = require('invariant');
             invariant(maker.initialState, 'maker.initialState not set');
         }
         postRenderState = maker.initialState;

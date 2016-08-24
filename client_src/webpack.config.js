@@ -61,6 +61,7 @@ module.exports = {
     entry: {
         deck_review: "./src/deck_review.js",
         new_deck: "./src/new_deck.js",
+        deck_description: "./src/deck_description.js",
         // TODO: remove
         // vendor: vendor
     },

@@ -37,9 +37,6 @@ const MarkdownSource = function(props) {
 
 MarkdownSource.defaultProps = {
     placeholder: '',
-    style: {
-        height: '136px'
-    },
     assignProps: {},
     contents: '',
     editable: false,
