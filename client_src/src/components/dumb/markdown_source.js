@@ -40,7 +40,8 @@ MarkdownSource.defaultProps = {
     assignProps: {},
     contents: '',
     editable: false,
-    id: void 0
+    id: void 0,
+    style: {}
 };
 
 if(process.env.NODE_ENV !== 'production') {
