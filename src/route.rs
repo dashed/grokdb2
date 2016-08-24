@@ -182,6 +182,8 @@ fn fetch_assets(request: Rc<RefCell<Request>>, path: String) -> RenderResponse {
         return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
     }
 
+    // TODO: inlined resources here
+
     // URL decode
     let decoded_req_path = Path::new(&path).iter().map(decode_percents);
 
@@ -191,6 +193,7 @@ fn fetch_assets(request: Rc<RefCell<Request>>, path: String) -> RenderResponse {
     req_path.extend(decoded_req_path);
     let req_path: PathBuf = req_path;
 
+    // TODO: this is a security bottle-neck
     let req_path = match req_path.canonicalize() {
         Err(_) => {
             return RenderResponse::RenderNotFound;
