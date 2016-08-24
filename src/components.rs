@@ -64,6 +64,7 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
             }
         },
         _ => {
+            // TODO: remove
             panic!("fix this");
         }
     }
@@ -89,7 +90,21 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
-                                        POST_TO: '/api/deck/{}'\
+                                        POST_TO: '/api/deck/{}/new/deck'\
+                                    }};\
+                                ",
+                                deck_id
+                            )
+                        )
+                    }
+                },
+                DeckRoute::Description => {
+                    tmpl << html! {
+                        : raw!(
+                            format!(
+                                "window.__PRE_RENDER_STATE__ = \
+                                    {{\
+                                        POST_TO: '/api/deck/{}/description'\
                                     }};\
                                 ",
                                 deck_id
@@ -263,7 +278,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                         DeckDetail(tmpl, context.clone(), deck_id, deck_route)
                                     },
                                     _ => {
-                                        // TODO: complete this shit
+                                        // TODO: complete this
                                     }
                                 }
                             }
@@ -417,8 +432,15 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             deck_id
                         )
                     },
+                    DeckRoute::Description => {
+                        DeckDescription(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
+                    },
                     _ => {
-                        // TODO: complete this shit
+                        // TODO: complete this
                     }
                 }
             }
@@ -439,7 +461,15 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                         // }
                         ul(class="menu-list") {
                             li {
-                                a(href="#", class="is-bold") {
+                                a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::Description)),
+                                    class? = classnames!(
+                                        "is-bold",
+                                        "is-active" => {
+                                            matches!(*deck_route, DeckRoute::Description)
+                                        })
+                                ) {
                                     : "Description"
                                 }
                             }
@@ -500,9 +530,28 @@ fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: De
 }
 
 #[inline]
-fn DecksChildren(tmpl: &mut TemplateBuffer,
-    context: Rc<RefCell<Context>>, deck_id: DeckID, deck_page_query: &DecksPageQuery, search: &Search) {
+fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
+    tmpl << html!{
+        div(class="columns") {
+            div(class="column") {
+                h1(class="title") {
+                    : raw!("Deck Description")
+                }
+            }
+        }
 
+        div(id="deck_description_container") {
+            // : raw!(include_str!("react_components/new_deck"))
+        }
+    }
+}
+
+#[inline]
+fn DecksChildren(tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    deck_page_query: &DecksPageQuery,
+    search: &Search) {
 
     tmpl << html!{
 
