@@ -1,12 +1,10 @@
 require('babel-polyfill');
-
 global.Promise = require('bluebird');
 
 const React = require('react');
 
 const assign = require('lodash/assign');
 
-const {createStore, applyMiddleware} = require('redux');
 const {Provider, connect} = require('react-redux');
 const {reduxForm, reducer: reduxformReducer} = require('redux-form');
 const classnames = require('classnames');
@@ -35,135 +33,6 @@ const {reduceIn, makeReducer} = require('lib/redux-tree');
 const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
 const MathJaxLine = require('components/dumb/mathjax_line');
-
-// TODO: remove
-const old__NewDeckContainer = function(props) {
-    const {
-        fields: { name, description},
-        handleSubmit,
-        // resetForm, // not used
-        submitting,
-        error
-    } = props;
-
-    const postURL = '/api/deck';
-
-    return (
-        <div>
-            <div className='columns'>
-                <div className='column col-12'>
-                    {
-                        (() => {
-
-                            if(!name.touched || !name.error) {
-                                return null;
-                            }
-
-                            return (
-                                <div className='toast toast-danger'>
-                                    {name.error}
-                                </div>
-                            );
-                        })()
-                    }
-                    <div className='form-group'>
-                        <label className='form-label' htmlFor='input-deck-name'>
-                            {'Name'}
-                        </label>
-                        <input
-                            className={classnames('form-input', {
-                                'is-danger': name.touched && name.error
-                            })}
-                            type='text'
-                            // id='input-deck-name'
-                            placeholder='Name for new deck'
-                            {...name}
-                        />
-                    </div>
-                </div>
-            </div>
-            <div className='columns'>
-                <div className='column col-12'>
-                    <RenderSourceComponent />
-                </div>
-            </div>
-            <div className='columns'>
-                <div className='column col-12'>
-                    <DeckDescriptionComponent assignProps={description} />
-                </div>
-            </div>
-            {
-                (() => {
-
-                    if(!error) {
-                        return null;
-                    }
-
-                    return (<div className='columns'>
-                        <div className='column col-12'>
-                            <div className='toast toast-danger'>
-                                {error.message}
-                            </div>
-                        </div>
-                    </div>);
-                })()
-            }
-            <div className='columns'>
-                <div className='column'>
-                    <a
-                        href='#add-new-deck'
-                        className={classnames('btn btn-success', {
-                            'loading': submitting
-                        })}
-                        onClick={handleSubmit(addNewDeck.bind(null, postURL))}
-                        disabled={submitting}
-                    >
-                        {'Add new deck'}
-                    </a>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-
-// TODO: remove
-// const old_NewDeckContainer = reduxForm(
-//     {
-//         form: 'new_deck',
-//         fields: ['name', 'description'],
-//         validate: (values) => {
-//             const errors = {};
-
-//             if (!values.name) {
-//                 errors.name = 'Deck name is required';
-//             } else if(values.name.trim().length <= 0) {
-//                 errors.name = 'Deck name cannot be entirely spaces (or whitespace).';
-//             }
-
-//             return errors;
-//         },
-//         initialValues: {
-//             name: '',
-//             description: ''
-//         }
-//     },
-//     // mapStateToProps
-//     // (state) => {
-
-//     //     return {
-//     //         [POST_TO]: state[POST_TO]
-//     //     };
-//     // }
-//     // mapDispatchToProps
-//     // (dispatch) => {
-//     //     return {
-//     //         addNewDeck
-//     //     };
-//     // }
-// )(__NewDeckContainer);
-
-////////////////////////////////////////////////////////////////////////////////
 
 const RenderSourceNameComponent = connect(
     // mapStateToProps
@@ -554,22 +423,6 @@ const formReducer = (state, action) => {
     return newState;
 };
 
-const rehydrateFactory = require('helpers/hydrate');
-
-// TODO: refactor to module
-const middleware = () => {
-
-    if(process.env.NODE_ENV !== 'production') {
-
-        const createLogger = require('redux-logger');
-        const logger = createLogger();
-
-        return applyMiddleware(logger);
-    }
-
-    return applyMiddleware();
-};
-
 module.exports = function(preRenderState) {
 
     if(preRenderState) {
@@ -577,6 +430,23 @@ module.exports = function(preRenderState) {
     } else {
         preRenderState = initialState;
     }
+
+    const rehydrateFactory = require('helpers/hydrate');
+    const {createStore, applyMiddleware} = require('redux');
+
+    // TODO: refactor to module
+    const middleware = () => {
+
+        if(process.env.NODE_ENV !== 'production') {
+
+            const createLogger = require('redux-logger');
+            const logger = createLogger();
+
+            return applyMiddleware(logger);
+        }
+
+        return applyMiddleware();
+    };
 
     const store = createStore(makeReducer({
         reducer: rehydrateFactory(formReducer)
