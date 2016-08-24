@@ -45,6 +45,7 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
         AppRoute::Deck(deck_id, deck_route) => {
             match deck_route {
                 DeckRoute::NewDeck => format!("/deck/{}/new/deck", deck_id),
+                DeckRoute::Description => format!("/deck/{}/description", deck_id),
                 DeckRoute::Decks(page_query, search) => {
 
                     let mut query = page_query.generate_query_string();
@@ -57,6 +58,8 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
                     format!("/deck/{deck_id}/decks?{query_string}", deck_id = deck_id, query_string = query)
 
                 },
+
+                // TODO: remove
                 _ => panic!("fix")
             }
         },
