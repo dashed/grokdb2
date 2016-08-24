@@ -37,6 +37,12 @@ pub struct CreateDeck {
     pub description: String, // required, but may be empty
 }
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct UpdateDeckDescription {
+    pub description: String // required, but may be empty
+}
+
 #[derive(Debug, Serialize)]
 pub struct DeckResponse {
 
@@ -184,6 +190,38 @@ pub fn create_deck(context: Rc<RefCell<Context>>, create_deck_request: CreateDec
     };
 
     return get_deck(context, deck_id);
+}
+
+pub fn update_deck_description(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    update_deck_description_request: UpdateDeckDescription) -> Result<(), RawAPIError> {
+
+    assert!(context.borrow().is_write_locked());
+
+    let query = format!("
+        UPDATE Decks
+        SET
+        description = :description
+        WHERE deck_id = {deck_id};
+    ", deck_id = deck_id);
+
+    let params: &[(&str, &ToSql)] = &[(":description", &update_deck_description_request.description.clone())];
+
+    let context = context.borrow();
+    db_write_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    match db_conn.execute_named(&query, &params[..]) {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+        _ => {
+            /* query sucessfully executed */
+        }
+    }
+
+    return Ok(());
 }
 
 pub fn connect_decks(context: Rc<RefCell<Context>>, child: DeckID, parent: DeckID) -> Result<(), RawAPIError> {

@@ -45,7 +45,7 @@ use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limi
 use types::{DeckID, CardID, DecksPageQuery, Search};
 use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
-use api::decks::{self, CreateDeck, DeckResponse};
+use api::decks::{self, CreateDeck, DeckResponse, UpdateDeckDescription};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -107,6 +107,7 @@ pub enum RenderResponse {
     RenderComponent(AppRoute),
     RenderJSON(String),
 
+    RenderOk,
     RenderNotFound,
     RenderBadRequest,
     RenderInternalServerError,
@@ -391,7 +392,10 @@ fn parse_route_api_deck_new_deck<'a>(
 }
 
 #[inline]
-fn __parse_route_api_deck_new_deck(context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>, parent_deck_id: DeckID)
+fn __parse_route_api_deck_new_deck(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    parent_deck_id: DeckID)
 -> RenderResponse {
 
     let mut request = request.borrow_mut();
@@ -400,7 +404,7 @@ fn __parse_route_api_deck_new_deck(context: Rc<RefCell<Context>>, request: Rc<Re
         return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
     }
 
-    // POST /api/deck/:id => create a new deck within this deck
+    // POST /api/deck/:id/new/deck => create a new deck within this deck
 
     let mut buffer = String::new();
 
@@ -471,14 +475,61 @@ fn parse_route_api_deck_description<'a>(
     input: Input<'a, u8>,
     context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
-    parent_deck_id: DeckID)
+    deck_id: DeckID)
 -> U8Result<'a, RenderResponse> {
     parse!{input;
 
         string_ignore_case(b"description");
 
-        // TODO: complete
-        ret RenderResponse::RenderBadRequest
+        ret {
+            __parse_route_api_deck_description(context, request, deck_id)
+        }
+    }
+}
+
+#[inline]
+fn __parse_route_api_deck_description(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> RenderResponse {
+
+    let mut request = request.borrow_mut();
+
+    if request.method != Method::Post {
+        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+    }
+
+    let mut buffer = String::new();
+
+    match request.read_to_string(&mut buffer) {
+        Err(err) => {
+            // invalid utf8 input
+            // TODO: error logging
+            return RenderResponse::RenderBadRequest;
+        },
+        Ok(_num_bytes_parsed) => {
+
+            let request: UpdateDeckDescription = match serde_json::from_str(&buffer) {
+                Ok(request) => request,
+                Err(err) => {
+                    // TODO: error logging
+                    // println!("{:?}", err);
+                    return RenderResponse::RenderBadRequest;
+                }
+            };
+
+            let _guard = context::write_lock(context.clone());
+
+            match decks::update_deck_description(context.clone(), deck_id, request) {
+                Err(_) => {
+                    // TODO: error logging
+                    return RenderResponse::RenderInternalServerError;
+                },
+                Ok(_) => {
+                    return RenderResponse::RenderOk;
+                }
+            }
+        }
     }
 }
 
@@ -852,6 +903,10 @@ pub fn render_response(context: Rc<RefCell<Context>>, render: RenderResponse, mu
 
             response.send(json_response.as_bytes()).unwrap();
 
+        },
+        RenderResponse::RenderOk => {
+            *response.status_mut() = StatusCode::Ok;
+            response.send(b"").unwrap();
         },
         RenderResponse::RenderBadRequest => {
             let message = format!("400 Bad Request");
