@@ -219,6 +219,16 @@ const __NewDeckContainer = function(props) {
     );
 };
 
+if(process.env.NODE_ENV !== 'production') {
+    __NewDeckContainer.propTypes = {
+        fields: React.PropTypes.object.isRequired,
+        handleSubmit: React.PropTypes.func.isRequired,
+        submitting: React.PropTypes.bool.isRequired,
+        mathjaxifyDeckName: React.PropTypes.bool.isRequired,
+        postURL: React.PropTypes.string.isRequired
+    };
+}
+
 const NewDeckContainer = reduxForm(
 
     // config
@@ -240,16 +250,6 @@ const NewDeckContainer = reduxForm(
     }
 
 )(__NewDeckContainer);
-
-if(process.env.NODE_ENV !== 'production') {
-    __NewDeckContainer.propTypes = {
-        fields: React.PropTypes.object.isRequired,
-        handleSubmit: React.PropTypes.func.isRequired,
-        submitting: React.PropTypes.bool.isRequired,
-        mathjaxifyDeckName: React.PropTypes.bool.isRequired,
-        postURL: React.PropTypes.string.isRequired
-    };
-}
 
 /* redux action dispatchers */
 // NOTE: FSA compliant
