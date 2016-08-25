@@ -57,6 +57,8 @@ const __DeckSettingsNameContainer = function(props) {
         fields: { name },
         submitting,
         handleSubmit,
+        postURL,
+        dispatch
     } = props;
 
     // TODO: needed?
@@ -95,8 +97,11 @@ const __DeckSettingsNameContainer = function(props) {
             <div className='columns'>
                 <div className='column'>
                     <a
-                        className={classnames('button is-success')}
-                    >
+                        className={classnames('button is-success', {
+                            'is-disabled': submitting || String(name.value).trim().length <= 0,
+                            'is-loading': submitting
+                        })}
+                        onClick={handleSubmit(saveName.bind(null, dispatch, postURL))}>
                         {'Rename'}
                     </a>
                 </div>
@@ -113,6 +118,7 @@ if(process.env.NODE_ENV !== 'production') {
         submitting: React.PropTypes.bool.isRequired,
         postURL: React.PropTypes.string.isRequired,
         resetForm: React.PropTypes.func.isRequired,
+        dispatch: React.PropTypes.func.isRequired,
         showNoContentMessage: React.PropTypes.bool.isRequired,
         mathjaxifyDeckName: React.PropTypes.bool.isRequired,
     };
@@ -126,9 +132,9 @@ const deckSettingsNameContainerFactory = function(preRenderState) {
         {
             form: 'deck_settings_name',
             fields: ['name'],
-            // initialValues: {
-            //     name: preRenderState[DECK_NAME][MARKDOWN_CONTENTS]
-            // }
+            initialValues: {
+                name: preRenderState[DECK_NAME][MARKDOWN_CONTENTS]
+            }
         },
 
         // mapStateToProps
@@ -136,6 +142,7 @@ const deckSettingsNameContainerFactory = function(preRenderState) {
             return {
                 postURL: state[POST_TO],
                 initialValues: {
+                    // NOTE: this commits initial value after save
                     name: state[DECK_NAME][MARKDOWN_CONTENTS],
                 },
                 showNoContentMessage: state[DECK_NAME].showNoContentMessage,
@@ -149,6 +156,128 @@ const deckSettingsNameContainerFactory = function(preRenderState) {
 
 /* redux action dispatchers */
 // NOTE: FSA compliant
+
+const saveName = function(dispatch, postURL, formData) {
+
+    return new Promise((resolve, reject) => {
+
+        const finalName = String(formData.name).trim();
+
+        fetch(postURL, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: finalName
+            })
+        })
+        .then(function(response) {
+
+            return Promise.all([response.status]);
+        }, function(err) {
+
+            // TODO: handle on network failure, etc
+
+            console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to update deck name.'
+                }
+            });
+        })
+        .then(function([statusCode]) {
+
+            switch(statusCode) {
+            case 400: // Bad Request
+            case 500: // Internal Server Error
+
+                // response.userMessage
+
+                // TODO: error fix
+                //
+                // http://redux-form.com/5.2.5/#/api/props
+                // how to detect errors
+                reject({
+                    _error: {
+                        message: 'Unable to update deck name.'
+                    }
+                });
+
+                return;
+                break;
+
+            case 200: // Ok
+
+                // update deck name
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownContentsReducer,
+                        // path
+                        [DECK_NAME, MARKDOWN_CONTENTS],
+                        // action
+                        {
+                            type: MARKDOWN_CONTENTS,
+                            payload: finalName
+                        }
+                    )
+                );
+
+                // switch out of edit mode
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        switchMarkdownView,
+                        // path
+                        [DECK_NAME, MARKDOWN_VIEW],
+                        // action
+                        {
+                            type: MARKDOWN_VIEW_RENDER
+                        }
+                    )
+                );
+
+                resolve();
+
+                break;
+
+            default: // Unexpected http status code
+                reject({
+                    _error: {
+                        message: 'Unable to update deck name.'
+                    }
+                });
+            }
+
+        }, function(err) {
+
+            // TODO: handle on json parsing fail
+            console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to update deck name.'
+                }
+            });
+        })
+        .catch(function(err) {
+
+            // TODO: handle
+            console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to update deck name.'
+                }
+            });
+        });
+
+    });
+
+};
 
 const switchMarkdownView = function(dispatch, path, markdownView) {
     return function(event) {
@@ -171,6 +300,7 @@ const switchMarkdownView = function(dispatch, path, markdownView) {
 /* redux reducers */
 
 const markdownViewReducer = require('reducers/markdown_view');
+const markdownContentsReducer = require('reducers/markdown_contents');
 
 /* default state */
 
@@ -181,7 +311,7 @@ const initialState = {
 
     [DECK_NAME]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
-        [MARKDOWN_CONTENTS]: 'foo',
+        [MARKDOWN_CONTENTS]: '',
         showNoContentMessage: false
         // NOTE: contents is stored and handled by redux-form
     },

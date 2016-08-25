@@ -330,6 +330,7 @@ const deckDescriptionContainerFactory = function(preRenderState) {
             return {
                 postURL: state[POST_TO],
                 initialValues: {
+                    // NOTE: this commits initial value after save
                     description: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS],
                 },
                 showNoContentMessage: state[DECK_DESCRIPTION].showNoContentMessage
@@ -505,47 +506,9 @@ const switchMarkdownView = function(dispatch, path, markdownView) {
 /* redux reducers */
 
 const markdownViewReducer = require('reducers/markdown_view');
-
-const showNoContentMessageReducer = function(state = false, action) {
-    switch(action.type) {
-    case true:
-    case false:
-        state = action.type;
-        break;
-    default:
-        state = false;
-    }
-
-    return state;
-}
-
-const markdownContentsReducer = function(state = '', action) {
-
-    switch(action.type) {
-    case MARKDOWN_CONTENTS:
-        state = String(action.payload);
-        break;
-    default:
-        state = '';
-    }
-
-    return state;
-};
-
-const editingReducer = function(state = false, action) {
-
-    switch(action.type) {
-    case true:
-    case false:
-        state = action.type;
-        break;
-
-    default:
-        state = false;
-    }
-
-    return state;
-};
+const showNoContentMessageReducer = require('reducers/bool');
+const markdownContentsReducer = require('reducers/markdown_contents');
+const editingReducer = require('reducers/bool');
 
 /* default state */
 
