@@ -646,6 +646,29 @@ fn DeckSettings(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_i
             }
         }
 
+        div(class="columns") {
+            div(class="column") {
+                div(class="tabs is-boxed") {
+                    ul {
+                        li(class="is-active") {
+                            a {
+                                span {
+                                    : "General"
+                                }
+                            }
+                        }
+                        li {
+                            a {
+                                span {
+                                    : "Move Deck"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         div(id="settings_deck_name_container") {
             // : raw!(include_str!("react_components/deck_description"))
         }
