@@ -84,12 +84,19 @@ pub enum CardRoute {
 
 #[derive(Debug)]
 pub enum DeckRoute {
+
     NewCard,
     NewDeck,
+
     Description,
+
     Decks(DecksPageQuery, Search), // list
+
+    // TODO: CardsPageQuery, Search
     Cards, // list
-    Settings,
+
+    Settings(DeckSettings),
+
     Meta,
     Review,
 
@@ -100,6 +107,12 @@ pub enum DeckRoute {
     // http://stackoverflow.com/a/26897298/412627
     // http://programmers.stackexchange.com/questions/114156/why-are-there-are-no-put-and-delete-methods-on-html-forms
     // Delete
+}
+
+#[derive(Debug)]
+pub enum DeckSettings {
+    Main,
+    Move
 }
 
 #[derive(Debug)]
@@ -661,7 +674,7 @@ fn parse_route_deck_settings_main<'a>(
             if request.borrow().method != Method::Get {
                 RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
             } else {
-                let route = AppRoute::Deck(deck_id, DeckRoute::Settings);
+                let route = AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Main));
                 RenderResponse::RenderComponent(route)
             }
         }
@@ -696,7 +709,7 @@ fn parse_route_deck_settings_move<'a>(
             if request.borrow().method != Method::Get {
                 RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
             } else {
-                let route = AppRoute::Deck(deck_id, DeckRoute::Settings);
+                let route = AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Move));
                 RenderResponse::RenderComponent(route)
             }
         }

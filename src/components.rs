@@ -19,7 +19,7 @@ use serde_json;
 
 /* local imports */
 
-use route::{AppRoute, RenderResponse, DeckRoute};
+use route::{AppRoute, RenderResponse, DeckRoute, DeckSettings};
 use context::{self, Context};
 use types::{DeckID, DecksPageQuery, Search, Pagination, SortOrderable};
 use api::decks;
@@ -48,7 +48,12 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
             match deck_route {
                 DeckRoute::NewDeck => format!("/deck/{}/new/deck", deck_id),
                 DeckRoute::Description => format!("/deck/{}/description", deck_id),
-                DeckRoute::Settings => format!("/deck/{}/settings", deck_id),
+                DeckRoute::Settings(ref setting_mode) => {
+                    match *setting_mode {
+                        DeckSettings::Main => format!("/deck/{}/settings", deck_id),
+                        DeckSettings::Move => format!("/deck/{}/settings/move", deck_id),
+                    }
+                },
                 DeckRoute::Decks(page_query, search) => {
 
                     let mut query = page_query.generate_query_string();
@@ -486,10 +491,11 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             deck_id
                         )
                     },
-                    DeckRoute::Settings => {
+                    DeckRoute::Settings(ref setting_mode) => {
                         DeckSettings(
                             tmpl,
                             context.clone(),
+                            setting_mode,
                             deck_id
                         )
                     },
@@ -556,11 +562,11 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             li {
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
-                                        DeckRoute::Settings)),
+                                        DeckRoute::Settings(DeckSettings::Main))),
                                     class? = classnames!(
                                         "is-bold",
                                         "is-active" => {
-                                            matches!(*deck_route, DeckRoute::Settings)
+                                            matches!(*deck_route, DeckRoute::Settings(_))
                                         })
                                 ) {
                                     : "Settings"
@@ -627,7 +633,11 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
 }
 
 #[inline]
-fn DeckSettings(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
+fn DeckSettings(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    setting_mode: &DeckSettings,
+    deck_id: DeckID) {
 
     let deck = match decks::get_deck(context.clone(), deck_id) {
         Ok(deck) => deck,
@@ -646,28 +656,7 @@ fn DeckSettings(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_i
             }
         }
 
-        div(class="columns") {
-            div(class="column") {
-                div(class="tabs is-boxed") {
-                    ul {
-                        li(class="is-active") {
-                            a {
-                                span {
-                                    : "General"
-                                }
-                            }
-                        }
-                        li {
-                            a {
-                                span {
-                                    : "Move Deck"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        |tmpl| DeckSettingsNav(tmpl, context.clone(), setting_mode, deck_id);
 
         div(id="settings_deck_name_container") {
             // : raw!(include_str!("react_components/deck_description"))
@@ -680,6 +669,62 @@ fn DeckSettings(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_i
         }
     }
 }
+
+#[inline]
+fn DeckSettingsNav(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    setting_mode: &DeckSettings,
+    deck_id: DeckID) {
+
+    tmpl << html!{
+
+        div(class="columns") {
+            div(class="column") {
+                div(class="tabs is-boxed") {
+                    ul {
+                        li(
+                            class? = classnames!(
+                                "is-active" => {
+                                    matches!(*setting_mode, DeckSettings::Main)
+                                })
+                            ) {
+                            a(href = view_route_to_link(
+                                context.clone(),
+                                AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Main))
+                                )) {
+                                span {
+                                    : "General"
+                                }
+                            }
+                        }
+                        li(
+                            class? = classnames!(
+                                "is-active" => {
+                                    matches!(*setting_mode, DeckSettings::Move)
+                                })
+                            ) {
+                            a(href = view_route_to_link(
+                                context.clone(),
+                                AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Move))
+                                )) {
+                                span {
+                                    : "Move"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    };
+
+}
+
+
+
+
 
 
 #[inline]
