@@ -476,15 +476,16 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                     Ok(deck) => {
 
                         if (index + 1) >= num_of_items {
-                            
+
                             tmpl << html!{
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
                                     a(href = view_route_to_link(context.clone(),
-                                        AppRoute::Deck(*deck_id, DeckRoute::Decks(Default::default(), Default::default())))
+                                        AppRoute::Deck(*deck_id, 
+                                            DeckRoute::Decks(Default::default(), Default::default())))
                                     ) {
-                                        // NOTE: we wrap the mathjax-ified name with id of 'deck_title'.
+                                        // NOTE: we wrap the mathjax-ified name with id of '__deck_name'.
                                         //       when renaming the deck, a react component can re-render this
-                                        span(id="deck_name") {
+                                        span(class="__deck_name") {
                                             |tmpl| MathJaxInline(tmpl, deck.name.clone());    
                                         }
                                     }
@@ -1210,7 +1211,8 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
                             None => {},
                             Some(page_query) => {
 
-                                let app_route = AppRoute::Deck(deck_id, DeckRoute::Decks(page_query, search.clone()));
+                                let app_route = AppRoute::Deck(deck_id, 
+                                    DeckRoute::Decks(page_query, search.clone()));
                                 let href = view_route_to_link(context.clone(), app_route);
 
                                 tmpl << html!(

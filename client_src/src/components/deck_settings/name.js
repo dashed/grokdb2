@@ -214,6 +214,8 @@ const saveName = function(dispatch, postURL, formData) {
 
             case 200: // Ok
 
+                setTimeout(updateDeckNameExternally.bind(null, finalName), 0);
+
                 // update deck name
                 dispatch(
                     reduceIn(
@@ -321,6 +323,28 @@ const initialState = {
 
     // redux-form. generate initial state.
     form: reduxformReducer()
+
+};
+
+/* helpers */
+
+const forEach = require('lodash/forEach');
+const ReactDOM = require('react-dom');
+
+const MathJaxRenderInline = require('components/dumb/mathjax_inline');
+
+const updateDeckNameExternally = function(newName) {
+
+    forEach(document.getElementsByClassName('__deck_name'), function(elem) {
+
+        setTimeout(function(){
+            ReactDOM.render(
+                <MathJaxRenderInline contents={newName} />,
+                elem,
+            );
+        }, 0);
+
+    });
 
 };
 
