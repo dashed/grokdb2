@@ -203,6 +203,15 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 .is-bold{\
                                     font-weight: bold;\
                                 }\
+                            ");
+
+                            : raw!("\
+                                span.mathjax_inline_pre {\
+                                    font-weight: normal;\
+                                }\
+                                span.mathjax_inline {\
+                                    font-weight: normal;\
+                                }\
                             ")
                         }
                     }
@@ -325,6 +334,8 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     }
                 }
 
+                script(type="text/javascript", src="/assets/mathjax_inline.js") {}
+
                 |tmpl| {
                     match *app_route {
                         // TODO: fix
@@ -372,7 +383,9 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 script(type="text/javascript", src="/assets/deck_description.js") {}
                             }
                         },
-                        _ => {}
+                        _ => {
+                            // NOTE: No script here
+                        }
                     };
                 }
 
@@ -420,7 +433,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id, DeckRoute::Decks(Default::default(), Default::default())))
                                 ) {
-                                    : &deck.name;
+                                    |tmpl| MathJaxInline(tmpl, deck.name.clone());
                                 }
                             }
                         }
@@ -749,7 +762,7 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
                                     AppRoute::Deck(deck_id,
                                         DeckRoute::Decks(Default::default(), Default::default())))
                     ) {
-                        : &deck.name
+                        |tmpl| MathJaxInline(tmpl, deck.name.clone());
                     }
                 }
                 span(style="font-size:12px;") {
@@ -978,6 +991,15 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
 
                 }
             }
+        }
+    }
+}
+
+#[inline]
+fn MathJaxInline(tmpl: &mut TemplateBuffer, content: String) {
+    tmpl << html!{
+        span(class="mathjax_inline_pre") {
+            : content
         }
     }
 }

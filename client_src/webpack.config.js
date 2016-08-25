@@ -62,6 +62,7 @@ module.exports = {
         deck_review: "./src/deck_review.js",
         new_deck: "./src/new_deck.js",
         deck_description: "./src/deck_description.js",
+        mathjax_inline: "./src/mathjax_inline.js",
         // TODO: remove
         // vendor: vendor
     },
