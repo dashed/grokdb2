@@ -147,7 +147,7 @@ const RenderSourceDescriptionComponent = connect(
     }
 )(require('components/dumb/render_source'));
 
-const __DeckDescriptionEditing = function(props) {
+const __DeckDescription = function(props) {
 
     const description = props.description;
     const isEditing = props.isEditing;
@@ -215,7 +215,7 @@ const __DeckDescriptionEditing = function(props) {
 };
 
 if(process.env.NODE_ENV !== 'production') {
-    __DeckDescriptionEditing.propTypes = {
+    __DeckDescription.propTypes = {
         description: React.PropTypes.object.isRequired,
         isEditing: React.PropTypes.bool.isRequired,
         initialContents: React.PropTypes.string.isRequired,
@@ -223,39 +223,12 @@ if(process.env.NODE_ENV !== 'production') {
     };
 }
 
-const DeckDescriptionEditing = connect(
-    // mapStateToProps
-    (state) => {
-        return {
-            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
-            initialContents: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
-        };
-    }
-
-)(__DeckDescriptionEditing);
-
-const __DeckDescription = function(props) {
-
-    // TODO: refactor
-    const {isEditing, description} = props;
-
-    return (<DeckDescriptionEditing
-        isEditing={isEditing}
-        description={description}
-    />);
-};
-
-if(process.env.NODE_ENV !== 'production') {
-    __DeckDescription.propTypes = {
-        isEditing: React.PropTypes.bool.isRequired,
-        description: React.PropTypes.object.isRequired
-    };
-}
-
 const DeckDescription = connect(
     // mapStateToProps
     (state) => {
         return {
+            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
+            initialContents: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS],
             isEditing: state[DECK_DESCRIPTION][IS_EDITING]
         };
     }
