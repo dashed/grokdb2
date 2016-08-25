@@ -149,55 +149,77 @@ const RenderSourceDescriptionComponent = connect(
 
 const __DeckDescriptionEditing = function(props) {
 
-    const markdownView = props[MARKDOWN_VIEW];
     const description = props.description;
+    const isEditing = props.isEditing;
+    const markdownView = props[MARKDOWN_VIEW];
+
+    const initialContents = props.initialContents;
     const editedContents = description.value;
+
+    const renderContents = isEditing ? editedContents : initialContents;
+    const sourceContents = isEditing ? editedContents : '';
 
     let sourceStyle = {};
     let renderStyle = {};
 
-    switch(markdownView) {
-    case MARKDOWN_VIEW_RENDER:
-        sourceStyle.display = 'none';
-        break;
+    if(isEditing) {
 
-    case MARKDOWN_VIEW_SOURCE:
-    default:
-        renderStyle.display = 'none';
-    }
+        switch(markdownView) {
+        case MARKDOWN_VIEW_RENDER:
+            sourceStyle.display = 'none';
+            break;
 
-    return (
-        <div>
-            <div className='columns' style={{marginBottom: 0}}>
-                <div className='column'>
-                    <RenderSourceDescriptionComponent
-                        reverse
-                    />
-                </div>
-            </div>
+        case MARKDOWN_VIEW_SOURCE:
+        default:
+            renderStyle.display = 'none';
+        }
 
-            <div style={renderStyle}>
-                <MarkdownRender contents={editedContents} />
-            </div>
+        return (
             <div>
-                <div style={sourceStyle}>
+                <div key='render_source' className='columns' style={{marginBottom: 0}}>
+                    <div className='column'>
+                        <RenderSourceDescriptionComponent
+                            reverse
+                        />
+                    </div>
+                </div>
+                <div key='render' style={renderStyle}>
+                    <MarkdownRender contents={renderContents} />
+                </div>
+                <div key='source' style={sourceStyle}>
                     <MarkdownSource
                         id='input-deck-description'
-                        contents={editedContents}
+                        contents={sourceContents}
                         placeholder={'Deck Description'}
                         assignProps={description}
                         editable
                     />
                 </div>
             </div>
+        );
+
+    }
+
+    return (
+        <div>
+            <div key='render' style={renderStyle}>
+                <MarkdownRender
+                    contents={renderContents}
+                    noContentMessage={'No description set for this deck. Click "Edit" button to add a description.'}
+                />
+            </div>
         </div>
     );
+
 
 };
 
 if(process.env.NODE_ENV !== 'production') {
     __DeckDescriptionEditing.propTypes = {
         description: React.PropTypes.object.isRequired,
+        isEditing: React.PropTypes.bool.isRequired,
+        initialContents: React.PropTypes.string.isRequired,
+        // TODO: [MARKDOWN_VIEW]
     };
 }
 
@@ -205,49 +227,22 @@ const DeckDescriptionEditing = connect(
     // mapStateToProps
     (state) => {
         return {
-            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW]
+            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
+            initialContents: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
         };
     }
 
 )(__DeckDescriptionEditing);
 
-
-const __DeckDescriptionMarkdown = function(props) {
-    return (
-        <div>
-            <MarkdownRender
-            contents={props.contents}
-            noContentMessage={'No description set for this deck. Click "Edit" button to add a description.'}
-            />
-        </div>
-    );
-};
-
-if(process.env.NODE_ENV !== 'production') {
-    __DeckDescriptionMarkdown.propTypes = {
-        contents: React.PropTypes.string.isRequired
-    };
-}
-
-const DeckDescriptionMarkdown = connect(
-    // mapStateToProps
-    (state) => {
-        return {
-            contents: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
-        };
-    }
-
-)(__DeckDescriptionMarkdown);
-
 const __DeckDescription = function(props) {
 
+    // TODO: refactor
     const {isEditing, description} = props;
 
-    if(isEditing) {
-        return (<DeckDescriptionEditing description={description} />);
-    }
-
-    return (<DeckDescriptionMarkdown />);
+    return (<DeckDescriptionEditing
+        isEditing={isEditing}
+        description={description}
+    />);
 };
 
 if(process.env.NODE_ENV !== 'production') {
@@ -273,7 +268,7 @@ const __DeckDescriptionContainer = function(props) {
         fields: { description },
         submitting,
         handleSubmit,
-        resetForm
+        resetForm,
     } = props;
 
     const __description = assign({}, description);
@@ -313,10 +308,9 @@ if(process.env.NODE_ENV !== 'production') {
         handleSubmit: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
         postURL: React.PropTypes.string.isRequired,
-        resetForm: React.PropTypes.func.isRequired,
+        resetForm: React.PropTypes.func.isRequired
     };
 }
-
 
 const deckDescriptionContainerFactory = function(preRenderState) {
 
@@ -345,7 +339,7 @@ const deckDescriptionContainerFactory = function(preRenderState) {
         (state) => {
             return {
                 initialValues: {
-                    description: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+                    description: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS],
                 }
             };
         }
@@ -531,7 +525,7 @@ const markdownContentsReducer = function(state = '', action) {
     }
 
     return state;
-}
+};
 
 const editingReducer = function(state = false, action) {
 
