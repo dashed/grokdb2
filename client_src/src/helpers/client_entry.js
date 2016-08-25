@@ -42,6 +42,10 @@ module.exports = (maker, preRenderState, postRenderState, mountTarget) => {
             console.log('rehydration finished.');
         }
 
+        if(maker.afterRender) {
+            maker.afterRender(store);
+        }
+
     };
 
     if(maker.preRender) {

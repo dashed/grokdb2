@@ -10,3 +10,4 @@ mkdir -p "${DEST_OUTPUT}"
 
 # NODE_PATH=./src/ node generate_component.js 'components/deck_review.js' > "${DEST_OUTPUT}/deck_review"
 NODE_PATH=./src/ node generate_component.js 'components/new_deck.js' > "${DEST_OUTPUT}/new_deck"
+NODE_PATH=./src/ node generate_component.js 'components/deck_description.js' > "${DEST_OUTPUT}/deck_description"

@@ -205,6 +205,7 @@ const __DeckDescription = function(props) {
             <div key='render' style={renderStyle}>
                 <MarkdownRender
                     contents={renderContents}
+                    showNoContentMessage={props.showNoContentMessage}
                     noContentMessage={'No description set for this deck. Click "Edit" button to add a description.'}
                 />
             </div>
@@ -219,6 +220,7 @@ if(process.env.NODE_ENV !== 'production') {
         description: React.PropTypes.object.isRequired,
         isEditing: React.PropTypes.bool.isRequired,
         initialContents: React.PropTypes.string.isRequired,
+        showNoContentMessage: React.PropTypes.bool.isRequired,
         // TODO: [MARKDOWN_VIEW]
     };
 }
@@ -229,7 +231,8 @@ const DeckDescription = connect(
         return {
             [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW],
             initialContents: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS],
-            isEditing: state[DECK_DESCRIPTION][IS_EDITING]
+            isEditing: state[DECK_DESCRIPTION][IS_EDITING],
+            showNoContentMessage: state[DECK_DESCRIPTION].showNoContentMessage
         };
     }
 
@@ -245,6 +248,30 @@ const __DeckDescriptionContainer = function(props) {
     } = props;
 
     const __description = assign({}, description);
+
+    if(!props.showNoContentMessage) {
+
+        return (
+            <div>
+                <div className='columns' style={{marginBottom: 0}}>
+                    <div className='column'>
+                        <ToolBar
+                            handleSubmit={handleSubmit}
+                            resetForm={resetForm}
+                            submitting={submitting}
+                            newContent={description.value}
+                        />
+                    </div>
+                </div>
+                <div className='columns'>
+                    <div className='column'>
+                        <hr className='is-marginless'/>
+                    </div>
+                </div>
+            </div>
+        );
+
+    }
 
     return (
         <div>
@@ -281,7 +308,8 @@ if(process.env.NODE_ENV !== 'production') {
         handleSubmit: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
         postURL: React.PropTypes.string.isRequired,
-        resetForm: React.PropTypes.func.isRequired
+        resetForm: React.PropTypes.func.isRequired,
+        showNoContentMessage: React.PropTypes.bool.isRequired,
     };
 }
 
@@ -313,7 +341,8 @@ const deckDescriptionContainerFactory = function(preRenderState) {
             return {
                 initialValues: {
                     description: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS],
-                }
+                },
+                showNoContentMessage: state[DECK_DESCRIPTION].showNoContentMessage
             };
         }
     )(component);
@@ -487,6 +516,19 @@ const switchMarkdownView = function(dispatch, path, markdownView) {
 
 const markdownViewReducer = require('reducers/markdown_view');
 
+const showNoContentMessageReducer = function(state = false, action) {
+    switch(action.type) {
+    case true:
+    case false:
+        state = action.type;
+        break;
+    default:
+        state = false;
+    }
+
+    return state;
+}
+
 const markdownContentsReducer = function(state = '', action) {
 
     switch(action.type) {
@@ -525,7 +567,8 @@ const initialState = {
     [DECK_DESCRIPTION]: {
         [IS_EDITING]: false,
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
-        [MARKDOWN_CONTENTS]: ''
+        [MARKDOWN_CONTENTS]: '',
+        showNoContentMessage: false
         // NOTE: contents is stored and handled by redux-form
     },
 
@@ -557,4 +600,19 @@ module.exports.initialState = initialState;
 
 module.exports.preRender = function() {
     window.document.getElementById('deck_description_container_stub').style.display = 'none';
+};
+
+module.exports.afterRender = function(store) {
+    store.dispatch(
+        reduceIn(
+            // reducer
+            showNoContentMessageReducer,
+            // path
+            [DECK_DESCRIPTION, 'showNoContentMessage'],
+            // action
+            {
+                type: true
+            }
+        )
+    );
 };

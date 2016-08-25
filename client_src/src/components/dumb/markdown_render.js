@@ -24,12 +24,14 @@ const MarkdownRender = React.createClass({
 
     propTypes: {
         contents: React.PropTypes.string.isRequired,
-        noContentMessage: React.PropTypes.string.isRequired
+        noContentMessage: React.PropTypes.string.isRequired,
+        showNoContentMessage: React.PropTypes.bool.isRequired
     },
 
     getDefaultProps() {
         return {
-            noContentMessage: 'No content was rendered. Click on "Source" tab and enter some text.'
+            noContentMessage: 'No content was rendered. Click on "Source" tab and enter some text.',
+            showNoContentMessage: true
         };
     },
 
@@ -104,6 +106,10 @@ const MarkdownRender = React.createClass({
                     dangerouslySetInnerHTML={{__html: content}}
                 />
             );
+        }
+
+        if(!this.props.showNoContentMessage) {
+            return null;
         }
 
         // NOTE: dangerouslySetInnerHTML is not applied here

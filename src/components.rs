@@ -585,10 +585,10 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
         }
 
         div(id="deck_description_container") {
-            // : raw!(include_str!("react_components/new_deck"))
+            : raw!(include_str!("react_components/deck_description"))
         }
 
-        div(class="columns", id="deck_description_container_stub") {
+        div(class="columns", id="deck_description_container_stub", style="margin-top: 10px;") {
             div(class="column") {
                 : description
             }
