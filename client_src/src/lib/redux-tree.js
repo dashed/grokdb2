@@ -31,6 +31,9 @@ const __getIn = (rootData, path) => {
     return lodashGetIn(rootData, path)
 };
 
+// NOTE:
+// - should return new object.
+// - should NOT edit rootData in-place
 const __setIn = (rootData, path, newValue) => {
 
     const isArray = lodashIsArray(rootData);
