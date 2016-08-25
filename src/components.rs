@@ -453,14 +453,13 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
         }
     };
 
-    let mut is_first = true;
+    let num_of_items = deck_path.len();
 
     tmpl << html!{
-        @ for deck_id in deck_path {
+        @ for (index, deck_id) in deck_path.iter().enumerate() {
             span(class="title is-5 is-marginless", style="font-weight:normal;") {
                 |tmpl| {
-                    if is_first {
-                        is_first = false;
+                    if index == 0 {
                         tmpl << html!{
                             : raw!("/ ");
                         }
@@ -473,17 +472,39 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
             }
             |tmpl| {
 
-                match decks::get_deck(context.clone(), deck_id) {
+                match decks::get_deck(context.clone(), *deck_id) {
                     Ok(deck) => {
-                        tmpl << html!{
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                a(href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(deck_id, DeckRoute::Decks(Default::default(), Default::default())))
-                                ) {
-                                    |tmpl| MathJaxInline(tmpl, deck.name.clone());
+
+                        if (index + 1) >= num_of_items {
+                            
+                            tmpl << html!{
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    a(href = view_route_to_link(context.clone(),
+                                        AppRoute::Deck(*deck_id, DeckRoute::Decks(Default::default(), Default::default())))
+                                    ) {
+                                        // NOTE: we wrap the mathjax-ified name with id of 'deck_title'.
+                                        //       when renaming the deck, a react component can re-render this
+                                        span(id="deck_name") {
+                                            |tmpl| MathJaxInline(tmpl, deck.name.clone());    
+                                        }
+                                    }
                                 }
                             }
+
+                        } else {
+
+                            tmpl << html!{
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    a(href = view_route_to_link(context.clone(),
+                                        AppRoute::Deck(*deck_id, DeckRoute::Decks(Default::default(), Default::default())))
+                                    ) {
+                                        |tmpl| MathJaxInline(tmpl, deck.name.clone());    
+                                    }
+                                }
+                            }
+
                         }
+
                     },
                     Err(_) => {
                         // TODO: internal error logging
