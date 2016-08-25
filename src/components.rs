@@ -656,7 +656,14 @@ fn DeckSettings(
             }
         }
 
-        |tmpl| DeckSettingsNav(tmpl, context.clone(), setting_mode, deck_id);
+        |tmpl| DeckSettingsNav(tmpl, context.clone(), &setting_mode, deck_id);
+
+        |tmpl| {
+            match *setting_mode {
+                DeckSettings::Main => DeckSettingsMain(tmpl, context.clone(), deck_id),
+                DeckSettings::Move => DeckSettingsMove(tmpl, context.clone(), deck_id),
+            }
+        }
 
         div(id="settings_deck_name_container") {
             // : raw!(include_str!("react_components/deck_description"))
@@ -722,9 +729,27 @@ fn DeckSettingsNav(
 
 }
 
+#[inline]
+fn DeckSettingsMain(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID
+    ) {
+    tmpl << html!{
+        : "main"
+    }
+}
 
-
-
+#[inline]
+fn DeckSettingsMove(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID
+    ) {
+    tmpl << html!{
+        : "move"
+    }
+}
 
 
 #[inline]
