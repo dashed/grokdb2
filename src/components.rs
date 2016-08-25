@@ -48,6 +48,7 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
             match deck_route {
                 DeckRoute::NewDeck => format!("/deck/{}/new/deck", deck_id),
                 DeckRoute::Description => format!("/deck/{}/description", deck_id),
+                DeckRoute::Settings => format!("/deck/{}/settings", deck_id),
                 DeckRoute::Decks(page_query, search) => {
 
                     let mut query = page_query.generate_query_string();
@@ -485,8 +486,16 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             deck_id
                         )
                     },
+                    DeckRoute::Settings => {
+                        DeckSettings(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
+                    },
                     _ => {
-                        // TODO: complete this
+                        // TODO: remove eventually
+                        panic!();
                     }
                 }
             }
@@ -545,7 +554,15 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                 }
                             }
                             li {
-                                a(href="#", class="is-bold") {
+                                a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::Settings)),
+                                    class? = classnames!(
+                                        "is-bold",
+                                        "is-active" => {
+                                            matches!(*deck_route, DeckRoute::Settings)
+                                        })
+                                ) {
                                     : "Settings"
                                 }
                             }
@@ -608,6 +625,39 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
         }
     }
 }
+
+#[inline]
+fn DeckSettings(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
+
+    let deck = match decks::get_deck(context.clone(), deck_id) {
+        Ok(deck) => deck,
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        }
+    };
+
+    tmpl << html!{
+        div(class="columns") {
+            div(class="column") {
+                h1(class="title") {
+                    : raw!("Deck Settings")
+                }
+            }
+        }
+
+        div(id="settings_deck_name_container") {
+            // : raw!(include_str!("react_components/deck_description"))
+        }
+
+        div(class="columns", id="settings_deck_name_container_stub", style="margin-top: 10px;") {
+            div(class="column") {
+                : &deck.name
+            }
+        }
+    }
+}
+
 
 #[inline]
 fn DecksChildren(tmpl: &mut TemplateBuffer,

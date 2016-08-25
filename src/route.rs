@@ -384,6 +384,8 @@ fn parse_route_api_deck_new_deck<'a>(
         parse_byte_limit(b'/', 5);
         string_ignore_case(b"deck");
 
+        eof();
+
         ret {
             __parse_route_api_deck_new_deck(context, request, parent_deck_id)
         }
@@ -481,6 +483,8 @@ fn parse_route_api_deck_description<'a>(
 
         string_ignore_case(b"description");
 
+        eof();
+
         ret {
             __parse_route_api_deck_description(context, request, deck_id)
         }
@@ -576,6 +580,7 @@ fn __parse_route_deck<'a>(
     parse!{input;
         let render_response = parse_route_deck_new_deck(request.clone(), deck_id) <|>
             parse_route_deck_description(request.clone(), deck_id) <|>
+            parse_route_deck_settings(request.clone(), deck_id) <|>
             parse_route_deck_decks(context.clone(), request.clone(), deck_id);
 
         ret render_response
@@ -593,11 +598,105 @@ fn parse_route_deck_description<'a>(
 
         string_ignore_case(b"description");
 
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        or(
+            |i| parse!{i;
+                token(b'?');
+                ret {()}
+            },
+            eof
+        );
+
         ret {
             if request.borrow().method != Method::Get {
                 RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
             } else {
                 let route = AppRoute::Deck(deck_id, DeckRoute::Description);
+                RenderResponse::RenderComponent(route)
+            }
+        }
+    }
+}
+
+#[inline]
+fn parse_route_deck_settings<'a>(
+    input: Input<'a, u8>,
+    // NOTE: not needed
+    // context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"settings");
+
+        let response = parse_route_deck_settings_move(request.clone(), deck_id) <|>
+            parse_route_deck_settings_main(request.clone(), deck_id);
+
+        ret response
+
+    }
+}
+
+#[inline]
+fn parse_route_deck_settings_main<'a>(
+    input: Input<'a, u8>,
+    // NOTE: not needed
+    // context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        or(
+            |i| parse!{i;
+                token(b'?');
+                ret {()}
+            },
+            eof
+        );
+
+        ret {
+            if request.borrow().method != Method::Get {
+                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+            } else {
+                let route = AppRoute::Deck(deck_id, DeckRoute::Settings);
+                RenderResponse::RenderComponent(route)
+            }
+        }
+    }
+}
+
+#[inline]
+fn parse_route_deck_settings_move<'a>(
+    input: Input<'a, u8>,
+    // NOTE: not needed
+    // context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        // TODO: place this here?
+        parse_byte_limit(b'/', 5);
+
+        string_ignore_case(b"move");
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
+
+            ret Some(query_string)
+        }, None);
+
+        eof();
+
+        ret {
+            if request.borrow().method != Method::Get {
+                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+            } else {
+                let route = AppRoute::Deck(deck_id, DeckRoute::Settings);
                 RenderResponse::RenderComponent(route)
             }
         }
@@ -662,6 +761,16 @@ fn parse_route_deck_new_deck<'a>(
         string_ignore_case(b"new");
         parse_byte_limit(b'/', 5);
         string_ignore_case(b"deck");
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        or(
+            |i| parse!{i;
+                token(b'?');
+                ret {()}
+            },
+            eof
+        );
 
         ret {
             // Allow only GET requests
