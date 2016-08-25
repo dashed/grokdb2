@@ -45,7 +45,7 @@ use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limi
 use types::{DeckID, CardID, DecksPageQuery, Search};
 use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
-use api::decks::{self, CreateDeck, DeckResponse, UpdateDeckDescription};
+use api::decks::{self, CreateDeck, DeckResponse, UpdateDeckDescription, UpdateDeckName};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -377,7 +377,8 @@ fn __parse_route_api_deck<'a>(
     parse!{input;
 
         let render_response = parse_route_api_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
-            parse_route_api_deck_description(context.clone(), request.clone(), deck_id);
+            parse_route_api_deck_description(context.clone(), request.clone(), deck_id) <|>
+            parse_route_api_deck_settings(context.clone(), request.clone(), deck_id);
 
         ret render_response
     }
@@ -538,6 +539,88 @@ fn __parse_route_api_deck_description(
             let _guard = context::write_lock(context.clone());
 
             match decks::update_deck_description(context.clone(), deck_id, request) {
+                Err(_) => {
+                    // TODO: error logging
+                    return RenderResponse::RenderInternalServerError;
+                },
+                Ok(_) => {
+                    return RenderResponse::RenderOk;
+                }
+            }
+        }
+    }
+}
+
+#[inline]
+fn parse_route_api_deck_settings<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"settings");
+        parse_byte_limit(b'/', 5);
+
+        let response = parse_route_api_deck_settings_name(context.clone(), request.clone(), deck_id);
+
+        ret response
+    }
+}
+
+#[inline]
+fn parse_route_api_deck_settings_name<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"name");
+        eof();
+
+        ret {
+            __parse_route_api_deck_settings_name(context, request, deck_id)
+        }
+    }
+}
+
+#[inline]
+fn __parse_route_api_deck_settings_name(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> RenderResponse {
+
+    let mut request = request.borrow_mut();
+
+    if request.method != Method::Post {
+        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+    }
+
+    let mut buffer = String::new();
+
+    match request.read_to_string(&mut buffer) {
+        Err(err) => {
+            // invalid utf8 input
+            // TODO: error logging
+            return RenderResponse::RenderBadRequest;
+        },
+        Ok(_num_bytes_parsed) => {
+
+            let request: UpdateDeckName = match serde_json::from_str(&buffer) {
+                Ok(request) => request,
+                Err(err) => {
+                    // TODO: error logging
+                    // println!("{:?}", err);
+                    return RenderResponse::RenderBadRequest;
+                }
+            };
+
+            let _guard = context::write_lock(context.clone());
+
+            match decks::update_deck_name(context.clone(), deck_id, request) {
                 Err(_) => {
                     // TODO: error logging
                     return RenderResponse::RenderInternalServerError;

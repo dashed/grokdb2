@@ -139,7 +139,36 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             )
                         )
                     }
-                }
+                },
+                DeckRoute::Settings(DeckSettings::Main) => {
+
+                    let markdown_contents: String = match decks::get_deck(context.clone(), deck_id) {
+                        Ok(deck) => {
+                            let markdown_contents = MarkdownContents {
+                                MARKDOWN_CONTENTS: deck.name
+                            };
+                            serde_json::to_string(&markdown_contents).unwrap()
+                        },
+                        Err(_) => {
+                            // TODO: internal error logging
+                            panic!();
+                        }
+                    };
+
+                    tmpl << html! {
+                        : raw!(
+                            format!(
+                                "window.__PRE_RENDER_STATE__ = \
+                                    {{\
+                                        POST_TO: '/api/deck/{deck_id}/settings/name',\
+                                        DECK_NAME: {markdown_contents}\
+                                    }};\
+                                ",
+                                deck_id = deck_id, markdown_contents = markdown_contents
+                            )
+                        )
+                    }
+                },
                 _ => {
                     // nothing
                 }
@@ -392,12 +421,11 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         AppRoute::Deck(_, DeckRoute::Settings(DeckSettings::Main)) =>  {
                             tmpl << html! {
 
-                                // TODO: complete
-                                // script(type="text/javascript") {
-                                //     |tmpl| {
-                                //         pre_render_state(tmpl, context.clone(), &app_route);
-                                //     }
-                                // }
+                                script(type="text/javascript") {
+                                    |tmpl| {
+                                        pre_render_state(tmpl, context.clone(), &app_route);
+                                    }
+                                }
 
                                 script(type="text/javascript", src="/assets/deck_settings_main.js") {}
                             }
@@ -793,7 +821,6 @@ fn DeckSettingsMove(
         }
     }
 }
-
 
 #[inline]
 fn DecksChildren(tmpl: &mut TemplateBuffer,

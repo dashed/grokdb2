@@ -43,6 +43,12 @@ pub struct UpdateDeckDescription {
     pub description: String // required, but may be empty
 }
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct UpdateDeckName {
+    pub name: String // required
+}
+
 #[derive(Debug, Serialize)]
 pub struct DeckResponse {
 
@@ -207,6 +213,38 @@ pub fn update_deck_description(
     ", deck_id = deck_id);
 
     let params: &[(&str, &ToSql)] = &[(":description", &update_deck_description_request.description.clone())];
+
+    let context = context.borrow();
+    db_write_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    match db_conn.execute_named(&query, &params[..]) {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+        _ => {
+            /* query sucessfully executed */
+        }
+    }
+
+    return Ok(());
+}
+
+pub fn update_deck_name(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    update_deck_name_request: UpdateDeckName) -> Result<(), RawAPIError> {
+
+    assert!(context.borrow().is_write_locked());
+
+    let query = format!("
+        UPDATE Decks
+        SET
+        name = :name
+        WHERE deck_id = {deck_id};
+    ", deck_id = deck_id);
+
+    let params: &[(&str, &ToSql)] = &[(":name", &update_deck_name_request.name.clone())];
 
     let context = context.borrow();
     db_write_lock!(db_conn; context.database());
@@ -713,6 +751,45 @@ fn decks_test() {
                 Ok(actual) => {
                     assert_eq!(actual.id, 1);
                     assert_eq!(actual.name, format!("Foo"));
+                    assert_eq!(actual.description, format!("this is a description"));
+                    assert_eq!(actual.created_at, actual.updated_at);
+                    assert_eq!(actual.created_at, actual.reviewed_at);
+                    assert_eq!(actual.has_reviewed, false);
+                },
+                Err(_) => assert!(false),
+            }
+
+            // ensure nothing was cached
+            assert_eq!(context.borrow().should_cache, false);
+            assert_eq!(context.borrow().decks.len(), 0);
+        };
+
+    };
+
+    {
+
+        // case: update deck name
+
+        {
+            let request = UpdateDeckName {
+                name: "FooBar".to_string()
+            };
+
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::write_lock(context.clone());
+            match decks::update_deck_name(context, 1, request) {
+                Ok(_) => assert!(true),
+                Err(_) => assert!(false),
+            };
+        };
+
+        {
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::read_lock(context.clone());
+            match decks::get_deck(context.clone(), 1) {
+                Ok(actual) => {
+                    assert_eq!(actual.id, 1);
+                    assert_eq!(actual.name, format!("FooBar"));
                     assert_eq!(actual.description, format!("this is a description"));
                     assert_eq!(actual.created_at, actual.updated_at);
                     assert_eq!(actual.created_at, actual.reviewed_at);

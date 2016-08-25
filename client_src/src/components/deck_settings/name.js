@@ -58,11 +58,9 @@ const __DeckSettingsNameContainer = function(props) {
         submitting,
         handleSubmit,
         postURL,
-        dispatch
+        dispatch,
+        originalName
     } = props;
-
-    // TODO: needed?
-    // props.showNoContentMessage
 
     return (
         <div>
@@ -98,7 +96,10 @@ const __DeckSettingsNameContainer = function(props) {
                 <div className='column'>
                     <a
                         className={classnames('button is-success', {
-                            'is-disabled': submitting || String(name.value).trim().length <= 0,
+                            'is-disabled':
+                                submitting ||
+                                String(name.value).trim().length <= 0 ||
+                                String(originalName).trim() == String(name.value).trim(),
                             'is-loading': submitting
                         })}
                         onClick={handleSubmit(saveName.bind(null, dispatch, postURL))}>
@@ -121,6 +122,7 @@ if(process.env.NODE_ENV !== 'production') {
         dispatch: React.PropTypes.func.isRequired,
         showNoContentMessage: React.PropTypes.bool.isRequired,
         mathjaxifyDeckName: React.PropTypes.bool.isRequired,
+        originalName: React.PropTypes.string.isRequired,
     };
 }
 
@@ -147,6 +149,7 @@ const deckSettingsNameContainerFactory = function(preRenderState) {
                 },
                 showNoContentMessage: state[DECK_NAME].showNoContentMessage,
                 mathjaxifyDeckName: state[DECK_NAME][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
+                originalName: state[DECK_NAME][MARKDOWN_CONTENTS],
             };
         }
 
@@ -230,7 +233,7 @@ const saveName = function(dispatch, postURL, formData) {
                 dispatch(
                     reduceIn(
                         // reducer
-                        switchMarkdownView,
+                        markdownViewReducer,
                         // path
                         [DECK_NAME, MARKDOWN_VIEW],
                         // action
