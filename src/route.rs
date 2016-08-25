@@ -436,6 +436,11 @@ fn __parse_route_api_deck_new_deck(
                 }
             };
 
+            // NOTE: deck name must not be empty
+            if request.name.trim().len() <= 0 {
+                return RenderResponse::RenderBadRequest;
+            }
+
             let _guard = context::write_lock(context.clone());
 
             match decks::create_deck(context.clone(), request) {
@@ -617,6 +622,11 @@ fn __parse_route_api_deck_settings_name(
                     return RenderResponse::RenderBadRequest;
                 }
             };
+
+            // NOTE: deck name must not be empty
+            if request.name.trim().len() <= 0 {
+                return RenderResponse::RenderBadRequest;
+            }
 
             let _guard = context::write_lock(context.clone());
 
