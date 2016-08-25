@@ -59,10 +59,14 @@ module.exports = {
     colors: true,
     watch: true,
     entry: {
-        deck_review: "./src/deck_review.js",
+        mathjax_inline: "./src/mathjax_inline.js",
+
+        // TODO: fix
+        // deck_review: "./src/deck_review.js",
+
         new_deck: "./src/new_deck.js",
         deck_description: "./src/deck_description.js",
-        mathjax_inline: "./src/mathjax_inline.js",
+        deck_settings_main: "./src/deck_settings_main.js"
         // TODO: remove
         // vendor: vendor
     },

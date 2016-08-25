@@ -1,5 +1,4 @@
-require('babel-polyfill');
-global.Promise = require('bluebird');
+require('global/normalize');
 
 const React = require('react');
 

@@ -1,5 +1,4 @@
-require('babel-polyfill');
-global.Promise = require('bluebird');
+require('global/normalize');
 
 const React = require('react');
 
@@ -315,7 +314,7 @@ if(process.env.NODE_ENV !== 'production') {
 
 const deckDescriptionContainerFactory = function(preRenderState) {
 
-    const component = reduxForm(
+    return reduxForm(
 
         // config
         {
@@ -329,24 +328,15 @@ const deckDescriptionContainerFactory = function(preRenderState) {
         // mapStateToProps
         (state) => {
             return {
-                postURL: state[POST_TO]
-            };
-        }
-
-    )(__DeckDescriptionContainer);
-
-    return connect(
-        // mapStateToProps
-        (state) => {
-            return {
+                postURL: state[POST_TO],
                 initialValues: {
                     description: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS],
                 },
                 showNoContentMessage: state[DECK_DESCRIPTION].showNoContentMessage
             };
         }
-    )(component);
 
+    )(__DeckDescriptionContainer);
 };
 
 /* redux action dispatchers */
@@ -603,6 +593,8 @@ module.exports.preRender = function() {
 };
 
 module.exports.afterRender = function(store) {
+    // NOTE: By default, the markdown content is empty and MarkdownRender will NOT display
+    // a notice of empty content. This reverts this behaviour.
     store.dispatch(
         reduceIn(
             // reducer

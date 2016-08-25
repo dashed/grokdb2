@@ -389,6 +389,19 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 script(type="text/javascript", src="/assets/deck_description.js") {}
                             }
                         },
+                        AppRoute::Deck(_, DeckRoute::Settings(DeckSettings::Main)) =>  {
+                            tmpl << html! {
+
+                                // TODO: complete
+                                // script(type="text/javascript") {
+                                //     |tmpl| {
+                                //         pre_render_state(tmpl, context.clone(), &app_route);
+                                //     }
+                                // }
+
+                                script(type="text/javascript", src="/assets/deck_settings_main.js") {}
+                            }
+                        },
                         _ => {
                             // NOTE: No script here
                         }
@@ -639,14 +652,6 @@ fn DeckSettings(
     setting_mode: &DeckSettings,
     deck_id: DeckID) {
 
-    let deck = match decks::get_deck(context.clone(), deck_id) {
-        Ok(deck) => deck,
-        Err(_) => {
-            // TODO: internal error logging
-            panic!();
-        }
-    };
-
     tmpl << html!{
         div(class="columns") {
             div(class="column") {
@@ -665,15 +670,6 @@ fn DeckSettings(
             }
         }
 
-        div(id="settings_deck_name_container") {
-            // : raw!(include_str!("react_components/deck_description"))
-        }
-
-        div(class="columns", id="settings_deck_name_container_stub", style="margin-top: 10px;") {
-            div(class="column") {
-                : &deck.name
-            }
-        }
     }
 }
 
@@ -735,8 +731,52 @@ fn DeckSettingsMain(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID
     ) {
+
+    let deck = match decks::get_deck(context.clone(), deck_id) {
+        Ok(deck) => deck,
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        }
+    };
+
     tmpl << html!{
-        : "main"
+
+        div(class="columns") {
+            div(class="column") {
+                h4(class="title is-4") {
+                    : raw!("Deck Name")
+                }
+            }
+        }
+
+        div(id="deck_settings_main_name_container") {
+            // : raw!(include_str!("react_components/deck_description"))
+        }
+
+        div(class="columns") {
+            div(class="column") {
+                hr(class="is-marginless");
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+                h4(class="title is-4") {
+                    : raw!("Delete Deck")
+                }
+            }
+        }
+
+        div(id="deck_settings_main_delete_container") {
+            // : raw!(include_str!("react_components/deck_description"))
+        }
+
+        div(class="columns", id="settings_deck_name_container_stub", style="margin-top: 10px;") {
+            div(class="column") {
+                : &deck.name
+            }
+        }
     }
 }
 
@@ -747,7 +787,10 @@ fn DeckSettingsMove(
     deck_id: DeckID
     ) {
     tmpl << html!{
-        : "move"
+        div(id="settings_deck_name_container") {
+            : "move"
+            // : raw!(include_str!("react_components/deck_description"))
+        }
     }
 }
 
