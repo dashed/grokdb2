@@ -13,67 +13,69 @@ use database::Database;
 
 /// /////////////////////////////////////////////////////////////////////////////
 
-const SETUP: [&'static str; 26] = [// configs
-                                   CONFIGS,
+const SETUP: [&'static str; 26] = [
+    // configs
+    CONFIGS,
 
-                                   // configs/triggers
-                                   CONFIG_ON_UPDATE_TRIGGER,
+    // configs/triggers
+    CONFIG_ON_UPDATE_TRIGGER,
 
-                                   // decks
-                                   DECKS,
-                                   DECKSCLOSURE,
+    // decks
+    DECKS,
+    DECKSCLOSURE,
 
-                                   // decks/indices
-                                   DECKSCLOSURE_DEPTH_INDEX,
+    // decks/indices
+    DECKSCLOSURE_DEPTH_INDEX,
 
-                                   // decks/triggers
-                                   DECK_ON_UPDATE_TRIGGER,
-                                   DECKSCLOSURE_NEW_DECK_TRIGGER,
+    // decks/triggers
+    DECK_ON_UPDATE_TRIGGER,
+    DECKSCLOSURE_NEW_DECK_TRIGGER,
 
-                                   // cards
-                                   CARDS,
+    // cards
+    CARDS,
 
-                                   // cards/indices
-                                   CARD_ID_INDEX,
+    // cards/indices
+    CARD_ID_INDEX,
 
-                                   // cards/triggers
-                                   UPDATED_CARD_TRIGGER,
+    // cards/triggers
+    UPDATED_CARD_TRIGGER,
 
-                                   // cards score
-                                   CARDS_SCORE,
+    // cards score
+    CARDS_SCORE,
 
-                                   // cards score/triggers
-                                   CARDS_SCORE_ON_NEW_CARD_TRIGGER,
+    // cards score/triggers
+    CARDS_SCORE_ON_NEW_CARD_TRIGGER,
 
-                                   // cards score/indices
-                                   CARDS_SCORE_INDEX,
+    // cards score/indices
+    CARDS_SCORE_INDEX,
 
-                                   // cards score history
-                                   CARDS_SCORE_HISTORY,
+    // cards score history
+    CARDS_SCORE_HISTORY,
 
-                                   // cards score history/triggers
-                                   SNAPSHOT_CARDS_SCORE_ON_UPDATED_TRIGGER,
+    // cards score history/triggers
+    SNAPSHOT_CARDS_SCORE_ON_UPDATED_TRIGGER,
 
-                                   // cards score history/indices
-                                   CARDS_SCORE_HISTORY_CARD_INDEX,
-                                   CARDS_SCORE_HISTORY_OCCURRED_AT_INDEX,
+    // cards score history/indices
+    CARDS_SCORE_HISTORY_CARD_INDEX,
+    CARDS_SCORE_HISTORY_OCCURRED_AT_INDEX,
 
-                                   // stashes
-                                   STASHES,
-                                   STASHES_CARDS,
+    // stashes
+    STASHES,
+    STASHES_CARDS,
 
-                                   // stashes/triggers
-                                   STASHES_ON_UPDATE_TRIGGER,
+    // stashes/triggers
+    STASHES_ON_UPDATE_TRIGGER,
 
-                                   // review
-                                   CACHED_DECK_REVIEW,
-                                   CACHED_STASH_REVIEW,
+    // review
+    CACHED_DECK_REVIEW,
+    CACHED_STASH_REVIEW,
 
-                                   // FTS3/4 full-text searching sqlite module
-                                   CARD_SEARCH_INDEX,
-                                   CARD_SEARCH_FIRST_INDEX_TRIGGER,
-                                   CARD_SEARCH_DELETE_INDEX_TRIGGER,
-                                   CARD_SEARCH_UPDATE_INDEX_TRIGGER];
+    // FTS3/4 full-text searching sqlite module
+    CARD_SEARCH_INDEX,
+    CARD_SEARCH_FIRST_INDEX_TRIGGER,
+    CARD_SEARCH_DELETE_INDEX_TRIGGER,
+    CARD_SEARCH_UPDATE_INDEX_TRIGGER
+];
 
 /**
  * All SQL comply with syntax supported with SQLite v3.9.1
@@ -175,9 +177,9 @@ CREATE TABLE IF NOT EXISTS Cards (
     title TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
 
-    front TEXT NOT NULL DEFAULT '',
+    question TEXT NOT NULL DEFAULT '',
 
-    back TEXT NOT NULL DEFAULT '',
+    answer TEXT NOT NULL DEFAULT '',
 
     created_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
     updated_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
@@ -199,7 +201,7 @@ ON Cards (deck_id);
 const UPDATED_CARD_TRIGGER: &'static str = "
 CREATE TRIGGER IF NOT EXISTS UPDATED_CARD_TRIGGER
 AFTER UPDATE OF
-    title, description, front, back, deck_id
+    title, description, question, answer, deck_id
 ON Cards
 BEGIN
     UPDATE Cards SET updated_at = strftime('%s', 'now') WHERE card_id = NEW.card_id;
@@ -393,8 +395,8 @@ CREATE VIRTUAL TABLE IF NOT EXISTS
 USING fts4(
     title TEXT,
     description TEXT,
-    front TEXT,
-    back TEXT
+    question TEXT,
+    answer TEXT
 );
 ";
 
@@ -403,8 +405,8 @@ CREATE TRIGGER IF NOT EXISTS CARD_SEARCH_FIRST_INDEX_TRIGGER
 AFTER INSERT
 ON Cards
 BEGIN
-    INSERT OR REPLACE INTO CardsFTS(docid, title, description, front, back)
-    VALUES (NEW.card_id, NEW.title, NEW.description, NEW.front, NEW.back);
+    INSERT OR REPLACE INTO CardsFTS(docid, title, description, question, answer)
+    VALUES (NEW.card_id, NEW.title, NEW.description, NEW.question, NEW.answer);
 END;
 ";
 
@@ -420,11 +422,11 @@ END;
 const CARD_SEARCH_UPDATE_INDEX_TRIGGER: &'static str = "
 CREATE TRIGGER IF NOT EXISTS CARD_SEARCH_UPDATE_INDEX_TRIGGER
 AFTER UPDATE OF
-title, description, front, back, deck
+title, description, question, answer, deck
 ON Cards
 BEGIN
-    INSERT OR REPLACE INTO CardsFTS(docid, title, description, front, back)
-    VALUES (NEW.card_id, NEW.title, NEW.description, NEW.front, NEW.back);
+    INSERT OR REPLACE INTO CardsFTS(docid, title, description, question, answer)
+    VALUES (NEW.card_id, NEW.title, NEW.description, NEW.question, NEW.answer);
 END;
 ";
 
