@@ -1183,7 +1183,7 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
                 "border-bottom:1px dotted #d3d6db;" => !is_bottom)) {
             div(class="column is-side-paddingless") {
                 h5(class="title is-5 is-marginless is-bold") {
-                    a(href = view_route_to_link(context,
+                    a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
                                         DeckRoute::Decks(Default::default(), Default::default())))
                     ) {
@@ -1193,7 +1193,8 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
                 span(style="font-size:12px;") {
                     : format!("Deck #{}", deck.id);
                     : raw!(" ");
-                    a(href="#") {
+                    a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id, DeckRoute::Cards))) {
                         : raw!("View Cards")
                     }
                 }
