@@ -721,6 +721,87 @@ fn DeckCards(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: 
                 }
             }
         }
+
+
+        div(class="columns") {
+            div(class="column") {
+                div(class="level") {
+                    div(class="level-left") {
+                        div(class="level-item") {
+                            a(class="button is-bold is-success",
+                                href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id, DeckRoute::NewDeck))) {
+                                : raw!("New Card")
+                            }
+                        }
+                    }
+
+                    // TODO: complete
+                    // div(class="level-right") {
+                    //     div(class="level-item") {
+                    //         span(class="select") {
+                    //             select(onchange="if(this.value && this.value.length > 0) window.location.href = this.value;") {
+                    //                 option(value = "") {
+                    //                     : format!("Order By: {}", deck_page_query.sort_order_string())
+                    //                 }
+                    //                 option(
+                    //                     value = view_route_to_link(context.clone(),
+                    //                         AppRoute::Deck(deck_id,
+                    //                             DeckRoute::Decks(deck_page_query.descending(), search.clone())))
+                    //                 ) {
+                    //                     : deck_page_query.descending().sort_order_string()
+                    //                 }
+                    //                 option(
+                    //                     value = view_route_to_link(context.clone(),
+                    //                         AppRoute::Deck(deck_id,
+                    //                             DeckRoute::Decks(deck_page_query.ascending(), search.clone())))
+                    //                 ) {
+                    //                     : deck_page_query.ascending().sort_order_string()
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    //     div(class="level-item") {
+                    //         span(class="select") {
+                    //             select(onchange="if(this.value && this.value.length > 0) window.location.href = this.value;") {
+                    //                 option(value="") {
+                    //                     : format!("Sort By: {}", deck_page_query.sort_by_string())
+                    //                 }
+
+                    //                 option(
+                    //                     value = view_route_to_link(context.clone(),
+                    //                         AppRoute::Deck(deck_id,
+                    //                             DeckRoute::Decks(deck_page_query.updated_at(),
+                    //                                 search.clone())))
+                    //                 ) {
+                    //                     : deck_page_query.updated_at().sort_by_string()
+                    //                 }
+
+                    //                 option(
+                    //                     value = view_route_to_link(context.clone(),
+                    //                         AppRoute::Deck(deck_id,
+                    //                             DeckRoute::Decks(deck_page_query.deck_title(),
+                    //                                 search.clone())))
+                    //                 ) {
+                    //                     : deck_page_query.deck_title().sort_by_string()
+                    //                 }
+
+                    //                 option(
+                    //                     value = view_route_to_link(context.clone(),
+                    //                         AppRoute::Deck(deck_id,
+                    //                             DeckRoute::Decks(deck_page_query.created_at(),
+                    //                                 search.clone())))
+                    //                 ) {
+                    //                     : deck_page_query.created_at().sort_by_string()
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    // }
+                }
+            }
+        }
+
     }
 }
 
