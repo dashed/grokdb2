@@ -47,6 +47,7 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
         AppRoute::Deck(deck_id, deck_route) => {
             match deck_route {
                 DeckRoute::NewDeck => format!("/deck/{}/new/deck", deck_id),
+                DeckRoute::NewCard => format!("/deck/{}/new/card", deck_id),
                 DeckRoute::Description => format!("/deck/{}/description", deck_id),
                 DeckRoute::Cards => format!("/deck/{}/cards", deck_id),
                 DeckRoute::Settings(ref setting_mode) => {
@@ -105,6 +106,20 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
                                         POST_TO: '/api/deck/{}/new/deck'\
+                                    }};\
+                                ",
+                                deck_id
+                            )
+                        )
+                    }
+                },
+                DeckRoute::NewCard => {
+                    tmpl << html! {
+                        : raw!(
+                            format!(
+                                "window.__PRE_RENDER_STATE__ = \
+                                    {{\
+                                        POST_TO: '/api/deck/{}/new/card'\
                                     }};\
                                 ",
                                 deck_id
@@ -386,6 +401,19 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         //     };
 
                         // },
+                        AppRoute::Deck(_, DeckRoute::NewCard) =>  {
+                            tmpl << html! {
+
+                                script(type="text/javascript") {
+                                    |tmpl| {
+                                        pre_render_state(tmpl, context.clone(), &app_route);
+                                    }
+                                }
+
+                                script(type="text/javascript", src="/assets/new_card.js") {}
+                            };
+
+                        },
                         AppRoute::Deck(_, DeckRoute::NewDeck) =>  {
                             tmpl << html! {
                                 // script(type="text/javascript", src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.9.1/polyfill.min.js") {}
@@ -481,13 +509,13 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                             tmpl << html!{
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
                                     a(href = view_route_to_link(context.clone(),
-                                        AppRoute::Deck(*deck_id, 
+                                        AppRoute::Deck(*deck_id,
                                             DeckRoute::Decks(Default::default(), Default::default())))
                                     ) {
                                         // NOTE: we wrap the mathjax-ified name with id of '__deck_name'.
                                         //       when renaming the deck, a react component can re-render this
                                         span(class="__deck_name") {
-                                            |tmpl| MathJaxInline(tmpl, deck.name.clone(), true);    
+                                            |tmpl| MathJaxInline(tmpl, deck.name.clone(), true);
                                         }
                                     }
                                 }
@@ -500,7 +528,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                     a(href = view_route_to_link(context.clone(),
                                         AppRoute::Deck(*deck_id, DeckRoute::Decks(Default::default(), Default::default())))
                                     ) {
-                                        |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);    
+                                        |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
                                     }
                                 }
                             }
@@ -543,6 +571,13 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                     },
                     DeckRoute::NewDeck => {
                         NewDeck(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
+                    },
+                    DeckRoute::NewCard => {
+                        NewCard(
                             tmpl,
                             context.clone(),
                             deck_id
@@ -626,6 +661,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                     class? = classnames!(
                                         "is-bold",
                                         "is-active" => {
+                                            matches!(*deck_route, DeckRoute::NewCard) ||
                                             matches!(*deck_route, DeckRoute::Cards)
                                         })
                                 ) {
@@ -672,6 +708,24 @@ fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: De
 
         div(id="new_deck_container") {
             : raw!(include_str!("react_components/new_deck"))
+        }
+    }
+}
+
+#[inline]
+fn NewCard(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
+    tmpl << html!{
+        div(class="columns") {
+            div(class="column") {
+                h1(class="title") {
+                    : raw!("Add New card")
+                }
+            }
+        }
+
+        div(id="new_card_container") {
+            // TODO: fix
+            // : raw!(include_str!("react_components/new_card"))
         }
     }
 }
@@ -730,7 +784,7 @@ fn DeckCards(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: 
                         div(class="level-item") {
                             a(class="button is-bold is-success",
                                 href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(deck_id, DeckRoute::NewDeck))) {
+                                    AppRoute::Deck(deck_id, DeckRoute::NewCard))) {
                                 : raw!("New Card")
                             }
                         }
@@ -1329,7 +1383,7 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
                             None => {},
                             Some(page_query) => {
 
-                                let app_route = AppRoute::Deck(deck_id, 
+                                let app_route = AppRoute::Deck(deck_id,
                                     DeckRoute::Decks(page_query, search.clone()));
                                 let href = view_route_to_link(context.clone(), app_route);
 

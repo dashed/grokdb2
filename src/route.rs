@@ -684,11 +684,20 @@ fn __parse_route_deck<'a>(
     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
 
     parse!{input;
-        let render_response = parse_route_deck_new_deck(request.clone(), deck_id) <|>
+        let render_response =
+            // /new/deck
+            parse_route_deck_new_deck(request.clone(), deck_id) <|>
+            // /new/card
+            parse_route_deck_new_card(request.clone(), deck_id) <|>
+            // /decks
+            parse_route_deck_decks(context.clone(), request.clone(), deck_id) <|>
+            // /description
             parse_route_deck_description(request.clone(), deck_id) <|>
+            // /cards
             parse_route_deck_cards(request.clone(), deck_id) <|>
-            parse_route_deck_settings(request.clone(), deck_id) <|>
-            parse_route_deck_decks(context.clone(), request.clone(), deck_id);
+            // /settings
+            parse_route_deck_settings(request.clone(), deck_id);
+
 
         ret render_response
     }
@@ -918,6 +927,42 @@ fn parse_route_deck_new_deck<'a>(
                 RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
             } else {
                 let route = AppRoute::Deck(deck_id, DeckRoute::NewDeck);
+                RenderResponse::RenderComponent(route)
+            }
+        }
+    }
+}
+
+#[inline]
+fn parse_route_deck_new_card<'a>(
+    input: Input<'a, u8>,
+    // NOTE: not needed
+    // context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"new");
+        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"card");
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        or(
+            |i| parse!{i;
+                token(b'?');
+                ret {()}
+            },
+            eof
+        );
+
+        ret {
+            // Allow only GET requests
+
+            if request.borrow().method != Method::Get {
+                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+            } else {
+                let route = AppRoute::Deck(deck_id, DeckRoute::NewCard);
                 RenderResponse::RenderComponent(route)
             }
         }
