@@ -61,7 +61,9 @@ const __NewCardContainer = function(props) {
         fields: { title, description, question, answer },
         submitting,
         handleSubmit,
-        postURL
+        postURL,
+        dispatch,
+        currenTab
     } = props;
 
     const __description = assign({}, description);
@@ -101,20 +103,38 @@ const __NewCardContainer = function(props) {
                 <div className='column'>
                     <div className='tabs is-boxed'>
                         <ul className='is-left'>
-                            <li className='is-active'>
-                                <a>
+                            <li
+                                className={classnames({
+                                    'is-active': currenTab === CARD_QUESTION
+                                })}>
+                                <a
+                                    href='#question'
+                                    onClick={switchTab(dispatch, CARD_QUESTION)}
+                                >
                                     <span>{'Question'}</span>
                                 </a>
                             </li>
-                            <li>
-                                <a>
+                            <li
+                                className={classnames({
+                                    'is-active': currenTab === CARD_ANSWER
+                                })}>
+                                <a
+                                    href='#answer'
+                                    onClick={switchTab(dispatch, CARD_ANSWER)}
+                                >
                                     <span>{'Answer'}</span>
                                 </a>
                             </li>
                         </ul>
                         <ul className='is-right'>
-                            <li>
-                                <a>
+                            <li
+                                className={classnames({
+                                    'is-active': currenTab === CARD_DESCRIPTION
+                                })}>
+                                <a
+                                    href='#description'
+                                    onClick={switchTab(dispatch, CARD_DESCRIPTION)}
+                                >
                                     <span>{'Description'}</span>
                                 </a>
                             </li>
@@ -158,7 +178,8 @@ if(process.env.NODE_ENV !== 'production') {
         handleSubmit: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
         mathjaxifyCardTitle: React.PropTypes.bool.isRequired,
-        postURL: React.PropTypes.string.isRequired
+        postURL: React.PropTypes.string.isRequired,
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
     };
 }
 
@@ -180,7 +201,8 @@ const NewCardContainer = reduxForm(
     (state) => {
         return {
             mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
-            postURL: state[POST_TO]
+            postURL: state[POST_TO],
+            currenTab: state.CURRENT_TAB
         };
     }
 
@@ -207,9 +229,43 @@ const switchMarkdownView = function(dispatch, path, markdownView) {
     }
 };
 
+const switchTab = function(dispatch, newTab) {
+    return function(event) {
+        event.preventDefault();
+        dispatch(
+            reduceIn(
+                // reducer
+                tabReducer,
+                // path
+                ['CURRENT_TAB'],
+                // action
+                {
+                    type: newTab
+                }
+            )
+        );
+    }
+};
+
 /* redux reducers */
 
 const markdownViewReducer = require('reducers/markdown_view');
+
+const tabReducer = function(state = CARD_QUESTION, action) {
+
+    switch(action.type) {
+    case CARD_QUESTION:
+    case CARD_ANSWER:
+    case CARD_DESCRIPTION:
+        state = action.type;
+        break;
+
+    default:
+        state = CARD_QUESTION;
+    }
+
+    return state;
+};
 
 /* default state */
 
