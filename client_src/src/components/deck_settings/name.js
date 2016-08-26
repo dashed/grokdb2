@@ -85,7 +85,6 @@ const __DeckSettingsNameContainer = function(props) {
                                 className='input'
                                 type='text'
                                 placeholder='Enter a deck name'
-                                autoFocus
                                 {...assign({}, name)}
                             />
                         </p>
