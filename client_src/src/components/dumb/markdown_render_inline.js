@@ -5,6 +5,8 @@ const React = require('react');
 const ReactDOM = require('react-dom');
 const each = require('lodash/each');
 
+const markdownIterator = require('markdown-it-for-inline');
+
 const markdownParser = require('markdown-it')({
     // TODO: disable this for saas app
     html: true,
@@ -12,12 +14,23 @@ const markdownParser = require('markdown-it')({
 
     // TODO: https://github.com/markdown-it/markdown-it#syntax-highlighting
 })
+
 // custom plugin to mark mathjax markup to not be escaped by markdown-it
 // and related plugins
 // .use(require('helpers/mathjaxinline'))
-.use(require('markdown-it-link-target'));
+
+
 // load with plugins (officially supported by markdown-it org)
-// .....
+.use(markdownIterator, 'url_new_win', 'link_open', function(tokens, idx) {
+
+    // NOTE: this replaces markdown-it-link-target
+
+    tokens[idx].attrPush(['target','_blank']);
+
+    // NOTE: See: https://dev.to/ben/the-targetblank-vulnerability-by-example
+    tokens[idx].attrPush(['rel','nofollow me noopener noreferrer']);
+
+});
 
 
 const MarkdownRenderInline = React.createClass({
