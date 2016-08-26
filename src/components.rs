@@ -758,7 +758,25 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
 
         div(class="columns", id="deck_description_container_stub", style="margin-top: 10px;") {
             div(class="column") {
-                : description
+                |tmpl| {
+                    if description.trim().len() <= 0 {
+
+                        tmpl << html!{
+                            div(class="message is-info") {
+                                div(class="message-body") {
+                                    : raw!("No description set for this deck. \
+                                        Click \"Edit\" button to add a description.");
+                                }
+                            }
+                        };
+
+                    } else {
+
+                        tmpl << html! {
+                            : description
+                        };
+                    }
+                }
             }
         }
     }
