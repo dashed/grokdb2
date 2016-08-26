@@ -243,10 +243,10 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                             : raw!("\
                                 span.mathjax_inline_pre {\
-                                    font-weight: normal;\
+                                    font-weight: inherit;\
                                 }\
                                 span.mathjax_inline {\
-                                    font-weight: normal;\
+                                    font-weight: inherit;\
                                 }\
                             ")
                         }
@@ -487,7 +487,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                         // NOTE: we wrap the mathjax-ified name with id of '__deck_name'.
                                         //       when renaming the deck, a react component can re-render this
                                         span(class="__deck_name") {
-                                            |tmpl| MathJaxInline(tmpl, deck.name.clone());    
+                                            |tmpl| MathJaxInline(tmpl, deck.name.clone(), true);    
                                         }
                                     }
                                 }
@@ -500,7 +500,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                     a(href = view_route_to_link(context.clone(),
                                         AppRoute::Deck(*deck_id, DeckRoute::Decks(Default::default(), Default::default())))
                                     ) {
-                                        |tmpl| MathJaxInline(tmpl, deck.name.clone());    
+                                        |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);    
                                     }
                                 }
                             }
@@ -1034,7 +1034,7 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
                                     AppRoute::Deck(deck_id,
                                         DeckRoute::Decks(Default::default(), Default::default())))
                     ) {
-                        |tmpl| MathJaxInline(tmpl, deck.name.clone());
+                        |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
                     }
                 }
                 span(style="font-size:12px;") {
@@ -1269,10 +1269,27 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
 }
 
 #[inline]
-fn MathJaxInline(tmpl: &mut TemplateBuffer, content: String) {
-    tmpl << html!{
-        span(class="mathjax_inline_pre") {
-            : content
-        }
+fn MathJaxInline(tmpl: &mut TemplateBuffer, content: String, should_bold: bool) {
+
+    if should_bold {
+
+        tmpl << html!{
+            span(style="font-weight:bold;") {
+                span(class="mathjax_inline_pre") {
+                    : content
+                }
+            }
+        };
+
+        return;
     }
+
+    tmpl << html!{
+        span(style="font-weight:normal;") {
+            span(class="mathjax_inline_pre") {
+                : content
+            }
+        }
+    };
+
 }
