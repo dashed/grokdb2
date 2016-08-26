@@ -18,7 +18,8 @@ const {
     MARKDOWN_VIEW_RENDER,
     MARKDOWN_VIEW_SOURCE,
 
-    MARKDOWN_CONTENTS,
+    // TODO: remove
+    // MARKDOWN_CONTENTS,
 
     CARD_TITLE,
     CARD_DESCRIPTION,
@@ -54,6 +55,151 @@ const RenderSourceTitleComponent = connect(
     }
 )(require('components/dumb/render_source'));
 
+
+const RenderSourceTabComponent = connect(
+    // mapStateToProps
+    (state, ownProps) => {
+        return {
+            [MARKDOWN_VIEW]: state[ownProps.currenTab][MARKDOWN_VIEW]
+        };
+    },
+    // mapDispatchToProps
+    (dispatch, ownProps) => {
+        return {
+            // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
+            switchTab: (markdownView) => {
+                return switchMarkdownView(dispatch, [ownProps.currenTab, MARKDOWN_VIEW], markdownView);
+            }
+        };
+    }
+)(require('components/dumb/render_source'));
+
+const __TabComponent = function(props) {
+
+    const markdownView = props[MARKDOWN_VIEW];
+
+    let sourceStyle = {};
+    let renderStyle = {};
+
+    switch(markdownView) {
+    case MARKDOWN_VIEW_RENDER:
+        sourceStyle.display = 'none';
+        break;
+
+    case MARKDOWN_VIEW_SOURCE:
+    default:
+        renderStyle.display = 'none';
+    }
+
+    const contents = props.reduxFormField.value;
+
+    return (
+        <div>
+            <div style={renderStyle}>
+                <MarkdownRender contents={contents} />
+            </div>
+            <div>
+                <div style={sourceStyle}>
+                    <MarkdownSource
+                        contents={contents}
+                        placeholder={props.placeholder}
+                        assignProps={props.reduxFormField}
+                        editable
+                    />
+                </div>
+            </div>
+        </div>
+    );
+
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __TabComponent.propTypes = {
+        [MARKDOWN_VIEW]: React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE]),
+        reduxFormField: React.PropTypes.object.isRequired,
+        placeholder: React.PropTypes.string.isRequired
+    };
+}
+
+const TabComponent = connect(
+    // mapStateToProps
+    (state, ownProps) => {
+
+        // validate ownProps.tab
+        if(process.env.NODE_ENV !== 'production') {
+            switch(ownProps.tab) {
+            case CARD_QUESTION:
+            case CARD_ANSWER:
+            case CARD_DESCRIPTION:
+                break;
+            default:
+                throw Error();
+            }
+        }
+
+        return {
+            [MARKDOWN_VIEW]: state[ownProps.tab][MARKDOWN_VIEW]
+        };
+    }
+)(__TabComponent);
+
+const TabGroupComponent = function(props) {
+
+    let questionStyle = {display: 'none'};
+    let answerStyle = {display: 'none'};
+    let descriptionStyle = {display: 'none'};
+
+    switch(props.currenTab) {
+    case CARD_QUESTION:
+        questionStyle = {};
+        break;
+    case CARD_ANSWER:
+        answerStyle = {};
+        break;
+    case CARD_DESCRIPTION:
+        descriptionStyle = {};
+        break;
+    }
+
+    // TODO: complete
+
+    return (
+        <div>
+            <div key='question' style={questionStyle}>
+                <TabComponent
+                    tab={CARD_QUESTION}
+                    placeholder={'Card Question'}
+                    reduxFormField={props.question}
+                />
+            </div>
+            <div key='answer' style={answerStyle}>
+                <TabComponent
+                    tab={CARD_ANSWER}
+                    placeholder={'Card Answer'}
+                    reduxFormField={props.answer}
+                />
+            </div>
+            <div key='description' style={descriptionStyle}>
+                <TabComponent
+                    tab={CARD_DESCRIPTION}
+                    placeholder={'Card Description'}
+                    reduxFormField={props.description}
+                />
+            </div>
+        </div>
+    );
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    TabGroupComponent.propTypes = {
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+        question: React.PropTypes.object.isRequired,
+        answer: React.PropTypes.object.isRequired,
+        description: React.PropTypes.object.isRequired,
+    };
+}
+
+
 const __NewCardContainer = function(props) {
 
     const {
@@ -65,8 +211,6 @@ const __NewCardContainer = function(props) {
         dispatch,
         currenTab
     } = props;
-
-    const __description = assign({}, description);
 
     return (
         <div>
@@ -144,7 +288,20 @@ const __NewCardContainer = function(props) {
             </div>
             <div className='columns'>
                 <div className='column'>
-                    content
+                    <RenderSourceTabComponent
+                        currenTab={currenTab}
+                        reverse
+                    />
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <TabGroupComponent
+                        currenTab={currenTab}
+                        answer={assign({}, answer)}
+                        question={assign({}, question)}
+                        description={assign({}, description)}
+                    />
                 </div>
             </div>
             <div className='columns'>
@@ -185,6 +342,7 @@ if(process.env.NODE_ENV !== 'production') {
         mathjaxifyCardTitle: React.PropTypes.bool.isRequired,
         postURL: React.PropTypes.string.isRequired,
         currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+        dispatch: React.PropTypes.func.isRequired
     };
 }
 
