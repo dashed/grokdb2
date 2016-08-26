@@ -718,7 +718,7 @@ fn NewCard(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: De
         div(class="columns") {
             div(class="column") {
                 h1(class="title") {
-                    : raw!("Add New card")
+                    : raw!("Add New Card")
                 }
             }
         }

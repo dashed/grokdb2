@@ -45,7 +45,7 @@ use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limi
 use types::{DeckID, CardID, DecksPageQuery, Search};
 use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
-use api::decks::{self, CreateDeck, DeckResponse, UpdateDeckDescription, UpdateDeckName};
+use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -454,12 +454,17 @@ fn __parse_route_api_deck_new_deck(
                             let deck_route = DeckRoute::Decks(Default::default(), Default::default());
                             let app_route = AppRoute::Deck(new_deck.id, deck_route);
 
-                            let response = DeckResponse {
-                                profile_url: view_route_to_link(context, app_route),
-                                deck: new_deck,
-                                has_parent: true,
-                                parent_id: Some(parent_deck_id)
+                            let response = DeckCreateResponse {
+                                profile_url: view_route_to_link(context, app_route)
                             };
+
+                            // TODO: remove
+                            // let response = DeckResponse {
+                            //     profile_url: view_route_to_link(context, app_route),
+                            //     deck: new_deck,
+                            //     has_parent: true,
+                            //     parent_id: Some(parent_deck_id)
+                            // };
 
                             return respond_json!(response);
                         },

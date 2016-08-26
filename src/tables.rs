@@ -175,10 +175,9 @@ CREATE TABLE IF NOT EXISTS Cards (
     card_id INTEGER PRIMARY KEY NOT NULL,
 
     title TEXT NOT NULL,
+
     description TEXT NOT NULL DEFAULT '',
-
     question TEXT NOT NULL DEFAULT '',
-
     answer TEXT NOT NULL DEFAULT '',
 
     created_at INT NOT NULL DEFAULT (strftime('%s', 'now')),

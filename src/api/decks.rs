@@ -18,7 +18,7 @@ use constants;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone)]
 pub struct Deck {
     pub id: DeckID,
     pub name: String,
@@ -49,16 +49,22 @@ pub struct UpdateDeckName {
     pub name: String // required
 }
 
+// TODO: remove
+// #[derive(Debug, Serialize)]
+// pub struct DeckResponse {
+
+//     pub profile_url: String,
+
+//     // the resource
+//     pub deck: Deck,
+
+//     pub has_parent: bool,
+//     pub parent_id: Option<DeckID>
+// }
+
 #[derive(Debug, Serialize)]
-pub struct DeckResponse {
-
-    pub profile_url: String,
-
-    // the resource
-    pub deck: Deck,
-
-    pub has_parent: bool,
-    pub parent_id: Option<DeckID>
+pub struct DeckCreateResponse {
+    pub profile_url: String
 }
 
 pub fn get_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Deck, RawAPIError> {

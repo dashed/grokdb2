@@ -105,7 +105,7 @@ const __NewCardContainer = function(props) {
                         <ul className='is-left'>
                             <li
                                 className={classnames({
-                                    'is-active': currenTab === CARD_QUESTION
+                                    'is-active is-bold': currenTab === CARD_QUESTION,
                                 })}>
                                 <a
                                     href='#question'
@@ -116,7 +116,7 @@ const __NewCardContainer = function(props) {
                             </li>
                             <li
                                 className={classnames({
-                                    'is-active': currenTab === CARD_ANSWER
+                                    'is-active is-bold': currenTab === CARD_ANSWER
                                 })}>
                                 <a
                                     href='#answer'
@@ -129,7 +129,7 @@ const __NewCardContainer = function(props) {
                         <ul className='is-right'>
                             <li
                                 className={classnames({
-                                    'is-active': currenTab === CARD_DESCRIPTION
+                                    'is-active is-bold': currenTab === CARD_DESCRIPTION
                                 })}>
                                 <a
                                     href='#description'
@@ -140,6 +140,11 @@ const __NewCardContainer = function(props) {
                             </li>
                         </ul>
                     </div>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    content
                 </div>
             </div>
             <div className='columns'>
