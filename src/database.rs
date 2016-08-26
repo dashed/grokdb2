@@ -155,6 +155,25 @@ pub fn get_database(file_path: String) -> Database {
         Ok(db_conn) => Arc::new(Mutex::new(db_conn)),
     };
 
+    {
+
+        // NOTE: by default sqlite v3.x does not enforce foreign_keys by default
+        //       see: http://stackoverflow.com/a/9937992/412627
+
+        db_write_lock!(db_conn; db_connection.clone());
+        let db_conn: &Connection = db_conn;
+
+        match db_conn.execute_batch("PRAGMA foreign_keys=ON;") {
+            Err(why) => {
+                // TODO: fix
+                panic!("{}", why);
+            },
+            _ => {/* query sucessfully executed */},
+        }
+
+    };
+
+
     /* table setup */
 
     match tables::setup_database(db_connection.clone()) {

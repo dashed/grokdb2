@@ -13,6 +13,7 @@ use guardian::{ArcRwLockReadGuardian, ArcRwLockWriteGuardian};
 
 use types::{DeckID, ItemCount};
 use api::decks::Deck;
+use api::cards::Card;
 use database::Database;
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -40,7 +41,8 @@ pub struct Context {
 
     pub should_cache: bool,
     pub decks: HashMap<DeckID, Deck>,
-    pub deck_children_count: HashMap<DeckID, ItemCount>,
+    pub deck_children_count: HashMap<DeckID, ItemCount>, // number of children (decks) that a deck has
+    pub cards: HashMap<DeckID, Card>,
     // TODO: cache more resources
 }
 
@@ -60,7 +62,8 @@ impl Context {
             // cache
             should_cache: false,
             decks: HashMap::new(),
-            deck_children_count: HashMap::new()
+            deck_children_count: HashMap::new(),
+            cards: HashMap::new(),
         }
     }
 
