@@ -98,7 +98,7 @@ const __DeckDescriptionComponent = function(props) {
                     <MarkdownSource
                         id='input-deck-description'
                         contents={contents}
-                        placeholder={'Description for new deck'}
+                        placeholder={'Deck Description'}
                         assignProps={props.assignProps}
                         editable
                     />
@@ -159,7 +159,7 @@ const __NewDeckContainer = function(props) {
                                     id='input-deck-name'
                                     className='input'
                                     type='text'
-                                    placeholder='Name for new deck'
+                                    placeholder='Deck Name'
                                     autoFocus
                                     {...assign({}, name)}
                                 />

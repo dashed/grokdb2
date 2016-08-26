@@ -81,7 +81,7 @@ const __NewCardContainer = function(props) {
                                     id='input-card-title'
                                     className='input'
                                     type='text'
-                                    placeholder='Title'
+                                    placeholder='Card Title'
                                     autoFocus
                                     {...assign({}, title)}
                                 />
@@ -198,6 +198,9 @@ const initialState = {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
         // NOTE: contents is stored and handled by redux-form
     },
+
+    // CURRENT_TAB = CARD_QUESTION | CARD_ANSWER | CARD_DESCRIPTION
+    'CURRENT_TAB': CARD_QUESTION,
 
     [CARD_DESCRIPTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
