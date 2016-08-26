@@ -686,6 +686,7 @@ fn __parse_route_deck<'a>(
     parse!{input;
         let render_response = parse_route_deck_new_deck(request.clone(), deck_id) <|>
             parse_route_deck_description(request.clone(), deck_id) <|>
+            parse_route_deck_cards(request.clone(), deck_id) <|>
             parse_route_deck_settings(request.clone(), deck_id) <|>
             parse_route_deck_decks(context.clone(), request.clone(), deck_id);
 
@@ -719,6 +720,38 @@ fn parse_route_deck_description<'a>(
                 RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
             } else {
                 let route = AppRoute::Deck(deck_id, DeckRoute::Description);
+                RenderResponse::RenderComponent(route)
+            }
+        }
+    }
+}
+
+#[inline]
+fn parse_route_deck_cards<'a>(
+    input: Input<'a, u8>,
+    // NOTE: not needed
+    // context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"cards");
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        or(
+            |i| parse!{i;
+                token(b'?');
+                ret {()}
+            },
+            eof
+        );
+
+        ret {
+            if request.borrow().method != Method::Get {
+                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+            } else {
+                let route = AppRoute::Deck(deck_id, DeckRoute::Cards);
                 RenderResponse::RenderComponent(route)
             }
         }

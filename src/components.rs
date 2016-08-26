@@ -48,6 +48,7 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
             match deck_route {
                 DeckRoute::NewDeck => format!("/deck/{}/new/deck", deck_id),
                 DeckRoute::Description => format!("/deck/{}/description", deck_id),
+                DeckRoute::Cards => format!("/deck/{}/cards", deck_id),
                 DeckRoute::Settings(ref setting_mode) => {
                     match *setting_mode {
                         DeckSettings::Main => format!("/deck/{}/settings", deck_id),
@@ -554,6 +555,13 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             deck_id
                         )
                     },
+                    DeckRoute::Cards => {
+                        DeckCards(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
+                    },
                     DeckRoute::Settings(ref setting_mode) => {
                         DeckSettings(
                             tmpl,
@@ -613,7 +621,14 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                 }
                             }
                             li {
-                                a(href="#", class="is-bold") {
+                                a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id, DeckRoute::Cards)),
+                                    class? = classnames!(
+                                        "is-bold",
+                                        "is-active" => {
+                                            matches!(*deck_route, DeckRoute::Cards)
+                                        })
+                                ) {
                                     : "Cards"
                                 }
                             }
@@ -690,6 +705,20 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
         div(class="columns", id="deck_description_container_stub", style="margin-top: 10px;") {
             div(class="column") {
                 : description
+            }
+        }
+    }
+}
+
+#[inline]
+fn DeckCards(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
+
+    tmpl << html!{
+        div(class="columns") {
+            div(class="column") {
+                h1(class="title") {
+                    : raw!("Cards")
+                }
             }
         }
     }
