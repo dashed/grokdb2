@@ -884,6 +884,14 @@ fn DecksChildren(tmpl: &mut TemplateBuffer,
 
         div(class="columns") {
             div(class="column") {
+                h1(class="title") {
+                    : raw!("Decks")
+                }
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
                 div(class="level") {
                     div(class="level-left") {
                         div(class="level-item") {
