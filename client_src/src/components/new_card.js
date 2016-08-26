@@ -99,17 +99,40 @@ const __NewCardContainer = function(props) {
             </div>
             <div className='columns'>
                 <div className='column'>
+                    <div className='tabs is-boxed'>
+                        <ul className='is-left'>
+                            <li className='is-active'>
+                                <a>
+                                    <span>{'Question'}</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a>
+                                    <span>{'Answer'}</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <ul className='is-right'>
+                            <li>
+                                <a>
+                                    <span>{'Description'}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
                     <hr className='is-marginless'/>
                 </div>
             </div>
             <div className='columns'>
                 <div className='column'>
-                    something
-                </div>
-            </div>
-            <div className='columns'>
-                <div className='column'>
-                    <hr className='is-marginless'/>
+                    <label className='checkbox'>
+                        <input type='checkbox' checked />
+                        {' Active for review'}
+                    </label>
                 </div>
             </div>
             <div className='columns'>
@@ -134,7 +157,7 @@ if(process.env.NODE_ENV !== 'production') {
         fields: React.PropTypes.object.isRequired,
         handleSubmit: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
-        mathjaxifyCardName: React.PropTypes.bool.isRequired,
+        mathjaxifyCardTitle: React.PropTypes.bool.isRequired,
         postURL: React.PropTypes.string.isRequired
     };
 }
@@ -156,7 +179,7 @@ const NewCardContainer = reduxForm(
     // mapStateToProps
     (state) => {
         return {
-            mathjaxifyCardName: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
+            mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
             postURL: state[POST_TO]
         };
     }
