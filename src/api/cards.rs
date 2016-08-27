@@ -338,6 +338,26 @@ fn cards_test() {
             }
         };
 
+        // case: empty card title
+
+        {
+
+            let request = CreateCard {
+                title: format!(""),
+                description: format!("Card Description 2"),
+                question: format!("Card Question 2"),
+                answer: format!("Card Answer 2"),
+                is_active: true
+            };
+
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::write_lock(context.clone());
+            match cards::create_card(context, 1, request) {
+                Ok(_) => assert!(false),
+                Err(_) => assert!(true),
+            }
+        };
+
     };
 
     {
