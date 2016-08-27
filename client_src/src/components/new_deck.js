@@ -53,7 +53,6 @@ const ErrorComponent = function(props) {
 
 };
 
-// TODO: fix
 if(process.env.NODE_ENV !== 'production') {
     ErrorComponent.propTypes = {
         error: React.PropTypes.string
@@ -254,7 +253,7 @@ if(process.env.NODE_ENV !== 'production') {
         submitting: React.PropTypes.bool.isRequired,
         mathjaxifyDeckName: React.PropTypes.bool.isRequired,
         postURL: React.PropTypes.string.isRequired,
-        // TODO: fix
+        // TODO: better prop type
         error: React.PropTypes.object
     };
 }
@@ -345,7 +344,7 @@ const addNewDeck = function(postURL, formData) {
 
         }, function(/*err*/) {
 
-            // TODO: handle on json parsing fail
+            // json parsing fail
             // console.log('err:', err);
 
             reject({
@@ -356,7 +355,7 @@ const addNewDeck = function(postURL, formData) {
         })
         .catch(function(/*err*/) {
 
-            // TODO: handle
+            // any other errors
             // console.log('err:', err);
 
             reject({
