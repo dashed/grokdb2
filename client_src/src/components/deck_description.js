@@ -367,7 +367,7 @@ const saveDescription = function(dispatch, postURL, formData) {
         })
         .then(function(response) {
 
-            return Promise.all([response.status]);
+            return Promise.all([response.status, response.json()]);
         }, function(/*err*/) {
 
             // network error
@@ -379,7 +379,7 @@ const saveDescription = function(dispatch, postURL, formData) {
                 }
             });
         })
-        .then(function([statusCode]) {
+        .then(function([statusCode, jsonResponse]) {
 
             switch(statusCode) {
             case 400: // Bad Request

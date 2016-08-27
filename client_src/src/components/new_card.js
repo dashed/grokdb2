@@ -18,9 +18,6 @@ const {
     MARKDOWN_VIEW_RENDER,
     MARKDOWN_VIEW_SOURCE,
 
-    // TODO: remove
-    // MARKDOWN_CONTENTS,
-
     CARD_TITLE,
     CARD_DESCRIPTION,
     CARD_QUESTION,
@@ -160,8 +157,6 @@ const TabGroupComponent = function(props) {
         descriptionStyle = {};
         break;
     }
-
-    // TODO: complete
 
     return (
         <div>
@@ -396,17 +391,17 @@ const addNewCard = function(postURL, formData) {
         .then(function(response) {
 
             return Promise.all([response.status, response.json()]);
-        }, function(err) {
+        }, function(/*err*/) {
 
-            // TODO: handle on network failure, etc
-
-            console.log('err:', err);
+            // network error
+            // console.log('network err:', err);
 
             reject({
                 _error: {
-                    message: 'Unable to create new card.'
+                    message: 'Unable to send request to create new card. Please try again.'
                 }
             });
+
         })
         .then(function([statusCode, jsonResponse]) {
 
@@ -416,12 +411,6 @@ const addNewCard = function(postURL, formData) {
             case 400: // Bad Request
             case 500: // Internal Server Error
 
-                // response.userMessage
-
-                // TODO: error fix
-                //
-                // http://redux-form.com/5.2.5/#/api/props
-                // how to detect errors
                 reject({
                     _error: {
                         message: jsonResponse.userMessage
@@ -444,11 +433,11 @@ const addNewCard = function(postURL, formData) {
                 });
             }
 
-        }, function(err) {
+        }, function(/*err*/) {
 
 
-            // TODO: handle on json parsing fail
-            console.log('err:', err);
+            // json parsing fail
+            // console.log('err:', err);
 
             reject({
                 _error: {
@@ -456,10 +445,10 @@ const addNewCard = function(postURL, formData) {
                 }
             });
         })
-        .catch(function(err) {
+        .catch(function(/*err*/) {
 
-            // TODO: handle
-            console.log('err:', err);
+            // any other errors
+            // console.log('err:', err);
 
             reject({
                 _error: {
