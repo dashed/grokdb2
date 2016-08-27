@@ -33,6 +33,7 @@ const {reduceIn} = require('lib/redux-tree');
 
 const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
+const ErrorComponent = require('components/dumb/error');
 
 const __ToolBar = function(props) {
 
@@ -220,7 +221,7 @@ if(process.env.NODE_ENV !== 'production') {
         isEditing: React.PropTypes.bool.isRequired,
         initialContents: React.PropTypes.string.isRequired,
         showNoContentMessage: React.PropTypes.bool.isRequired,
-        // TODO: [MARKDOWN_VIEW]
+        [MARKDOWN_VIEW]: React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE])
     };
 }
 
@@ -244,6 +245,7 @@ const __DeckDescriptionContainer = function(props) {
         submitting,
         handleSubmit,
         resetForm,
+        error
     } = props;
 
     const __description = assign({}, description);
@@ -262,6 +264,7 @@ const __DeckDescriptionContainer = function(props) {
                         />
                     </div>
                 </div>
+                <ErrorComponent error={error && error.message || ''} />
                 <div className='columns'>
                     <div className='column'>
                         <hr className='is-marginless'/>
@@ -284,6 +287,7 @@ const __DeckDescriptionContainer = function(props) {
                     />
                 </div>
             </div>
+            <ErrorComponent error={error && error.message || ''} />
             <div className='columns'>
                 <div className='column'>
                     <hr className='is-marginless'/>
@@ -309,6 +313,8 @@ if(process.env.NODE_ENV !== 'production') {
         postURL: React.PropTypes.string.isRequired,
         resetForm: React.PropTypes.func.isRequired,
         showNoContentMessage: React.PropTypes.bool.isRequired,
+        // TODO: better prop type
+        error: React.PropTypes.object
     };
 }
 
@@ -362,15 +368,14 @@ const saveDescription = function(dispatch, postURL, formData) {
         .then(function(response) {
 
             return Promise.all([response.status]);
-        }, function(err) {
+        }, function(/*err*/) {
 
-            // TODO: handle on network failure, etc
-
-            console.log('err:', err);
+            // network error
+            // console.log('network err:', err);
 
             reject({
                 _error: {
-                    message: 'Unable to update deck description.'
+                    message: 'Unable to send request to update deck description. Please try again.'
                 }
             });
         })
@@ -380,15 +385,9 @@ const saveDescription = function(dispatch, postURL, formData) {
             case 400: // Bad Request
             case 500: // Internal Server Error
 
-                // response.userMessage
-
-                // TODO: error fix
-                //
-                // http://redux-form.com/5.2.5/#/api/props
-                // how to detect errors
                 reject({
                     _error: {
-                        message: 'Unable to update deck description.'
+                        message: jsonResponse.userMessage
                     }
                 });
 
@@ -438,10 +437,10 @@ const saveDescription = function(dispatch, postURL, formData) {
                 });
             }
 
-        }, function(err) {
+        }, function(/*err*/) {
 
-            // TODO: handle on json parsing fail
-            console.log('err:', err);
+            // json parsing fail
+            // console.log('err:', err);
 
             reject({
                 _error: {
@@ -449,10 +448,10 @@ const saveDescription = function(dispatch, postURL, formData) {
                 }
             });
         })
-        .catch(function(err) {
+        .catch(function(/*err*/) {
 
-            // TODO: handle
-            console.log('err:', err);
+            // any other errors
+            // console.log('err:', err);
 
             reject({
                 _error: {

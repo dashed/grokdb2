@@ -276,8 +276,6 @@ const addNewDeck = function(postURL, formData) {
         })
         .then(function([statusCode, jsonResponse]) {
 
-            console.log(jsonResponse);
-
             switch(statusCode) {
             case 400: // Bad Request
             case 500: // Internal Server Error

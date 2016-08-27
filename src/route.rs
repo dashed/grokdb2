@@ -119,9 +119,10 @@ pub enum DeckSettings {
 
 #[derive(Debug)]
 pub enum RenderResponse {
+    // TODO: remove Render- prefix
     RenderComponent(AppRoute),
     RenderJSON(String),
-    RenderEndPointError(EndPointError),
+    EndPointError(EndPointError),
 
     RenderOk,
     RenderNotFound,
@@ -438,14 +439,14 @@ fn __parse_route_api_deck_new_deck(
                     // println!("{:?}", err);
 
                     let err = EndPointError::bad_request("Unable to interpret your request to create a deck. \
-                        Please try again.");
+                        Please try again.".to_string());
                     return RenderResponse::EndPointError(err);
                 }
             };
 
             // NOTE: deck name must not be empty
             if request.name.trim().len() <= 0 {
-                let err = EndPointError::bad_request("Deck name is required.");
+                let err = EndPointError::bad_request("Deck name is required.".to_string());
                 return RenderResponse::EndPointError(err);
             }
 
@@ -478,7 +479,7 @@ fn __parse_route_api_deck_new_deck(
                         },
                         Err(_) => {
                             // TODO: error logging
-                            let err = EndPointError::server_error("An internal server error occurred.");
+                            let err = EndPointError::server_error("An internal server error occurred.".to_string());
                             return RenderResponse::EndPointError(err);
                         }
                     }
@@ -486,7 +487,7 @@ fn __parse_route_api_deck_new_deck(
                 },
                 Err(_) => {
                     // TODO: error logging
-                    let err = EndPointError::server_error("An internal server error occurred.");
+                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
                     return RenderResponse::EndPointError(err);
                 }
             }
@@ -496,7 +497,7 @@ fn __parse_route_api_deck_new_deck(
             // internal reason: invalid utf8 input
             // TODO: error logging
             let err = EndPointError::bad_request("Unable to interpret your request to create a deck. \
-                Please try again.");
+                Please try again.".to_string());
             return RenderResponse::EndPointError(err);
         }
     }
@@ -1316,7 +1317,7 @@ pub fn render_response(context: Rc<RefCell<Context>>, render: RenderResponse, mu
             response.send(json_response.as_bytes()).unwrap();
 
         },
-        RenderResponse::RenderEndPointError(endpoint_error) => {
+        RenderResponse::EndPointError(endpoint_error) => {
 
             let json_response = match serde_json::to_string(&endpoint_error) {
                 Ok(__json_response) => __json_response,

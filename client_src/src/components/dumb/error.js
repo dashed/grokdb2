@@ -3,7 +3,7 @@ const React = require('react');
 const ErrorComponent = function(props) {
 
     if(!props.error || String(props.error).trim().length <= 0) {
-        return <div></div>;
+        return null;
     }
 
     return (
