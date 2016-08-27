@@ -204,7 +204,7 @@ const __NewCardContainer = function(props) {
 
     const {
         mathjaxifyCardTitle,
-        fields: { title, description, question, answer },
+        fields: { title, description, question, answer, is_active },
         submitting,
         handleSubmit,
         postURL,
@@ -312,7 +312,7 @@ const __NewCardContainer = function(props) {
             <div className='columns'>
                 <div className='column'>
                     <label className='checkbox'>
-                        <input type='checkbox' checked />
+                        <input type='checkbox' {...assign({}, is_active)} />
                         {' Active for review'}
                     </label>
                 </div>
@@ -324,7 +324,7 @@ const __NewCardContainer = function(props) {
                         'is-disabled': submitting || String(title.value).trim().length <= 0,
                         'is-loading': submitting
                     })}
-                    // onClick={handleSubmit(addNewCard.bind(null, postURL))}
+                    onClick={handleSubmit(addNewCard.bind(null, postURL))}
                     >
                         {'Add Card'}
                     </a>
@@ -351,12 +351,13 @@ const NewCardContainer = reduxForm(
     // config
     {
         form: 'new_card',
-        fields: ['title', 'description', 'question', 'answer'],
+        fields: ['title', 'description', 'question', 'answer', 'is_active'],
         initialValues: {
             title: '',
             description: '',
             question: '',
-            answer: ''
+            answer: '',
+            is_active: true
         }
     },
 
@@ -373,6 +374,102 @@ const NewCardContainer = reduxForm(
 
 /* redux action dispatchers */
 // NOTE: FSA compliant
+
+const addNewCard = function(postURL, formData) {
+
+    return new Promise((resolve, reject) => {
+
+        fetch(postURL, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: formData.title,
+                description: formData.description,
+                question: formData.question,
+                answer: formData.answer,
+                is_active: formData.is_active,
+            })
+        })
+        .then(function(response) {
+
+            return Promise.all([response.status, response.json()]);
+        }, function(err) {
+
+            // TODO: handle on network failure, etc
+
+            console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to create new card.'
+                }
+            });
+        })
+        .then(function([statusCode, jsonResponse]) {
+
+            console.log(jsonResponse);
+
+            switch(statusCode) {
+            case 400: // Bad Request
+            case 500: // Internal Server Error
+
+                // response.userMessage
+
+                // TODO: error fix
+                //
+                // http://redux-form.com/5.2.5/#/api/props
+                // how to detect errors
+                reject({
+                    _error: {
+                        message: jsonResponse.userMessage
+                    }
+                });
+
+                return;
+                break;
+
+            case 200: // Ok
+
+                window.location.href = jsonResponse.profile_url;
+                break;
+
+            default: // Unexpected http status code
+                reject({
+                    _error: {
+                        message: 'Unable to create new card.'
+                    }
+                });
+            }
+
+        }, function(err) {
+
+
+            // TODO: handle on json parsing fail
+            console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to create new card.'
+                }
+            });
+        })
+        .catch(function(err) {
+
+            // TODO: handle
+            console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to create new card.'
+                }
+            });
+        });
+
+    });
+};
 
 const switchMarkdownView = function(dispatch, path, markdownView) {
     return function(event) {
