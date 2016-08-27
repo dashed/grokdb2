@@ -32,69 +32,31 @@ const {reduceIn} = require('lib/redux-tree');
 const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
 const MathJaxLine = require('components/dumb/mathjax_line');
+const ErrorComponent = require('components/dumb/error');
 
-const ErrorComponent = function(props) {
+const renderSourceComponentFactory = function(key) {
 
-    if(!props.error || String(props.error).trim().length <= 0) {
-        return <div></div>;
-    }
-
-    return (
-        <div className='columns'>
-            <div className='column'>
-                <div className='message is-danger'>
-                    <div className='message-body'>
-                        {props.error}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-
+    return connect(
+        // mapStateToProps
+        (state) => {
+            return {
+                [MARKDOWN_VIEW]: state[key][MARKDOWN_VIEW]
+            };
+        },
+        // mapDispatchToProps
+        (dispatch) => {
+            return {
+                // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
+                switchTab: (markdownView) => {
+                    return switchMarkdownView(dispatch, [key, MARKDOWN_VIEW], markdownView);
+                }
+            };
+        }
+    )(require('components/dumb/render_source'));
 };
 
-if(process.env.NODE_ENV !== 'production') {
-    ErrorComponent.propTypes = {
-        error: React.PropTypes.string
-    };
-}
-
-const RenderSourceNameComponent = connect(
-    // mapStateToProps
-    (state) => {
-        return {
-            [MARKDOWN_VIEW]: state[DECK_NAME][MARKDOWN_VIEW]
-        };
-    },
-    // mapDispatchToProps
-    (dispatch) => {
-        return {
-            // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
-            switchTab: (markdownView) => {
-                return switchMarkdownView(dispatch, [DECK_NAME, MARKDOWN_VIEW], markdownView);
-            }
-        };
-    }
-)(require('components/dumb/render_source'));
-
-const RenderSourceDescriptionComponent = connect(
-    // mapStateToProps
-    (state) => {
-        return {
-            [MARKDOWN_VIEW]: state[DECK_DESCRIPTION][MARKDOWN_VIEW]
-        };
-    },
-    // mapDispatchToProps
-    (dispatch) => {
-        return {
-            // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
-            switchTab: (markdownView) => {
-                return switchMarkdownView(dispatch, [DECK_DESCRIPTION, MARKDOWN_VIEW], markdownView);
-            }
-        };
-    }
-)(require('components/dumb/render_source'));
-
+const RenderSourceNameComponent = renderSourceComponentFactory(DECK_NAME);
+const RenderSourceDescriptionComponent = renderSourceComponentFactory(DECK_DESCRIPTION);
 
 const __DeckDescriptionComponent = function(props) {
 
