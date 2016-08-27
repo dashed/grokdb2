@@ -43,11 +43,26 @@ impl Serialize for APIStatus {
 #[derive(Debug, PartialEq, Serialize)]
 pub struct EndPointError {
     pub status: APIStatus,
-    pub developerMessage: String,
+    // pub developerMessage: String,
     pub userMessage: String,
 }
 
 impl EndPointError {
+
+    pub fn bad_request(reason: String) -> Self {
+        EndPointError {
+            status: APIStatus::BadRequest,
+            userMessage: reason
+        }
+    }
+
+    pub fn server_error(reason: String) -> Self {
+        EndPointError {
+            status: APIStatus::ServerError,
+            userMessage: reason
+        }
+    }
+
     pub fn status_code(&self) -> hyper::status::StatusCode {
         let status_code = match self.status {
             APIStatus::Ok => hyper::status::StatusCode::Ok,
@@ -75,6 +90,8 @@ quick_error! {
     }
 }
 
+// TODO: clean up
+
 // #[derive(Debug)]
 // pub struct QueryError {
 //     pub sqlite_error: SqliteError,
@@ -93,26 +110,33 @@ quick_error! {
 //     }
 // }
 
+// pub fn json_err(api_status: APIStatus, dev_message: String, user_message: String) -> EndPointError {
+//     return EndPointError {
+//         status: APIStatus::BadRequest,
+//         developerMessage: reason.clone(),
+//         userMessage: reason,
+//     };
+// }
 
-pub fn json_deserialize_err(reason: String) -> EndPointError {
+// pub fn json_deserialize_err(reason: String) -> EndPointError {
 
-    return EndPointError {
-        status: APIStatus::BadRequest,
-        developerMessage: reason.clone(),
-        userMessage: reason,
-    };
-}
+//     return EndPointError {
+//         status: APIStatus::BadRequest,
+//         developerMessage: reason.clone(),
+//         userMessage: reason,
+//     };
+// }
 
-macro_rules! internal_server_error(
-    () => {{
-        use errors;
-        errors::EndPointError {
-            status: errors::APIStatus::ServerError,
-            developerMessage: "Internal server error.".to_string(),
-            userMessage: "Internal server error.".to_string()
-        }
-    }}
-);
+// macro_rules! internal_server_error(
+//     () => {{
+//         use errors;
+//         errors::EndPointError {
+//             status: errors::APIStatus::ServerError,
+//             developerMessage: "An internal server error occured (status code 500).".to_string(),
+//             userMessage: "An internal server error occured (status code 500).".to_string()
+//         }
+//     }}
+// );
 
 
 macro_rules! handle_raw_api_error(

@@ -41,6 +41,7 @@ use serde;
 
 /* local imports */
 
+use errors::EndPointError;
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
 use types::{DeckID, CardID, DecksPageQuery, Search};
 use context::{self, Context};
@@ -120,6 +121,7 @@ pub enum DeckSettings {
 pub enum RenderResponse {
     RenderComponent(AppRoute),
     RenderJSON(String),
+    RenderEndPointError(EndPointError),
 
     RenderOk,
     RenderNotFound,
@@ -1306,11 +1308,37 @@ pub fn render_response(context: Rc<RefCell<Context>>, render: RenderResponse, mu
             response.send(json_response.as_bytes()).unwrap();
 
         },
+        RenderResponse::RenderEndPointError(endpoint_error) => {
+
+            let json_response = match serde_json::to_string(&endpoint_error) {
+                Ok(__json_response) => __json_response,
+                Err(why) => {
+
+                    // TODO: internal error logging
+
+                    *response.status_mut() = hyper::status::StatusCode::InternalServerError;
+                    response.send(b"").unwrap();
+
+                    return;
+
+                }
+            };
+
+            *response.status_mut() = endpoint_error.status_code();
+
+            response.headers_mut().set((hyper::header::ContentType(
+                mime!(Application/Json)
+            )));
+
+            response.send(json_response.as_bytes()).unwrap();
+
+        },
         RenderResponse::RenderOk => {
             *response.status_mut() = StatusCode::Ok;
             response.send(b"").unwrap();
         },
         RenderResponse::RenderBadRequest => {
+            // TODO: better page
             let message = format!("400 Bad Request");
             *response.status_mut() = StatusCode::BadRequest;
             response.send(message.as_bytes()).unwrap();
@@ -1322,7 +1350,7 @@ pub fn render_response(context: Rc<RefCell<Context>>, render: RenderResponse, mu
             response.send(message.as_bytes()).unwrap();
         },
         RenderResponse::RenderInternalServerError => {
-            // TODO: better 404 page
+            // TODO: better 500 page
             let message = format!("500 Internal Server Error");
             *response.status_mut() = StatusCode::NotFound;
             response.send(message.as_bytes()).unwrap();
