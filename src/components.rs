@@ -19,7 +19,7 @@ use serde_json;
 
 /* local imports */
 
-use route::{AppRoute, RenderResponse, DeckRoute, DeckSettings};
+use route::{AppRoute, RenderResponse, DeckRoute, CardRoute, DeckSettings};
 use context::{self, Context};
 use types::{DeckID, DecksPageQuery, Search, Pagination, SortOrderable};
 use api::decks;
@@ -42,14 +42,29 @@ macro_rules! classnames {
 
 /* link generator */
 
+#[inline]
+fn card_route_string(card_route: CardRoute) -> String {
+    match card_route {
+        CardRoute::Contents => "contents".to_string(),
+        CardRoute::Review => "review".to_string(),
+        CardRoute::Stats => "stats".to_string(),
+        CardRoute::Settings => "settings".to_string()
+    }
+}
+
+#[inline]
 pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) -> String {
     match app_route {
+        AppRoute::Preferences => "/preferences".to_string(),
+        AppRoute::Stashes => "/stashes".to_string(),
         AppRoute::Deck(deck_id, deck_route) => {
             match deck_route {
                 DeckRoute::NewDeck => format!("/deck/{}/new/deck", deck_id),
                 DeckRoute::NewCard => format!("/deck/{}/new/card", deck_id),
                 DeckRoute::Description => format!("/deck/{}/description", deck_id),
                 DeckRoute::Cards => format!("/deck/{}/cards", deck_id),
+                DeckRoute::Stats => format!("/deck/{}/stats", deck_id),
+                DeckRoute::Review => format!("/deck/{}/review", deck_id),
                 DeckRoute::Settings(ref setting_mode) => {
                     match *setting_mode {
                         DeckSettings::Main => format!("/deck/{}/settings", deck_id),
@@ -67,15 +82,14 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
 
                     format!("/deck/{deck_id}/decks?{query_string}", deck_id = deck_id, query_string = query)
 
-                },
-
-                // TODO: remove
-                _ => panic!("fix")
+                }
             }
         },
-        _ => {
-            // TODO: remove
-            panic!("fix this");
+        AppRoute::CardInDeck(deck_id, card_id, card_route) => {
+            format!("/deck/{}/card/{}/{}", deck_id, card_id, card_route_string(card_route))
+        },
+        AppRoute::Card(card_id, card_route) => {
+            format!("/card/{}/{}", card_id, card_route_string(card_route))
         }
     }
 }

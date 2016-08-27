@@ -186,7 +186,8 @@ fn main() {
             should_cache: true,
 
             decks: HashMap::new(),
-            deck_children_count: HashMap::new()
+            deck_children_count: HashMap::new(),
+            cards: HashMap::new(),
         };
 
         let context = Rc::new(RefCell::new(context));

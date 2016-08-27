@@ -49,6 +49,11 @@ pub struct CreateCard {
     pub is_active: bool
 }
 
+#[derive(Debug, Serialize)]
+pub struct CardCreateResponse {
+    pub profile_url: String
+}
+
 pub fn get_card(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<Card, RawAPIError> {
 
     {

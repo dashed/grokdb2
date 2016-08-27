@@ -46,6 +46,7 @@ use types::{DeckID, CardID, DecksPageQuery, Search};
 use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
 use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
+use api::cards;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -76,10 +77,10 @@ pub enum AppRoute {
 
 #[derive(Debug)]
 pub enum CardRoute {
-    Profile,
-    // Settings,
-    // Meta,
+    Contents,
     Review,
+    Stats,
+    Settings
 }
 
 #[derive(Debug)]
@@ -97,7 +98,7 @@ pub enum DeckRoute {
 
     Settings(DeckSettings),
 
-    Meta,
+    Stats,
     Review,
 
     // CardProfile(CardID, CardRoute)
@@ -377,6 +378,7 @@ fn __parse_route_api_deck<'a>(
     parse!{input;
 
         let render_response = parse_route_api_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
+            parse_route_api_deck_new_card(context.clone(), request.clone(), deck_id) <|>
             parse_route_api_deck_description(context.clone(), request.clone(), deck_id) <|>
             parse_route_api_deck_settings(context.clone(), request.clone(), deck_id);
 
@@ -481,11 +483,113 @@ fn __parse_route_api_deck_new_deck(
                 }
             }
 
-            // println!("{:?}", request);
+        },
+        Err(err) => {
+            // invalid utf8 input
+            // TODO: error logging
+            return RenderResponse::RenderBadRequest;
+        }
+    }
+}
 
-            // TODO: change
+#[inline]
+fn parse_route_api_deck_new_card<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    parent_deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
 
-            return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+    parse!{input;
+
+        string_ignore_case(b"new");
+        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"card");
+
+        eof();
+
+        ret {
+            __parse_route_api_deck_new_card(context, request, parent_deck_id)
+        }
+
+    }
+}
+
+#[inline]
+fn __parse_route_api_deck_new_card(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    parent_deck_id: DeckID)
+-> RenderResponse {
+
+    let mut request = request.borrow_mut();
+
+    if request.method != Method::Post {
+        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+    }
+
+    // POST /api/deck/:id/new/card => create a new card within this deck
+
+    let mut buffer = String::new();
+
+    match request.read_to_string(&mut buffer) {
+        Ok(_num_bytes_parsed) => {
+
+            let request: cards::CreateCard = match serde_json::from_str(&buffer) {
+                Ok(request) => request,
+                Err(err) => {
+                    // TODO: error logging
+                    // println!("{:?}", err);
+                    return RenderResponse::RenderBadRequest;
+                }
+            };
+
+            let title_empty = request.title.trim().len() <= 0;
+
+            // NOTE: card title must not be empty
+            if title_empty && request.question.trim().len() <= 0 {
+                return RenderResponse::RenderBadRequest;
+            }
+
+            let mut request = request;
+            if title_empty {
+                // invariant: request.question is not empty
+
+                // if card has question content, fetch first 140 characters as title
+
+                let len = if request.question.len() < 140 {
+                    request.question.len()
+                } else {
+                    140
+                };
+
+                let new_title = &(request.question)[..len];
+                let new_title = new_title.trim().to_string();
+
+                request.title = new_title;
+            };
+            let request = request;
+
+            let _guard = context::write_lock(context.clone());
+
+            match cards::create_card(context.clone(), parent_deck_id, request) {
+                Ok(new_card) => {
+
+                    let card_route = CardRoute::Contents;
+                    let app_route = AppRoute::CardInDeck(parent_deck_id, new_card.id, card_route);
+
+                    let response = cards::CardCreateResponse {
+                        profile_url: view_route_to_link(context, app_route)
+                    };
+
+                    return respond_json!(response);
+
+                },
+                Err(_) => {
+                    // TODO: error logging
+                    return RenderResponse::RenderInternalServerError;
+                }
+            }
 
         },
         Err(err) => {

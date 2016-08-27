@@ -324,7 +324,7 @@ const __NewCardContainer = function(props) {
                         'is-disabled': submitting || String(title.value).trim().length <= 0,
                         'is-loading': submitting
                     })}
-                    // onClick={handleSubmit(addNewDeck.bind(null, postURL))}
+                    // onClick={handleSubmit(addNewCard.bind(null, postURL))}
                     >
                         {'Add Card'}
                     </a>
