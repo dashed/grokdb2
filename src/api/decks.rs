@@ -428,7 +428,7 @@ pub fn get_deck_children_total_count(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID) -> Result<ItemCount, RawAPIError> {
 
-    // TODO: support
+    // TODO: support search
     // TODO: cache does not support searching
 
     {

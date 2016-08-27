@@ -739,7 +739,7 @@ impl CardsPageQuery {
         return CardsPageQuery(self.0, CardsPageSort::CreatedAt(self.1.order_by()))
     }
 
-    pub fn deck_name(&self) -> Self {
+    pub fn card_title(&self) -> Self {
         return CardsPageQuery(self.0, CardsPageSort::CardTitle(self.1.order_by()))
     }
 }

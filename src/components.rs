@@ -838,67 +838,67 @@ fn DeckCards(
                         }
                     }
 
-                    // div(class="level-right") {
-                    //     div(class="level-item") {
-                    //         span(class="select") {
-                    //             select(onchange="if(this.value && this.value.length > 0) window.location.href = this.value;") {
-                    //                 option(value = "") {
-                    //                     : format!("Order By: {}", deck_page_query.sort_order_string())
-                    //                 }
-                    //                 option(
-                    //                     value = view_route_to_link(context.clone(),
-                    //                         AppRoute::Deck(deck_id,
-                    //                             DeckRoute::Decks(deck_page_query.descending(), search.clone())))
-                    //                 ) {
-                    //                     : deck_page_query.descending().sort_order_string()
-                    //                 }
-                    //                 option(
-                    //                     value = view_route_to_link(context.clone(),
-                    //                         AppRoute::Deck(deck_id,
-                    //                             DeckRoute::Decks(deck_page_query.ascending(), search.clone())))
-                    //                 ) {
-                    //                     : deck_page_query.ascending().sort_order_string()
-                    //                 }
-                    //             }
-                    //         }
-                    //     }
-                    //     div(class="level-item") {
-                    //         span(class="select") {
-                    //             select(onchange="if(this.value && this.value.length > 0) window.location.href = this.value;") {
-                    //                 option(value="") {
-                    //                     : format!("Sort By: {}", deck_page_query.sort_by_string())
-                    //                 }
+                    div(class="level-right") {
+                        div(class="level-item") {
+                            span(class="select") {
+                                select(onchange="if(this.value && this.value.length > 0) window.location.href = this.value;") {
+                                    option(value = "") {
+                                        : format!("Order By: {}", cards_page_query.sort_order_string())
+                                    }
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(cards_page_query.descending(), search.clone())))
+                                    ) {
+                                        : cards_page_query.descending().sort_order_string()
+                                    }
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(cards_page_query.ascending(), search.clone())))
+                                    ) {
+                                        : cards_page_query.ascending().sort_order_string()
+                                    }
+                                }
+                            }
+                        }
+                        div(class="level-item") {
+                            span(class="select") {
+                                select(onchange="if(this.value && this.value.length > 0) window.location.href = this.value;") {
+                                    option(value="") {
+                                        : format!("Sort By: {}", cards_page_query.sort_by_string())
+                                    }
 
-                    //                 option(
-                    //                     value = view_route_to_link(context.clone(),
-                    //                         AppRoute::Deck(deck_id,
-                    //                             DeckRoute::Decks(deck_page_query.updated_at(),
-                    //                                 search.clone())))
-                    //                 ) {
-                    //                     : deck_page_query.updated_at().sort_by_string()
-                    //                 }
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(cards_page_query.updated_at(),
+                                                    search.clone())))
+                                    ) {
+                                        : cards_page_query.updated_at().sort_by_string()
+                                    }
 
-                    //                 option(
-                    //                     value = view_route_to_link(context.clone(),
-                    //                         AppRoute::Deck(deck_id,
-                    //                             DeckRoute::Decks(deck_page_query.deck_title(),
-                    //                                 search.clone())))
-                    //                 ) {
-                    //                     : deck_page_query.deck_title().sort_by_string()
-                    //                 }
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(cards_page_query.card_title(),
+                                                    search.clone())))
+                                    ) {
+                                        : cards_page_query.card_title().sort_by_string()
+                                    }
 
-                    //                 option(
-                    //                     value = view_route_to_link(context.clone(),
-                    //                         AppRoute::Deck(deck_id,
-                    //                             DeckRoute::Decks(deck_page_query.created_at(),
-                    //                                 search.clone())))
-                    //                 ) {
-                    //                     : deck_page_query.created_at().sort_by_string()
-                    //                 }
-                    //             }
-                    //         }
-                    //     }
-                    // }
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(cards_page_query.created_at(),
+                                                    search.clone())))
+                                    ) {
+                                        : cards_page_query.created_at().sort_by_string()
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
