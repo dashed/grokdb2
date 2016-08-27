@@ -33,6 +33,33 @@ const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
 const MathJaxLine = require('components/dumb/mathjax_line');
 
+const ErrorComponent = function(props) {
+
+    if(!props.error || String(props.error).trim().length <= 0) {
+        return <div></div>;
+    }
+
+    return (
+        <div className='columns'>
+            <div className='column'>
+                <div className='message is-danger'>
+                    <div className='message-body'>
+                        {props.error}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+};
+
+// TODO: fix
+if(process.env.NODE_ENV !== 'production') {
+    ErrorComponent.propTypes = {
+        error: React.PropTypes.string
+    };
+}
+
 const RenderSourceNameComponent = connect(
     // mapStateToProps
     (state) => {
@@ -139,7 +166,8 @@ const __NewDeckContainer = function(props) {
         fields: { name, description},
         submitting,
         handleSubmit,
-        postURL
+        postURL,
+        error
     } = props;
 
     const __description = assign({}, description);
@@ -202,6 +230,7 @@ const __NewDeckContainer = function(props) {
                     <hr className='is-marginless'/>
                 </div>
             </div>
+            <ErrorComponent error={error && error.message || ''} />
             <div className='columns'>
                 <div className='column'>
                     <a
@@ -224,7 +253,9 @@ if(process.env.NODE_ENV !== 'production') {
         handleSubmit: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
         mathjaxifyDeckName: React.PropTypes.bool.isRequired,
-        postURL: React.PropTypes.string.isRequired
+        postURL: React.PropTypes.string.isRequired,
+        // TODO: fix
+        error: React.PropTypes.object
     };
 }
 
@@ -271,15 +302,14 @@ const addNewDeck = function(postURL, formData) {
         .then(function(response) {
 
             return Promise.all([response.status, response.json()]);
-        }, function(err) {
+        }, function(/*err*/) {
 
-            // TODO: handle on network failure, etc
-
-            console.log('err:', err);
+            // network error
+            // console.log('network err:', err);
 
             reject({
                 _error: {
-                    message: 'Unable to create new deck.'
+                    message: 'Unable to send request to create new deck. Please try again.'
                 }
             });
         })
@@ -291,12 +321,6 @@ const addNewDeck = function(postURL, formData) {
             case 400: // Bad Request
             case 500: // Internal Server Error
 
-                // response.userMessage
-
-                // TODO: error fix
-                //
-                // http://redux-form.com/5.2.5/#/api/props
-                // how to detect errors
                 reject({
                     _error: {
                         message: jsonResponse.userMessage
@@ -319,11 +343,10 @@ const addNewDeck = function(postURL, formData) {
                 });
             }
 
-        }, function(err) {
-
+        }, function(/*err*/) {
 
             // TODO: handle on json parsing fail
-            console.log('err:', err);
+            // console.log('err:', err);
 
             reject({
                 _error: {
@@ -331,10 +354,10 @@ const addNewDeck = function(postURL, formData) {
                 }
             });
         })
-        .catch(function(err) {
+        .catch(function(/*err*/) {
 
             // TODO: handle
-            console.log('err:', err);
+            // console.log('err:', err);
 
             reject({
                 _error: {
