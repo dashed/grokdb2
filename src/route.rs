@@ -436,13 +436,17 @@ fn __parse_route_api_deck_new_deck(
                 Err(err) => {
                     // TODO: error logging
                     // println!("{:?}", err);
-                    return RenderResponse::RenderBadRequest;
+
+                    let err = EndPointError::bad_request("Unable to interpret your request to create a deck. \
+                        Please try again.");
+                    return RenderResponse::EndPointError(err);
                 }
             };
 
             // NOTE: deck name must not be empty
             if request.name.trim().len() <= 0 {
-                return RenderResponse::RenderBadRequest;
+                let err = EndPointError::bad_request("Deck name is required.");
+                return RenderResponse::EndPointError(err);
             }
 
             let _guard = context::write_lock(context.clone());
@@ -474,22 +478,26 @@ fn __parse_route_api_deck_new_deck(
                         },
                         Err(_) => {
                             // TODO: error logging
-                            return RenderResponse::RenderInternalServerError;
+                            let err = EndPointError::server_error("An internal server error occurred.");
+                            return RenderResponse::EndPointError(err);
                         }
                     }
 
                 },
                 Err(_) => {
                     // TODO: error logging
-                    return RenderResponse::RenderInternalServerError;
+                    let err = EndPointError::server_error("An internal server error occurred.");
+                    return RenderResponse::EndPointError(err);
                 }
             }
 
         },
         Err(err) => {
-            // invalid utf8 input
+            // internal reason: invalid utf8 input
             // TODO: error logging
-            return RenderResponse::RenderBadRequest;
+            let err = EndPointError::bad_request("Unable to interpret your request to create a deck. \
+                Please try again.");
+            return RenderResponse::EndPointError(err);
         }
     }
 }
