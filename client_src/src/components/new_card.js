@@ -321,7 +321,7 @@ const __NewCardContainer = function(props) {
                 <div className='column'>
                     <a
                     className={classnames('button is-success', {
-                        'is-disabled': submitting || String(title.value).trim().length <= 0,
+                        'is-disabled': submitting || !shouldAddCard(title.value, question.value),
                         'is-loading': submitting
                     })}
                     onClick={handleSubmit(addNewCard.bind(null, postURL))}
@@ -386,11 +386,11 @@ const addNewCard = function(postURL, formData) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                title: formData.title,
-                description: formData.description,
-                question: formData.question,
-                answer: formData.answer,
-                is_active: formData.is_active,
+                title: String(formData.title).trim(),
+                description: String(formData.description).trim(),
+                question: String(formData.question).trim(),
+                answer: String(formData.answer).trim(),
+                is_active: !!(formData.is_active),
             })
         })
         .then(function(response) {
@@ -579,3 +579,22 @@ module.exports = componentCreator(initialState, function(store) {
 }, formReducer);
 
 module.exports.initialState = initialState;
+
+/* helpers */
+
+const shouldAddCard = function(title, question) {
+
+    const __title = String(title).trim();
+
+    if(__title.length > 0) {
+        return true;
+    }
+
+    const __question = String(question).trim();
+
+    if(__question.length > 0) {
+        return true;
+    }
+
+    return false;
+}
