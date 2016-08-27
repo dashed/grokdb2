@@ -202,6 +202,81 @@ pub fn create_card(
     return get_card(context, card_id);
 }
 
+pub fn total_num_of_cards_in_deck(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID
+    ) -> Result<ItemCount, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    // TODO: complete
+    let search_inner_join = "";
+    // let search_inner_join = match maybe_search_query {
+    //     None => "",
+    //     Some(_) => {
+    //         "
+    //         INNER JOIN CardsFTS
+    //         ON CardsFTS.docid = c.card_id
+    //         "
+    //     }
+    // };
+
+    // TODO: complete
+    let search_where_cond = "";
+    // let search_where_cond = match maybe_search_query {
+    //     None => "",
+    //     Some(_) => {
+    //         "AND CardsFTS MATCH :search_query"
+    //     }
+    // };
+
+    let query = format!("
+        SELECT
+            COUNT(1)
+        FROM DecksClosure AS dc
+
+        INNER JOIN Cards AS c
+        ON c.deck_id = dc.descendent
+
+        {search_inner_join}
+
+        WHERE
+        dc.ancestor = {deck_id}
+
+        {search_where_cond}
+        ;
+    ",
+    deck_id = deck_id,
+    search_inner_join = search_inner_join,
+    search_where_cond = search_where_cond);
+
+    let result = {
+        let context = context.borrow();
+        db_read_lock!(db_conn; context.database());
+        let db_conn: &Connection = db_conn;
+
+        let result = db_conn.query_row(&query, &[], |row| -> i64 {
+            return row.get(0);
+        });
+        result
+    };
+
+    match result {
+        Ok(count) => {
+            // TODO: dev mode
+            assert!(count >= 0);
+
+            let count = count as ItemCount;
+
+            let mut context = context.borrow_mut();
+
+            return Ok(count)
+        },
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+}
 
 #[test]
 fn cards_test() {

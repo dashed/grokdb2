@@ -428,6 +428,9 @@ pub fn get_deck_children_total_count(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID) -> Result<ItemCount, RawAPIError> {
 
+    // TODO: support
+    // TODO: cache does not support searching
+
     {
         let context = context.borrow();
         if context.should_cache && context.deck_children_count.len() > 0 {

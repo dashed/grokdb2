@@ -43,7 +43,7 @@ use serde;
 
 use errors::EndPointError;
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
-use types::{DeckID, CardID, DecksPageQuery, Search};
+use types::{DeckID, CardID, DecksPageQuery, CardsPageQuery, Search};
 use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
 use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
@@ -93,9 +93,7 @@ pub enum DeckRoute {
     Description,
 
     Decks(DecksPageQuery, Search), // list
-
-    // TODO: CardsPageQuery, Search
-    Cards, // list
+    Cards(CardsPageQuery, Search), // list
 
     Settings(DeckSettings),
 
@@ -814,7 +812,7 @@ fn __parse_route_deck<'a>(
             // /description
             parse_route_deck_description(request.clone(), deck_id) <|>
             // /cards
-            parse_route_deck_cards(request.clone(), deck_id) <|>
+            parse_route_deck_cards(context.clone(), request.clone(), deck_id) <|>
             // /settings
             parse_route_deck_settings(request.clone(), deck_id);
 
@@ -858,8 +856,7 @@ fn parse_route_deck_description<'a>(
 #[inline]
 fn parse_route_deck_cards<'a>(
     input: Input<'a, u8>,
-    // NOTE: not needed
-    // context: Rc<RefCell<Context>>,
+    context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
     parse!{input;
@@ -868,23 +865,44 @@ fn parse_route_deck_cards<'a>(
 
         option(|i| parse_byte_limit(i, b'/', 5), ());
 
-        or(
-            |i| parse!{i;
-                token(b'?');
-                ret {()}
-            },
-            eof
-        );
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
+
+            ret Some(query_string)
+        }, None);
 
         ret {
-            if request.borrow().method != Method::Get {
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
-            } else {
-                let route = AppRoute::Deck(deck_id, DeckRoute::Cards);
-                RenderResponse::RenderComponent(route)
-            }
+            route_deck_cards(context, request, deck_id, query_string)
         }
+
     }
+}
+
+#[inline]
+fn route_deck_cards(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    query_string: Option<QueryString>) -> RenderResponse {
+
+    if request.borrow().method != Method::Get {
+        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+    }
+
+    let cards_route = match query_string {
+        None => DeckRoute::Cards(Default::default(), Default::default()),
+        Some(query_string) => {
+
+            let page_query = CardsPageQuery::parse(&query_string, context.clone(), deck_id);
+            let search = Search::parse(&query_string);
+
+            DeckRoute::Cards(page_query, search)
+        }
+    };
+
+    let decks = AppRoute::Deck(deck_id, cards_route);
+    return RenderResponse::RenderComponent(decks);
+
 }
 
 #[inline]
@@ -978,6 +996,8 @@ fn parse_route_deck_decks<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>
 
         string_ignore_case(b"decks");
 
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
         let query_string = option(|i| parse!{i;
             let query_string = parse_query_string();
 
@@ -1001,7 +1021,7 @@ fn route_deck_decks(
         return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
     }
 
-    let deck_route = match query_string {
+    let decks_route = match query_string {
         None => DeckRoute::Decks(Default::default(), Default::default()),
         Some(query_string) => {
 
@@ -1012,7 +1032,7 @@ fn route_deck_decks(
         }
     };
 
-    let decks = AppRoute::Deck(deck_id, deck_route);
+    let decks = AppRoute::Deck(deck_id, decks_route);
     return RenderResponse::RenderComponent(decks);
 
 }

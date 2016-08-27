@@ -21,7 +21,7 @@ use serde_json;
 
 use route::{AppRoute, RenderResponse, DeckRoute, CardRoute, DeckSettings};
 use context::{self, Context};
-use types::{DeckID, DecksPageQuery, Search, Pagination, SortOrderable};
+use types::{DeckID, DecksPageQuery, CardsPageQuery, Search, Pagination, SortOrderable};
 use api::decks;
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -62,7 +62,6 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
                 DeckRoute::NewDeck => format!("/deck/{}/new/deck", deck_id),
                 DeckRoute::NewCard => format!("/deck/{}/new/card", deck_id),
                 DeckRoute::Description => format!("/deck/{}/description", deck_id),
-                DeckRoute::Cards => format!("/deck/{}/cards", deck_id),
                 DeckRoute::Stats => format!("/deck/{}/stats", deck_id),
                 DeckRoute::Review => format!("/deck/{}/review", deck_id),
                 DeckRoute::Settings(ref setting_mode) => {
@@ -71,10 +70,19 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
                         DeckSettings::Move => format!("/deck/{}/settings/move", deck_id),
                     }
                 },
-                DeckRoute::Decks(page_query, search) => {
+                DeckRoute::Cards(page_query, search) => {
 
                     let mut query = page_query.generate_query_string();
 
+                    if let Some(search_query) = search.generate_query_string() {
+                        query = query + &format!("&{}", search_query);
+                    }
+
+                    format!("/deck/{deck_id}/cards?{query_string}", deck_id = deck_id, query_string = query)
+                },
+                DeckRoute::Decks(page_query, search) => {
+
+                    let mut query = page_query.generate_query_string();
 
                     if let Some(search_query) = search.generate_query_string() {
                         query = query + &format!("&{}", search_query);
@@ -574,12 +582,12 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
 
             |tmpl| {
                 match *deck_route {
-                    DeckRoute::Decks(ref deck_page_query, ref search) => {
+                    DeckRoute::Decks(ref decks_page_query, ref search) => {
                         DecksChildren(
                             tmpl,
                             context.clone(),
                             deck_id,
-                            deck_page_query,
+                            decks_page_query,
                             search
                         )
                     },
@@ -604,11 +612,13 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             deck_id
                         )
                     },
-                    DeckRoute::Cards => {
+                    DeckRoute::Cards(ref cards_page_query, ref search) => {
                         DeckCards(
                             tmpl,
                             context.clone(),
-                            deck_id
+                            deck_id,
+                            cards_page_query,
+                            search
                         )
                     },
                     DeckRoute::Settings(ref setting_mode) => {
@@ -671,12 +681,13 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             }
                             li {
                                 a(href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(deck_id, DeckRoute::Cards)),
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::Cards(Default::default(), Default::default()))),
                                     class? = classnames!(
                                         "is-bold",
                                         "is-active" => {
                                             matches!(*deck_route, DeckRoute::NewCard) ||
-                                            matches!(*deck_route, DeckRoute::Cards)
+                                            matches!(*deck_route, DeckRoute::Cards(_, _))
                                         })
                                 ) {
                                     : "Cards"
@@ -797,7 +808,12 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
 }
 
 #[inline]
-fn DeckCards(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
+fn DeckCards(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    cards_page_query: &CardsPageQuery,
+    search: &Search) {
 
     tmpl << html!{
         div(class="columns") {
@@ -822,7 +838,6 @@ fn DeckCards(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: 
                         }
                     }
 
-                    // TODO: complete
                     // div(class="level-right") {
                     //     div(class="level-item") {
                     //         span(class="select") {
@@ -1113,10 +1128,10 @@ fn DecksChildren(tmpl: &mut TemplateBuffer,
                                     option(
                                         value = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id,
-                                                DeckRoute::Decks(deck_page_query.deck_title(),
+                                                DeckRoute::Decks(deck_page_query.deck_name(),
                                                     search.clone())))
                                     ) {
-                                        : deck_page_query.deck_title().sort_by_string()
+                                        : deck_page_query.deck_name().sort_by_string()
                                     }
 
                                     option(
@@ -1208,7 +1223,8 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
                     : format!("Deck #{}", deck.id);
                     : raw!(" ");
                     a(href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(deck_id, DeckRoute::Cards))) {
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::Cards(Default::default(), Default::default())))) {
                         : raw!("View Cards")
                     }
                 }

@@ -12,7 +12,7 @@ use url::percent_encoding::{QUERY_ENCODE_SET, utf8_percent_encode};
 use context::{self, Context};
 use route::QueryString;
 use constants;
-use api::decks;
+use api::{decks, cards};
 
 /* Types */
 
@@ -93,8 +93,70 @@ pub trait SortOrderable {
 }
 
 #[derive(Debug, Clone)]
+pub enum CardsPageSort {
+    CardTitle(SortOrder),
+    CreatedAt(SortOrder),
+    UpdatedAt(SortOrder)
+    // TODO: more sort options
+}
+
+impl Default for CardsPageSort {
+    fn default() -> Self {
+        CardsPageSort::UpdatedAt(SortOrder::Descending)
+    }
+}
+
+impl SortOrderable for CardsPageSort {
+
+    fn order_by(&self) -> SortOrder {
+        match *self {
+            CardsPageSort::CardTitle(ref order_by) |
+            CardsPageSort::CreatedAt(ref order_by) |
+            CardsPageSort::UpdatedAt(ref order_by) => {
+                order_by.clone()
+            }
+        }
+    }
+
+    fn ascending(&self) -> Self {
+        let new_value = SortOrder::Ascending;
+        match *self {
+            CardsPageSort::CardTitle(_) => CardsPageSort::CardTitle(new_value),
+            CardsPageSort::CreatedAt(_) => CardsPageSort::CreatedAt(new_value),
+            CardsPageSort::UpdatedAt(_) => CardsPageSort::UpdatedAt(new_value)
+        }
+    }
+
+    fn descending(&self) -> Self {
+        let new_value = SortOrder::Descending;
+        match *self {
+            CardsPageSort::CardTitle(_) => CardsPageSort::CardTitle(new_value),
+            CardsPageSort::CreatedAt(_) => CardsPageSort::CreatedAt(new_value),
+            CardsPageSort::UpdatedAt(_) => CardsPageSort::UpdatedAt(new_value)
+        }
+    }
+
+    fn sort_order_string(&self) -> String {
+        match *self {
+            CardsPageSort::CardTitle(ref order_by) => {
+                match *order_by {
+                    SortOrder::Ascending => "Ascending".to_owned(),
+                    SortOrder::Descending => "Descending".to_owned(),
+                }
+            },
+            CardsPageSort::CreatedAt(ref order_by) | CardsPageSort::UpdatedAt(ref order_by) => {
+                match *order_by {
+                    SortOrder::Ascending => "Least Recent".to_owned(),
+                    SortOrder::Descending => "Most Recent".to_owned(),
+                }
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum DecksPageSort {
-    DeckTitle(SortOrder),
+    DeckName(SortOrder),
     CreatedAt(SortOrder),
     UpdatedAt(SortOrder), /* TODO: number of cards
                            * TODO: number of decks
@@ -114,7 +176,7 @@ impl SortOrderable for DecksPageSort {
 
     fn order_by(&self) -> SortOrder {
         match *self {
-            DecksPageSort::DeckTitle(ref order_by) |
+            DecksPageSort::DeckName(ref order_by) |
             DecksPageSort::CreatedAt(ref order_by) |
             DecksPageSort::UpdatedAt(ref order_by) => {
                 order_by.clone()
@@ -125,7 +187,7 @@ impl SortOrderable for DecksPageSort {
     fn ascending(&self) -> Self {
         let new_value = SortOrder::Ascending;
         match *self {
-            DecksPageSort::DeckTitle(_) => DecksPageSort::DeckTitle(new_value),
+            DecksPageSort::DeckName(_) => DecksPageSort::DeckName(new_value),
             DecksPageSort::CreatedAt(_) => DecksPageSort::CreatedAt(new_value),
             DecksPageSort::UpdatedAt(_) => DecksPageSort::UpdatedAt(new_value)
         }
@@ -134,7 +196,7 @@ impl SortOrderable for DecksPageSort {
     fn descending(&self) -> Self {
         let new_value = SortOrder::Descending;
         match *self {
-            DecksPageSort::DeckTitle(_) => DecksPageSort::DeckTitle(new_value),
+            DecksPageSort::DeckName(_) => DecksPageSort::DeckName(new_value),
             DecksPageSort::CreatedAt(_) => DecksPageSort::CreatedAt(new_value),
             DecksPageSort::UpdatedAt(_) => DecksPageSort::UpdatedAt(new_value)
         }
@@ -142,7 +204,7 @@ impl SortOrderable for DecksPageSort {
 
     fn sort_order_string(&self) -> String {
         match *self {
-            DecksPageSort::DeckTitle(ref order_by) => {
+            DecksPageSort::DeckName(ref order_by) => {
                 match *order_by {
                     SortOrder::Ascending => "Ascending".to_owned(),
                     SortOrder::Descending => "Descending".to_owned(),
@@ -227,7 +289,7 @@ impl DecksPageQuery {
                     None => DecksPageSort::UpdatedAt(sort_by),
                     Some(ref order_by_string) => {
                         match order_by_string.as_ref() {
-                            "deck_title" => DecksPageSort::DeckTitle(sort_by),
+                            "deck_name" => DecksPageSort::DeckName(sort_by),
                             "created_at" => DecksPageSort::CreatedAt(sort_by),
                             "updated_at" => DecksPageSort::UpdatedAt(sort_by),
                             _ => DecksPageSort::UpdatedAt(sort_by)
@@ -260,7 +322,7 @@ impl DecksPageQuery {
         let &DecksPageQuery(page, ref page_sort) = self;
 
         let (order_by, sort_order) = match *page_sort {
-            DecksPageSort::DeckTitle(ref sort_order) => ("deck_title", sort_order),
+            DecksPageSort::DeckName(ref sort_order) => ("deck_name", sort_order),
             DecksPageSort::CreatedAt(ref sort_order) => ("created_at", sort_order),
             DecksPageSort::UpdatedAt(ref sort_order) => ("updated_at", sort_order)
         };
@@ -276,7 +338,7 @@ impl DecksPageQuery {
 
     pub fn sort_by_string(&self) -> String {
         match self.1 {
-            DecksPageSort::DeckTitle(_) => "Deck Title".to_owned(),
+            DecksPageSort::DeckName(_) => "Deck Name".to_owned(),
             DecksPageSort::CreatedAt(_) => "Created At".to_owned(),
             DecksPageSort::UpdatedAt(_) => "Updated At".to_owned()
         }
@@ -290,8 +352,8 @@ impl DecksPageQuery {
         return DecksPageQuery(self.0, DecksPageSort::CreatedAt(self.1.order_by()))
     }
 
-    pub fn deck_title(&self) -> Self {
-        return DecksPageQuery(self.0, DecksPageSort::DeckTitle(self.1.order_by()))
+    pub fn deck_name(&self) -> Self {
+        return DecksPageQuery(self.0, DecksPageSort::DeckName(self.1.order_by()))
     }
 }
 
@@ -544,6 +606,163 @@ impl Pagination for DecksPageQuery {
 
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct CardsPageQuery(pub Page, pub CardsPageSort);
+
+impl Default for CardsPageQuery {
+    fn default() -> Self {
+        CardsPageQuery(1, CardsPageSort::UpdatedAt(SortOrder::Descending))
+    }
+}
+
+impl CardsPageQuery {
+
+    pub fn parse(query_string: &QueryString, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
+
+        let default_per_page = constants::CARDS_PER_PAGE;
+
+        let page_num: Page = match query_string.get("page") {
+            None => 1,
+            Some(maybe_page_num_string) => {
+                match *maybe_page_num_string {
+                    None => 1,
+                    Some(ref page_num_string) => {
+                        match page_num_string.parse::<Page>() {
+                            Err(_) => 1,
+                            Ok(page_num) => {
+
+                                let _guard = context::read_lock(context.clone());
+
+                                let children_count = match cards::total_num_of_cards_in_deck(context, deck_id) {
+                                    Ok(count) => count,
+                                    Err(_) => {
+                                        // TODO: internal error logging
+                                        panic!();
+                                    }
+                                };
+
+                                let num_of_pages = get_num_pages(children_count, default_per_page);
+
+                                get_page_num(num_of_pages, page_num)
+
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        let sort_by = match query_string.get("sort_by") {
+            None => SortOrder::Descending,
+            Some(maybe_sort_by) => {
+                match *maybe_sort_by {
+                    None => SortOrder::Descending,
+                    Some(ref sort_by_string) => {
+                        match sort_by_string.as_ref() {
+                            "desc" => SortOrder::Descending,
+                            "asc" => SortOrder::Ascending,
+                            _ => SortOrder::Descending
+                        }
+                    }
+                }
+            }
+        };
+
+        let cards_page_sort = match query_string.get("order_by") {
+            None => CardsPageSort::UpdatedAt(sort_by),
+            Some(maybe_order_by) => {
+                match *maybe_order_by {
+                    None => CardsPageSort::UpdatedAt(sort_by),
+                    Some(ref order_by_string) => {
+                        match order_by_string.as_ref() {
+                            "card_title" => CardsPageSort::CardTitle(sort_by),
+                            "created_at" => CardsPageSort::CreatedAt(sort_by),
+                            "updated_at" => CardsPageSort::UpdatedAt(sort_by),
+                            _ => CardsPageSort::UpdatedAt(sort_by)
+                        }
+                    }
+                }
+            }
+        };
+
+        return CardsPageQuery(page_num, cards_page_sort);
+    }
+
+    // TODO: test
+    // TODO: move to some trait
+    pub fn get_offset(&self) -> Offset {
+        let page = self.0;
+        let offset = (page - 1) * self.get_per_page();
+        return offset;
+    }
+
+    // TODO: test
+    // TODO: move to pagination trait
+    pub fn get_per_page(&self) -> PerPage {
+        return constants::CARDS_PER_PAGE;
+    }
+
+    // TODO: test
+    pub fn generate_query_string(&self) -> String {
+
+        let &CardsPageQuery(page, ref page_sort) = self;
+
+        let (order_by, sort_order) = match *page_sort {
+            CardsPageSort::CardTitle(ref sort_order) => ("card_title", sort_order),
+            CardsPageSort::CreatedAt(ref sort_order) => ("created_at", sort_order),
+            CardsPageSort::UpdatedAt(ref sort_order) => ("updated_at", sort_order)
+        };
+
+        let sort_by = match *sort_order {
+            SortOrder::Ascending => "asc",
+            SortOrder::Descending => "desc"
+        };
+
+        format!("page={page}&order_by={order_by}&sort_by={sort_by}",
+            page = page, order_by = order_by, sort_by = sort_by)
+    }
+
+    pub fn sort_by_string(&self) -> String {
+        match self.1 {
+            CardsPageSort::CardTitle(_) => "Card Title".to_owned(),
+            CardsPageSort::CreatedAt(_) => "Created At".to_owned(),
+            CardsPageSort::UpdatedAt(_) => "Updated At".to_owned()
+        }
+    }
+
+    pub fn updated_at(&self) -> Self {
+        return CardsPageQuery(self.0, CardsPageSort::UpdatedAt(self.1.order_by()))
+    }
+
+    pub fn created_at(&self) -> Self {
+        return CardsPageQuery(self.0, CardsPageSort::CreatedAt(self.1.order_by()))
+    }
+
+    pub fn deck_name(&self) -> Self {
+        return CardsPageQuery(self.0, CardsPageSort::CardTitle(self.1.order_by()))
+    }
+}
+
+impl SortOrderable for CardsPageQuery {
+
+    fn order_by(&self) -> SortOrder {
+        self.1.order_by()
+    }
+
+    fn ascending(&self) -> Self {
+        CardsPageQuery(self.0, self.1.ascending())
+    }
+
+    fn descending(&self) -> Self {
+        CardsPageQuery(self.0, self.1.descending())
+    }
+
+    fn sort_order_string(&self) -> String {
+        self.1.sort_order_string()
+    }
+}
+
 
 // helper to get number of pages
 // TODO: test
