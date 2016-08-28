@@ -21,8 +21,8 @@ use serde_json;
 
 use route::{AppRoute, RenderResponse, DeckRoute, CardRoute, DeckSettings};
 use context::{self, Context};
-use types::{DeckID, DecksPageQuery, CardsPageQuery, Search, Pagination, SortOrderable};
-use api::decks;
+use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, SortOrderable};
+use api::{decks, cards};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -904,8 +904,78 @@ fn DeckCards(
         }
 
         |tmpl| CardsPaginationComponent(tmpl, context.clone(), deck_id, &cards_page_query, &search);
-
+        |tmpl| CardsList(tmpl, context.clone(), deck_id, &cards_page_query, &search);
         |tmpl| CardsPaginationComponent(tmpl, context.clone(), deck_id, &cards_page_query, &search);
+    }
+}
+
+#[inline]
+fn CardsList(tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>, deck_id: DeckID, cards_page_query: &CardsPageQuery, search: &Search) {
+
+    let children = match cards::cards_in_deck(context.clone(), deck_id, cards_page_query, search) {
+        Ok(children) => children,
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        }
+    };
+
+    let number_of_items = children.len();
+
+    if number_of_items <= 0 {
+        tmpl << html!{
+            div(class="columns") {
+                div(class="column") {
+                    article(class="message") {
+                        div(class="message-body") {
+                            : raw!("There are no cards to display. You may create one within this deck.")
+                        }
+                    }
+                }
+            }
+        };
+
+        return;
+    }
+
+    tmpl << html!{
+        @ for (index, card) in children.iter().enumerate() {
+            |tmpl| CardListItemComponent(tmpl, context.clone(), card.id, (index + 1) >= number_of_items);
+        }
+    };
+}
+
+#[inline]
+fn CardListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>,
+    card_id: CardID, is_bottom: bool) {
+
+    let card = match cards::get_card(context.clone(), card_id) {
+        Ok(card) => card,
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        }
+    };
+
+    tmpl << html!{
+        div(class="columns is-marginless",
+            style=labels!(
+                "border-bottom:1px dotted #d3d6db;" => !is_bottom)) {
+            div(class="column is-side-paddingless") {
+                h5(class="title is-5 is-marginless is-bold") {
+                    a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(card_id,
+                                        DeckRoute::Decks(Default::default(), Default::default())))
+                    ) {
+                        |tmpl| MathJaxInline(tmpl, card.title.clone(), false);
+                    }
+                }
+                span(style="font-size:12px;") {
+                    : format!("Card #{}", card.id);
+                }
+            }
+        }
     }
 }
 
@@ -1379,7 +1449,6 @@ fn DecksChildren(tmpl: &mut TemplateBuffer,
     }
 }
 
-#[inline]
 #[inline]
 fn DecksChildrenList(tmpl: &mut TemplateBuffer,
     context: Rc<RefCell<Context>>, deck_id: DeckID, deck_page_query: &DecksPageQuery, search: &Search) {

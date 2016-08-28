@@ -12,7 +12,7 @@ use rusqlite::Error as SqliteError;
 /* local imports */
 
 use context::Context;
-use types::{UnixTimestamp, CardID, DeckID, DecksPageQuery, Search, ItemCount};
+use types::{UnixTimestamp, CardID, DeckID, CardsPageQuery, Search, ItemCount};
 use errors::RawAPIError;
 use constants;
 
@@ -54,6 +54,7 @@ pub struct CardCreateResponse {
     pub profile_url: String
 }
 
+#[inline]
 pub fn get_card(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<Card, RawAPIError> {
 
     {
@@ -125,6 +126,7 @@ pub fn get_card(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<Card, 
     };
 }
 
+#[inline]
 pub fn card_exists(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<bool, RawAPIError> {
 
     {
@@ -161,7 +163,7 @@ pub fn card_exists(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<boo
     }
 }
 
-
+#[inline]
 pub fn create_card(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
@@ -202,6 +204,7 @@ pub fn create_card(
     return get_card(context, card_id);
 }
 
+#[inline]
 pub fn total_num_of_cards_in_deck(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID
@@ -274,6 +277,122 @@ pub fn total_num_of_cards_in_deck(
         },
         Err(sqlite_error) => {
             return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+}
+
+#[inline]
+pub fn cards_in_deck(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    cards_page_query: &CardsPageQuery,
+    search: &Search) -> Result<Vec<Card>, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    // TODO: complete
+    let search_inner_join = "";
+    let search_where_cond = "";
+
+    let select_sql = format!(indoc!("
+        SELECT
+            c.card_id,
+            c.title,
+            c.description,
+            c.question,
+            c.answer,
+            c.created_at,
+            c.updated_at,
+            c.deck_id,
+            c.is_active
+        FROM DecksClosure AS dc
+
+        INNER JOIN Cards AS c
+        ON c.deck_id = dc.descendent
+
+        {search_inner_join}
+        "), search_inner_join = search_inner_join);
+
+    let inner_select_sql = format!(indoc!("
+        SELECT
+            c.card_id
+        FROM DecksClosure AS dc
+
+        INNER JOIN Cards AS c
+        ON c.deck_id = dc.descendent
+
+        {search_inner_join}
+        "), search_inner_join = search_inner_join);
+
+    let where_order_sql = format!(indoc!("
+        dc.ancestor = {deck_id}
+
+        {search_where_cond}
+
+        ORDER BY c.created_at DESC"),
+    deck_id = deck_id,
+    search_where_cond = search_where_cond);
+
+    let offset = cards_page_query.get_offset();
+    let per_page = cards_page_query.get_per_page();
+
+    let query = pagination!(select_sql; inner_select_sql; where_order_sql; "c.oid"; per_page; offset);
+
+    let mut context = context.borrow_mut();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let mut statement = match db_conn.prepare(&query) {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        },
+        Ok(statement) => statement
+    };
+
+    let maybe_iter = statement.query_map(&[], |row| -> Card {
+        return Card {
+            id: row.get(0),
+            title: row.get(1),
+            description: row.get(2),
+            question: row.get(3),
+            answer: row.get(4),
+            created_at: row.get(5),
+            updated_at: row.get(6),
+            deck_id: row.get(7),
+            is_active: row.get(8)
+        };
+    });
+
+    match maybe_iter {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        },
+        Ok(iter) => {
+
+            let mut vec_of_card: Vec<Card> = Vec::new();
+
+            for card in iter {
+
+                let item = match card {
+                    Err(sqlite_error) => {
+                        return Err(RawAPIError::SQLError(sqlite_error, query));
+                    },
+                    Ok(item) => {
+
+                        // let mut context = context.borrow_mut();
+                        if context.should_cache {
+                            context.cards.insert(item.id, item.clone());
+                        }
+
+                        item
+                    }
+                };
+
+                vec_of_card.push(item);
+
+            }
+
+            return Ok(vec_of_card);
         }
     }
 }
@@ -559,6 +678,21 @@ fn cards_test() {
             }
         };
 
+    };
+
+    // cards by deck
+
+    {
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::read_lock(context.clone());
+        let children = match cards::cards_in_deck(context.clone(), 1, &Default::default(), &Default::default()) {
+            Ok(children) => {
+                assert!(children.len() > 0);
+            },
+            Err(err) => {
+                assert!(false);
+            }
+        };
     };
 
     /* teardown */

@@ -28,7 +28,7 @@
     "invariant": "^2.2.1",
     "json-loader": "^0.5.4",
     "lodash": "^4.13.1",
-    "markdown-it": "^7.0.0",
+    "markdown-it": "^7.0.1",
     "markdown-it-link-attributes": "^1.0.0",
     "react": "^15.3.1",
     "react-dom": "^15.3.1",

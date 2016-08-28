@@ -53,7 +53,7 @@ macro_rules! db_write_lock(
 // macro to generate efficient pagination sqlite query
 // http://blog.ssokolow.com/archives/2009/12/23/sql-pagination-without-offset/
 macro_rules! pagination(
-    ($pre_sql:expr; $post_sql:expr; $not_in:expr; $per_page:expr; $offset:expr) => {{
+    ($pre_sql:expr; $inner_select_sql:expr; $post_sql:expr; $not_in:expr; $per_page:expr; $offset:expr) => {{
 
         use types;
         // TODO: compile-time type check other args
@@ -64,7 +64,7 @@ macro_rules! pagination(
             {pre_sql}
             WHERE
                 {not_in} NOT IN (
-            {pre_sql}
+            {inner_select_sql}
                     WHERE
             {post_sql}
                     LIMIT {offset}
@@ -72,7 +72,11 @@ macro_rules! pagination(
             AND
             {post_sql}
             LIMIT {per_page};\
-        "),pre_sql = $pre_sql, not_in = $not_in, post_sql = $post_sql, offset = offset, per_page = per_page)
+        "),
+            pre_sql = $pre_sql,
+            not_in = $not_in,
+            inner_select_sql = $inner_select_sql,
+            post_sql = $post_sql, offset = offset, per_page = per_page)
 
     }}
 );
@@ -136,7 +140,7 @@ fn pagination_macro_test() {
             Decks.name
         COLLATE NOCASE ASC"), deck_id = deck_id);
 
-    let actual = pagination!(pre_sql; post_sql; "DecksClosure.descendent"; per_page; offset);
+    let actual = pagination!(pre_sql; pre_sql; post_sql; "DecksClosure.descendent"; per_page; offset);
 
     // println!("'{}'", query);
     // println!("'{}'", actual);

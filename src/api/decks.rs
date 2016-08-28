@@ -67,6 +67,7 @@ pub struct DeckCreateResponse {
     pub profile_url: String
 }
 
+#[inline]
 pub fn get_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Deck, RawAPIError> {
 
     {
@@ -137,6 +138,7 @@ pub fn get_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Deck, 
     };
 }
 
+#[inline]
 pub fn deck_exists(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<bool, RawAPIError> {
 
     {
@@ -173,6 +175,7 @@ pub fn deck_exists(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<boo
     }
 }
 
+#[inline]
 pub fn create_deck(context: Rc<RefCell<Context>>, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
 
     assert!(context.borrow().is_write_locked());
@@ -204,6 +207,7 @@ pub fn create_deck(context: Rc<RefCell<Context>>, create_deck_request: CreateDec
     return get_deck(context, deck_id);
 }
 
+#[inline]
 pub fn update_deck_description(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
@@ -236,6 +240,7 @@ pub fn update_deck_description(
     return Ok(());
 }
 
+#[inline]
 pub fn update_deck_name(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
@@ -268,6 +273,7 @@ pub fn update_deck_name(
     return Ok(());
 }
 
+#[inline]
 pub fn connect_decks(context: Rc<RefCell<Context>>, child: DeckID, parent: DeckID) -> Result<(), RawAPIError> {
 
     assert!(context.borrow().is_write_locked());
@@ -327,6 +333,7 @@ pub fn connect_decks(context: Rc<RefCell<Context>>, child: DeckID, parent: DeckI
     return Ok(());
 }
 
+#[inline]
 pub fn get_parent_id_of_deck(context: Rc<RefCell<Context>>, child: DeckID) -> Result<Option<DeckID>, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
@@ -367,6 +374,7 @@ pub fn get_parent_id_of_deck(context: Rc<RefCell<Context>>, child: DeckID) -> Re
     };
 }
 
+#[inline]
 pub fn get_path_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
@@ -424,6 +432,7 @@ pub fn get_path_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Resul
     };
 }
 
+#[inline]
 pub fn get_deck_children_total_count(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID) -> Result<ItemCount, RawAPIError> {
@@ -490,6 +499,7 @@ pub fn get_deck_children_total_count(
     }
 }
 
+#[inline]
 pub fn get_deck_children(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
@@ -523,7 +533,7 @@ pub fn get_deck_children(
             Decks.name
         COLLATE NOCASE ASC"), deck_id = deck_id);
 
-    let query = pagination!(select_sql; where_order_sql; "DecksClosure.descendent"; per_page; offset);
+    let query = pagination!(select_sql; select_sql; where_order_sql; "DecksClosure.descendent"; per_page; offset);
 
     let context = context.borrow();
     db_read_lock!(db_conn; context.database());
