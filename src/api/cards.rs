@@ -282,6 +282,43 @@ pub fn total_num_of_cards_in_deck(
 }
 
 #[inline]
+pub fn is_card_in_deck(
+    context: Rc<RefCell<Context>>, 
+    card_id: CardID, 
+    deck_id: DeckID) -> Result<bool, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let query = format!(indoc!("
+        SELECT
+            COUNT(1)
+        FROM DecksClosure AS dc
+            INNER JOIN Cards AS c
+            ON c.deck_id = dc.descendent
+        WHERE
+            dc.ancestor = {deck_id}
+        AND
+            c.card_id = {card_id}
+        LIMIT 1;"), card_id = card_id, deck_id = deck_id);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let card_exists = db_conn.query_row(&query, &[], |row| -> bool {
+        let count: i64 = row.get(0);
+        return count >= 1;
+    });
+
+    match card_exists {
+        Ok(card_exists) => return Ok(card_exists),
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+}
+
+#[inline]
 pub fn cards_in_deck(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
@@ -693,6 +730,59 @@ fn cards_test() {
                 assert!(false);
             }
         };
+    };
+
+    // is card in deck
+
+    {
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::read_lock(context.clone());
+        match cards::is_card_in_deck(context.clone(), 1, 1) {
+            Ok(actual) => assert!(actual),
+            Err(_) => assert!(false)
+        }
+    };
+
+    {
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::read_lock(context.clone());
+        match cards::is_card_in_deck(context.clone(), 2, 1) {
+            Ok(actual) => assert!(actual),
+            Err(_) => assert!(false)
+        }
+    };
+
+    {
+        // case: nonexistent deck
+        
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::read_lock(context.clone());
+        match cards::is_card_in_deck(context.clone(), 1, 42) {
+            Ok(actual) => assert_eq!(actual, false),
+            Err(_) => assert!(false)
+        }
+    };
+
+    {
+        // case: nonexistent card
+
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::read_lock(context.clone());
+        match cards::is_card_in_deck(context.clone(), 42, 1) {
+            Ok(actual) => assert_eq!(actual, false),
+            Err(_) => assert!(false)
+        }
+    };
+
+    {
+        // case: nonexistent deck and nonexistent card
+
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+        let _guard = context::read_lock(context.clone());
+        match cards::is_card_in_deck(context.clone(), 42, 42) {
+            Ok(actual) => assert_eq!(actual, false),
+            Err(_) => assert!(false)
+        }
     };
 
     /* teardown */

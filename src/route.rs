@@ -818,7 +818,7 @@ fn __parse_route_deck<'a>(
                 // /cards
                 parse_route_deck_cards(context.clone(), request.clone(), deck_id) <|>
                 // /card/:id/*
-                // parse_route_deck_card_profile(context.clone(), request.clone(), deck_id) <|>
+                parse_route_deck_card_profile(context.clone(), request.clone(), deck_id) <|>
                 // /settings
                 parse_route_deck_settings(request.clone(), deck_id);
 
@@ -932,43 +932,184 @@ fn route_deck_cards(
 
 }
 
-// #[inline]
-// fn parse_route_deck_card_profile<'a>(
-//     input: Input<'a, u8>,
-//     context: Rc<RefCell<Context>>,
-//     request: Rc<RefCell<Request>>,
-//     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+#[inline]
+fn parse_route_deck_card_profile<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
 
-//     fix this
-//     (parse!{input;
+    (parse!{input;
 
-//         string_ignore_case(b"card");
-//         parse_byte_limit(b'/', 5);
-//         let card_id = decimal();
-//         parse_byte_limit(b'/', 5);
+        string_ignore_case(b"card");
+        parse_byte_limit(b'/', 5);
+        let card_id = decimal();
 
-//         ret deck_id
+        ret card_id
 
-//     }).bind(|i, deck_id| {
+    }).bind(|i, card_id| {
 
-//         let _guard = context::read_lock(context.clone());
+        let _guard = context::read_lock(context.clone());
 
-//         match decks::deck_exists(context.clone(), deck_id) {
-//             Ok(exists) => {
+        match cards::is_card_in_deck(context.clone(), card_id, deck_id) {
+            Ok(exists) => {
 
-//                 if exists {
-//                     __parse_route_deck(i, context.clone(), request, deck_id)
-//                 } else {
-//                     i.ret(RenderResponse::RenderNotFound)
-//                 }
+                if exists {
+                    __parse_route_card(i, context.clone(), request, deck_id, card_id)
+                } else {
+                    // TODO: redirect to /card/:id
+                    i.ret(RenderResponse::RenderNotFound)
+                }
 
-//             },
-//             // TODO: internal error logging
-//             Err(_) => i.ret(RenderResponse::RenderInternalServerError)
-//         }
+            },
+            // TODO: internal error logging
+            Err(_) => i.ret(RenderResponse::RenderInternalServerError)
+        }
 
-//     })
-// }
+    })
+}
+
+#[inline]
+fn __parse_route_card<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    card_id: CardID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        let render_response = or(|i| parse!{i;
+
+            parse_byte_limit(b'/', 5);
+
+            let render_response =
+                // /contents
+                parse_route_card_contents(context.clone(), request.clone(), deck_id, card_id) <|>
+                // /review
+                parse_route_card_review(context.clone(), request.clone(), deck_id, card_id) <|>
+                // /decks
+                parse_route_card_stats(context.clone(), request.clone(), deck_id, card_id) <|>
+                // /settings
+                parse_route_card_settings(context.clone(), request.clone(), deck_id, card_id);
+
+
+            ret render_response
+
+        }, |i| parse!{i;
+
+            // TODO: fix
+
+            option(|i| parse_byte_limit(i, b'/', 5), ());
+
+            let query_string = option(|i| parse!{i;
+                let query_string = parse_query_string();
+
+                ret Some(query_string)
+            }, None);
+
+            ret RenderResponse::RenderNotFound
+
+        });
+
+        ret render_response
+    }
+}
+
+#[inline]
+fn parse_route_card_contents<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    card_id: CardID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"contents");
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        // TODO: simplify is query string is not consumed
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
+
+            ret Some(query_string)
+        }, None);
+
+        ret RenderResponse::RenderNotFound
+    }
+}
+
+#[inline]
+fn parse_route_card_review<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    card_id: CardID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"review");
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        // TODO: simplify is query string is not consumed
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
+
+            ret Some(query_string)
+        }, None);
+
+        ret RenderResponse::RenderNotFound
+    }
+}
+
+#[inline]
+fn parse_route_card_stats<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    card_id: CardID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"stats");
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        // TODO: simplify is query string is not consumed
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
+
+            ret Some(query_string)
+        }, None);
+
+        ret RenderResponse::RenderNotFound
+    }
+}
+
+#[inline]
+fn parse_route_card_settings<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    card_id: CardID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"settings");
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        // TODO: simplify is query string is not consumed
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
+
+            ret Some(query_string)
+        }, None);
+
+        ret RenderResponse::RenderNotFound
+    }
+}
 
 #[inline]
 fn parse_route_deck_settings<'a>(
