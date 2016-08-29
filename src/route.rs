@@ -885,42 +885,22 @@ fn parse_route_deck_cards<'a>(
     request: Rc<RefCell<Request>>,
     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
 
-
     parse!{input;
 
-        let render_response = or(|i| parse!{i;
+        string_ignore_case(b"cards");
 
-            string_ignore_case(b"cards");
+        option(|i| parse_byte_limit(i, b'/', 5), ());
 
-            option(|i| parse_byte_limit(i, b'/', 5), ());
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
 
-            let query_string = option(|i| parse!{i;
-                let query_string = parse_query_string();
+            ret Some(query_string)
+        }, None);
 
-                ret Some(query_string)
-            }, None);
+        ret {
+            route_deck_cards(context.clone(), request.clone(), deck_id, query_string)
+        }
 
-            ret {
-                route_deck_cards(context.clone(), request.clone(), deck_id, query_string)
-            }
-
-        }, |i| parse!{i;
-
-            option(|i| parse_byte_limit(i, b'/', 5), ());
-
-            let query_string = option(|i| parse!{i;
-                let query_string = parse_query_string();
-
-                ret Some(query_string)
-            }, None);
-
-            ret {
-                route_deck_cards(context.clone(), request.clone(), deck_id, query_string)
-            }
-
-        });
-
-        ret render_response
     }
 
 }
