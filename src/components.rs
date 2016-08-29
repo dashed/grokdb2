@@ -941,14 +941,18 @@ fn CardsList(tmpl: &mut TemplateBuffer,
 
     tmpl << html!{
         @ for (index, card) in children.iter().enumerate() {
-            |tmpl| CardListItemComponent(tmpl, context.clone(), card.id, (index + 1) >= number_of_items);
+            |tmpl| CardListItemComponent(tmpl, context.clone(), deck_id, card.id, (index + 1) >= number_of_items);
         }
     };
 }
 
 #[inline]
-fn CardListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>,
-    card_id: CardID, is_bottom: bool) {
+fn CardListItemComponent(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    card_id: CardID,
+    is_bottom: bool) {
 
     let card = match cards::get_card(context.clone(), card_id) {
         Ok(card) => card,
@@ -965,8 +969,7 @@ fn CardListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
             div(class="column is-side-paddingless") {
                 h5(class="title is-5 is-marginless is-bold") {
                     a(href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(card_id,
-                                        DeckRoute::Decks(Default::default(), Default::default())))
+                                    AppRoute::CardInDeck(deck_id, card_id, CardRoute::Contents))
                     ) {
                         |tmpl| MathJaxInline(tmpl, card.title.clone(), false);
                     }

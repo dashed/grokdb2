@@ -153,7 +153,7 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>
             parse_route_api(context.clone(), request.clone()) <|>
 
             // /card/*
-            // parse_route_cards() <|>
+            // parse_route_card() <|>
 
             // /deck/*
             parse_route_deck(context.clone(), request.clone()) <|>
@@ -769,7 +769,6 @@ fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
         string_ignore_case(b"deck");
         parse_byte_limit(b'/', 5);
         let deck_id = decimal();
-        parse_byte_limit(b'/', 5);
 
         ret deck_id
 
@@ -802,23 +801,49 @@ fn __parse_route_deck<'a>(
     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
 
     parse!{input;
-        let render_response =
-            // /new/deck
-            parse_route_deck_new_deck(request.clone(), deck_id) <|>
-            // /new/card
-            parse_route_deck_new_card(request.clone(), deck_id) <|>
-            // /decks
-            parse_route_deck_decks(context.clone(), request.clone(), deck_id) <|>
-            // /description
-            parse_route_deck_description(request.clone(), deck_id) <|>
-            // /cards
-            parse_route_deck_cards(context.clone(), request.clone(), deck_id) <|>
-            // /settings
-            parse_route_deck_settings(request.clone(), deck_id);
 
+        let render_response = or(|i| parse!{i;
+
+            parse_byte_limit(b'/', 5);
+
+            let render_response =
+                // /new/deck
+                parse_route_deck_new_deck(request.clone(), deck_id) <|>
+                // /new/card
+                parse_route_deck_new_card(request.clone(), deck_id) <|>
+                // /decks
+                parse_route_deck_decks(context.clone(), request.clone(), deck_id) <|>
+                // /description
+                parse_route_deck_description(request.clone(), deck_id) <|>
+                // /cards
+                parse_route_deck_cards(context.clone(), request.clone(), deck_id) <|>
+                // /card/:id/*
+                // parse_route_deck_card_profile(context.clone(), request.clone(), deck_id) <|>
+                // /settings
+                parse_route_deck_settings(request.clone(), deck_id);
+
+
+            ret render_response
+
+        }, |i| parse!{i;
+
+            option(|i| parse_byte_limit(i, b'/', 5), ());
+
+            let query_string = option(|i| parse!{i;
+                let query_string = parse_query_string();
+
+                ret Some(query_string)
+            }, None);
+
+            ret {
+                route_deck_decks(context.clone(), request.clone(), deck_id, query_string)
+            }
+
+        });
 
         ret render_response
     }
+
 }
 
 #[inline]
@@ -859,23 +884,45 @@ fn parse_route_deck_cards<'a>(
     context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+
+
     parse!{input;
 
-        string_ignore_case(b"cards");
+        let render_response = or(|i| parse!{i;
 
-        option(|i| parse_byte_limit(i, b'/', 5), ());
+            string_ignore_case(b"cards");
 
-        let query_string = option(|i| parse!{i;
-            let query_string = parse_query_string();
+            option(|i| parse_byte_limit(i, b'/', 5), ());
 
-            ret Some(query_string)
-        }, None);
+            let query_string = option(|i| parse!{i;
+                let query_string = parse_query_string();
 
-        ret {
-            route_deck_cards(context, request, deck_id, query_string)
-        }
+                ret Some(query_string)
+            }, None);
 
+            ret {
+                route_deck_cards(context.clone(), request.clone(), deck_id, query_string)
+            }
+
+        }, |i| parse!{i;
+
+            option(|i| parse_byte_limit(i, b'/', 5), ());
+
+            let query_string = option(|i| parse!{i;
+                let query_string = parse_query_string();
+
+                ret Some(query_string)
+            }, None);
+
+            ret {
+                route_deck_cards(context.clone(), request.clone(), deck_id, query_string)
+            }
+
+        });
+
+        ret render_response
     }
+
 }
 
 #[inline]
@@ -904,6 +951,44 @@ fn route_deck_cards(
     return RenderResponse::RenderComponent(decks);
 
 }
+
+// #[inline]
+// fn parse_route_deck_card_profile<'a>(
+//     input: Input<'a, u8>,
+//     context: Rc<RefCell<Context>>,
+//     request: Rc<RefCell<Request>>,
+//     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+
+//     fix this
+//     (parse!{input;
+
+//         string_ignore_case(b"card");
+//         parse_byte_limit(b'/', 5);
+//         let card_id = decimal();
+//         parse_byte_limit(b'/', 5);
+
+//         ret deck_id
+
+//     }).bind(|i, deck_id| {
+
+//         let _guard = context::read_lock(context.clone());
+
+//         match decks::deck_exists(context.clone(), deck_id) {
+//             Ok(exists) => {
+
+//                 if exists {
+//                     __parse_route_deck(i, context.clone(), request, deck_id)
+//                 } else {
+//                     i.ret(RenderResponse::RenderNotFound)
+//                 }
+
+//             },
+//             // TODO: internal error logging
+//             Err(_) => i.ret(RenderResponse::RenderInternalServerError)
+//         }
+
+//     })
+// }
 
 #[inline]
 fn parse_route_deck_settings<'a>(
