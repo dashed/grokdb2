@@ -36,7 +36,7 @@ const {reduceIn} = require('lib/redux-tree');
 
 const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
-const MathJaxLine = require('components/dumb/mathjax_line');
+const CardTitle = require('components/dumb/card_title');
 
 const __ToolBar = function(props) {
 
@@ -317,24 +317,14 @@ const __CardProfileContainer = function(props) {
             </div>
             <div className='columns' style={{marginBottom: 0}}>
                 <div className='column'>
-                    <label className='label' htmlFor='input-card-title'>{'Title'}</label>
-                        <MathJaxLine
-                            content={title.value}
-                            mathjaxify={mathjaxifyCardTitle}
-                            notice={'No card title rendered.  Click on "Source" tab and enter a card title.'}
-                        >
-                            <p className='control'>
-                                <input
-                                    id='input-card-title'
-                                    className='input'
-                                    type='text'
-                                    placeholder='Card Title'
-                                    autoFocus
-                                    disabled={!isEditing}
-                                    {...assign({}, title)}
-                                />
-                            </p>
-                        </MathJaxLine>
+                    <label className='label' htmlFor='input-card-title'>{'Card Title'}</label>
+                    <CardTitle
+                        content={title.value}
+                        mathjaxify={mathjaxifyCardTitle}
+                        notice={'No card title rendered.  Click on "Source" tab and enter a card title.'}
+                        isEditing={isEditing}
+                        assignField={title}
+                    />
                 </div>
             </div>
             <div className='columns'>

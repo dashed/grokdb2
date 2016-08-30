@@ -1428,7 +1428,7 @@ fn DeckReview(
         div(class="columns") {
             div(class="column") {
                 h1(class="title") {
-                    : raw!("Deck Review")
+                    : raw!("Reviewing Cards in this Deck")
                 }
             }
         }
