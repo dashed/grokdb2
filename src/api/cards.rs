@@ -68,13 +68,10 @@ pub struct CardCreateResponse {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct UpdateCard {
-    pub title: String, // required;
-                       // if empty, it will be the first 140 characters (tweet length)
-                       // of the question (must be given)
-    pub question: String, // required, but may be empty
-    pub answer: String, // required, but may be empty
-    pub description: String, // required, but may be empty
-
+    pub title: String,
+    pub question: String,
+    pub answer: String,
+    pub description: String,
     pub is_active: bool
 }
 
