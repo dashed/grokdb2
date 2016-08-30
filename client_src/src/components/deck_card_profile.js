@@ -45,21 +45,6 @@ const __ToolBar = function(props) {
 
         const cancel = function() {
             resetForm();
-
-            // reset form elements to source mode
-            // TODO: needed?
-            // dispatch(
-            //     reduceIn(
-            //         // reducer
-            //         markdownViewReducer,
-            //         // path
-            //         [CARD_TITLE, MARKDOWN_VIEW],
-            //         // action
-            //         {
-            //             type: MARKDOWN_VIEW_SOURCE
-            //         }
-            //     )
-            // );
         };
 
         return (
@@ -67,10 +52,10 @@ const __ToolBar = function(props) {
                 <div className='level-left'>
                     <div className='level-item'>
                         <a
-                            // className={classnames('button is-success', {
-                            //     'is-disabled': submitting || shouldNotSave,
-                            //     'is-loading': submitting
-                            // })}
+                            className={classnames('button is-success', {
+                                'is-disabled': submitting,
+                                'is-loading': submitting
+                            })}
                             // onClick={handleSubmit(saveDescription.bind(null, dispatch, postURL))}
                             >
                             {'Save'}
@@ -193,7 +178,7 @@ const __TabComponent = function(props) {
                         contents={contents}
                         placeholder={props.placeholder}
                         assignProps={props.reduxFormField}
-                        editable
+                        editable={props.isEditing}
                     />
                 </div>
             </div>
@@ -206,7 +191,8 @@ if(process.env.NODE_ENV !== 'production') {
     __TabComponent.propTypes = {
         [MARKDOWN_VIEW]: React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE]),
         reduxFormField: React.PropTypes.object.isRequired,
-        placeholder: React.PropTypes.string.isRequired
+        placeholder: React.PropTypes.string.isRequired,
+        isEditing: React.PropTypes.bool.isRequired
     };
 }
 
@@ -257,6 +243,7 @@ const TabGroupComponent = function(props) {
                     tab={CARD_QUESTION}
                     placeholder={'Card Question'}
                     reduxFormField={props.question}
+                    isEditing={props.isEditing}
                 />
             </div>
             <div key='answer' style={answerStyle}>
@@ -264,6 +251,7 @@ const TabGroupComponent = function(props) {
                     tab={CARD_ANSWER}
                     placeholder={'Card Answer'}
                     reduxFormField={props.answer}
+                    isEditing={props.isEditing}
                 />
             </div>
             <div key='description' style={descriptionStyle}>
@@ -271,6 +259,7 @@ const TabGroupComponent = function(props) {
                     tab={CARD_DESCRIPTION}
                     placeholder={'Card Description'}
                     reduxFormField={props.description}
+                    isEditing={props.isEditing}
                 />
             </div>
         </div>
@@ -283,6 +272,7 @@ if(process.env.NODE_ENV !== 'production') {
         question: React.PropTypes.object.isRequired,
         answer: React.PropTypes.object.isRequired,
         description: React.PropTypes.object.isRequired,
+        isEditing: React.PropTypes.bool.isRequired,
     };
 }
 
@@ -297,7 +287,8 @@ const __CardProfileContainer = function(props) {
         // TODO: remove
         // postURL,
         dispatch,
-        currenTab
+        currenTab,
+        isEditing
     } = props;
 
     return (
@@ -331,6 +322,7 @@ const __CardProfileContainer = function(props) {
                                     type='text'
                                     placeholder='Card Title'
                                     autoFocus
+                                    disabled={!isEditing}
                                     {...assign({}, title)}
                                 />
                             </p>
@@ -347,7 +339,7 @@ const __CardProfileContainer = function(props) {
             <div className='columns'>
                 <div className='column'>
                     <label className='checkbox'>
-                        <input type='checkbox' {...assign({}, is_active)} />
+                        <input type='checkbox' {...assign({}, is_active)} disabled={!isEditing} />
                         {' Active for review'}
                     </label>
                 </div>
@@ -409,6 +401,7 @@ const __CardProfileContainer = function(props) {
                         answer={assign({}, answer)}
                         question={assign({}, question)}
                         description={assign({}, description)}
+                        isEditing={isEditing}
                     />
                 </div>
             </div>
@@ -424,7 +417,8 @@ if(process.env.NODE_ENV !== 'production') {
         mathjaxifyCardTitle: React.PropTypes.bool.isRequired,
         postURL: React.PropTypes.string.isRequired,
         currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
-        dispatch: React.PropTypes.func.isRequired
+        dispatch: React.PropTypes.func.isRequired,
+        isEditing: React.PropTypes.bool.isRequired,
     };
 }
 
@@ -448,7 +442,8 @@ const CardProfileContainer = reduxForm(
         return {
             mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
             postURL: state[POST_TO],
-            currenTab: state.CURRENT_TAB
+            currenTab: state.CURRENT_TAB,
+            isEditing: state[IS_EDITING],
         };
     }
 
@@ -474,6 +469,60 @@ const switchEditMode = function(dispatch, isEditing, after = NOTHING) {
             )
         );
         after();
+
+        const newMarkdownView = isEditing ? MARKDOWN_VIEW_SOURCE : MARKDOWN_VIEW_RENDER;
+
+        dispatch(
+            reduceIn(
+                // reducer
+                markdownViewReducer,
+                // path
+                [CARD_TITLE, MARKDOWN_VIEW],
+                // action
+                {
+                    type: newMarkdownView
+                }
+            )
+        );
+
+        dispatch(
+            reduceIn(
+                // reducer
+                markdownViewReducer,
+                // path
+                [CARD_DESCRIPTION, MARKDOWN_VIEW],
+                // action
+                {
+                    type: newMarkdownView
+                }
+            )
+        );
+
+        dispatch(
+            reduceIn(
+                // reducer
+                markdownViewReducer,
+                // path
+                [CARD_QUESTION, MARKDOWN_VIEW],
+                // action
+                {
+                    type: newMarkdownView
+                }
+            )
+        );
+
+        dispatch(
+            reduceIn(
+                // reducer
+                markdownViewReducer,
+                // path
+                [CARD_ANSWER, MARKDOWN_VIEW],
+                // action
+                {
+                    type: newMarkdownView
+                }
+            )
+        );
     }
 };
 
@@ -510,7 +559,7 @@ const switchTab = function(dispatch, newTab) {
                 }
             )
         );
-    }
+    };
 };
 
 /* redux reducers */

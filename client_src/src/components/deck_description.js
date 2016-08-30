@@ -47,7 +47,6 @@ const __ToolBar = function(props) {
 
         const cancel = function() {
             resetForm();
-
         };
 
         return (
