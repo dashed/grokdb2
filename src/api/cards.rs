@@ -79,7 +79,7 @@ pub struct UpdateCard {
 }
 
 impl UpdateCard {
-    fn validate(&self) -> Option<String> {
+    pub fn validate(&self) -> Option<String> {
 
         if self.title.trim().len() <= 0 && self.question.trim().len() <= 0 {
             return Some("Either card title or card question must not be empty.".to_string());
@@ -240,6 +240,52 @@ pub fn create_card(
 }
 
 #[inline]
+pub fn update_card(
+    context: Rc<RefCell<Context>>,
+    card_id: CardID,
+    update_card_request: UpdateCard
+    ) -> Result<Card, RawAPIError>  {
+
+    assert!(context.borrow().is_write_locked());
+
+    let query = format!("
+        UPDATE Cards
+        SET
+            title = :title,
+            description = :description,
+            question = :question,
+            answer = :answer,
+            is_active = :is_active
+        WHERE card_id = {card_id};
+    ", card_id = card_id);
+
+    let params: &[(&str, &ToSql)] = &[
+        (":title", &update_card_request.title.clone()),
+        (":description", &update_card_request.description.clone()),
+        (":question", &update_card_request.question.clone()),
+        (":answer", &update_card_request.answer.clone()),
+        (":is_active", &update_card_request.is_active.clone())
+    ];
+
+    {
+        let context = context.borrow();
+        db_write_lock!(db_conn; context.database());
+        let db_conn: &Connection = db_conn;
+
+        match db_conn.execute_named(&query, &params[..]) {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            }
+            _ => {
+                /* query sucessfully executed */
+            }
+        }
+    };
+
+    return get_card(context, card_id);
+}
+
+#[inline]
 pub fn total_num_of_cards_in_deck(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID
@@ -318,8 +364,8 @@ pub fn total_num_of_cards_in_deck(
 
 #[inline]
 pub fn is_card_in_deck(
-    context: Rc<RefCell<Context>>, 
-    card_id: CardID, 
+    context: Rc<RefCell<Context>>,
+    card_id: CardID,
     deck_id: DeckID) -> Result<bool, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
@@ -789,7 +835,7 @@ fn cards_test() {
 
     {
         // case: nonexistent deck
-        
+
         let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
         let _guard = context::read_lock(context.clone());
         match cards::is_card_in_deck(context.clone(), 1, 42) {

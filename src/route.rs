@@ -331,10 +331,153 @@ fn parse_route_api<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, requ
 
         parse_byte_limit(b'/', 5);
 
-        let render_response = parse_route_api_deck(context.clone(), request.clone());
+        let render_response = parse_route_api_deck(context.clone(), request.clone()) <|>
+            parse_route_api_card(context.clone(), request.clone());
 
         ret render_response
 
+    }
+}
+
+#[inline]
+fn parse_route_api_card<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
+-> U8Result<'a, RenderResponse> {
+    (parse!{input;
+
+        string_ignore_case(b"card");
+        parse_byte_limit(b'/', 5);
+        let card_id: CardID = decimal();
+        parse_byte_limit(b'/', 5);
+
+        ret card_id
+
+    }).bind(|i, card_id| {
+
+        let _guard = context::write_lock(context.clone());
+
+        match cards::card_exists(context.clone(), card_id) {
+            Ok(exists) => {
+
+                if exists {
+                    __parse_route_api_card(i, context.clone(), request, card_id)
+                } else {
+                    i.ret(RenderResponse::RenderNotFound)
+                }
+
+            },
+            // TODO: internal error logging
+            Err(_) => i.ret(RenderResponse::RenderInternalServerError)
+        }
+    })
+
+}
+
+#[inline]
+fn __parse_route_api_card<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    card_id: CardID)
+-> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        let render_response = parse_route_api_card_update(context.clone(), request.clone(), card_id);
+
+        ret render_response
+    }
+}
+
+#[inline]
+fn parse_route_api_card_update<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    card_id: CardID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"update");
+        eof();
+
+        ret {
+            __parse_route_api_card_update(context, request, card_id)
+        }
+    }
+}
+
+#[inline]
+fn __parse_route_api_card_update(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    card_id: CardID) -> RenderResponse {
+
+    let mut request = request.borrow_mut();
+
+    if request.method != Method::Post {
+        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+    }
+
+    // POST /api/card/:id/update
+
+    let mut buffer = String::new();
+
+    match request.read_to_string(&mut buffer) {
+        Ok(_num_bytes_parsed) => {
+
+            let request: cards::UpdateCard = match serde_json::from_str(&buffer) {
+                Ok(request) => request,
+                Err(err) => {
+                    // TODO: error logging
+                    // println!("{:?}", err);
+                    return RenderResponse::RenderBadRequest;
+                }
+            };
+
+            match request.validate() {
+                None => {},
+                Some(reason) => {
+                    let err = EndPointError::bad_request(reason);
+                    return RenderResponse::EndPointError(err);
+                }
+            }
+
+            // TODO: refactor
+            let mut request = request;
+            if request.title.trim().len() <= 0 {
+                // invariant: request.question is not empty
+
+                // if card has question content, fetch first 140 characters as title
+
+                let len = if request.question.len() < 140 {
+                    request.question.len()
+                } else {
+                    140
+                };
+
+                let new_title = &(request.question)[..len];
+                let new_title = new_title.trim().to_string();
+
+                request.title = new_title;
+            };
+            let request = request;
+
+            let _guard = context::write_lock(context.clone());
+
+            match cards::update_card(context.clone(), card_id, request) {
+                Ok(_updated_card) => {
+                    return RenderResponse::RenderOk;
+                },
+                Err(_) => {
+                    // TODO: error logging
+                    return RenderResponse::RenderInternalServerError;
+                }
+            }
+
+        },
+        Err(err) => {
+            // invalid utf8 input
+            // TODO: error logging
+            return RenderResponse::RenderBadRequest;
+        }
     }
 }
 
@@ -563,6 +706,7 @@ fn __parse_route_api_deck_new_card(
                 }
             }
 
+            // TODO: refactor
             let mut request = request;
             if request.title.trim().len() <= 0 {
                 // invariant: request.question is not empty
