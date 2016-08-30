@@ -2006,18 +2006,92 @@ fn CardDetail(
     deck_id: DeckID,
     card_id: CardID,
     card_route: &CardRoute) {
+
+    match *card_route {
+        CardRoute::Contents => CardDetailContents(tmpl, context, deck_id, card_id),
+        CardRoute::Review => CardDetailReview(tmpl, context, deck_id, card_id),
+        CardRoute::Stats => CardDetailStats(tmpl, context, deck_id, card_id),
+        CardRoute::Settings => CardDetailSettings(tmpl, context, deck_id, card_id),
+    }
+
+
+}
+
+#[inline]
+fn CardDetailContents(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    card_id: CardID) {
+
+    tmpl << html!{
+        div(id="card_profile_container") {
+        }
+    }
+}
+
+#[inline]
+fn CardDetailReview(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    card_id: CardID) {
+
+    tmpl << html!{
+        div(class="columns") {
+            div(class="column") {
+                h1(class="title") {
+                    : raw!("Reviewing Card")
+                }
+            }
+        }
+
+        div(id="card_review_container") {
+
+        }
+    }
+}
+
+#[inline]
+fn CardDetailStats(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    card_id: CardID) {
+
     tmpl << html!{
 
-        // TODO: remove
-        // div(class="columns") {
-        //     div(class="column") {
-        //         h1(class="title") {
-        //             : raw!("Card title")
-        //         }
-        //     }
-        // }
+        div(class="columns") {
+            div(class="column") {
+                h1(class="title") {
+                    : raw!("Card Stats")
+                }
+            }
+        }
 
-        div(id="card_profile_container") {
+        div(id="card_stats_container") {
+        }
+    }
+}
+
+#[inline]
+fn CardDetailSettings(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    card_id: CardID) {
+
+    tmpl << html!{
+
+        div(class="columns") {
+            div(class="column") {
+                h1(class="title") {
+                    : raw!("Card Settings")
+                }
+            }
+        }
+
+        div(id="card_settings_container") {
         }
     }
 }
