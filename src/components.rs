@@ -90,14 +90,12 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
 
                     format!("/deck/{deck_id}/decks?{query_string}", deck_id = deck_id, query_string = query)
 
+                },
+                DeckRoute::CardProfile(card_id, card_route) => {
+                    format!("/deck/{deck_id}/card/{card_id}/{foo}",
+                        deck_id = deck_id, card_id = card_id, foo = card_route_string(card_route))
                 }
             }
-        },
-        AppRoute::CardInDeck(deck_id, card_id, card_route) => {
-            format!("/deck/{}/card/{}/{}", deck_id, card_id, card_route_string(card_route))
-        },
-        AppRoute::Card(card_id, card_route) => {
-            format!("/card/{}/{}", card_id, card_route_string(card_route))
         }
     }
 }
@@ -334,9 +332,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                             "is-bold",
                                             "button is-primary" => {
                                                 // TODO: re-review this
-                                                matches!(*app_route, AppRoute::Deck(_, _)) ||
-                                                matches!(*app_route, AppRoute::Card(_, _)) ||
-                                                matches!(*app_route, AppRoute::CardInDeck(_, _, _))
+                                                matches!(*app_route, AppRoute::Deck(_, _))
                                             }),
                                         href="/") {
                                         : raw!("Decks")
@@ -481,6 +477,18 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 script(type="text/javascript", src="/assets/deck_settings_main.js") {}
                             }
                         },
+                        AppRoute::Deck(_, DeckRoute::CardProfile(_card_id, ref _card_route)) =>  {
+                            tmpl << html! {
+
+                                script(type="text/javascript") {
+                                    |tmpl| {
+                                        pre_render_state(tmpl, context.clone(), &app_route);
+                                    }
+                                }
+
+                                script(type="text/javascript", src="/assets/deck_card_profile.js") {}
+                            }
+                        },
                         _ => {
                             // NOTE: No script here
                         }
@@ -494,7 +502,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 }
 
 #[inline]
-fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID, deck_route: &DeckRoute) {
+fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
 
     let deck_path = match decks::get_path_of_deck(context.clone(), deck_id) {
         Ok(path) => path,
@@ -576,7 +584,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
 
             div(class="columns") {
                 div(class="column") {
-                    |tmpl| DeckPath(tmpl, context.clone(), deck_id, deck_route);
+                    |tmpl| DeckPath(tmpl, context.clone(), deck_id);
                 }
             }
 
@@ -629,6 +637,15 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             deck_id
                         )
                     },
+                    DeckRoute::CardProfile(card_id, ref card_route) => {
+                        CardDetail(
+                            tmpl,
+                            context.clone(),
+                            deck_id,
+                            card_id,
+                            card_route
+                        )
+                    },
                     _ => {
                         // TODO: remove eventually
                         panic!();
@@ -639,6 +656,9 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
         }
 
         div(class="column is-one-quarter") {
+
+            |tmpl| CardDetailNav(tmpl, context.clone(), deck_id, deck_route);
+
             nav(class="panel") {
                 p(class="panel-heading", style="font-weight: normal;") {
                     : raw!("Deck #");
@@ -718,6 +738,97 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
             }
         }
     }
+}
+
+#[inline]
+fn CardDetailNav(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    deck_route: &DeckRoute) {
+
+    match *deck_route {
+        DeckRoute::CardProfile(card_id, ref card_route) => {
+            tmpl << html!{
+
+                nav(class="panel") {
+                    p(class="panel-heading", style="font-weight: normal;") {
+                        : raw!("Card #");
+                        : card_id
+                    }
+                    div(class="panel-block") {
+
+                        aside(class="menu") {
+                            ul(class="menu-list") {
+                                li {
+                                    a(href = view_route_to_link(context.clone(),
+                                        AppRoute::Deck(deck_id,
+                                            DeckRoute::CardProfile(card_id, CardRoute::Contents))),
+                                        class? = classnames!(
+                                            "is-bold",
+                                            "is-active" => {
+                                                matches!(*deck_route,
+                                                    DeckRoute::CardProfile(_, CardRoute::Contents))
+                                            })
+                                    ) {
+                                        : "Contents"
+                                    }
+                                }
+                                li {
+                                    a(href = view_route_to_link(context.clone(),
+                                        AppRoute::Deck(deck_id,
+                                            DeckRoute::CardProfile(card_id, CardRoute::Review))),
+                                        class? = classnames!(
+                                            "is-bold",
+                                            "is-active" => {
+                                                matches!(*deck_route,
+                                                    DeckRoute::CardProfile(_, CardRoute::Review))
+                                            })
+                                    ) {
+                                        : "Review"
+                                    }
+                                }
+                                li {
+                                    a(href = view_route_to_link(context.clone(),
+                                        AppRoute::Deck(deck_id,
+                                            DeckRoute::CardProfile(card_id, CardRoute::Stats))),
+                                        class? = classnames!(
+                                            "is-bold",
+                                            "is-active" => {
+                                                matches!(*deck_route,
+                                                    DeckRoute::CardProfile(_, CardRoute::Stats))
+                                            })
+                                    ) {
+                                        : "Stats"
+                                    }
+                                }
+                                li {
+                                    a(href = view_route_to_link(context.clone(),
+                                        AppRoute::Deck(deck_id,
+                                            DeckRoute::CardProfile(card_id, CardRoute::Settings))),
+                                        class? = classnames!(
+                                            "is-bold",
+                                            "is-active" => {
+                                                matches!(*deck_route,
+                                                    DeckRoute::CardProfile(_, CardRoute::Settings))
+                                            })
+                                    ) {
+                                        : "Settings"
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                }
+
+            }
+        },
+        _ => {
+            // Do not render card nav detail
+        }
+    }
+
 }
 
 #[inline]
@@ -969,7 +1080,7 @@ fn CardListItemComponent(
             div(class="column is-side-paddingless") {
                 h5(class="title is-5 is-marginless is-bold") {
                     a(href = view_route_to_link(context.clone(),
-                                    AppRoute::CardInDeck(deck_id, card_id, CardRoute::Contents))
+                                    AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Contents)))
                     ) {
                         |tmpl| MathJaxInline(tmpl, card.title.clone(), false);
                     }
@@ -1743,6 +1854,29 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
 
                 }
             }
+        }
+    }
+}
+
+#[inline]
+fn CardDetail(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    card_id: CardID,
+    card_route: &CardRoute) {
+    tmpl << html!{
+
+        // TODO: remove
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Card title")
+        //         }
+        //     }
+        // }
+
+        div(id="card_profile_container") {
         }
     }
 }

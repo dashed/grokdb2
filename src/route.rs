@@ -72,8 +72,9 @@ pub enum AppRoute {
 
     Deck(DeckID, DeckRoute),
 
-    Card(CardID, CardRoute),
-    CardInDeck(DeckID, CardID, CardRoute),
+    // TODO: remove
+    // Card(CardID, CardRoute),
+    // CardInDeck(DeckID, CardID, CardRoute),
 }
 
 #[derive(Debug)]
@@ -100,7 +101,8 @@ pub enum DeckRoute {
     Stats,
     Review,
 
-    // CardProfile(CardID, CardRoute)
+    CardProfile(CardID, CardRoute)
+
     // Create,
     // Read,
     // Update,
@@ -585,7 +587,8 @@ fn __parse_route_api_deck_new_card(
                 Ok(new_card) => {
 
                     let card_route = CardRoute::Contents;
-                    let app_route = AppRoute::CardInDeck(parent_deck_id, new_card.id, card_route);
+                    let app_route = AppRoute::Deck(parent_deck_id,
+                        DeckRoute::CardProfile(new_card.id, card_route));
 
                     let response = cards::CardCreateResponse {
                         profile_url: view_route_to_link(context, app_route)
@@ -1035,7 +1038,11 @@ fn parse_route_card_contents<'a>(
             ret Some(query_string)
         }, None);
 
-        ret RenderResponse::RenderNotFound
+
+        ret {
+            let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Contents));
+            RenderResponse::RenderComponent(route)
+        }
     }
 }
 
@@ -1059,7 +1066,10 @@ fn parse_route_card_review<'a>(
             ret Some(query_string)
         }, None);
 
-        ret RenderResponse::RenderNotFound
+        ret {
+            let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Review));
+            RenderResponse::RenderComponent(route)
+        }
     }
 }
 
@@ -1083,7 +1093,10 @@ fn parse_route_card_stats<'a>(
             ret Some(query_string)
         }, None);
 
-        ret RenderResponse::RenderNotFound
+        ret {
+            let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Stats));
+            RenderResponse::RenderComponent(route)
+        }
     }
 }
 
@@ -1107,7 +1120,10 @@ fn parse_route_card_settings<'a>(
             ret Some(query_string)
         }, None);
 
-        ret RenderResponse::RenderNotFound
+        ret {
+            let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Settings));
+            RenderResponse::RenderComponent(route)
+        }
     }
 }
 

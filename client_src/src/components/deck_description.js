@@ -48,6 +48,8 @@ const __ToolBar = function(props) {
         const cancel = function() {
             resetForm();
 
+            // reset form elements to source mode
+
             dispatch(
                 reduceIn(
                     // reducer
