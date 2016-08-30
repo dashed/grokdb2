@@ -18,7 +18,7 @@ use constants;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Card {
     pub id: CardID,
     pub title: String,

@@ -464,7 +464,7 @@ fn __parse_route_api_card_update(
 
             match cards::update_card(context.clone(), card_id, request) {
                 Ok(_updated_card) => {
-                    return RenderResponse::RenderOk;
+                    return respond_json!(_updated_card);
                 },
                 Err(_) => {
                     // TODO: error logging

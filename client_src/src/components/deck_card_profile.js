@@ -18,10 +18,13 @@ const {
     MARKDOWN_VIEW_RENDER,
     MARKDOWN_VIEW_SOURCE,
 
+    MARKDOWN_CONTENTS,
+
     CARD_TITLE,
     CARD_DESCRIPTION,
     CARD_QUESTION,
     CARD_ANSWER,
+    CARD_IS_ACTIVE,
 
     POST_TO,
     IS_EDITING
@@ -53,10 +56,11 @@ const __ToolBar = function(props) {
                     <div className='level-item'>
                         <a
                             className={classnames('button is-success', {
-                                'is-disabled': submitting,
+                                'is-disabled': submitting ||
+                                    !shouldSaveCard(props.title, props.question),
                                 'is-loading': submitting
                             })}
-                            // onClick={handleSubmit(saveDescription.bind(null, dispatch, postURL))}
+                            onClick={handleSubmit(saveCard.bind(null, dispatch, postURL))}
                             >
                             {'Save'}
                         </a>
@@ -98,6 +102,8 @@ if(process.env.NODE_ENV !== 'production') {
         handleSubmit: React.PropTypes.func.isRequired,
         resetForm: React.PropTypes.func.isRequired,
         postURL: React.PropTypes.string.isRequired,
+        title: React.PropTypes.string.isRequired,
+        question: React.PropTypes.string.isRequired,
     };
 }
 
@@ -299,6 +305,8 @@ const __CardProfileContainer = function(props) {
                         handleSubmit={handleSubmit}
                         resetForm={resetForm}
                         submitting={submitting}
+                        question={question.value || ''}
+                        title={title.value || ''}
                     />
                 </div>
             </div>
@@ -418,39 +426,292 @@ if(process.env.NODE_ENV !== 'production') {
         postURL: React.PropTypes.string.isRequired,
         currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
         dispatch: React.PropTypes.func.isRequired,
+        resetForm: React.PropTypes.func.isRequired,
         isEditing: React.PropTypes.bool.isRequired,
     };
 }
 
-const CardProfileContainer = reduxForm(
+const cardProfileContainerFactory = function(preRenderState) {
 
-    // config
-    {
-        form: 'card',
-        fields: ['title', 'description', 'question', 'answer', 'is_active'],
-        initialValues: {
-            title: '',
-            description: '',
-            question: '',
-            answer: '',
-            is_active: true
+    const CardProfileContainer = reduxForm(
+
+        // config
+        {
+            form: 'card',
+            fields: ['title', 'description', 'question', 'answer', 'is_active'],
+            initialValues: {
+                title: preRenderState[CARD_TITLE][MARKDOWN_CONTENTS],
+                description: preRenderState[CARD_DESCRIPTION][MARKDOWN_CONTENTS],
+                question: preRenderState[CARD_QUESTION][MARKDOWN_CONTENTS],
+                answer: preRenderState[CARD_ANSWER][MARKDOWN_CONTENTS],
+                is_active: preRenderState[CARD_IS_ACTIVE].VALUE,
+            }
+        },
+
+        // mapStateToProps
+        (state) => {
+            return {
+                mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
+                postURL: state[POST_TO],
+                currenTab: state.CURRENT_TAB,
+                isEditing: state[IS_EDITING],
+                initialValues: {
+                    title: state[CARD_TITLE][MARKDOWN_CONTENTS],
+                    description: state[CARD_DESCRIPTION][MARKDOWN_CONTENTS],
+                    question: state[CARD_QUESTION][MARKDOWN_CONTENTS],
+                    answer: state[CARD_ANSWER][MARKDOWN_CONTENTS],
+                    is_active: state[CARD_IS_ACTIVE].VALUE,
+                }
+            };
         }
-    },
 
-    // mapStateToProps
-    (state) => {
-        return {
-            mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
-            postURL: state[POST_TO],
-            currenTab: state.CURRENT_TAB,
-            isEditing: state[IS_EDITING],
-        };
-    }
+    )(__CardProfileContainer);
 
-)(__CardProfileContainer);
+    return CardProfileContainer;
+};
+
+
 
 /* redux action dispatchers */
 // NOTE: FSA compliant
+
+const saveCard = function(dispatch, postURL, formData) {
+
+    return new Promise((resolve, reject) => {
+
+        const title = String(formData.title).trim();
+        const description = String(formData.description).trim();
+        const question = String(formData.question).trim();
+        const answer = String(formData.answer).trim();
+        const isActive = !!formData.is_active;
+
+        fetch(postURL, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: title,
+                description: description,
+                question: question,
+                answer: answer,
+                is_active: isActive
+            })
+        })
+        .then(function(response) {
+
+            let jsonResponse = {};
+            try {
+                jsonResponse = response.json();
+            } catch(_err) {
+                jsonResponse = {};
+            };
+
+            return Promise.all([response.status, jsonResponse]);
+        }, function(/*err*/) {
+
+            // network error
+            // console.log('network err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to send request to update card. Please try again.'
+                }
+            });
+        })
+        .then(function([statusCode, jsonResponse]) {
+
+            switch(statusCode) {
+            case 400: // Bad Request
+            case 500: // Internal Server Error
+
+                reject({
+                    _error: {
+                        message: jsonResponse.userMessage
+                    }
+                });
+
+                return;
+                break;
+
+            case 200: // Ok
+
+                // update card contents
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownContentsReducer,
+                        // path
+                        [CARD_TITLE, MARKDOWN_CONTENTS],
+                        // action
+                        {
+                            type: MARKDOWN_CONTENTS,
+                            payload: jsonResponse.title
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownContentsReducer,
+                        // path
+                        [CARD_DESCRIPTION, MARKDOWN_CONTENTS],
+                        // action
+                        {
+                            type: MARKDOWN_CONTENTS,
+                            payload: jsonResponse.description
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownContentsReducer,
+                        // path
+                        [CARD_QUESTION, MARKDOWN_CONTENTS],
+                        // action
+                        {
+                            type: MARKDOWN_CONTENTS,
+                            payload: jsonResponse.question
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownContentsReducer,
+                        // path
+                        [CARD_ANSWER, MARKDOWN_CONTENTS],
+                        // action
+                        {
+                            type: MARKDOWN_CONTENTS,
+                            payload: jsonResponse.answer
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        isActiveReducer,
+                        // path
+                        [CARD_IS_ACTIVE, 'VALUE'],
+                        // action
+                        {
+                            type: !!jsonResponse.is_active
+                        }
+                    )
+                );
+
+                // switch out of edit mode
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        editingReducer,
+                        // path
+                        [IS_EDITING],
+                        // action
+                        {
+                            type: false
+                        }
+                    )
+                );
+
+                // reset form to render mode
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownViewReducer,
+                        // path
+                        [CARD_TITLE, MARKDOWN_VIEW],
+                        // action
+                        {
+                            type: MARKDOWN_VIEW_RENDER
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownViewReducer,
+                        // path
+                        [CARD_DESCRIPTION, MARKDOWN_VIEW],
+                        // action
+                        {
+                            type: MARKDOWN_VIEW_RENDER
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownViewReducer,
+                        // path
+                        [CARD_QUESTION, MARKDOWN_VIEW],
+                        // action
+                        {
+                            type: MARKDOWN_VIEW_RENDER
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownViewReducer,
+                        // path
+                        [CARD_ANSWER, MARKDOWN_VIEW],
+                        // action
+                        {
+                            type: MARKDOWN_VIEW_RENDER
+                        }
+                    )
+                );
+
+                resolve();
+
+                break;
+
+            default: // Unexpected http status code
+                reject({
+                    _error: {
+                        message: 'Unable to update deck description.'
+                    }
+                });
+            }
+
+        }, function(/*err*/) {
+
+            // json parsing fail
+            // console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to update deck description.'
+                }
+            });
+        })
+        .catch(function(/*err*/) {
+
+            // any other errors
+            // console.log('err:', err);
+
+            reject({
+                _error: {
+                    message: 'Unable to update deck description.'
+                }
+            });
+        });
+
+    });
+
+};
 
 const NOTHING = function() {};
 const switchEditMode = function(dispatch, isEditing, after = NOTHING) {
@@ -567,6 +828,8 @@ const switchTab = function(dispatch, newTab) {
 const markdownViewReducer = require('reducers/markdown_view');
 const tabReducer = require('reducers/card_tab');
 const editingReducer = require('reducers/bool');
+const isActiveReducer = require('reducers/bool');
+const markdownContentsReducer = require('reducers/markdown_contents');
 
 /* default state */
 
@@ -599,6 +862,10 @@ const initialState = {
         // NOTE: contents is stored and handled by redux-form
     },
 
+    [CARD_IS_ACTIVE]: {
+        // [VALUE]
+    },
+
     // redux-form. generate initial state.
     form: reduxformReducer()
 
@@ -612,9 +879,11 @@ const componentCreator = require('helpers/component_factory');
 
 module.exports = componentCreator(initialState, function(store) {
 
+    const __Component = cardProfileContainerFactory(store.getState());
+
     const component = (
         <Provider store={store}>
-            <CardProfileContainer />
+            <__Component />
         </Provider>
     );
 

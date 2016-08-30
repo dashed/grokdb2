@@ -107,6 +107,11 @@ struct MarkdownContents {
     MARKDOWN_CONTENTS: String
 }
 
+#[derive(Serialize)]
+struct BoolContents {
+    VALUE: bool
+}
+
 fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, app_route: &AppRoute) {
 
     // invariant: this function is excuted inside a script tag
@@ -203,6 +208,75 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 deck_id = deck_id, markdown_contents = markdown_contents
                             )
                         )
+                    }
+                },
+                DeckRoute::CardProfile(card_id, ref card_route) => {
+                    match *card_route {
+                        CardRoute::Contents => {
+
+                            let (title, question, answer, description, is_active):
+                                (String, String, String, String, String) =
+                                match cards::get_card(context.clone(), card_id) {
+                                Ok(card) => {
+
+                                    let title = MarkdownContents {
+                                        MARKDOWN_CONTENTS: card.title
+                                    };
+                                    let title = serde_json::to_string(&title).unwrap();
+
+                                    let question = MarkdownContents {
+                                        MARKDOWN_CONTENTS: card.question
+                                    };
+                                    let question = serde_json::to_string(&question).unwrap();
+
+                                    let answer = MarkdownContents {
+                                        MARKDOWN_CONTENTS: card.answer
+                                    };
+                                    let answer = serde_json::to_string(&answer).unwrap();
+
+                                    let description = MarkdownContents {
+                                        MARKDOWN_CONTENTS: card.description
+                                    };
+                                    let description = serde_json::to_string(&description).unwrap();
+
+                                    let is_active = BoolContents {
+                                        VALUE: card.is_active
+                                    };
+                                    let is_active = serde_json::to_string(&is_active).unwrap();
+
+                                    (title, question, answer, description, is_active)
+                                },
+                                Err(_) => {
+                                    // TODO: internal error logging
+                                    panic!();
+                                }
+                            };
+
+                            tmpl << html! {
+                                : raw!(
+                                    format!(
+                                        "window.__PRE_RENDER_STATE__ = \
+                                            {{\
+                                                POST_TO: '/api/card/{card_id}/update',\
+                                                CARD_TITLE: {title},\
+                                                CARD_DESCRIPTION: {description},\
+                                                CARD_QUESTION: {question},\
+                                                CARD_ANSWER: {answer},\
+                                                CARD_IS_ACTIVE: {is_active}\
+                                            }};\
+                                        ",
+                                        card_id = card_id,
+                                        title = title,
+                                        description = description,
+                                        question = question,
+                                        answer = answer,
+                                        is_active = is_active
+                                    )
+                                )
+                            }
+
+                        },
+                        _ => {}
                     }
                 },
                 _ => {
