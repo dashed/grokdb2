@@ -315,6 +315,14 @@ const __CardProfileContainer = function(props) {
                     <hr className='is-marginless'/>
                 </div>
             </div>
+            <div className='columns'>
+                <div className='column'>
+                    <label className='checkbox'>
+                        <input type='checkbox' {...assign({}, is_active)} disabled={!isEditing} />
+                        {' Active for review'}
+                    </label>
+                </div>
+            </div>
             <div className='columns' style={{marginBottom: 0}}>
                 <div className='column'>
                     <label className='label' htmlFor='input-card-title'>{'Card Title'}</label>
@@ -332,14 +340,6 @@ const __CardProfileContainer = function(props) {
                     <RenderSourceTitleComponent
                         extraClasses='is-small'
                     />
-                </div>
-            </div>
-            <div className='columns'>
-                <div className='column'>
-                    <label className='checkbox'>
-                        <input type='checkbox' {...assign({}, is_active)} disabled={!isEditing} />
-                        {' Active for review'}
-                    </label>
                 </div>
             </div>
             <div className='columns'>
