@@ -28,6 +28,7 @@ const MarkdownSource = function(props) {
         // TODO: remove
         // onChange={this.onSourceChange}
         editable={props.editable}
+        disabled={!props.editable}
         {...assignProps}
         {...etc}
         value={contents}

@@ -65,6 +65,7 @@ pub struct CardCreateResponse {
     pub profile_url: String
 }
 
+// TODO: need syncing mechanism (e.g. checksum) to be able to do field-level updates from client side
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct UpdateCard {

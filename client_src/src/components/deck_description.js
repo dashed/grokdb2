@@ -48,20 +48,6 @@ const __ToolBar = function(props) {
         const cancel = function() {
             resetForm();
 
-            // reset form elements to source mode
-
-            dispatch(
-                reduceIn(
-                    // reducer
-                    markdownViewReducer,
-                    // path
-                    [DECK_DESCRIPTION, MARKDOWN_VIEW],
-                    // action
-                    {
-                        type: MARKDOWN_VIEW_SOURCE
-                    }
-                )
-            );
         };
 
         return (
@@ -164,51 +150,40 @@ const __DeckDescription = function(props) {
     let sourceStyle = {};
     let renderStyle = {};
 
-    if(isEditing) {
+    switch(markdownView) {
+    case MARKDOWN_VIEW_RENDER:
+        sourceStyle.display = 'none';
+        break;
 
-        switch(markdownView) {
-        case MARKDOWN_VIEW_RENDER:
-            sourceStyle.display = 'none';
-            break;
-
-        case MARKDOWN_VIEW_SOURCE:
-        default:
-            renderStyle.display = 'none';
-        }
-
-        return (
-            <div>
-                <div key='render_source' className='columns' style={{marginBottom: 0}}>
-                    <div className='column'>
-                        <RenderSourceDescriptionComponent
-                            reverse
-                        />
-                    </div>
-                </div>
-                <div key='render' style={renderStyle}>
-                    <MarkdownRender contents={renderContents} />
-                </div>
-                <div key='source' style={sourceStyle}>
-                    <MarkdownSource
-                        id='input-deck-description'
-                        contents={sourceContents}
-                        placeholder={'Deck Description'}
-                        assignProps={description}
-                        editable
-                    />
-                </div>
-            </div>
-        );
-
+    case MARKDOWN_VIEW_SOURCE:
+    default:
+        renderStyle.display = 'none';
     }
+
+    const noContentMessage = isEditing ?
+        'No description set for this deck. Click "Source" button to add a description.' :
+        'No description set for this deck. Click "Edit" button to add a description.';
 
     return (
         <div>
+            <div key='render_source' className='columns' style={{marginBottom: 0}}>
+                <div className='column'>
+                    <RenderSourceDescriptionComponent />
+                </div>
+            </div>
             <div key='render' style={renderStyle}>
                 <MarkdownRender
                     contents={renderContents}
-                    showNoContentMessage={props.showNoContentMessage}
-                    noContentMessage={'No description set for this deck. Click "Edit" button to add a description.'}
+                    noContentMessage={noContentMessage}
+                />
+            </div>
+            <div key='source' style={sourceStyle}>
+                <MarkdownSource
+                    id='input-deck-description'
+                    contents={sourceContents}
+                    placeholder={'Deck Description'}
+                    assignProps={description}
+                    editable={isEditing}
                 />
             </div>
         </div>
@@ -369,7 +344,9 @@ const saveDescription = function(dispatch, postURL, formData) {
         })
         .then(function(response) {
 
-            return Promise.all([response.status, response.json()]);
+            const jsonResponse = response.status != 200 ? response.json() : {};
+
+            return Promise.all([response.status, jsonResponse]);
         }, function(/*err*/) {
 
             // network error
@@ -427,6 +404,20 @@ const saveDescription = function(dispatch, postURL, formData) {
                     )
                 );
 
+                // reset form to render mode
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        markdownViewReducer,
+                        // path
+                        [DECK_DESCRIPTION, MARKDOWN_VIEW],
+                        // action
+                        {
+                            type: MARKDOWN_VIEW_RENDER
+                        }
+                    )
+                );
+
                 resolve();
 
                 break;
@@ -470,6 +461,7 @@ const NOTHING = function() {};
 const switchEditMode = function(dispatch, isEditing, after = NOTHING) {
     return function(event) {
         event.preventDefault();
+
         dispatch(
             reduceIn(
                 // reducer
@@ -483,6 +475,19 @@ const switchEditMode = function(dispatch, isEditing, after = NOTHING) {
             )
         );
         after();
+
+        dispatch(
+            reduceIn(
+                // reducer
+                markdownViewReducer,
+                // path
+                [DECK_DESCRIPTION, MARKDOWN_VIEW],
+                // action
+                {
+                    type: isEditing ? MARKDOWN_VIEW_SOURCE : MARKDOWN_VIEW_RENDER
+                }
+            )
+        );
     }
 };
 
@@ -520,7 +525,7 @@ const initialState = {
 
     [DECK_DESCRIPTION]: {
         [IS_EDITING]: false,
-        [MARKDOWN_VIEW]: MARKDOWN_VIEW_SOURCE,
+        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
         [MARKDOWN_CONTENTS]: '',
         showNoContentMessage: false
         // NOTE: contents is stored and handled by redux-form
