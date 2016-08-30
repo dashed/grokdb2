@@ -720,9 +720,19 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             card_route
                         )
                     },
-                    _ => {
-                        // TODO: remove eventually
-                        panic!();
+                    DeckRoute::Review => {
+                        DeckReview(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
+                    },
+                    DeckRoute::Stats => {
+                        DeckStats(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
                     }
                 }
             }
@@ -788,7 +798,15 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                 }
                             }
                             li {
-                                a(href="#", class="is-bold") {
+                                a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::Stats)),
+                                    class? = classnames!(
+                                        "is-bold",
+                                        "is-active" => {
+                                            matches!(*deck_route, DeckRoute::Stats)
+                                        })
+                                ) {
                                     : "Stats"
                                 }
                             }
@@ -803,6 +821,19 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                         })
                                 ) {
                                     : "Settings"
+                                }
+                            }
+                            li {
+                                a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::Review)),
+                                    class? = classnames!(
+                                        "is-bold",
+                                        "is-active" => {
+                                            matches!(*deck_route, DeckRoute::Review)
+                                        })
+                                ) {
+                                    : "Review"
                                 }
                             }
                         }
@@ -1384,6 +1415,42 @@ fn CardsPaginationComponent(tmpl: &mut TemplateBuffer,
                 }
             }
         }
+    }
+}
+
+#[inline]
+fn DeckReview(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID) {
+
+    tmpl << html!{
+        div(class="columns") {
+            div(class="column") {
+                h1(class="title") {
+                    : raw!("Deck Review")
+                }
+            }
+        }
+
+    }
+}
+
+#[inline]
+fn DeckStats(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID) {
+
+    tmpl << html!{
+        div(class="columns") {
+            div(class="column") {
+                h1(class="title") {
+                    : raw!("Deck Statistics")
+                }
+            }
+        }
+
     }
 }
 
