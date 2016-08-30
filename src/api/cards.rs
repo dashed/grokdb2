@@ -49,9 +49,44 @@ pub struct CreateCard {
     pub is_active: bool
 }
 
+impl CreateCard {
+    pub fn validate(&self) -> Option<String> {
+
+        if self.title.trim().len() <= 0 && self.question.trim().len() <= 0 {
+            return Some("Either card title or card question must not be empty.".to_string());
+        }
+
+        return None;
+    }
+}
+
 #[derive(Debug, Serialize)]
 pub struct CardCreateResponse {
     pub profile_url: String
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct UpdateCard {
+    pub title: String, // required;
+                       // if empty, it will be the first 140 characters (tweet length)
+                       // of the question (must be given)
+    pub question: String, // required, but may be empty
+    pub answer: String, // required, but may be empty
+    pub description: String, // required, but may be empty
+
+    pub is_active: bool
+}
+
+impl UpdateCard {
+    fn validate(&self) -> Option<String> {
+
+        if self.title.trim().len() <= 0 && self.question.trim().len() <= 0 {
+            return Some("Either card title or card question must not be empty.".to_string());
+        }
+
+        return None;
+    }
 }
 
 #[inline]

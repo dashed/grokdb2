@@ -555,15 +555,16 @@ fn __parse_route_api_deck_new_card(
                 }
             };
 
-            let title_empty = request.title.trim().len() <= 0;
-
-            // NOTE: card title must not be empty
-            if title_empty && request.question.trim().len() <= 0 {
-                return RenderResponse::RenderBadRequest;
+            match request.validate() {
+                None => {},
+                Some(reason) => {
+                    let err = EndPointError::bad_request(reason);
+                    return RenderResponse::EndPointError(err);
+                }
             }
 
             let mut request = request;
-            if title_empty {
+            if request.title.trim().len() <= 0 {
                 // invariant: request.question is not empty
 
                 // if card has question content, fetch first 140 characters as title
