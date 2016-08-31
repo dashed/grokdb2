@@ -550,6 +550,93 @@ pub fn deck_have_cards(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result
     }
 }
 
+// TODO: needs test
+#[inline]
+pub fn deck_have_cards_for_review(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<bool, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let query = format!(indoc!("
+        SELECT
+            COUNT(1)
+        FROM DecksClosure AS dc
+
+        INNER JOIN Cards AS c
+        ON c.deck_id = dc.descendent
+
+        WHERE
+            dc.ancestor = {deck_id}
+        AND
+            c.is_active = :is_active
+        LIMIT 1;
+    "),
+    deck_id = deck_id);
+
+    let params: &[(&str, &ToSql)] = &[(":is_active", &true)];
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let have_cards = db_conn.query_row_named(&query, params, |row| -> bool {
+        let count: i64 = row.get(0);
+        return count >= 1;
+    });
+
+    match have_cards {
+        Ok(have_cards) => return Ok(have_cards),
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+}
+
+// TODO: needs test
+#[inline]
+pub fn cached_review_card_for_deck(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID
+    ) -> Result<Option<CardID>, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let query = format!(indoc!("
+        SELECT
+            deck_id,
+            card_id,
+            created_at
+        FROM CachedDeckReview
+        WHERE
+            deck_id = {deck_id}
+        LIMIT 1;
+    "), deck_id = deck_id);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let results = db_conn.query_row(&query, &[], |row| -> CardID {
+        return row.get(1);
+    });
+
+    match results {
+        Err(sqlite_error) => {
+
+            match sqlite_error {
+                SqliteError::QueryReturnedNoRows => {
+                    return Ok(None);
+                }
+                _ => {}
+            };
+
+            return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+        }
+        Ok(card_id) => {
+            return Ok(Some(card_id));
+        }
+    };
+}
+
 #[test]
 fn cards_test() {
 

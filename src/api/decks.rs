@@ -12,7 +12,7 @@ use rusqlite::Error as SqliteError;
 /* local imports */
 
 use context::Context;
-use types::{UnixTimestamp, DeckID, DecksPageQuery, Search, ItemCount};
+use types::{UnixTimestamp, DeckID, CardID, DecksPageQuery, Search, ItemCount};
 use errors::RawAPIError;
 use constants;
 use api::review::Reviewable;
@@ -581,7 +581,69 @@ pub fn get_deck_children(
 impl Reviewable for Deck {
 
     fn have_cards_for_review(&self, context: Rc<RefCell<Context>>) -> Result<bool, RawAPIError> {
-        return cards::deck_have_cards(context, self.id);
+        return cards::deck_have_cards_for_review(context, self.id);
+    }
+
+    fn get_cached_card(&self, context: Rc<RefCell<Context>>) -> Result<Option<CardID>, RawAPIError> {
+
+        match cards::cached_review_card_for_deck(context.clone(), self.id) {
+            Err(why) => {
+                return Err(why);
+            },
+            Ok(None) => {
+                return Ok(None);
+            },
+            Ok(Some(card_id)) => {
+
+                // check if the card is still within the deck
+
+                match cards::is_card_in_deck(context.clone(), card_id, self.id) {
+                    Err(why) => {
+                        return Err(why);
+                    },
+                    Ok(true) => {
+                        return Ok(Some(card_id));
+                    },
+                    Ok(false) => {
+
+                        match self.remove_cache(context) {
+                            Err(why) => {
+                                return Err(why);
+                            },
+                            Ok(_) => {
+                                return Ok(None);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // remove card review entry by deck
+    fn remove_cache(&self, context: Rc<RefCell<Context>>) -> Result<(), RawAPIError> {
+
+        assert!(context.borrow().is_write_locked());
+
+        let query = format!(indoc!("
+            DELETE FROM
+                CachedDeckReview
+            WHERE deck_id = {deck_id};
+        "), deck_id = self.id);
+
+        let context = context.borrow();
+        db_read_lock!(db_conn; context.database());
+        let db_conn: &Connection = db_conn;
+
+        match db_conn.execute_named(&query, &[]) {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            },
+            _ => {/* query sucessfully executed */},
+        }
+
+        return Ok(());
+
     }
 }
 

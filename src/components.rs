@@ -5,7 +5,7 @@ use std::cell::RefCell;
 
 /* 3rd-party imports */
 
-use horrorshow::{RenderOnce, TemplateBuffer, Template, FnRenderer};
+use horrorshow::{TemplateBuffer, Template};
 
 use hyper::method::Method;
 use hyper::server::{Server, Handler, Request, Response};

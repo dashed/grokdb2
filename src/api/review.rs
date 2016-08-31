@@ -7,7 +7,7 @@ use std::rc::Rc;
 
 use context::Context;
 use errors::RawAPIError;
-use types::{Seconds, ItemCount};
+use types::{ItemCount, CardID};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -25,7 +25,7 @@ pub enum ActiveSelection {
 pub enum SubSelection {
     NewCards,
     LeastRecentlyReviewed,
-    LastReviewedForAtLeast(Seconds)
+    LastReviewedForAtLeast
 }
 
 #[derive(Serialize, Deserialize)]
@@ -62,17 +62,10 @@ pub trait Reviewable {
 
     // fn number_of_cards_for_review(&self, context: Rc<RefCell<Context>>) -> Result<ItemCount, RawAPIError>;
 
-
-
-
-    ///////
-
-
-
-    // /* caching */
+    /* caching */
     // fn cache_card(&self, card_id: i64) -> Result<(), QueryError>;
-    // fn get_cached_card(&self) -> Result<Option<i64>, QueryError>;
-    // fn remove_cache(&self) -> Result<(), QueryError>;
+    fn get_cached_card(&self, context: Rc<RefCell<Context>>) -> Result<Option<CardID>, RawAPIError>;
+    fn remove_cache(&self, context: Rc<RefCell<Context>>) -> Result<(), RawAPIError>;
 
     // // remove any cached entry by card id, regardless of sub-selection,
     // // of container type (e.g. Decks or Stash)
@@ -114,3 +107,40 @@ pub trait Reviewable {
     // // - sort by score (desc) [optional; if false, cards are implicitly sorted by age]
     // fn get_old_card(&self, purgatory_size: i64, min_score: f64, index: i64, sort_by_score: bool) -> Result<i64, QueryError>;
 }
+
+// pub fn get_review_card<T>(selection: &T, context: Rc<RefCell<Context>>)
+// -> Result<Option<CardID, ReviewProcedureCache>, RawAPIError>
+//     where T: Reviewable {
+
+//     match selection.get_cached_card() {
+//         Err(why) => {
+//             return Err(why);
+//         },
+//         Ok(Some(card_id)) => {
+//             return Ok(Some(card_id));
+//         }
+//         Ok(None) => {
+//             // no cached card for review
+//         }
+//     }
+
+//     // ensure there are cards to review
+//     match selection.have_cards_for_review(context.clone()) {
+//         Err(why) => {
+//             return Err(why);
+//         },
+//         Ok(false) => {
+//             return Ok(None);
+//         },
+//         Ok(true) => {
+//             // has cards to review
+//         }
+//     }
+
+
+//     let review_procedure = ReviewProcedureCache {
+//         active_selection: ActiveSelection::Active,
+//         sub_selection:
+//     };
+
+// }
