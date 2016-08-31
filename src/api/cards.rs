@@ -901,6 +901,28 @@ fn cards_test() {
         }
     };
 
+    {
+        {
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::read_lock(context.clone());
+
+            match cards::deck_have_cards(context.clone(), 1) {
+                Ok(actual) => assert!(actual),
+                Err(_) => assert!(false)
+            }
+        };
+
+        {
+            let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+            let _guard = context::read_lock(context.clone());
+
+            match cards::deck_have_cards(context.clone(), 42) {
+                Ok(actual) => assert_eq!(actual, false),
+                Err(_) => assert!(false)
+            }
+        };
+    }
+
     /* teardown */
 
     fs::remove_file(file_path.clone()).unwrap();
