@@ -15,6 +15,8 @@ use context::Context;
 use types::{UnixTimestamp, DeckID, DecksPageQuery, Search, ItemCount};
 use errors::RawAPIError;
 use constants;
+use api::review::Reviewable;
+use api::cards;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -573,6 +575,13 @@ pub fn get_deck_children(
 
             return Ok(vec_of_deck_ids);
         }
+    }
+}
+
+impl Reviewable for Deck {
+
+    fn have_cards_for_review(&self, context: Rc<RefCell<Context>>) -> Result<bool, RawAPIError> {
+        return cards::deck_have_cards(context, self.id);
     }
 }
 

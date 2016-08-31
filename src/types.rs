@@ -16,6 +16,7 @@ use api::{decks, cards};
 
 /* Types */
 
+pub type Seconds = u64;
 pub type UnixTimestamp = i64;
 
 // TODO: change to u64? it's i64 b/c sqlite requires it.

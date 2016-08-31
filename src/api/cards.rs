@@ -237,6 +237,7 @@ pub fn create_card(
     return get_card(context, card_id);
 }
 
+// TODO: needs test
 #[inline]
 pub fn update_card(
     context: Rc<RefCell<Context>>,
@@ -509,6 +510,42 @@ pub fn cards_in_deck(
             }
 
             return Ok(vec_of_card);
+        }
+    }
+}
+
+#[inline]
+pub fn deck_have_cards(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<bool, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let query = format!("
+        SELECT
+            COUNT(1)
+        FROM DecksClosure AS dc
+
+        INNER JOIN Cards AS c
+        ON c.deck_id = dc.descendent
+
+        WHERE
+        dc.ancestor = {deck_id}
+        LIMIT 1;
+    ",
+    deck_id = deck_id);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let have_cards = db_conn.query_row(&query, &[], |row| -> bool {
+        let count: i64 = row.get(0);
+        return count >= 1;
+    });
+
+    match have_cards {
+        Ok(have_cards) => return Ok(have_cards),
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
         }
     }
 }
