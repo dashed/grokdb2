@@ -580,8 +580,9 @@ pub fn get_deck_children(
 
 impl Reviewable for Deck {
 
-    fn have_cards_for_review(&self, context: Rc<RefCell<Context>>) -> Result<bool, RawAPIError> {
-        return cards::deck_have_cards_for_review(context, self.id);
+    fn have_cards_for_review(&self, context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection) -> Result<bool, RawAPIError> {
+        return cards::deck_have_cards_for_review(context, self.id, active_selection);
     }
 
     fn get_cached_card(&self, context: Rc<RefCell<Context>>) -> Result<Option<CardID>, RawAPIError> {

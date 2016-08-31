@@ -15,6 +15,7 @@ use context::Context;
 use types::{UnixTimestamp, CardID, DeckID, CardsPageQuery, Search, ItemCount};
 use errors::RawAPIError;
 use constants;
+use api::review;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -552,9 +553,36 @@ pub fn deck_have_cards(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result
 
 // TODO: needs test
 #[inline]
-pub fn deck_have_cards_for_review(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<bool, RawAPIError> {
+pub fn deck_have_cards_for_review(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    active_selection: &review::ActiveSelection) -> Result<bool, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
+
+    let (active_query, params) = match *active_selection {
+        ActiveSelection::Active => {
+
+            let active_query = "AND c.is_active = :is_active";
+            let params: [(&str, &ToSql)] = [(":is_active", &true)];
+
+            (active_query, params)
+        },
+        ActiveSelection::Inactive => {
+
+            let active_query = "AND c.is_active = :is_active";
+            let params: [(&str, &ToSql)] = [(":is_active", &false)];
+
+            (active_query, params)
+        },
+        ActiveSelection::All => {
+
+            let active_query = "";
+            let params: [(&str, &ToSql)] = [];
+
+            (active_query, params)
+        }
+    };
 
     let query = format!(indoc!("
         SELECT
@@ -566,19 +594,17 @@ pub fn deck_have_cards_for_review(context: Rc<RefCell<Context>>, deck_id: DeckID
 
         WHERE
             dc.ancestor = {deck_id}
-        AND
-            c.is_active = :is_active
+        {active_query}
         LIMIT 1;
     "),
-    deck_id = deck_id);
-
-    let params: &[(&str, &ToSql)] = &[(":is_active", &true)];
+    deck_id = deck_id,
+    active_query = active_query);
 
     let context = context.borrow();
     db_read_lock!(db_conn; context.database());
     let db_conn: &Connection = db_conn;
 
-    let have_cards = db_conn.query_row_named(&query, params, |row| -> bool {
+    let have_cards = db_conn.query_row_named(&query, &params, |row| -> bool {
         let count: i64 = row.get(0);
         return count >= 1;
     });

@@ -214,7 +214,10 @@ END;
 // - times_reviewed is number of times a card was actually reviewed.
 // - note that, skipping a card is not actually reviewing the card.
 // - default value of 'review_after' is 3 hours == 10800 seconds
+//
 // - card will be eligible for review after seen_at + review_after >= strftime('%s', 'now')
+// rational:
+// - skipping a card will update seen_at, but not reviewed_at
 const CARDS_SCORE: &'static str = "
 CREATE TABLE IF NOT EXISTS CardsScore (
 
@@ -226,9 +229,10 @@ CREATE TABLE IF NOT EXISTS CardsScore (
     times_reviewed INT NOT NULL DEFAULT 0,
     times_seen INT NOT NULL DEFAULT 0,
 
-    review_after INT NOT NULL DEFAULT 10800,
     seen_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
     reviewed_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
+
+    review_after INT NOT NULL DEFAULT 10800,
 
     card_id INTEGER NOT NULL,
 
