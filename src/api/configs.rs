@@ -95,7 +95,7 @@ pub fn set_config(context: Rc<RefCell<Context>>, setting: String, value: String)
     db_write_lock!(db_conn; context.database());
     let db_conn: &Connection = db_conn;
 
-    match db_conn.execute_named(query, &params[..]) {
+    match db_conn.execute_named(query, params) {
         Err(sqlite_error) => {
             return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
         }

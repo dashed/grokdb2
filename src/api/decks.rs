@@ -9,6 +9,7 @@ use rusqlite::Connection;
 use rusqlite::types::ToSql;
 use rusqlite::Error as SqliteError;
 use rand::{thread_rng, Rng};
+use serde_json;
 
 /* local imports */
 
@@ -194,7 +195,7 @@ pub fn create_deck(context: Rc<RefCell<Context>>, create_deck_request: CreateDec
         db_write_lock!(db_conn; context.database());
         let db_conn: &Connection = db_conn;
 
-        match db_conn.execute_named(query, &params[..]) {
+        match db_conn.execute_named(query, params) {
             Err(sqlite_error) => {
                 return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
             }
@@ -231,7 +232,7 @@ pub fn update_deck_description(
     db_write_lock!(db_conn; context.database());
     let db_conn: &Connection = db_conn;
 
-    match db_conn.execute_named(&query, &params[..]) {
+    match db_conn.execute_named(&query, params) {
         Err(sqlite_error) => {
             return Err(RawAPIError::SQLError(sqlite_error, query));
         }
@@ -264,7 +265,7 @@ pub fn update_deck_name(
     db_write_lock!(db_conn; context.database());
     let db_conn: &Connection = db_conn;
 
-    match db_conn.execute_named(&query, &params[..]) {
+    match db_conn.execute_named(&query, params) {
         Err(sqlite_error) => {
             return Err(RawAPIError::SQLError(sqlite_error, query));
         }
@@ -654,6 +655,41 @@ impl Reviewable for Deck {
 
         assert!(context.borrow().is_write_locked());
 
+        let cached_review_procedure: String = match serde_json::to_string(&cached_review_procedure) {
+            Ok(cached_review_procedure) => cached_review_procedure.to_string(),
+            Err(_) => {
+
+                // TODO: internal error reporting
+
+                "".to_string()
+            }
+        };
+
+        let query = format!("
+            INSERT OR REPLACE INTO CachedDeckReview(deck, card, cached_review_procedure)
+            VALUES (:deck_id, :card_id, :cached_review_procedure);
+        ");
+
+        let params: &[(&str, &ToSql)] = &[
+            (":deck_id", &(self.id)),
+            (":card_id", &card_id),
+            (":cached_review_procedure", &cached_review_procedure)
+        ];
+
+        let context = context.borrow();
+        db_write_lock!(db_conn; context.database());
+        let db_conn: &Connection = db_conn;
+
+        match db_conn.execute_named(&query, params) {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            }
+            _ => {
+                /* query sucessfully executed */
+            }
+        }
+
+        return Ok(());
     }
 
     /* new cards */

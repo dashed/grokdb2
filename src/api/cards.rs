@@ -223,7 +223,7 @@ pub fn create_card(
         db_write_lock!(db_conn; context.database());
         let db_conn: &Connection = db_conn;
 
-        match db_conn.execute_named(&query, &params[..]) {
+        match db_conn.execute_named(&query, params) {
             Err(sqlite_error) => {
                 return Err(RawAPIError::SQLError(sqlite_error, query));
             }
@@ -273,7 +273,7 @@ pub fn update_card(
         db_write_lock!(db_conn; context.database());
         let db_conn: &Connection = db_conn;
 
-        match db_conn.execute_named(&query, &params[..]) {
+        match db_conn.execute_named(&query, params) {
             Err(sqlite_error) => {
                 return Err(RawAPIError::SQLError(sqlite_error, query));
             }
