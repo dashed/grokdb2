@@ -12,7 +12,7 @@ use rand::{thread_rng, Rng};
 
 use context::{self, Context};
 use errors::RawAPIError;
-use types::{ItemCount, CardID, Offset};
+use types::{ItemCount, CardID, Offset, Minutes};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -73,6 +73,7 @@ impl Default for SubSelectionProbabilities {
     }
 }
 
+// TODO: needed?
 // #[derive(Serialize, Deserialize)]
 // pub enum ChosenCard {
 //     // 0 < Percent <= 1
@@ -95,10 +96,31 @@ pub struct CachedReviewProcedure {
 
     // sort subselection in descending order according to its score
 
+    // TODO: needed?
     // how the card was chose in the sub selection
     // card_chosen_by: ChosenCard
 }
 
+#[derive(Deserialize)]
+pub enum ReviewAction {
+    Right,
+    Wrong,
+    Forgot
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RawReviewRequest {
+    card_id: CardID,
+    review_action: ReviewAction,
+    review_after: Option<Minutes>
+}
+
+pub struct ReviewRequest {
+    card_id: CardID,
+    review_action: ReviewAction,
+    review_after: Minutes
+}
 
 pub trait Reviewable {
 

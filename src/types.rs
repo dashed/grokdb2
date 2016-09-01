@@ -16,6 +16,7 @@ use api::{decks, cards};
 
 /* Types */
 
+pub type Minutes = u64;
 pub type Seconds = u64;
 pub type UnixTimestamp = i64;
 
