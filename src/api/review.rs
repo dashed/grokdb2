@@ -152,14 +152,20 @@ pub trait Reviewable {
 
     /* least recently reviewed */
 
+    fn deck_num_of_cards_for_review(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection) -> Result<ItemCount, RawAPIError>;
+
     fn get_least_recently_reviewed_card(&self,
         context: Rc<RefCell<Context>>,
-        active_selection: &ActiveSelection) -> Result<CardID, RawAPIError>;
-    // TODO: complete
+        active_selection: &ActiveSelection,
+        card_idx: Offset) -> Result<CardID, RawAPIError>;
+
 }
 
 /* helpers */
 
+#[inline]
 pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
 -> Result<Option<(CardID, Option<CachedReviewProcedure>)>, RawAPIError>
     where T: Reviewable {
@@ -233,8 +239,15 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
             }
         },
         SubSelection::ReadyForReview => {
-            // TODO: complete
-            1
+            match get_least_recently_reviewed_card(
+                context.clone(),
+                selection,
+                &active_selection) {
+                Ok(card_id) => card_id,
+                Err(why) => {
+                    return Err(why);
+                }
+            }
         }
     };
 
@@ -251,6 +264,7 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
 
 }
 
+#[inline]
 fn choose_subselection<T>(
     context: Rc<RefCell<Context>>,
     selection: &T,
@@ -306,6 +320,7 @@ fn choose_subselection<T>(
 
 }
 
+#[inline]
 fn get_new_card<T>(
     context: Rc<RefCell<Context>>,
     selection: &T,
@@ -320,6 +335,8 @@ fn get_new_card<T>(
         }
     };
 
+    // TODO: top N percent of least recently created
+
     // Generate a random value in the range [0, num_of_cards)
     let card_idx = thread_rng().gen_range(0, num_of_cards);
 
@@ -333,7 +350,7 @@ fn get_new_card<T>(
     }
 }
 
-
+#[inline]
 fn get_card_ready_for_review<T>(
     context: Rc<RefCell<Context>>,
     selection: &T,
@@ -341,7 +358,7 @@ fn get_card_ready_for_review<T>(
     where T: Reviewable {
 
     let num_of_cards = match selection.num_of_cards_ready_for_review(
-        context.clone(),active_selection) {
+        context.clone(), active_selection) {
         Ok(num_of_cards) => num_of_cards,
         Err(why) => {
             return Err(why);
@@ -357,6 +374,40 @@ fn get_card_ready_for_review<T>(
     let card_idx = thread_rng().gen_range(0, upper_bound);
 
     match selection.get_card_ready_for_review(context, active_selection, card_idx) {
+        Ok(card_id) => {
+            return Ok(card_id);
+        },
+        Err(why) => {
+            return Err(why);
+        }
+    }
+
+}
+
+#[inline]
+fn get_least_recently_reviewed_card<T>(
+    context: Rc<RefCell<Context>>,
+    selection: &T,
+    active_selection: &ActiveSelection) -> Result<CardID, RawAPIError>
+    where T: Reviewable {
+
+    let num_of_cards = match selection.deck_num_of_cards_for_review(
+        context.clone(), active_selection) {
+        Ok(num_of_cards) => num_of_cards,
+        Err(why) => {
+            return Err(why);
+        }
+    };
+
+    let upper_bound = (TOP_N_PERCENT * (num_of_cards as f64)).ceil() as ItemCount;
+    // TODO: dev mode
+    assert!(upper_bound > 0);
+    let upper_bound = upper_bound + 1;
+
+    // Generate a random value in the range [0, num_of_cards)
+    let card_idx = thread_rng().gen_range(0, upper_bound);
+
+    match selection.get_least_recently_reviewed_card(context, active_selection, card_idx) {
         Ok(card_id) => {
             return Ok(card_id);
         },

@@ -693,20 +693,18 @@ impl Reviewable for Deck {
 
     /* least recently reviewed */
 
-    fn get_least_recently_reviewed_card(&self,
+    fn deck_num_of_cards_for_review(&self,
         context: Rc<RefCell<Context>>,
-        active_selection: &ActiveSelection) -> Result<CardID, RawAPIError> {
-
-        let num_of_cards = match cards::deck_num_of_cards_for_review(
-            context.clone(), self.id, active_selection) {
-            Ok(num_of_cards) => num_of_cards,
-            Err(why) => {
-                return Err(why);
-            }
-        };
+        active_selection: &ActiveSelection) -> Result<ItemCount, RawAPIError> {
+        return cards::deck_num_of_cards_for_review(context.clone(), self.id, active_selection);
     }
 
-    // TODO: complete
+    fn get_least_recently_reviewed_card(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection,
+        card_idx: Offset) -> Result<CardID, RawAPIError> {
+        return cards::deck_get_least_recently_reviewed_card(context, self.id, active_selection, card_idx);
+    }
 }
 
 #[test]

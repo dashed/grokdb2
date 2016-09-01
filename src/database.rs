@@ -4,7 +4,9 @@ use std::sync::{Arc, Mutex, RwLock};
 
 /* 3rd-party imports */
 
-use rusqlite::Connection;
+use libc::{c_int, c_double};
+use rusqlite::{Connection, Error, Result as SqliteResult};
+use rusqlite::functions::{Context};
 
 /* local imports */
 
@@ -188,5 +190,60 @@ pub fn get_database(file_path: String) -> Database {
         }
     }
 
+    /* custom function */
+    {
+
+        db_write_lock!(db_conn; db_connection.clone());
+        let db_conn: &Connection = db_conn;
+
+        // TODO: move this somewhere
+        match db_conn.create_scalar_function("raw_score", 2, true, raw_score) {
+            Err(why) => {
+                // TODO: fix
+                panic!("{}", why);
+            },
+            _ => {
+
+                // ensure custom scalar function was loaded
+
+                let query = format!("
+                    SELECT raw_score(0, 0);
+                ");
+
+                let maybe_result = db_conn.query_row(&query, &[], |row| -> f64 {
+                    return row.get(0);
+                });
+
+                match maybe_result {
+                    Err(why) => {
+                        // TODO: fix
+                        panic!("{}", why);
+                    },
+                    Ok(_/*result*/) => {
+                        // TODO: assert result is 0.5, otherwise panic
+                        // println!("result: {}", result);
+                    }
+                };
+            }
+        }
+
+    };
+
     return db_connection;
+}
+
+// the higher the score, the more important it is to be reviewed
+fn raw_score(ctx: &Context) -> SqliteResult<c_double> {
+
+    // raw_score(success: int, fail: int) -> f64
+    assert!(ctx.len() == 2, "called with unexpected number of arguments");
+
+    let success = try!(ctx.get::<c_int>(0)) as c_double;
+    let fail = try!(ctx.get::<c_int>(1)) as c_double;
+
+    let total: c_double = success + fail;
+
+    let lidstone: c_double = (fail + 0.5f64) / (total + 1.0f64);
+
+    return Ok(lidstone);
 }
