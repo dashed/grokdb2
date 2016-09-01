@@ -13,7 +13,7 @@ use rand::{thread_rng, Rng};
 /* local imports */
 
 use context::Context;
-use types::{UnixTimestamp, DeckID, CardID, DecksPageQuery, Search, ItemCount};
+use types::{UnixTimestamp, DeckID, CardID, DecksPageQuery, Search, ItemCount, Offset};
 use errors::RawAPIError;
 use constants;
 use api::review::{Reviewable, ActiveSelection, CachedReviewProcedure};
@@ -657,30 +657,17 @@ impl Reviewable for Deck {
         return cards::deck_have_new_cards_for_review(context, self.id, active_selection);
     }
 
-    fn get_new_card(&self,
+    fn num_of_new_cards_for_review(&self,
         context: Rc<RefCell<Context>>,
-        active_selection: &ActiveSelection) -> Result<CardID, RawAPIError> {
+        active_selection: &ActiveSelection) -> Result<ItemCount, RawAPIError> {
+        return cards::deck_num_of_new_cards_for_review(context, self.id, active_selection);
+    }
 
-
-        let num_of_cards = match cards::deck_num_of_new_cards_for_review(
-            context.clone(), self.id, active_selection) {
-            Ok(num_of_cards) => num_of_cards,
-            Err(why) => {
-                return Err(why);
-            }
-        };
-
-        // Generate a random value in the range [0, num_of_cards)
-        let card_idx = thread_rng().gen_range(0, num_of_cards);
-
-        match cards::deck_get_new_card_for_review(context, self.id, active_selection, card_idx) {
-            Ok(card_id) => {
-                return Ok(card_id);
-            },
-            Err(why) => {
-                return Err(why);
-            }
-        }
+    fn get_new_card_for_review(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection,
+        card_idx: Offset) -> Result<CardID, RawAPIError> {
+        return cards::deck_get_new_card_for_review(context, self.id, active_selection, card_idx);
     }
 
     /* cards ready for review */
@@ -691,7 +678,33 @@ impl Reviewable for Deck {
         return cards::deck_have_cards_ready_for_review(context, self.id, active_selection);
     }
 
+    fn num_of_cards_ready_for_review(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection) -> Result<ItemCount, RawAPIError> {
+        return cards::deck_num_of_cards_ready_for_review(context, self.id, active_selection);
+    }
+
+    fn get_card_ready_for_review(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection,
+        card_idx: Offset) -> Result<CardID, RawAPIError> {
+        return cards::deck_get_card_ready_for_review(context, self.id, active_selection, card_idx);
+    }
+
     /* least recently reviewed */
+
+    fn get_least_recently_reviewed_card(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection) -> Result<CardID, RawAPIError> {
+
+        let num_of_cards = match cards::deck_num_of_cards_for_review(
+            context.clone(), self.id, active_selection) {
+            Ok(num_of_cards) => num_of_cards,
+            Err(why) => {
+                return Err(why);
+            }
+        };
+    }
 
     // TODO: complete
 }

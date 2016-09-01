@@ -624,6 +624,78 @@ pub fn deck_have_cards_for_review(
 
 // TODO: needs test
 #[inline]
+pub fn deck_num_of_cards_for_review(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    active_selection: &review::ActiveSelection) -> Result<ItemCount, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let mut is_active = true;
+    let mut params: Vec<(&str, &ToSql)> = vec![];
+
+    let active_query = match *active_selection {
+        ActiveSelection::Active => {
+
+            let active_query = "AND c.is_active = :is_active";
+            is_active = true;
+            params.push((":is_active", &is_active));
+
+            active_query
+        },
+        ActiveSelection::Inactive => {
+
+            let active_query = "AND c.is_active = :is_active";
+            is_active = false;
+            params.push((":is_active", &is_active));
+
+            active_query
+        },
+        ActiveSelection::All => {
+
+            let active_query = "";
+
+            active_query
+        }
+    };
+
+    let query = format!(indoc!("
+        SELECT
+            COUNT(1)
+        FROM DecksClosure AS dc
+
+        INNER JOIN Cards AS c
+        ON c.deck_id = dc.descendent
+
+        INNER JOIN CardsScore AS cs
+        ON c.card_id = cs.card_id
+
+        WHERE
+            dc.ancestor = {deck_id}
+        {active_query};
+    "),
+    deck_id = deck_id,
+    active_query = active_query);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let result = db_conn.query_row_named(&query, params.as_slice(), |row| -> ItemCount {
+        let count: i64 = row.get(0);
+        return count as ItemCount;
+    });
+
+    match result {
+        Ok(num_cards) => return Ok(num_cards),
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+}
+
+// TODO: needs test
+#[inline]
 pub fn deck_have_new_cards_for_review(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
@@ -821,6 +893,7 @@ pub fn deck_get_new_card_for_review(
         ON c.card_id = cs.card_id
         ");
 
+    // TODO: order by from least recently reviewed to recently reviewed
     let where_order_sql = format!(indoc!("
         dc.ancestor = {deck_id}
         AND
