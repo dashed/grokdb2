@@ -102,23 +102,16 @@ pub struct CachedReviewProcedure {
 
 pub trait Reviewable {
 
-    // faster version than number_of_cards_for_review
-    fn have_cards_for_review(&self,
-        context: Rc<RefCell<Context>>,
-        active_selection: &ActiveSelection) -> Result<bool, RawAPIError>;
-
-    // fn number_of_cards_for_review(&self, context: Rc<RefCell<Context>>) -> Result<ItemCount, RawAPIError>;
-
     /* caching */
-    // fn cache_card(&self, card_id: i64) -> Result<(), QueryError>;
+
     fn get_cached_card(&self, context: Rc<RefCell<Context>>)
         -> Result<Option<(CardID, Option<CachedReviewProcedure>)>, RawAPIError>;
-
     fn remove_cache(&self, context: Rc<RefCell<Context>>) -> Result<(), RawAPIError>;
-
-    // // remove any cached entry by card id, regardless of sub-selection,
-    // // of container type (e.g. Decks or Stash)
-    // fn remove_cached_card(&self, card_id: i64) -> Result<(), QueryError>;
+    fn set_cache_card(&self,
+        context: Rc<RefCell<Context>>,
+        card_id: CardID,
+        cached_review_procedure: CachedReviewProcedure)
+        -> Result<(), RawAPIError>;
 
     /* new cards */
 
@@ -151,6 +144,10 @@ pub trait Reviewable {
         card_idx: Offset) -> Result<CardID, RawAPIError>;
 
     /* least recently reviewed */
+
+    fn have_cards_for_review(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection) -> Result<bool, RawAPIError>;
 
     fn deck_num_of_cards_for_review(&self,
         context: Rc<RefCell<Context>>,
@@ -207,7 +204,6 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
         }
     }
 
-    //
     let sub_selection = match choose_subselection(context.clone(), selection, &active_selection, probabilities.clone()) {
         Err(why) => {
             return Err(why);
@@ -251,14 +247,13 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
         }
     };
 
-    // TODO: cache
-
-    // TODO: complete
     let review_procedure = CachedReviewProcedure {
         active_selection: active_selection,
         sub_selection: sub_selection,
         sub_selection_prob: probabilities
     };
+
+    // TODO: cache
 
     return Ok(Some((card_id, Some(review_procedure))));
 

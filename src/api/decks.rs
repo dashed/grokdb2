@@ -581,10 +581,7 @@ pub fn get_deck_children(
 
 impl Reviewable for Deck {
 
-    fn have_cards_for_review(&self, context: Rc<RefCell<Context>>,
-        active_selection: &ActiveSelection) -> Result<bool, RawAPIError> {
-        return cards::deck_have_cards_for_review(context, self.id, active_selection);
-    }
+    /* caching */
 
     fn get_cached_card(&self, context: Rc<RefCell<Context>>)
         -> Result<Option<(CardID, Option<CachedReviewProcedure>)>, RawAPIError> {
@@ -649,6 +646,16 @@ impl Reviewable for Deck {
 
     }
 
+    fn set_cache_card(&self,
+        context: Rc<RefCell<Context>>,
+        card_id: CardID,
+        cached_review_procedure: CachedReviewProcedure)
+        -> Result<(), RawAPIError> {
+
+        assert!(context.borrow().is_write_locked());
+
+    }
+
     /* new cards */
 
     fn have_new_cards(&self,
@@ -693,6 +700,11 @@ impl Reviewable for Deck {
 
     /* least recently reviewed */
 
+    fn have_cards_for_review(&self, context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection) -> Result<bool, RawAPIError> {
+        return cards::deck_have_cards_for_review(context, self.id, active_selection);
+    }
+
     fn deck_num_of_cards_for_review(&self,
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection) -> Result<ItemCount, RawAPIError> {
@@ -705,6 +717,7 @@ impl Reviewable for Deck {
         card_idx: Offset) -> Result<CardID, RawAPIError> {
         return cards::deck_get_least_recently_reviewed_card(context, self.id, active_selection, card_idx);
     }
+
 }
 
 #[test]
