@@ -26,6 +26,7 @@ extern crate quick_error;
 extern crate matches;
 extern crate chrono;
 extern crate random_wheel;
+extern crate rand;
 
 /* rust lib imports */
 

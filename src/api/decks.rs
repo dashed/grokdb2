@@ -8,6 +8,7 @@ use std::rc::Rc;
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
 use rusqlite::Error as SqliteError;
+use rand::{thread_rng, Rng};
 
 /* local imports */
 
@@ -648,17 +649,51 @@ impl Reviewable for Deck {
 
     }
 
+    /* new cards */
+
     fn have_new_cards(&self,
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection) -> Result<bool, RawAPIError> {
         return cards::deck_have_new_cards_for_review(context, self.id, active_selection);
     }
 
+    fn get_new_card(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection) -> Result<CardID, RawAPIError> {
+
+
+        let num_of_cards = match cards::deck_num_of_new_cards_for_review(
+            context.clone(), self.id, active_selection) {
+            Ok(num_of_cards) => num_of_cards,
+            Err(why) => {
+                return Err(why);
+            }
+        };
+
+        // Generate a random value in the range [0, num_of_cards)
+        let card_idx = thread_rng().gen_range(0, num_of_cards);
+
+        match cards::deck_get_new_card_for_review(context, self.id, active_selection, card_idx) {
+            Ok(card_id) => {
+                return Ok(card_id);
+            },
+            Err(why) => {
+                return Err(why);
+            }
+        }
+    }
+
+    /* cards ready for review */
+
     fn have_cards_ready_for_review(&self,
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection) -> Result<bool, RawAPIError> {
         return cards::deck_have_cards_ready_for_review(context, self.id, active_selection);
     }
+
+    /* least recently reviewed */
+
+    // TODO: complete
 }
 
 #[test]

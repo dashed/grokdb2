@@ -9,7 +9,7 @@ use random_wheel::RandomWheel;
 
 /* local imports */
 
-use context::Context;
+use context::{self, Context};
 use errors::RawAPIError;
 use types::{ItemCount, CardID};
 
@@ -123,50 +123,27 @@ pub trait Reviewable {
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection) -> Result<bool, RawAPIError>;
 
-    // fn number_of_new_cards(&self) -> Result<i64, QueryError>;
+    fn get_new_card(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection) -> Result<CardID, RawAPIError>;
 
-    // // returns card id
-    // fn get_new_card(&self, index: i64) -> Result<i64, QueryError>;
-
-    // /* Top scoring cards that are reviewed for more than N hours ago and have score of at least M */
-
-    // fn has_reviewable_cards(&self, age_in_hours: i64, min_score: f64) -> Result<bool, QueryError>;
-
-    // fn number_of_reviewable_cards(&self, age_in_hours: i64, min_score: f64) -> Result<i64, QueryError>;
-
-    // // TODO: adapt using http://blog.ssokolow.com/archives/2009/12/23/sql-pagination-without-offset/
-    // // returns card id
-    // fn get_reviewable_card(&self, age_in_hours: i64, min_score: f64, index: i64) -> Result<i64, QueryError>;
-
-    /* Cards ready for review */
+    /* cards ready for review */
 
     fn have_cards_ready_for_review(&self,
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection) -> Result<bool, RawAPIError>;
 
-    // /* Top N least recently reviewed cards and have score of at least M */
+    /* least recently reviewed */
 
-    // fn has_old_cards(&self, purgatory_size: i64, min_score: f64) -> Result<bool, QueryError>;
-
-    // // - get cards reviewed sorted by age (desc)
-    // // - get top purgatory_size cards
-    // // - discards less than min_score
-    // // - sort by score (desc) [optional; if false, cards are implicitly sorted by age]
-    // fn number_of_old_cards(&self, purgatory_size: i64, min_score: f64, sort_by_score: bool) -> Result<i64, QueryError>;
-
-    // // returns card id
-    // // - get cards reviewed sorted by age (desc)
-    // // - get top purgatory_size cards
-    // // - discards less than min_score
-    // // - sort by score (desc) [optional; if false, cards are implicitly sorted by age]
-    // fn get_old_card(&self, purgatory_size: i64, min_score: f64, index: i64, sort_by_score: bool) -> Result<i64, QueryError>;
+    // TODO: complete
 }
-
-
 
 pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
 -> Result<Option<(CardID, Option<CachedReviewProcedure>)>, RawAPIError>
     where T: Reviewable {
+
+    // NOTE: this is necessary since get_cached_card also needs write lock
+    let _guard = context::write_lock(context.clone());
 
     match selection.get_cached_card(context.clone()) {
         Err(why) => {
@@ -210,14 +187,33 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
         Ok(sub_selection) => sub_selection
     };
 
+    let card_id = match sub_selection {
+        SubSelection::NewCards => {
+            match selection.get_new_card(context.clone(), &active_selection) {
+                Ok(card_id) => card_id,
+                Err(why) => {
+                    return Err(why);
+                }
+            }
+        },
+        SubSelection::LeastRecentlyReviewed => {
+            // TODO: complete
+            1
+        },
+        SubSelection::ReadyForReview => {
+            // TODO: complete
+            1
+        }
+    };
+
+    // TODO: cache
+
     // TODO: complete
     let review_procedure = CachedReviewProcedure {
         active_selection: active_selection,
         sub_selection: sub_selection,
         sub_selection_prob: probabilities
     };
-
-    let card_id = 1;
 
     return Ok(Some((card_id, Some(review_procedure))));
 

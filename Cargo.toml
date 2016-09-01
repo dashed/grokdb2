@@ -62,6 +62,7 @@ chrono = "0.2"
 guardian = "0.3.0"
 indoc = "0.1"
 random-wheel = { git = "https://github.com/dashed/random-wheel-rs", branch = "range-type" }
+rand = "0.3"
 
 [features]
 default = []
