@@ -15,7 +15,7 @@ use context::Context;
 use types::{UnixTimestamp, DeckID, CardID, DecksPageQuery, Search, ItemCount};
 use errors::RawAPIError;
 use constants;
-use api::review::Reviewable;
+use api::review::{Reviewable, ActiveSelection, CachedReviewProcedure};
 use api::cards;
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -585,7 +585,8 @@ impl Reviewable for Deck {
         return cards::deck_have_cards_for_review(context, self.id, active_selection);
     }
 
-    fn get_cached_card(&self, context: Rc<RefCell<Context>>) -> Result<Option<CardID>, RawAPIError> {
+    fn get_cached_card(&self, context: Rc<RefCell<Context>>)
+        -> Result<Option<(CardID, Option<CachedReviewProcedure>)>, RawAPIError> {
 
         match cards::cached_review_card_for_deck(context.clone(), self.id) {
             Err(why) => {
@@ -594,7 +595,7 @@ impl Reviewable for Deck {
             Ok(None) => {
                 return Ok(None);
             },
-            Ok(Some(card_id)) => {
+            Ok(Some((card_id, cached_review_procedure))) => {
 
                 // check if the card is still within the deck
 
@@ -603,7 +604,7 @@ impl Reviewable for Deck {
                         return Err(why);
                     },
                     Ok(true) => {
-                        return Ok(Some(card_id));
+                        return Ok(Some((card_id, cached_review_procedure)));
                     },
                     Ok(false) => {
 
@@ -645,6 +646,18 @@ impl Reviewable for Deck {
 
         return Ok(());
 
+    }
+
+    fn have_new_cards(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection) -> Result<bool, RawAPIError> {
+        return cards::deck_have_new_cards_for_review(context, self.id, active_selection);
+    }
+
+    fn have_cards_ready_for_review(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection) -> Result<bool, RawAPIError> {
+        return cards::deck_have_cards_ready_for_review(context, self.id, active_selection);
     }
 }
 

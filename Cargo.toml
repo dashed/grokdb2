@@ -60,7 +60,8 @@ chrono = "0.2"
 # html5ever = "0.5.4"
 # tendril = "0.2.2"
 guardian = "0.3.0"
-indoc = "^0.1"
+indoc = "0.1"
+random-wheel = { git = "https://github.com/dashed/random-wheel-rs", branch = "range-type" }
 
 [features]
 default = []

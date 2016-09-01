@@ -371,6 +371,7 @@ CREATE TABLE IF NOT EXISTS CachedDeckReview (
     deck_id INTEGER NOT NULL,
     card_id INTEGER NOT NULL,
     created_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
+    cached_review_procedure TEXT NOT NULL DEFAULT '',
 
     PRIMARY KEY(deck_id),
 

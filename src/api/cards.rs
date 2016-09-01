@@ -8,6 +8,7 @@ use std::rc::Rc;
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
 use rusqlite::Error as SqliteError;
+use serde_json;
 
 /* local imports */
 
@@ -15,7 +16,7 @@ use context::Context;
 use types::{UnixTimestamp, CardID, DeckID, CardsPageQuery, Search, ItemCount};
 use errors::RawAPIError;
 use constants;
-use api::review;
+use api::review::{self, ActiveSelection, CachedReviewProcedure};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -560,27 +561,31 @@ pub fn deck_have_cards_for_review(
 
     assert!(context.borrow().is_read_locked());
 
-    let (active_query, params) = match *active_selection {
+    let mut is_active = true;
+    let mut params: Vec<(&str, &ToSql)> = vec![];
+
+    let active_query = match *active_selection {
         ActiveSelection::Active => {
 
             let active_query = "AND c.is_active = :is_active";
-            let params: [(&str, &ToSql)] = [(":is_active", &true)];
+            is_active = true;
+            params.push((":is_active", &is_active));
 
-            (active_query, params)
+            active_query
         },
         ActiveSelection::Inactive => {
 
             let active_query = "AND c.is_active = :is_active";
-            let params: [(&str, &ToSql)] = [(":is_active", &false)];
+            is_active = false;
+            params.push((":is_active", &is_active));
 
-            (active_query, params)
+            active_query
         },
         ActiveSelection::All => {
 
             let active_query = "";
-            let params: [(&str, &ToSql)] = [];
 
-            (active_query, params)
+            active_query
         }
     };
 
@@ -604,7 +609,157 @@ pub fn deck_have_cards_for_review(
     db_read_lock!(db_conn; context.database());
     let db_conn: &Connection = db_conn;
 
-    let have_cards = db_conn.query_row_named(&query, &params, |row| -> bool {
+    let have_cards = db_conn.query_row_named(&query, params.as_slice(), |row| -> bool {
+        let count: i64 = row.get(0);
+        return count >= 1;
+    });
+
+    match have_cards {
+        Ok(have_cards) => return Ok(have_cards),
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+}
+
+// TODO: needs test
+#[inline]
+pub fn deck_have_new_cards_for_review(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    active_selection: &review::ActiveSelection) -> Result<bool, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let mut is_active = true;
+    let mut params: Vec<(&str, &ToSql)> = vec![];
+
+    let active_query = match *active_selection {
+        ActiveSelection::Active => {
+
+            let active_query = "AND c.is_active = :is_active";
+            is_active = true;
+            params.push((":is_active", &is_active));
+
+            active_query
+        },
+        ActiveSelection::Inactive => {
+
+            let active_query = "AND c.is_active = :is_active";
+            is_active = false;
+            params.push((":is_active", &is_active));
+
+            active_query
+        },
+        ActiveSelection::All => {
+
+            let active_query = "";
+
+            active_query
+        }
+    };
+
+    let query = format!(indoc!("
+        SELECT
+            COUNT(1)
+        FROM DecksClosure AS dc
+
+        INNER JOIN Cards AS c
+        ON c.deck_id = dc.descendent
+
+        INNER JOIN CardsScore AS cs
+        ON c.card_id = cs.card_id
+
+        WHERE
+            dc.ancestor = {deck_id}
+            AND
+                (c.created_at - cs.seen_at) = 0
+        {active_query}
+        LIMIT 1;
+    "),
+    deck_id = deck_id,
+    active_query = active_query);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let have_cards = db_conn.query_row_named(&query, params.as_slice(), |row| -> bool {
+        let count: i64 = row.get(0);
+        return count >= 1;
+    });
+
+    match have_cards {
+        Ok(have_cards) => return Ok(have_cards),
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+}
+
+// TODO: needs test
+#[inline]
+pub fn deck_have_cards_ready_for_review(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    active_selection: &ActiveSelection) -> Result<bool, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let mut is_active = true;
+    let mut params: Vec<(&str, &ToSql)> = vec![];
+
+    let active_query = match *active_selection {
+        ActiveSelection::Active => {
+
+            let active_query = "AND c.is_active = :is_active";
+            is_active = true;
+            params.push((":is_active", &is_active));
+
+            active_query
+        },
+        ActiveSelection::Inactive => {
+
+            let active_query = "AND c.is_active = :is_active";
+            is_active = false;
+            params.push((":is_active", &is_active));
+
+            active_query
+        },
+        ActiveSelection::All => {
+
+            let active_query = "";
+
+            active_query
+        }
+    };
+
+    let query = format!(indoc!("
+        SELECT
+            COUNT(1)
+        FROM DecksClosure AS dc
+
+        INNER JOIN Cards AS c
+        ON c.deck_id = dc.descendent
+
+        INNER JOIN CardsScore AS cs
+        ON c.card_id = cs.card_id
+
+        WHERE
+            dc.ancestor = {deck_id}
+            AND
+                (cs.seen_at + cs.review_after) >= strftime('%s', 'now')
+        {active_query}
+        LIMIT 1;
+    "),
+    deck_id = deck_id,
+    active_query = active_query);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let have_cards = db_conn.query_row_named(&query, params.as_slice(), |row| -> bool {
         let count: i64 = row.get(0);
         return count >= 1;
     });
@@ -622,15 +777,14 @@ pub fn deck_have_cards_for_review(
 pub fn cached_review_card_for_deck(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID
-    ) -> Result<Option<CardID>, RawAPIError> {
+    ) -> Result<Option<(CardID, Option<CachedReviewProcedure>)>, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
 
     let query = format!(indoc!("
         SELECT
-            deck_id,
             card_id,
-            created_at
+            cached_review_procedure
         FROM CachedDeckReview
         WHERE
             deck_id = {deck_id}
@@ -641,8 +795,16 @@ pub fn cached_review_card_for_deck(
     db_read_lock!(db_conn; context.database());
     let db_conn: &Connection = db_conn;
 
-    let results = db_conn.query_row(&query, &[], |row| -> CardID {
-        return row.get(1);
+    let results = db_conn.query_row(&query, &[], |row| -> (CardID, Option<CachedReviewProcedure>) {
+
+        let card_id = row.get(0);
+        let cached_review_procedure: String = row.get(1);
+        let cached_review_procedure = match serde_json::from_str(&cached_review_procedure) {
+            Ok(cached_review_procedure) => Some(cached_review_procedure),
+            Err(_) => None
+        };
+
+        return (card_id, cached_review_procedure);
     });
 
     match results {
@@ -657,8 +819,8 @@ pub fn cached_review_card_for_deck(
 
             return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
         }
-        Ok(card_id) => {
-            return Ok(Some(card_id));
+        Ok((card_id, cached_review_procedure)) => {
+            return Ok(Some((card_id, cached_review_procedure)));
         }
     };
 }
