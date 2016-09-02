@@ -2,16 +2,14 @@ const client = require('helpers/client_entry');
 
 const maker = require('components/deck_review');
 
-// TODO: debug
-const lodashMerge = require('lodash/merge');
-const initialState = lodashMerge({}, maker.initialState);
-initialState.TAB_QUESTION.CARD_CONTENTS = 'question';
-window.__POST_RENDER_STATE__ = initialState;
+if(process.env.NODE_ENV !== 'production') {
+    const invariant = require('invariant');
+    // TODO: fix
+    // invariant(window.__PRE_RENDER_STATE__, 'we expect to consume window.__PRE_RENDER_STATE__');
+    // invariant(!window.__POST_RENDER_STATE__, 'we do not expect to consume window.__POST_RENDER_STATE__');
+}
 
-// NOTE: we don't expect to consume window.__PRE_RENDER_STATE__
+const preRenderState = window.__PRE_RENDER_STATE__;
+const postRenderState = maker.initialState;
 
-const preRenderState = void 0;
-const postRenderState = window.__POST_RENDER_STATE__;
-
-client(maker, preRenderState, postRenderState, document.getElementById('deck-review-container'));
-
+client(maker, preRenderState, postRenderState, document.getElementById('deck_review_container'));

@@ -460,8 +460,6 @@ const cardProfileContainerFactory = function(preRenderState) {
     return CardProfileContainer;
 };
 
-
-
 /* redux action dispatchers */
 // NOTE: FSA compliant
 

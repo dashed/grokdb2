@@ -64,6 +64,8 @@ const MARKDOWN_CONTENTS = 'MARKDOWN_CONTENTS';
 const POST_TO = 'POST_TO'; // URL to send POST request
 const IS_EDITING = 'IS_EDITING';
 
+const VALUE = 'VALUE';
+
 module.exports = {
 
     TAB,
@@ -95,5 +97,7 @@ module.exports = {
 
     MARKDOWN_CONTENTS,
     POST_TO,
-    IS_EDITING
+    IS_EDITING,
+
+    VALUE
 };

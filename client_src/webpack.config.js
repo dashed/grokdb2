@@ -61,14 +61,12 @@ module.exports = {
     entry: {
         mathjax_inline: "./src/mathjax_inline.js",
 
-        // TODO: fix
-        // deck_review: "./src/deck_review.js",
-
         new_deck: "./src/new_deck.js",
         new_card: "./src/new_card.js",
         deck_description: "./src/deck_description.js",
         deck_settings_main: "./src/deck_settings_main.js",
-        deck_card_profile: "./src/deck_card_profile.js"
+        deck_card_profile: "./src/deck_card_profile.js",
+        deck_review: "./src/deck_review.js",
 
         // TODO: remove; not used
         // vendor: vendor

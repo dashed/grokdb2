@@ -210,6 +210,11 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         )
                     }
                 },
+                DeckRoute::Review => {
+
+                    // TODO: complete
+
+                },
                 DeckRoute::CardProfile(card_id, ref card_route) => {
                     match *card_route {
                         CardRoute::Contents => {
@@ -561,6 +566,18 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 }
 
                                 script(type="text/javascript", src="/assets/deck_card_profile.js") {}
+                            }
+                        },
+                        AppRoute::Deck(_, DeckRoute::Review) =>  {
+                            tmpl << html! {
+
+                                script(type="text/javascript") {
+                                    |tmpl| {
+                                        pre_render_state(tmpl, context.clone(), &app_route);
+                                    }
+                                }
+
+                                script(type="text/javascript", src="/assets/deck_review.js") {}
                             }
                         },
                         _ => {
@@ -1425,6 +1442,7 @@ fn DeckReview(
     deck_id: DeckID) {
 
     tmpl << html!{
+
         div(class="columns") {
             div(class="column") {
                 h1(class="title") {
@@ -1433,6 +1451,10 @@ fn DeckReview(
             }
         }
 
+        div(id="deck_review_container") {
+            // TODO: fix
+            // : raw!(include_str!("react_components/deck_review"))
+        }
     }
 }
 
