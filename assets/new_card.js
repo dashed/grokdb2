@@ -48,7 +48,7 @@
 	
 	var client = __webpack_require__(1);
 	
-	var maker = __webpack_require__(911);
+	var maker = __webpack_require__(910);
 	
 	if (true) {
 	    var invariant = __webpack_require__(284);
@@ -59,7 +59,7 @@
 	var preRenderState = window.__PRE_RENDER_STATE__;
 	var postRenderState = maker.initialState;
 	
-	client(maker, preRenderState, postRenderState, document.getElementById('new_deck_container'));
+	client(maker, preRenderState, postRenderState, document.getElementById('new_card_container'));
 
 /***/ },
 /* 1 */
@@ -59175,7 +59175,171 @@
 
 
 /***/ },
-/* 895 */,
+/* 895 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _extends2 = __webpack_require__(363);
+	
+	var _extends3 = _interopRequireDefault(_extends2);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	/*global MathJax: true */
+	/*eslint new-cap: [2, {"capIsNewExceptions": ["MathJax.Hub.Queue", "Remove"]}]*/
+	
+	var React = __webpack_require__(689);
+	var each = __webpack_require__(779);
+	var ReactDOM = __webpack_require__(2);
+	
+	var assign = __webpack_require__(695);
+	
+	// TODO: http://meta.math.stackexchange.com/questions/16946/using-block-displayed-equations-in-question-titles
+	
+	var Content = function Content(props) {
+	
+	    var content = props.content.trim();
+	
+	    if (content.length <= 0) {
+	        return React.createElement(
+	            'div',
+	            { className: 'message is-info' },
+	            React.createElement(
+	                'div',
+	                { className: 'message-body' },
+	                props.notice
+	            )
+	        );
+	    }
+	
+	    return React.createElement(
+	        'h1',
+	        { className: 'title' },
+	        content
+	    );
+	};
+	
+	if (true) {
+	    Content.propTypes = {
+	        content: React.PropTypes.string.isRequired,
+	        notice: React.PropTypes.string.isRequired
+	    };
+	}
+	
+	var CardTitle = React.createClass({
+	    displayName: 'CardTitle',
+	
+	
+	    propTypes: {
+	        mathjaxify: React.PropTypes.bool.isRequired,
+	        content: React.PropTypes.string.isRequired,
+	        notice: React.PropTypes.string.isRequired,
+	        isEditing: React.PropTypes.bool.isRequired,
+	        assignField: React.PropTypes.object.isRequired
+	    },
+	
+	    componentDidUpdate: function componentDidUpdate() {
+	
+	        if (!MathJax) {
+	
+	            if (true) {
+	                var invariant = __webpack_require__(284);
+	                invariant(MathJax, 'no MathJax loaded');
+	            }
+	
+	            return;
+	        }
+	
+	        if (!this.refs.mathjax_line) {
+	            return;
+	        }
+	
+	        MathJax.Hub.Queue(['Typeset', MathJax.Hub, ReactDOM.findDOMNode(this.refs.mathjax_line)]);
+	    },
+	    componentDidMount: function componentDidMount() {
+	
+	        if (!MathJax) {
+	
+	            if (true) {
+	                var invariant = __webpack_require__(284);
+	                invariant(MathJax, 'no MathJax loaded');
+	            }
+	
+	            return;
+	        }
+	
+	        if (!this.refs.mathjax_line) {
+	            return;
+	        }
+	
+	        MathJax.Hub.Queue(['Typeset', MathJax.Hub, ReactDOM.findDOMNode(this.refs.mathjax_line)]);
+	    },
+	    componentWillUnmount: function componentWillUnmount() {
+	
+	        if (!MathJax) {
+	
+	            if (true) {
+	                var invariant = __webpack_require__(284);
+	                invariant(MathJax, 'no MathJax loaded');
+	            }
+	
+	            return;
+	        }
+	
+	        if (!this.refs.mathjax_line) {
+	            return;
+	        }
+	
+	        each(MathJax.Hub.getAllJax(ReactDOM.findDOMNode(this.refs.mathjax_line)), function (jax) {
+	            jax.Remove();
+	        });
+	    },
+	    render: function render() {
+	
+	        var sourceStyle = {};
+	        var renderStyle = {};
+	
+	        if (this.props.mathjaxify) {
+	            sourceStyle.display = 'none';
+	        } else {
+	            renderStyle.display = 'none';
+	        }
+	
+	        return React.createElement(
+	            'div',
+	            null,
+	            React.createElement(
+	                'div',
+	                { style: renderStyle, ref: 'mathjax_line' },
+	                React.createElement(Content, {
+	                    content: this.props.content || '',
+	                    notice: this.props.notice
+	                })
+	            ),
+	            React.createElement(
+	                'div',
+	                { style: sourceStyle },
+	                React.createElement(
+	                    'p',
+	                    { className: 'control' },
+	                    React.createElement('input', (0, _extends3.default)({
+	                        id: 'input-card-title',
+	                        className: 'input',
+	                        type: 'text',
+	                        placeholder: 'Card Title',
+	                        autoFocus: true,
+	                        disabled: !this.props.isEditing
+	                    }, assign({}, this.props.assignField)))
+	                )
+	            )
+	        );
+	    }
+	});
+	
+	module.exports = CardTitle;
+
+/***/ },
 /* 896 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -59302,7 +59466,40 @@
 	module.exports = markdownViewReducer;
 
 /***/ },
-/* 898 */,
+/* 898 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _require = __webpack_require__(763);
+	
+	var CARD_DESCRIPTION = _require.CARD_DESCRIPTION;
+	var CARD_QUESTION = _require.CARD_QUESTION;
+	var CARD_ANSWER = _require.CARD_ANSWER;
+	
+	
+	var tabReducer = function tabReducer() {
+	    var state = arguments.length <= 0 || arguments[0] === undefined ? CARD_QUESTION : arguments[0];
+	    var action = arguments[1];
+	
+	
+	    switch (action.type) {
+	        case CARD_QUESTION:
+	        case CARD_ANSWER:
+	        case CARD_DESCRIPTION:
+	            state = action.type;
+	            break;
+	
+	        default:
+	            state = CARD_QUESTION;
+	    }
+	
+	    return state;
+	};
+	
+	module.exports = tabReducer;
+
+/***/ },
 /* 899 */,
 /* 900 */,
 /* 901 */
@@ -59632,197 +59829,12 @@
 
 /***/ },
 /* 904 */,
-/* 905 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var React = __webpack_require__(689);
-	
-	var ErrorComponent = function ErrorComponent(props) {
-	
-	    if (!props.error || String(props.error).trim().length <= 0) {
-	        return null;
-	    }
-	
-	    return React.createElement(
-	        'div',
-	        { className: 'columns' },
-	        React.createElement(
-	            'div',
-	            { className: 'column' },
-	            React.createElement(
-	                'div',
-	                { className: 'message is-danger' },
-	                React.createElement(
-	                    'div',
-	                    { className: 'message-body' },
-	                    props.error
-	                )
-	            )
-	        )
-	    );
-	};
-	
-	if (true) {
-	    ErrorComponent.propTypes = {
-	        error: React.PropTypes.string
-	    };
-	}
-	
-	module.exports = ErrorComponent;
-
-/***/ },
+/* 905 */,
 /* 906 */,
 /* 907 */,
-/* 908 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	/*global MathJax: true */
-	/*eslint new-cap: [2, {"capIsNewExceptions": ["MathJax.Hub.Queue", "Remove"]}]*/
-	
-	var React = __webpack_require__(689);
-	var each = __webpack_require__(779);
-	var ReactDOM = __webpack_require__(2);
-	
-	// TODO: http://meta.math.stackexchange.com/questions/16946/using-block-displayed-equations-in-question-titles
-	
-	var Content = function Content(props) {
-	
-	    var content = props.content.trim();
-	
-	    if (content.length <= 0) {
-	        return React.createElement(
-	            'div',
-	            { className: 'message is-info' },
-	            React.createElement(
-	                'div',
-	                { className: 'message-body' },
-	                props.notice
-	            )
-	        );
-	    }
-	
-	    return React.createElement(
-	        'div',
-	        null,
-	        content
-	    );
-	};
-	
-	if (true) {
-	    Content.propTypes = {
-	        content: React.PropTypes.string.isRequired,
-	        notice: React.PropTypes.string.isRequired
-	    };
-	}
-	
-	var MathJaxLine = React.createClass({
-	    displayName: 'MathJaxLine',
-	
-	
-	    propTypes: {
-	        mathjaxify: React.PropTypes.bool.isRequired,
-	        content: React.PropTypes.string.isRequired,
-	        notice: React.PropTypes.string.isRequired,
-	        children: React.PropTypes.node.isRequired
-	    },
-	
-	    componentDidUpdate: function componentDidUpdate() {
-	
-	        if (!MathJax) {
-	
-	            if (true) {
-	                var invariant = __webpack_require__(284);
-	                invariant(MathJax, 'no MathJax loaded');
-	            }
-	
-	            return;
-	        }
-	
-	        if (!this.refs.mathjax_line) {
-	            return;
-	        }
-	
-	        MathJax.Hub.Queue(['Typeset', MathJax.Hub, ReactDOM.findDOMNode(this.refs.mathjax_line)]);
-	    },
-	    componentDidMount: function componentDidMount() {
-	
-	        if (!MathJax) {
-	
-	            if (true) {
-	                var invariant = __webpack_require__(284);
-	                invariant(MathJax, 'no MathJax loaded');
-	            }
-	
-	            return;
-	        }
-	
-	        if (!this.refs.mathjax_line) {
-	            return;
-	        }
-	
-	        MathJax.Hub.Queue(['Typeset', MathJax.Hub, ReactDOM.findDOMNode(this.refs.mathjax_line)]);
-	    },
-	    componentWillUnmount: function componentWillUnmount() {
-	
-	        if (!MathJax) {
-	
-	            if (true) {
-	                var invariant = __webpack_require__(284);
-	                invariant(MathJax, 'no MathJax loaded');
-	            }
-	
-	            return;
-	        }
-	
-	        if (!this.refs.mathjax_line) {
-	            return;
-	        }
-	
-	        each(MathJax.Hub.getAllJax(ReactDOM.findDOMNode(this.refs.mathjax_line)), function (jax) {
-	            jax.Remove();
-	        });
-	    },
-	    render: function render() {
-	
-	        var sourceStyle = {};
-	        var renderStyle = {};
-	
-	        if (this.props.mathjaxify) {
-	            sourceStyle.display = 'none';
-	        } else {
-	            renderStyle.display = 'none';
-	        }
-	
-	        return React.createElement(
-	            'div',
-	            null,
-	            React.createElement(
-	                'div',
-	                { style: renderStyle, ref: 'mathjax_line' },
-	                React.createElement(Content, {
-	                    content: this.props.content || '',
-	                    notice: this.props.notice
-	                })
-	            ),
-	            React.createElement(
-	                'div',
-	                { style: sourceStyle },
-	                this.props.children
-	            )
-	        );
-	    }
-	});
-	
-	module.exports = MathJaxLine;
-
-/***/ },
+/* 908 */,
 /* 909 */,
-/* 910 */,
-/* 911 */
+/* 910 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -59878,9 +59890,10 @@
 	var MARKDOWN_VIEW = _require3.MARKDOWN_VIEW;
 	var MARKDOWN_VIEW_RENDER = _require3.MARKDOWN_VIEW_RENDER;
 	var MARKDOWN_VIEW_SOURCE = _require3.MARKDOWN_VIEW_SOURCE;
-	var MARKDOWN_CONTENTS = _require3.MARKDOWN_CONTENTS;
-	var DECK_DESCRIPTION = _require3.DECK_DESCRIPTION;
-	var DECK_NAME = _require3.DECK_NAME;
+	var CARD_TITLE = _require3.CARD_TITLE;
+	var CARD_DESCRIPTION = _require3.CARD_DESCRIPTION;
+	var CARD_QUESTION = _require3.CARD_QUESTION;
+	var CARD_ANSWER = _require3.CARD_ANSWER;
 	var POST_TO = _require3.POST_TO;
 	
 	var _require4 = __webpack_require__(764);
@@ -59891,34 +59904,41 @@
 	
 	var MarkdownRender = __webpack_require__(777);
 	var MarkdownSource = __webpack_require__(876);
-	var MathJaxLine = __webpack_require__(908);
-	var ErrorComponent = __webpack_require__(905);
+	var CardTitle = __webpack_require__(895);
 	
-	var renderSourceComponentFactory = function renderSourceComponentFactory(key) {
+	var RenderSourceTitleComponent = connect(
+	// mapStateToProps
+	function (state) {
+	    return (0, _defineProperty3.default)({}, MARKDOWN_VIEW, state[CARD_TITLE][MARKDOWN_VIEW]);
+	},
+	// mapDispatchToProps
+	function (dispatch) {
+	    return {
+	        // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
+	        switchTab: function switchTab(markdownView) {
+	            return switchMarkdownView(dispatch, [CARD_TITLE, MARKDOWN_VIEW], markdownView);
+	        }
+	    };
+	})(__webpack_require__(896));
 	
-	    return connect(
-	    // mapStateToProps
-	    function (state) {
-	        return (0, _defineProperty3.default)({}, MARKDOWN_VIEW, state[key][MARKDOWN_VIEW]);
-	    },
-	    // mapDispatchToProps
-	    function (dispatch) {
-	        return {
-	            // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
-	            switchTab: function switchTab(markdownView) {
-	                return switchMarkdownView(dispatch, [key, MARKDOWN_VIEW], markdownView);
-	            }
-	        };
-	    })(__webpack_require__(896));
-	};
+	var RenderSourceTabComponent = connect(
+	// mapStateToProps
+	function (state, ownProps) {
+	    return (0, _defineProperty3.default)({}, MARKDOWN_VIEW, state[ownProps.currenTab][MARKDOWN_VIEW]);
+	},
+	// mapDispatchToProps
+	function (dispatch, ownProps) {
+	    return {
+	        // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
+	        switchTab: function switchTab(markdownView) {
+	            return switchMarkdownView(dispatch, [ownProps.currenTab, MARKDOWN_VIEW], markdownView);
+	        }
+	    };
+	})(__webpack_require__(896));
 	
-	var RenderSourceNameComponent = renderSourceComponentFactory(DECK_NAME);
-	var RenderSourceDescriptionComponent = renderSourceComponentFactory(DECK_DESCRIPTION);
-	
-	var __DeckDescriptionComponent = function __DeckDescriptionComponent(props) {
+	var __TabComponent = function __TabComponent(props) {
 	
 	    var markdownView = props[MARKDOWN_VIEW];
-	    var contents = props[MARKDOWN_CONTENTS];
 	
 	    var sourceStyle = {};
 	    var renderStyle = {};
@@ -59932,6 +59952,8 @@
 	        default:
 	            renderStyle.display = 'none';
 	    }
+	
+	    var contents = props.reduxFormField.value;
 	
 	    return React.createElement(
 	        'div',
@@ -59948,10 +59970,9 @@
 	                'div',
 	                { style: sourceStyle },
 	                React.createElement(MarkdownSource, {
-	                    id: 'input-deck-description',
 	                    contents: contents,
-	                    placeholder: 'Deck Description',
-	                    assignProps: props.assignProps,
+	                    placeholder: props.placeholder,
+	                    assignProps: props.reduxFormField,
 	                    editable: true
 	                })
 	            )
@@ -59960,32 +59981,104 @@
 	};
 	
 	if (true) {
-	    __DeckDescriptionComponent.propTypes = {
-	        assignProps: React.PropTypes.object
+	    var _TabComponent$propTy;
+	
+	    __TabComponent.propTypes = (_TabComponent$propTy = {}, (0, _defineProperty3.default)(_TabComponent$propTy, MARKDOWN_VIEW, React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE])), (0, _defineProperty3.default)(_TabComponent$propTy, 'reduxFormField', React.PropTypes.object.isRequired), (0, _defineProperty3.default)(_TabComponent$propTy, 'placeholder', React.PropTypes.string.isRequired), _TabComponent$propTy);
+	}
+	
+	var TabComponent = connect(
+	// mapStateToProps
+	function (state, ownProps) {
+	
+	    // validate ownProps.tab
+	    if (true) {
+	        switch (ownProps.tab) {
+	            case CARD_QUESTION:
+	            case CARD_ANSWER:
+	            case CARD_DESCRIPTION:
+	                break;
+	            default:
+	                throw Error();
+	        }
+	    }
+	
+	    return (0, _defineProperty3.default)({}, MARKDOWN_VIEW, state[ownProps.tab][MARKDOWN_VIEW]);
+	})(__TabComponent);
+	
+	var TabGroupComponent = function TabGroupComponent(props) {
+	
+	    var questionStyle = { display: 'none' };
+	    var answerStyle = { display: 'none' };
+	    var descriptionStyle = { display: 'none' };
+	
+	    switch (props.currenTab) {
+	        case CARD_QUESTION:
+	            questionStyle = {};
+	            break;
+	        case CARD_ANSWER:
+	            answerStyle = {};
+	            break;
+	        case CARD_DESCRIPTION:
+	            descriptionStyle = {};
+	            break;
+	    }
+	
+	    return React.createElement(
+	        'div',
+	        null,
+	        React.createElement(
+	            'div',
+	            { key: 'question', style: questionStyle },
+	            React.createElement(TabComponent, {
+	                tab: CARD_QUESTION,
+	                placeholder: 'Card Question',
+	                reduxFormField: props.question
+	            })
+	        ),
+	        React.createElement(
+	            'div',
+	            { key: 'answer', style: answerStyle },
+	            React.createElement(TabComponent, {
+	                tab: CARD_ANSWER,
+	                placeholder: 'Card Answer',
+	                reduxFormField: props.answer
+	            })
+	        ),
+	        React.createElement(
+	            'div',
+	            { key: 'description', style: descriptionStyle },
+	            React.createElement(TabComponent, {
+	                tab: CARD_DESCRIPTION,
+	                placeholder: 'Card Description',
+	                reduxFormField: props.description
+	            })
+	        )
+	    );
+	};
+	
+	if (true) {
+	    TabGroupComponent.propTypes = {
+	        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+	        question: React.PropTypes.object.isRequired,
+	        answer: React.PropTypes.object.isRequired,
+	        description: React.PropTypes.object.isRequired
 	    };
 	}
 	
-	var DeckDescriptionComponent = connect(
-	
-	// mapStateToProps
-	function (state, ownProps) {
-	    var _ref2;
-	
-	    return _ref2 = {}, (0, _defineProperty3.default)(_ref2, MARKDOWN_VIEW, state[DECK_DESCRIPTION][MARKDOWN_VIEW]), (0, _defineProperty3.default)(_ref2, MARKDOWN_CONTENTS, ownProps.assignProps.value), _ref2;
-	})(__DeckDescriptionComponent);
-	
-	var __NewDeckContainer = function __NewDeckContainer(props) {
-	    var mathjaxifyDeckName = props.mathjaxifyDeckName;
+	var __NewCardContainer = function __NewCardContainer(props) {
+	    var mathjaxifyCardTitle = props.mathjaxifyCardTitle;
 	    var _props$fields = props.fields;
-	    var name = _props$fields.name;
+	    var title = _props$fields.title;
 	    var description = _props$fields.description;
+	    var question = _props$fields.question;
+	    var answer = _props$fields.answer;
+	    var is_active = _props$fields.is_active;
 	    var submitting = props.submitting;
 	    var handleSubmit = props.handleSubmit;
 	    var postURL = props.postURL;
-	    var error = props.error;
+	    var dispatch = props.dispatch;
+	    var currenTab = props.currenTab;
 	
-	
-	    var __description = assign({}, description);
 	
 	    return React.createElement(
 	        'div',
@@ -59998,26 +60091,103 @@
 	                { className: 'column' },
 	                React.createElement(
 	                    'label',
-	                    { className: 'label', htmlFor: 'input-deck-name' },
-	                    'Name'
+	                    { className: 'label', htmlFor: 'input-card-title' },
+	                    'Card Title'
 	                ),
+	                React.createElement(CardTitle, {
+	                    content: title.value,
+	                    mathjaxify: mathjaxifyCardTitle,
+	                    notice: 'No card title rendered.  Click on "Source" tab and enter a card title.',
+	                    isEditing: true,
+	                    assignField: title
+	                })
+	            )
+	        ),
+	        React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement(RenderSourceTitleComponent, {
+	                    extraClasses: 'is-small',
+	                    reverse: true
+	                })
+	            )
+	        ),
+	        React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
 	                React.createElement(
-	                    MathJaxLine,
-	                    {
-	                        content: name.value,
-	                        mathjaxify: mathjaxifyDeckName,
-	                        notice: 'No deck name rendered.  Click on "Source" tab and enter a name.'
-	                    },
+	                    'div',
+	                    { className: 'tabs is-boxed' },
 	                    React.createElement(
-	                        'p',
-	                        { className: 'control' },
-	                        React.createElement('input', (0, _extends3.default)({
-	                            id: 'input-deck-name',
-	                            className: 'input',
-	                            type: 'text',
-	                            placeholder: 'Deck Name',
-	                            autoFocus: true
-	                        }, assign({}, name)))
+	                        'ul',
+	                        { className: 'is-left' },
+	                        React.createElement(
+	                            'li',
+	                            {
+	                                className: classnames({
+	                                    'is-active is-bold': currenTab === CARD_QUESTION
+	                                }) },
+	                            React.createElement(
+	                                'a',
+	                                {
+	                                    href: '#question',
+	                                    onClick: switchTab(dispatch, CARD_QUESTION)
+	                                },
+	                                React.createElement(
+	                                    'span',
+	                                    null,
+	                                    'Question'
+	                                )
+	                            )
+	                        ),
+	                        React.createElement(
+	                            'li',
+	                            {
+	                                className: classnames({
+	                                    'is-active is-bold': currenTab === CARD_ANSWER
+	                                }) },
+	                            React.createElement(
+	                                'a',
+	                                {
+	                                    href: '#answer',
+	                                    onClick: switchTab(dispatch, CARD_ANSWER)
+	                                },
+	                                React.createElement(
+	                                    'span',
+	                                    null,
+	                                    'Answer'
+	                                )
+	                            )
+	                        )
+	                    ),
+	                    React.createElement(
+	                        'ul',
+	                        { className: 'is-right' },
+	                        React.createElement(
+	                            'li',
+	                            {
+	                                className: classnames({
+	                                    'is-active is-bold': currenTab === CARD_DESCRIPTION
+	                                }) },
+	                            React.createElement(
+	                                'a',
+	                                {
+	                                    href: '#description',
+	                                    onClick: switchTab(dispatch, CARD_DESCRIPTION)
+	                                },
+	                                React.createElement(
+	                                    'span',
+	                                    null,
+	                                    'Description'
+	                                )
+	                            )
+	                        )
 	                    )
 	                )
 	            )
@@ -60028,9 +60198,23 @@
 	            React.createElement(
 	                'div',
 	                { className: 'column' },
-	                React.createElement(RenderSourceNameComponent, {
-	                    extraClasses: 'is-small',
+	                React.createElement(RenderSourceTabComponent, {
+	                    currenTab: currenTab,
 	                    reverse: true
+	                })
+	            )
+	        ),
+	        React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement(TabGroupComponent, {
+	                    currenTab: currenTab,
+	                    answer: assign({}, answer),
+	                    question: assign({}, question),
+	                    description: assign({}, description)
 	                })
 	            )
 	        ),
@@ -60050,42 +60234,13 @@
 	                'div',
 	                { className: 'column' },
 	                React.createElement(
-	                    'div',
-	                    { className: 'columns', style: { marginBottom: 0 } },
-	                    React.createElement(
-	                        'div',
-	                        { className: 'column' },
-	                        React.createElement(
-	                            'label',
-	                            { className: 'label', htmlFor: 'input-deck-description' },
-	                            'Description'
-	                        ),
-	                        React.createElement(RenderSourceDescriptionComponent, {
-	                            reverse: true
-	                        })
-	                    )
-	                ),
-	                React.createElement(
-	                    'div',
-	                    { className: 'columns' },
-	                    React.createElement(
-	                        'div',
-	                        { className: 'column' },
-	                        React.createElement(DeckDescriptionComponent, { assignProps: __description })
-	                    )
+	                    'label',
+	                    { className: 'checkbox' },
+	                    React.createElement('input', (0, _extends3.default)({ type: 'checkbox' }, assign({}, is_active))),
+	                    ' Active for review'
 	                )
 	            )
 	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement('hr', { className: 'is-marginless' })
-	            )
-	        ),
-	        React.createElement(ErrorComponent, { error: error && error.message || '' }),
 	        React.createElement(
 	            'div',
 	            { className: 'columns' },
@@ -60096,11 +60251,12 @@
 	                    'a',
 	                    {
 	                        className: classnames('button is-success', {
-	                            'is-disabled': submitting || String(name.value).trim().length <= 0,
+	                            'is-disabled': submitting || !shouldAddCard(title.value, question.value),
 	                            'is-loading': submitting
 	                        }),
-	                        onClick: handleSubmit(addNewDeck.bind(null, postURL)) },
-	                    'Add Deck'
+	                        onClick: handleSubmit(addNewCard.bind(null, postURL))
+	                    },
+	                    'Add Card'
 	                )
 	            )
 	        )
@@ -60108,41 +60264,45 @@
 	};
 	
 	if (true) {
-	    __NewDeckContainer.propTypes = {
+	    __NewCardContainer.propTypes = {
 	        fields: React.PropTypes.object.isRequired,
 	        handleSubmit: React.PropTypes.func.isRequired,
 	        submitting: React.PropTypes.bool.isRequired,
-	        mathjaxifyDeckName: React.PropTypes.bool.isRequired,
+	        mathjaxifyCardTitle: React.PropTypes.bool.isRequired,
 	        postURL: React.PropTypes.string.isRequired,
-	        // TODO: better prop type
-	        error: React.PropTypes.object
+	        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+	        dispatch: React.PropTypes.func.isRequired
 	    };
 	}
 	
-	var NewDeckContainer = reduxForm(
+	var NewCardContainer = reduxForm(
 	
 	// config
 	{
-	    form: 'new_deck',
-	    fields: ['name', 'description'],
+	    form: 'new_card',
+	    fields: ['title', 'description', 'question', 'answer', 'is_active'],
 	    initialValues: {
-	        name: '',
-	        description: ''
+	        title: '',
+	        description: '',
+	        question: '',
+	        answer: '',
+	        is_active: true
 	    }
 	},
 	
 	// mapStateToProps
 	function (state) {
 	    return {
-	        mathjaxifyDeckName: state[DECK_NAME][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
-	        postURL: state[POST_TO]
+	        mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
+	        postURL: state[POST_TO],
+	        currenTab: state.CURRENT_TAB
 	    };
-	})(__NewDeckContainer);
+	})(__NewCardContainer);
 	
 	/* redux action dispatchers */
 	// NOTE: FSA compliant
 	
-	var addNewDeck = function addNewDeck(postURL, formData) {
+	var addNewCard = function addNewCard(postURL, formData) {
 	
 	    return new _promise2.default(function (resolve, reject) {
 	
@@ -60153,8 +60313,11 @@
 	                'Content-Type': 'application/json'
 	            },
 	            body: (0, _stringify2.default)({
-	                name: formData.name,
-	                description: formData.description
+	                title: String(formData.title).trim(),
+	                description: String(formData.description).trim(),
+	                question: String(formData.question).trim(),
+	                answer: String(formData.answer).trim(),
+	                is_active: !!formData.is_active
 	            })
 	        }).then(function (response) {
 	
@@ -60166,14 +60329,14 @@
 	
 	            reject({
 	                _error: {
-	                    message: 'Unable to send request to create new deck. Please try again.'
+	                    message: 'Unable to send request to create new card. Please try again.'
 	                }
 	            });
-	        }).then(function (_ref3) {
-	            var _ref4 = (0, _slicedToArray3.default)(_ref3, 2);
+	        }).then(function (_ref4) {
+	            var _ref5 = (0, _slicedToArray3.default)(_ref4, 2);
 	
-	            var statusCode = _ref4[0];
-	            var jsonResponse = _ref4[1];
+	            var statusCode = _ref5[0];
+	            var jsonResponse = _ref5[1];
 	
 	
 	            switch (statusCode) {
@@ -60200,7 +60363,7 @@
 	                    // Unexpected http status code
 	                    reject({
 	                        _error: {
-	                            message: 'Unable to create new deck.'
+	                            message: 'Unable to create new card.'
 	                        }
 	                    });
 	            }
@@ -60211,7 +60374,7 @@
 	
 	            reject({
 	                _error: {
-	                    message: 'Unable to create new deck.'
+	                    message: 'Unable to create new card.'
 	                }
 	            });
 	        }).catch(function () /*err*/{
@@ -60221,7 +60384,7 @@
 	
 	            reject({
 	                _error: {
-	                    message: 'Unable to create new deck.'
+	                    message: 'Unable to create new card.'
 	                }
 	            });
 	        });
@@ -60243,13 +60406,29 @@
 	    };
 	};
 	
+	var switchTab = function switchTab(dispatch, newTab) {
+	    return function (event) {
+	        event.preventDefault();
+	        dispatch(reduceIn(
+	        // reducer
+	        tabReducer,
+	        // path
+	        ['CURRENT_TAB'],
+	        // action
+	        {
+	            type: newTab
+	        }));
+	    };
+	};
+	
 	/* redux reducers */
 	
 	var markdownViewReducer = __webpack_require__(897);
+	var tabReducer = __webpack_require__(898);
 	
 	/* default state */
 	
-	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, DECK_NAME, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_SOURCE)), (0, _defineProperty3.default)(_initialState, DECK_DESCRIPTION, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_SOURCE)), (0, _defineProperty3.default)(_initialState, 'form', reduxformReducer()), _initialState);
+	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, CARD_TITLE, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_SOURCE)), (0, _defineProperty3.default)(_initialState, 'CURRENT_TAB', CARD_QUESTION), (0, _defineProperty3.default)(_initialState, CARD_DESCRIPTION, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_SOURCE)), (0, _defineProperty3.default)(_initialState, CARD_QUESTION, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_SOURCE)), (0, _defineProperty3.default)(_initialState, CARD_ANSWER, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_SOURCE)), (0, _defineProperty3.default)(_initialState, 'form', reduxformReducer()), _initialState);
 	
 	/* exports */
 	
@@ -60261,14 +60440,33 @@
 	    var component = React.createElement(
 	        Provider,
 	        { store: store },
-	        React.createElement(NewDeckContainer, null)
+	        React.createElement(NewCardContainer, null)
 	    );
 	
 	    return component;
 	}, formReducer);
 	
 	module.exports.initialState = initialState;
+	
+	/* helpers */
+	
+	var shouldAddCard = function shouldAddCard(title, question) {
+	
+	    var __title = String(title).trim();
+	
+	    if (__title.length > 0) {
+	        return true;
+	    }
+	
+	    var __question = String(question).trim();
+	
+	    if (__question.length > 0) {
+	        return true;
+	    }
+	
+	    return false;
+	};
 
 /***/ }
 /******/ ]);
-//# sourceMappingURL=new_deck.js.map
+//# sourceMappingURL=new_card.js.map

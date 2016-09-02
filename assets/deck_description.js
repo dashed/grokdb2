@@ -48,7 +48,7 @@
 	
 	var client = __webpack_require__(1);
 	
-	var maker = __webpack_require__(911);
+	var maker = __webpack_require__(904);
 	
 	if (true) {
 	    var invariant = __webpack_require__(284);
@@ -59,7 +59,7 @@
 	var preRenderState = window.__PRE_RENDER_STATE__;
 	var postRenderState = maker.initialState;
 	
-	client(maker, preRenderState, postRenderState, document.getElementById('new_deck_container'));
+	client(maker, preRenderState, postRenderState, document.getElementById('deck_description_container'));
 
 /***/ },
 /* 1 */
@@ -59303,8 +59303,59 @@
 
 /***/ },
 /* 898 */,
-/* 899 */,
-/* 900 */,
+/* 899 */
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	var boolReducer = function boolReducer() {
+	    var state = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+	    var action = arguments[1];
+	
+	    switch (action.type) {
+	        case true:
+	        case false:
+	            state = action.type;
+	            break;
+	        default:
+	            state = false;
+	    }
+	
+	    return state;
+	};
+	
+	module.exports = boolReducer;
+
+/***/ },
+/* 900 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _require = __webpack_require__(763);
+	
+	var MARKDOWN_CONTENTS = _require.MARKDOWN_CONTENTS;
+	
+	
+	var markdownContentsReducer = function markdownContentsReducer() {
+	    var state = arguments.length <= 0 || arguments[0] === undefined ? '' : arguments[0];
+	    var action = arguments[1];
+	
+	
+	    switch (action.type) {
+	        case MARKDOWN_CONTENTS:
+	            state = String(action.payload);
+	            break;
+	        default:
+	            state = '';
+	    }
+	
+	    return state;
+	};
+	
+	module.exports = markdownContentsReducer;
+
+/***/ },
 /* 901 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -59631,7 +59682,623 @@
 	module.exports = createLogger;
 
 /***/ },
-/* 904 */,
+/* 904 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _slicedToArray2 = __webpack_require__(286);
+	
+	var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
+	
+	var _stringify = __webpack_require__(343);
+	
+	var _stringify2 = _interopRequireDefault(_stringify);
+	
+	var _promise = __webpack_require__(345);
+	
+	var _promise2 = _interopRequireDefault(_promise);
+	
+	var _defineProperty2 = __webpack_require__(369);
+	
+	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
+	
+	var _typeof2 = __webpack_require__(373);
+	
+	var _typeof3 = _interopRequireDefault(_typeof2);
+	
+	var _DECK_DESCRIPTION, _initialState;
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	__webpack_require__(389);
+	
+	var React = __webpack_require__(689);
+	
+	var assign = __webpack_require__(695);
+	
+	var _require = __webpack_require__(696);
+	
+	var Provider = _require.Provider;
+	var connect = _require.connect;
+	
+	var _require2 = __webpack_require__(713);
+	
+	var reduxForm = _require2.reduxForm;
+	var reduxformReducer = _require2.reducer;
+	
+	var classnames = __webpack_require__(761);
+	
+	var fetch = __webpack_require__(762)({
+	    Promise: __webpack_require__(687)
+	});
+	
+	var _require3 = __webpack_require__(763);
+	
+	var MARKDOWN_VIEW = _require3.MARKDOWN_VIEW;
+	var MARKDOWN_VIEW_RENDER = _require3.MARKDOWN_VIEW_RENDER;
+	var MARKDOWN_VIEW_SOURCE = _require3.MARKDOWN_VIEW_SOURCE;
+	var MARKDOWN_CONTENTS = _require3.MARKDOWN_CONTENTS;
+	var DECK_DESCRIPTION = _require3.DECK_DESCRIPTION;
+	var POST_TO = _require3.POST_TO;
+	var IS_EDITING = _require3.IS_EDITING;
+	
+	var _require4 = __webpack_require__(764);
+	
+	var reduceIn = _require4.reduceIn;
+	
+	/* react components */
+	
+	var MarkdownRender = __webpack_require__(777);
+	var MarkdownSource = __webpack_require__(876);
+	var ErrorComponent = __webpack_require__(905);
+	
+	var __ToolBar = function __ToolBar(props) {
+	    var isEditing = props.isEditing;
+	    var dispatch = props.dispatch;
+	    var submitting = props.submitting;
+	
+	
+	    if (isEditing) {
+	        var _ret = function () {
+	            var handleSubmit = props.handleSubmit;
+	            var initialContent = props.initialContent;
+	            var newContent = props.newContent;
+	            var postURL = props.postURL;
+	            var resetForm = props.resetForm;
+	
+	
+	            var shouldNotSave = String(newContent).trim() == String(initialContent).trim();
+	
+	            var cancel = function cancel() {
+	                resetForm();
+	            };
+	
+	            return {
+	                v: React.createElement(
+	                    'div',
+	                    { className: 'level' },
+	                    React.createElement(
+	                        'div',
+	                        { className: 'level-left' },
+	                        React.createElement(
+	                            'div',
+	                            { className: 'level-item' },
+	                            React.createElement(
+	                                'a',
+	                                {
+	                                    className: classnames('button is-success', {
+	                                        'is-disabled': submitting || shouldNotSave,
+	                                        'is-loading': submitting
+	                                    }),
+	                                    onClick: handleSubmit(saveDescription.bind(null, dispatch, postURL)) },
+	                                'Save'
+	                            )
+	                        )
+	                    ),
+	                    React.createElement(
+	                        'div',
+	                        { className: 'level-right' },
+	                        React.createElement(
+	                            'div',
+	                            { className: 'level-item' },
+	                            React.createElement(
+	                                'a',
+	                                {
+	                                    className: classnames('button is-danger'),
+	                                    onClick: switchEditMode(dispatch, false, cancel) },
+	                                'Cancel & Discard'
+	                            )
+	                        )
+	                    )
+	                )
+	            };
+	        }();
+	
+	        if ((typeof _ret === 'undefined' ? 'undefined' : (0, _typeof3.default)(_ret)) === "object") return _ret.v;
+	    }
+	
+	    return React.createElement(
+	        'div',
+	        { className: 'level' },
+	        React.createElement(
+	            'div',
+	            { className: 'level-left' },
+	            React.createElement(
+	                'div',
+	                { className: 'level-item' },
+	                React.createElement(
+	                    'a',
+	                    {
+	                        className: classnames('button is-success'),
+	                        onClick: switchEditMode(dispatch, true) },
+	                    'Edit'
+	                )
+	            )
+	        )
+	    );
+	};
+	
+	if (true) {
+	    __ToolBar.propTypes = {
+	        isEditing: React.PropTypes.bool.isRequired,
+	        dispatch: React.PropTypes.func.isRequired,
+	        submitting: React.PropTypes.bool.isRequired,
+	        initialContent: React.PropTypes.string.isRequired,
+	        newContent: React.PropTypes.string.isRequired,
+	        postURL: React.PropTypes.string.isRequired,
+	        handleSubmit: React.PropTypes.func.isRequired,
+	        resetForm: React.PropTypes.func.isRequired
+	    };
+	}
+	
+	var ToolBar = connect(
+	// mapStateToProps
+	function (state) {
+	    return {
+	        isEditing: state[DECK_DESCRIPTION][IS_EDITING],
+	        initialContent: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS],
+	        postURL: state[POST_TO]
+	    };
+	})(__ToolBar);
+	
+	var RenderSourceDescriptionComponent = connect(
+	// mapStateToProps
+	function (state) {
+	    return (0, _defineProperty3.default)({}, MARKDOWN_VIEW, state[DECK_DESCRIPTION][MARKDOWN_VIEW]);
+	},
+	// mapDispatchToProps
+	function (dispatch) {
+	    return {
+	        // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
+	        switchTab: function switchTab(markdownView) {
+	            return switchMarkdownView(dispatch, [DECK_DESCRIPTION, MARKDOWN_VIEW], markdownView);
+	        }
+	    };
+	})(__webpack_require__(896));
+	
+	var __DeckDescription = function __DeckDescription(props) {
+	
+	    var description = props.description;
+	    var isEditing = props.isEditing;
+	    var markdownView = props[MARKDOWN_VIEW];
+	
+	    var initialContents = props.initialContents;
+	    var editedContents = description.value;
+	
+	    var renderContents = isEditing ? editedContents : initialContents;
+	    var sourceContents = isEditing ? editedContents : '';
+	
+	    var sourceStyle = {};
+	    var renderStyle = {};
+	
+	    switch (markdownView) {
+	        case MARKDOWN_VIEW_RENDER:
+	            sourceStyle.display = 'none';
+	            break;
+	
+	        case MARKDOWN_VIEW_SOURCE:
+	        default:
+	            renderStyle.display = 'none';
+	    }
+	
+	    var noContentMessage = isEditing ? 'No description set for this deck. Click "Source" button to add a description.' : 'No description set for this deck. Click "Edit" button to add a description.';
+	
+	    return React.createElement(
+	        'div',
+	        null,
+	        React.createElement(
+	            'div',
+	            { key: 'render_source', className: 'columns', style: { marginBottom: 0 } },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement(RenderSourceDescriptionComponent, null)
+	            )
+	        ),
+	        React.createElement(
+	            'div',
+	            { key: 'render', style: renderStyle },
+	            React.createElement(MarkdownRender, {
+	                contents: renderContents,
+	                noContentMessage: noContentMessage
+	            })
+	        ),
+	        React.createElement(
+	            'div',
+	            { key: 'source', style: sourceStyle },
+	            React.createElement(MarkdownSource, {
+	                id: 'input-deck-description',
+	                contents: sourceContents,
+	                placeholder: 'Deck Description',
+	                assignProps: description,
+	                editable: isEditing
+	            })
+	        )
+	    );
+	};
+	
+	if (true) {
+	    __DeckDescription.propTypes = (0, _defineProperty3.default)({
+	        description: React.PropTypes.object.isRequired,
+	        isEditing: React.PropTypes.bool.isRequired,
+	        initialContents: React.PropTypes.string.isRequired,
+	        showNoContentMessage: React.PropTypes.bool.isRequired
+	    }, MARKDOWN_VIEW, React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE]));
+	}
+	
+	var DeckDescription = connect(
+	// mapStateToProps
+	function (state) {
+	    var _ref2;
+	
+	    return _ref2 = {}, (0, _defineProperty3.default)(_ref2, MARKDOWN_VIEW, state[DECK_DESCRIPTION][MARKDOWN_VIEW]), (0, _defineProperty3.default)(_ref2, 'initialContents', state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]), (0, _defineProperty3.default)(_ref2, 'isEditing', state[DECK_DESCRIPTION][IS_EDITING]), (0, _defineProperty3.default)(_ref2, 'showNoContentMessage', state[DECK_DESCRIPTION].showNoContentMessage), _ref2;
+	})(__DeckDescription);
+	
+	var __DeckDescriptionContainer = function __DeckDescriptionContainer(props) {
+	    var description = props.fields.description;
+	    var submitting = props.submitting;
+	    var handleSubmit = props.handleSubmit;
+	    var resetForm = props.resetForm;
+	    var error = props.error;
+	
+	
+	    var __description = assign({}, description);
+	
+	    if (!props.showNoContentMessage) {
+	
+	        return React.createElement(
+	            'div',
+	            null,
+	            React.createElement(
+	                'div',
+	                { className: 'columns', style: { marginBottom: 0 } },
+	                React.createElement(
+	                    'div',
+	                    { className: 'column' },
+	                    React.createElement(ToolBar, {
+	                        handleSubmit: handleSubmit,
+	                        resetForm: resetForm,
+	                        submitting: submitting,
+	                        newContent: description.value
+	                    })
+	                )
+	            ),
+	            React.createElement(ErrorComponent, { error: error && error.message || '' }),
+	            React.createElement(
+	                'div',
+	                { className: 'columns' },
+	                React.createElement(
+	                    'div',
+	                    { className: 'column' },
+	                    React.createElement('hr', { className: 'is-marginless' })
+	                )
+	            )
+	        );
+	    }
+	
+	    return React.createElement(
+	        'div',
+	        null,
+	        React.createElement(
+	            'div',
+	            { className: 'columns', style: { marginBottom: 0 } },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement(ToolBar, {
+	                    handleSubmit: handleSubmit,
+	                    resetForm: resetForm,
+	                    submitting: submitting,
+	                    newContent: description.value
+	                })
+	            )
+	        ),
+	        React.createElement(ErrorComponent, { error: error && error.message || '' }),
+	        React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement('hr', { className: 'is-marginless' })
+	            )
+	        ),
+	        React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement(DeckDescription, {
+	                    description: __description
+	                })
+	            )
+	        )
+	    );
+	};
+	
+	if (true) {
+	    __DeckDescriptionContainer.propTypes = {
+	        fields: React.PropTypes.object.isRequired,
+	        handleSubmit: React.PropTypes.func.isRequired,
+	        submitting: React.PropTypes.bool.isRequired,
+	        postURL: React.PropTypes.string.isRequired,
+	        resetForm: React.PropTypes.func.isRequired,
+	        showNoContentMessage: React.PropTypes.bool.isRequired,
+	        // TODO: better prop type
+	        error: React.PropTypes.object
+	    };
+	}
+	
+	var deckDescriptionContainerFactory = function deckDescriptionContainerFactory(preRenderState) {
+	
+	    return reduxForm(
+	
+	    // config
+	    {
+	        form: 'deck_description',
+	        fields: ['description'],
+	        initialValues: {
+	            description: preRenderState[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+	        }
+	    },
+	
+	    // mapStateToProps
+	    function (state) {
+	        return {
+	            postURL: state[POST_TO],
+	            initialValues: {
+	                // NOTE: this commits initial value after save
+	                description: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS]
+	            },
+	            showNoContentMessage: state[DECK_DESCRIPTION].showNoContentMessage
+	        };
+	    })(__DeckDescriptionContainer);
+	};
+	
+	/* redux action dispatchers */
+	// NOTE: FSA compliant
+	
+	var saveDescription = function saveDescription(dispatch, postURL, formData) {
+	
+	    return new _promise2.default(function (resolve, reject) {
+	
+	        var finalDescription = String(formData.description).trim();
+	
+	        fetch(postURL, {
+	            method: 'POST',
+	            headers: {
+	                'Accept': 'application/json',
+	                'Content-Type': 'application/json'
+	            },
+	            body: (0, _stringify2.default)({
+	                description: finalDescription
+	            })
+	        }).then(function (response) {
+	
+	            var jsonResponse = response.status != 200 ? response.json() : {};
+	
+	            return _promise2.default.all([response.status, jsonResponse]);
+	        }, function () /*err*/{
+	
+	            // network error
+	            // console.log('network err:', err);
+	
+	            reject({
+	                _error: {
+	                    message: 'Unable to send request to update deck description. Please try again.'
+	                }
+	            });
+	        }).then(function (_ref3) {
+	            var _ref4 = (0, _slicedToArray3.default)(_ref3, 2);
+	
+	            var statusCode = _ref4[0];
+	            var jsonResponse = _ref4[1];
+	
+	
+	            switch (statusCode) {
+	                case 400: // Bad Request
+	                case 500:
+	                    // Internal Server Error
+	
+	                    reject({
+	                        _error: {
+	                            message: jsonResponse.userMessage
+	                        }
+	                    });
+	
+	                    return;
+	                    break;
+	
+	                case 200:
+	                    // Ok
+	
+	                    // update deck description
+	                    dispatch(reduceIn(
+	                    // reducer
+	                    markdownContentsReducer,
+	                    // path
+	                    [DECK_DESCRIPTION, MARKDOWN_CONTENTS],
+	                    // action
+	                    {
+	                        type: MARKDOWN_CONTENTS,
+	                        payload: finalDescription
+	                    }));
+	
+	                    // switch out of edit mode
+	                    dispatch(reduceIn(
+	                    // reducer
+	                    editingReducer,
+	                    // path
+	                    [DECK_DESCRIPTION, IS_EDITING],
+	                    // action
+	                    {
+	                        type: false
+	                    }));
+	
+	                    // reset form to render mode
+	                    dispatch(reduceIn(
+	                    // reducer
+	                    markdownViewReducer,
+	                    // path
+	                    [DECK_DESCRIPTION, MARKDOWN_VIEW],
+	                    // action
+	                    {
+	                        type: MARKDOWN_VIEW_RENDER
+	                    }));
+	
+	                    resolve();
+	
+	                    break;
+	
+	                default:
+	                    // Unexpected http status code
+	                    reject({
+	                        _error: {
+	                            message: 'Unable to update deck description.'
+	                        }
+	                    });
+	            }
+	        }, function () /*err*/{
+	
+	            // json parsing fail
+	            // console.log('err:', err);
+	
+	            reject({
+	                _error: {
+	                    message: 'Unable to update deck description.'
+	                }
+	            });
+	        }).catch(function () /*err*/{
+	
+	            // any other errors
+	            // console.log('err:', err);
+	
+	            reject({
+	                _error: {
+	                    message: 'Unable to update deck description.'
+	                }
+	            });
+	        });
+	    });
+	};
+	
+	var NOTHING = function NOTHING() {};
+	var switchEditMode = function switchEditMode(dispatch, isEditing) {
+	    var after = arguments.length <= 2 || arguments[2] === undefined ? NOTHING : arguments[2];
+	
+	    return function (event) {
+	        event.preventDefault();
+	
+	        dispatch(reduceIn(
+	        // reducer
+	        editingReducer,
+	        // path
+	        [DECK_DESCRIPTION, IS_EDITING],
+	        // action
+	        {
+	            type: isEditing
+	        }));
+	        after();
+	
+	        dispatch(reduceIn(
+	        // reducer
+	        markdownViewReducer,
+	        // path
+	        [DECK_DESCRIPTION, MARKDOWN_VIEW],
+	        // action
+	        {
+	            type: isEditing ? MARKDOWN_VIEW_SOURCE : MARKDOWN_VIEW_RENDER
+	        }));
+	    };
+	};
+	
+	var switchMarkdownView = function switchMarkdownView(dispatch, path, markdownView) {
+	    return function (event) {
+	        event.preventDefault();
+	        dispatch(reduceIn(
+	        // reducer
+	        markdownViewReducer,
+	        // path
+	        path,
+	        // action
+	        {
+	            type: markdownView
+	        }));
+	    };
+	};
+	
+	/* redux reducers */
+	
+	var markdownViewReducer = __webpack_require__(897);
+	var showNoContentMessageReducer = __webpack_require__(899);
+	var markdownContentsReducer = __webpack_require__(900);
+	var editingReducer = __webpack_require__(899);
+	
+	/* default state */
+	
+	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, DECK_DESCRIPTION, (_DECK_DESCRIPTION = {}, (0, _defineProperty3.default)(_DECK_DESCRIPTION, IS_EDITING, false), (0, _defineProperty3.default)(_DECK_DESCRIPTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_DECK_DESCRIPTION, MARKDOWN_CONTENTS, ''), (0, _defineProperty3.default)(_DECK_DESCRIPTION, 'showNoContentMessage', false), _DECK_DESCRIPTION)), (0, _defineProperty3.default)(_initialState, 'form', reduxformReducer()), _initialState);
+	
+	/* exports */
+	
+	var formReducer = __webpack_require__(901);
+	var componentCreator = __webpack_require__(902);
+	
+	module.exports = componentCreator(initialState, function (store) {
+	
+	    var __Component = deckDescriptionContainerFactory(store.getState());
+	
+	    var component = React.createElement(
+	        Provider,
+	        { store: store },
+	        React.createElement(__Component, null)
+	    );
+	
+	    return component;
+	}, formReducer);
+	
+	module.exports.initialState = initialState;
+	
+	module.exports.preRender = function () {
+	    window.document.getElementById('deck_description_container_stub').style.display = 'none';
+	};
+	
+	module.exports.afterRender = function (store) {
+	    // NOTE: By default, the markdown content is empty and MarkdownRender will NOT display
+	    // a notice of empty content. This reverts this behaviour.
+	    store.dispatch(reduceIn(
+	    // reducer
+	    showNoContentMessageReducer,
+	    // path
+	    [DECK_DESCRIPTION, 'showNoContentMessage'],
+	    // action
+	    {
+	        type: true
+	    }));
+	};
+
+/***/ },
 /* 905 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -59672,603 +60339,6 @@
 	
 	module.exports = ErrorComponent;
 
-/***/ },
-/* 906 */,
-/* 907 */,
-/* 908 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	/*global MathJax: true */
-	/*eslint new-cap: [2, {"capIsNewExceptions": ["MathJax.Hub.Queue", "Remove"]}]*/
-	
-	var React = __webpack_require__(689);
-	var each = __webpack_require__(779);
-	var ReactDOM = __webpack_require__(2);
-	
-	// TODO: http://meta.math.stackexchange.com/questions/16946/using-block-displayed-equations-in-question-titles
-	
-	var Content = function Content(props) {
-	
-	    var content = props.content.trim();
-	
-	    if (content.length <= 0) {
-	        return React.createElement(
-	            'div',
-	            { className: 'message is-info' },
-	            React.createElement(
-	                'div',
-	                { className: 'message-body' },
-	                props.notice
-	            )
-	        );
-	    }
-	
-	    return React.createElement(
-	        'div',
-	        null,
-	        content
-	    );
-	};
-	
-	if (true) {
-	    Content.propTypes = {
-	        content: React.PropTypes.string.isRequired,
-	        notice: React.PropTypes.string.isRequired
-	    };
-	}
-	
-	var MathJaxLine = React.createClass({
-	    displayName: 'MathJaxLine',
-	
-	
-	    propTypes: {
-	        mathjaxify: React.PropTypes.bool.isRequired,
-	        content: React.PropTypes.string.isRequired,
-	        notice: React.PropTypes.string.isRequired,
-	        children: React.PropTypes.node.isRequired
-	    },
-	
-	    componentDidUpdate: function componentDidUpdate() {
-	
-	        if (!MathJax) {
-	
-	            if (true) {
-	                var invariant = __webpack_require__(284);
-	                invariant(MathJax, 'no MathJax loaded');
-	            }
-	
-	            return;
-	        }
-	
-	        if (!this.refs.mathjax_line) {
-	            return;
-	        }
-	
-	        MathJax.Hub.Queue(['Typeset', MathJax.Hub, ReactDOM.findDOMNode(this.refs.mathjax_line)]);
-	    },
-	    componentDidMount: function componentDidMount() {
-	
-	        if (!MathJax) {
-	
-	            if (true) {
-	                var invariant = __webpack_require__(284);
-	                invariant(MathJax, 'no MathJax loaded');
-	            }
-	
-	            return;
-	        }
-	
-	        if (!this.refs.mathjax_line) {
-	            return;
-	        }
-	
-	        MathJax.Hub.Queue(['Typeset', MathJax.Hub, ReactDOM.findDOMNode(this.refs.mathjax_line)]);
-	    },
-	    componentWillUnmount: function componentWillUnmount() {
-	
-	        if (!MathJax) {
-	
-	            if (true) {
-	                var invariant = __webpack_require__(284);
-	                invariant(MathJax, 'no MathJax loaded');
-	            }
-	
-	            return;
-	        }
-	
-	        if (!this.refs.mathjax_line) {
-	            return;
-	        }
-	
-	        each(MathJax.Hub.getAllJax(ReactDOM.findDOMNode(this.refs.mathjax_line)), function (jax) {
-	            jax.Remove();
-	        });
-	    },
-	    render: function render() {
-	
-	        var sourceStyle = {};
-	        var renderStyle = {};
-	
-	        if (this.props.mathjaxify) {
-	            sourceStyle.display = 'none';
-	        } else {
-	            renderStyle.display = 'none';
-	        }
-	
-	        return React.createElement(
-	            'div',
-	            null,
-	            React.createElement(
-	                'div',
-	                { style: renderStyle, ref: 'mathjax_line' },
-	                React.createElement(Content, {
-	                    content: this.props.content || '',
-	                    notice: this.props.notice
-	                })
-	            ),
-	            React.createElement(
-	                'div',
-	                { style: sourceStyle },
-	                this.props.children
-	            )
-	        );
-	    }
-	});
-	
-	module.exports = MathJaxLine;
-
-/***/ },
-/* 909 */,
-/* 910 */,
-/* 911 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var _slicedToArray2 = __webpack_require__(286);
-	
-	var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
-	
-	var _stringify = __webpack_require__(343);
-	
-	var _stringify2 = _interopRequireDefault(_stringify);
-	
-	var _promise = __webpack_require__(345);
-	
-	var _promise2 = _interopRequireDefault(_promise);
-	
-	var _extends2 = __webpack_require__(363);
-	
-	var _extends3 = _interopRequireDefault(_extends2);
-	
-	var _defineProperty2 = __webpack_require__(369);
-	
-	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
-	
-	var _initialState;
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	__webpack_require__(389);
-	
-	var React = __webpack_require__(689);
-	
-	var assign = __webpack_require__(695);
-	
-	var _require = __webpack_require__(696);
-	
-	var Provider = _require.Provider;
-	var connect = _require.connect;
-	
-	var _require2 = __webpack_require__(713);
-	
-	var reduxForm = _require2.reduxForm;
-	var reduxformReducer = _require2.reducer;
-	
-	var classnames = __webpack_require__(761);
-	
-	var fetch = __webpack_require__(762)({
-	    Promise: __webpack_require__(687)
-	});
-	
-	var _require3 = __webpack_require__(763);
-	
-	var MARKDOWN_VIEW = _require3.MARKDOWN_VIEW;
-	var MARKDOWN_VIEW_RENDER = _require3.MARKDOWN_VIEW_RENDER;
-	var MARKDOWN_VIEW_SOURCE = _require3.MARKDOWN_VIEW_SOURCE;
-	var MARKDOWN_CONTENTS = _require3.MARKDOWN_CONTENTS;
-	var DECK_DESCRIPTION = _require3.DECK_DESCRIPTION;
-	var DECK_NAME = _require3.DECK_NAME;
-	var POST_TO = _require3.POST_TO;
-	
-	var _require4 = __webpack_require__(764);
-	
-	var reduceIn = _require4.reduceIn;
-	
-	/* react components */
-	
-	var MarkdownRender = __webpack_require__(777);
-	var MarkdownSource = __webpack_require__(876);
-	var MathJaxLine = __webpack_require__(908);
-	var ErrorComponent = __webpack_require__(905);
-	
-	var renderSourceComponentFactory = function renderSourceComponentFactory(key) {
-	
-	    return connect(
-	    // mapStateToProps
-	    function (state) {
-	        return (0, _defineProperty3.default)({}, MARKDOWN_VIEW, state[key][MARKDOWN_VIEW]);
-	    },
-	    // mapDispatchToProps
-	    function (dispatch) {
-	        return {
-	            // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
-	            switchTab: function switchTab(markdownView) {
-	                return switchMarkdownView(dispatch, [key, MARKDOWN_VIEW], markdownView);
-	            }
-	        };
-	    })(__webpack_require__(896));
-	};
-	
-	var RenderSourceNameComponent = renderSourceComponentFactory(DECK_NAME);
-	var RenderSourceDescriptionComponent = renderSourceComponentFactory(DECK_DESCRIPTION);
-	
-	var __DeckDescriptionComponent = function __DeckDescriptionComponent(props) {
-	
-	    var markdownView = props[MARKDOWN_VIEW];
-	    var contents = props[MARKDOWN_CONTENTS];
-	
-	    var sourceStyle = {};
-	    var renderStyle = {};
-	
-	    switch (markdownView) {
-	        case MARKDOWN_VIEW_RENDER:
-	            sourceStyle.display = 'none';
-	            break;
-	
-	        case MARKDOWN_VIEW_SOURCE:
-	        default:
-	            renderStyle.display = 'none';
-	    }
-	
-	    return React.createElement(
-	        'div',
-	        null,
-	        React.createElement(
-	            'div',
-	            { style: renderStyle },
-	            React.createElement(MarkdownRender, { contents: contents })
-	        ),
-	        React.createElement(
-	            'div',
-	            null,
-	            React.createElement(
-	                'div',
-	                { style: sourceStyle },
-	                React.createElement(MarkdownSource, {
-	                    id: 'input-deck-description',
-	                    contents: contents,
-	                    placeholder: 'Deck Description',
-	                    assignProps: props.assignProps,
-	                    editable: true
-	                })
-	            )
-	        )
-	    );
-	};
-	
-	if (true) {
-	    __DeckDescriptionComponent.propTypes = {
-	        assignProps: React.PropTypes.object
-	    };
-	}
-	
-	var DeckDescriptionComponent = connect(
-	
-	// mapStateToProps
-	function (state, ownProps) {
-	    var _ref2;
-	
-	    return _ref2 = {}, (0, _defineProperty3.default)(_ref2, MARKDOWN_VIEW, state[DECK_DESCRIPTION][MARKDOWN_VIEW]), (0, _defineProperty3.default)(_ref2, MARKDOWN_CONTENTS, ownProps.assignProps.value), _ref2;
-	})(__DeckDescriptionComponent);
-	
-	var __NewDeckContainer = function __NewDeckContainer(props) {
-	    var mathjaxifyDeckName = props.mathjaxifyDeckName;
-	    var _props$fields = props.fields;
-	    var name = _props$fields.name;
-	    var description = _props$fields.description;
-	    var submitting = props.submitting;
-	    var handleSubmit = props.handleSubmit;
-	    var postURL = props.postURL;
-	    var error = props.error;
-	
-	
-	    var __description = assign({}, description);
-	
-	    return React.createElement(
-	        'div',
-	        null,
-	        React.createElement(
-	            'div',
-	            { className: 'columns', style: { marginBottom: 0 } },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement(
-	                    'label',
-	                    { className: 'label', htmlFor: 'input-deck-name' },
-	                    'Name'
-	                ),
-	                React.createElement(
-	                    MathJaxLine,
-	                    {
-	                        content: name.value,
-	                        mathjaxify: mathjaxifyDeckName,
-	                        notice: 'No deck name rendered.  Click on "Source" tab and enter a name.'
-	                    },
-	                    React.createElement(
-	                        'p',
-	                        { className: 'control' },
-	                        React.createElement('input', (0, _extends3.default)({
-	                            id: 'input-deck-name',
-	                            className: 'input',
-	                            type: 'text',
-	                            placeholder: 'Deck Name',
-	                            autoFocus: true
-	                        }, assign({}, name)))
-	                    )
-	                )
-	            )
-	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement(RenderSourceNameComponent, {
-	                    extraClasses: 'is-small',
-	                    reverse: true
-	                })
-	            )
-	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement('hr', { className: 'is-marginless' })
-	            )
-	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement(
-	                    'div',
-	                    { className: 'columns', style: { marginBottom: 0 } },
-	                    React.createElement(
-	                        'div',
-	                        { className: 'column' },
-	                        React.createElement(
-	                            'label',
-	                            { className: 'label', htmlFor: 'input-deck-description' },
-	                            'Description'
-	                        ),
-	                        React.createElement(RenderSourceDescriptionComponent, {
-	                            reverse: true
-	                        })
-	                    )
-	                ),
-	                React.createElement(
-	                    'div',
-	                    { className: 'columns' },
-	                    React.createElement(
-	                        'div',
-	                        { className: 'column' },
-	                        React.createElement(DeckDescriptionComponent, { assignProps: __description })
-	                    )
-	                )
-	            )
-	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement('hr', { className: 'is-marginless' })
-	            )
-	        ),
-	        React.createElement(ErrorComponent, { error: error && error.message || '' }),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement(
-	                    'a',
-	                    {
-	                        className: classnames('button is-success', {
-	                            'is-disabled': submitting || String(name.value).trim().length <= 0,
-	                            'is-loading': submitting
-	                        }),
-	                        onClick: handleSubmit(addNewDeck.bind(null, postURL)) },
-	                    'Add Deck'
-	                )
-	            )
-	        )
-	    );
-	};
-	
-	if (true) {
-	    __NewDeckContainer.propTypes = {
-	        fields: React.PropTypes.object.isRequired,
-	        handleSubmit: React.PropTypes.func.isRequired,
-	        submitting: React.PropTypes.bool.isRequired,
-	        mathjaxifyDeckName: React.PropTypes.bool.isRequired,
-	        postURL: React.PropTypes.string.isRequired,
-	        // TODO: better prop type
-	        error: React.PropTypes.object
-	    };
-	}
-	
-	var NewDeckContainer = reduxForm(
-	
-	// config
-	{
-	    form: 'new_deck',
-	    fields: ['name', 'description'],
-	    initialValues: {
-	        name: '',
-	        description: ''
-	    }
-	},
-	
-	// mapStateToProps
-	function (state) {
-	    return {
-	        mathjaxifyDeckName: state[DECK_NAME][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
-	        postURL: state[POST_TO]
-	    };
-	})(__NewDeckContainer);
-	
-	/* redux action dispatchers */
-	// NOTE: FSA compliant
-	
-	var addNewDeck = function addNewDeck(postURL, formData) {
-	
-	    return new _promise2.default(function (resolve, reject) {
-	
-	        fetch(postURL, {
-	            method: 'POST',
-	            headers: {
-	                'Accept': 'application/json',
-	                'Content-Type': 'application/json'
-	            },
-	            body: (0, _stringify2.default)({
-	                name: formData.name,
-	                description: formData.description
-	            })
-	        }).then(function (response) {
-	
-	            return _promise2.default.all([response.status, response.json()]);
-	        }, function () /*err*/{
-	
-	            // network error
-	            // console.log('network err:', err);
-	
-	            reject({
-	                _error: {
-	                    message: 'Unable to send request to create new deck. Please try again.'
-	                }
-	            });
-	        }).then(function (_ref3) {
-	            var _ref4 = (0, _slicedToArray3.default)(_ref3, 2);
-	
-	            var statusCode = _ref4[0];
-	            var jsonResponse = _ref4[1];
-	
-	
-	            switch (statusCode) {
-	                case 400: // Bad Request
-	                case 500:
-	                    // Internal Server Error
-	
-	                    reject({
-	                        _error: {
-	                            message: jsonResponse.userMessage
-	                        }
-	                    });
-	
-	                    return;
-	                    break;
-	
-	                case 200:
-	                    // Ok
-	
-	                    window.location.href = jsonResponse.profile_url;
-	                    break;
-	
-	                default:
-	                    // Unexpected http status code
-	                    reject({
-	                        _error: {
-	                            message: 'Unable to create new deck.'
-	                        }
-	                    });
-	            }
-	        }, function () /*err*/{
-	
-	            // json parsing fail
-	            // console.log('err:', err);
-	
-	            reject({
-	                _error: {
-	                    message: 'Unable to create new deck.'
-	                }
-	            });
-	        }).catch(function () /*err*/{
-	
-	            // any other errors
-	            // console.log('err:', err);
-	
-	            reject({
-	                _error: {
-	                    message: 'Unable to create new deck.'
-	                }
-	            });
-	        });
-	    });
-	};
-	
-	var switchMarkdownView = function switchMarkdownView(dispatch, path, markdownView) {
-	    return function (event) {
-	        event.preventDefault();
-	        dispatch(reduceIn(
-	        // reducer
-	        markdownViewReducer,
-	        // path
-	        path,
-	        // action
-	        {
-	            type: markdownView
-	        }));
-	    };
-	};
-	
-	/* redux reducers */
-	
-	var markdownViewReducer = __webpack_require__(897);
-	
-	/* default state */
-	
-	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, DECK_NAME, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_SOURCE)), (0, _defineProperty3.default)(_initialState, DECK_DESCRIPTION, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_SOURCE)), (0, _defineProperty3.default)(_initialState, 'form', reduxformReducer()), _initialState);
-	
-	/* exports */
-	
-	var formReducer = __webpack_require__(901);
-	var componentCreator = __webpack_require__(902);
-	
-	module.exports = componentCreator(initialState, function (store) {
-	
-	    var component = React.createElement(
-	        Provider,
-	        { store: store },
-	        React.createElement(NewDeckContainer, null)
-	    );
-	
-	    return component;
-	}, formReducer);
-	
-	module.exports.initialState = initialState;
-
 /***/ }
 /******/ ]);
-//# sourceMappingURL=new_deck.js.map
+//# sourceMappingURL=deck_description.js.map
