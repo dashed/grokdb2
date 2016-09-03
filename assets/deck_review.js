@@ -42264,6 +42264,8 @@
 	var CARD_QUESTION = 'CARD_QUESTION';
 	var CARD_ANSWER = 'CARD_ANSWER';
 	var CARD_IS_ACTIVE = 'CARD_IS_ACTIVE';
+	var CARD_SETTINGS = 'CARD_SETTINGS';
+	var CARD_META = 'CARD_META';
 	
 	var MARKDOWN_CONTENTS = 'MARKDOWN_CONTENTS';
 	var POST_TO = 'POST_TO'; // URL to send POST request
@@ -42288,7 +42290,9 @@
 	    CARD_DESCRIPTION: CARD_DESCRIPTION,
 	    CARD_QUESTION: CARD_QUESTION,
 	    CARD_ANSWER: CARD_ANSWER,
+	    CARD_SETTINGS: CARD_SETTINGS,
 	    CARD_IS_ACTIVE: CARD_IS_ACTIVE,
+	    CARD_META: CARD_META,
 	
 	    MARKDOWN_CONTENTS: MARKDOWN_CONTENTS,
 	    POST_TO: POST_TO,
@@ -55447,11 +55451,11 @@
 	            React.createElement(
 	                'a',
 	                {
-	                    href: '#render',
+	                    href: '#preview',
 	                    className: classnames(extraClasses, 'button', { 'is-primary': currentTab === MARKDOWN_VIEW_RENDER }),
 	                    onClick: switchTab(MARKDOWN_VIEW_RENDER)
 	                },
-	                'Render'
+	                'Preview'
 	            )
 	        );
 	    }
@@ -55462,11 +55466,11 @@
 	        React.createElement(
 	            'a',
 	            {
-	                href: '#render',
+	                href: '#preview',
 	                className: classnames(extraClasses, 'button', { 'is-primary': currentTab === MARKDOWN_VIEW_RENDER }),
 	                onClick: switchTab(MARKDOWN_VIEW_RENDER)
 	            },
-	            'Render'
+	            'Preview'
 	        ),
 	        ' ',
 	        React.createElement(
@@ -55537,6 +55541,8 @@
 	var CARD_DESCRIPTION = _require.CARD_DESCRIPTION;
 	var CARD_QUESTION = _require.CARD_QUESTION;
 	var CARD_ANSWER = _require.CARD_ANSWER;
+	var CARD_SETTINGS = _require.CARD_SETTINGS;
+	var CARD_META = _require.CARD_META;
 	
 	
 	var tabReducer = function tabReducer() {
@@ -55548,6 +55554,8 @@
 	        case CARD_QUESTION:
 	        case CARD_ANSWER:
 	        case CARD_DESCRIPTION:
+	        case CARD_SETTINGS:
+	        case CARD_META:
 	            state = action.type;
 	            break;
 	
@@ -55929,6 +55937,8 @@
 	var CARD_QUESTION = _require2.CARD_QUESTION;
 	var CARD_ANSWER = _require2.CARD_ANSWER;
 	var CARD_IS_ACTIVE = _require2.CARD_IS_ACTIVE;
+	var CARD_SETTINGS = _require2.CARD_SETTINGS;
+	var CARD_META = _require2.CARD_META;
 	var POST_TO = _require2.POST_TO;
 	var VALUE = _require2.VALUE;
 	var IS_CONFIRM_SKIP = _require2.IS_CONFIRM_SKIP;
@@ -55947,6 +55957,7 @@
 	var RIGHT = 'RIGHT';
 	var WRONG = 'WRONG';
 	var FORGOT = 'FORGOT';
+	var SHOW_PREVIEW_SOURCE_BUTTONS = 'SHOW_PREVIEW_SOURCE_BUTTONS';
 	
 	/* react components */
 	
@@ -55954,7 +55965,7 @@
 	var MarkdownRender = __webpack_require__(777);
 	var MarkdownSource = __webpack_require__(876);
 	
-	var RenderSourceTitleComponent = connect(
+	var __PreviewSourceTitleComponent = connect(
 	// mapStateToProps
 	function (state) {
 	    return (0, _defineProperty3.default)({}, MARKDOWN_VIEW, state[CARD_TITLE][MARKDOWN_VIEW]);
@@ -55969,7 +55980,40 @@
 	    };
 	})(__webpack_require__(896));
 	
-	var RenderSourceTabComponent = connect(
+	var __PreviewSourceTitleComponentWrap = function __PreviewSourceTitleComponentWrap(props) {
+	
+	    if (!props.revealPreviewSourceChecked) {
+	        return null;
+	    }
+	
+	    return React.createElement(
+	        'div',
+	        { className: 'columns' },
+	        React.createElement(
+	            'div',
+	            { className: 'column' },
+	            React.createElement(__PreviewSourceTitleComponent, {
+	                extraClasses: 'is-small'
+	            })
+	        )
+	    );
+	};
+	
+	if (true) {
+	    __PreviewSourceTitleComponentWrap.propTypes = {
+	        revealPreviewSourceChecked: React.PropTypes.bool.isRequired
+	    };
+	}
+	
+	var PreviewSourceTitleComponentWrap = connect(
+	// mapStateToProps
+	function (state) {
+	    return {
+	        revealPreviewSourceChecked: state[SHOW_PREVIEW_SOURCE_BUTTONS]
+	    };
+	})(__PreviewSourceTitleComponentWrap);
+	
+	var PreviewSourceTabComponent = connect(
 	// mapStateToProps
 	function (state, ownProps) {
 	    return (0, _defineProperty3.default)({}, MARKDOWN_VIEW, state[ownProps.currenTab][MARKDOWN_VIEW]);
@@ -56294,7 +56338,81 @@
 	        'div',
 	        null,
 	        React.createElement(MainControls, null),
-	        React.createElement(PerformanceControls, null),
+	        React.createElement(PerformanceControls, null)
+	    );
+	};
+	
+	var __Meta = function __Meta(props) {
+	
+	    var cachedReviewProcedure = props.cachedReviewProcedure;
+	
+	    if (!cachedReviewProcedure || !cachedReviewProcedure.sub_selection) {
+	        return React.createElement(
+	            'div',
+	            null,
+	            'No meta info.'
+	        );
+	    }
+	
+	    return React.createElement(
+	        'div',
+	        null,
+	        React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement(
+	                    'strong',
+	                    null,
+	                    'This card was chosen for require via: '
+	                ),
+	                cachedReviewProcedure.sub_selection
+	            )
+	        )
+	    );
+	};
+	
+	if (true) {
+	    __Meta.propTypes = {
+	        cachedReviewProcedure: React.PropTypes.object.isRequired
+	    };
+	}
+	
+	var Meta = connect(
+	// mapStateToProps
+	function (state) {
+	    return {
+	        cachedReviewProcedure: state[CARD_META] || {}
+	    };
+	})(__Meta);
+	
+	var __Settings = function __Settings(props) {
+	    var dispatch = props.dispatch;
+	    var revealPreviewSourceChecked = props.revealPreviewSourceChecked;
+	
+	
+	    return React.createElement(
+	        'div',
+	        null,
+	        React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement(
+	                    'label',
+	                    { className: 'checkbox' },
+	                    React.createElement('input', { type: 'checkbox',
+	                        onChange: switchRevealPreviewSource(dispatch),
+	                        checked: revealPreviewSourceChecked
+	                    }),
+	                    ' Reveal preview/source buttons'
+	                )
+	            )
+	        ),
 	        React.createElement(
 	            'div',
 	            { className: 'columns' },
@@ -56307,6 +56425,21 @@
 	        React.createElement(AdvancedControls, null)
 	    );
 	};
+	
+	if (true) {
+	    __Settings.propTypes = {
+	        dispatch: React.PropTypes.func.isRequired,
+	        revealPreviewSourceChecked: React.PropTypes.bool.isRequired
+	    };
+	}
+	
+	var Settings = connect(
+	// mapStateToProps
+	function (state) {
+	    return {
+	        revealPreviewSourceChecked: state[SHOW_PREVIEW_SOURCE_BUTTONS]
+	    };
+	})(__Settings);
 	
 	var __AnswerTab = function __AnswerTab(props) {
 	    var shouldReveal = props.shouldReveal;
@@ -56343,7 +56476,7 @@
 	
 	if (true) {
 	    __AnswerTab.propTypes = {
-	        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+	        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS, CARD_META]),
 	        dispatch: React.PropTypes.func.isRequired,
 	        shouldReveal: React.PropTypes.bool.isRequired
 	    };
@@ -56357,6 +56490,48 @@
 	        shouldReveal: state[SHOW_MAIN_CONTROLS]
 	    };
 	})(__AnswerTab);
+	
+	var __PreviewSource = function __PreviewSource(props) {
+	    var currenTab = props.currenTab;
+	
+	
+	    if (currenTab === CARD_SETTINGS) {
+	        return null;
+	    }
+	
+	    if (currenTab === CARD_META) {
+	        return null;
+	    }
+	
+	    if (!props.revealPreviewSource) {
+	        return null;
+	    }
+	
+	    return React.createElement(
+	        'div',
+	        { className: 'columns' },
+	        React.createElement(
+	            'div',
+	            { className: 'column' },
+	            React.createElement(PreviewSourceTabComponent, { currenTab: currenTab })
+	        )
+	    );
+	};
+	
+	if (true) {
+	    __PreviewSource.propTypes = {
+	        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS, CARD_META]),
+	        revealPreviewSource: React.PropTypes.bool.isRequired
+	    };
+	}
+	
+	var PreviewSource = connect(
+	// mapStateToProps
+	function (state) {
+	    return {
+	        revealPreviewSource: state[SHOW_PREVIEW_SOURCE_BUTTONS]
+	    };
+	})(__PreviewSource);
 	
 	var __CardContentTabs = function __CardContentTabs(props) {
 	    var currenTab = props.currenTab;
@@ -56420,22 +56595,50 @@
 	                                    'Description'
 	                                )
 	                            )
+	                        ),
+	                        React.createElement(
+	                            'li',
+	                            {
+	                                className: classnames({
+	                                    'is-active is-bold': currenTab === CARD_SETTINGS
+	                                }) },
+	                            React.createElement(
+	                                'a',
+	                                {
+	                                    href: '#settings',
+	                                    onClick: switchTab(dispatch, CARD_SETTINGS)
+	                                },
+	                                React.createElement(
+	                                    'span',
+	                                    null,
+	                                    'Settings'
+	                                )
+	                            )
+	                        ),
+	                        React.createElement(
+	                            'li',
+	                            {
+	                                className: classnames({
+	                                    'is-active is-bold': currenTab === CARD_META
+	                                }) },
+	                            React.createElement(
+	                                'a',
+	                                {
+	                                    href: '#meta',
+	                                    onClick: switchTab(dispatch, CARD_META)
+	                                },
+	                                React.createElement(
+	                                    'span',
+	                                    null,
+	                                    'Meta'
+	                                )
+	                            )
 	                        )
 	                    )
 	                )
 	            )
 	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement(RenderSourceTabComponent, {
-	                    currenTab: currenTab
-	                })
-	            )
-	        ),
+	        React.createElement(PreviewSource, { currenTab: currenTab }),
 	        React.createElement(
 	            'div',
 	            { className: 'columns' },
@@ -56450,7 +56653,7 @@
 	
 	if (true) {
 	    __CardContentTabs.propTypes = {
-	        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+	        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS, CARD_META]),
 	        dispatch: React.PropTypes.func.isRequired
 	    };
 	}
@@ -56534,6 +56737,8 @@
 	    var questionStyle = { display: 'none' };
 	    var answerStyle = { display: 'none' };
 	    var descriptionStyle = { display: 'none' };
+	    var settingsStyle = { display: 'none' };
+	    var metaStyle = { display: 'none' };
 	
 	    switch (props.currenTab) {
 	        case CARD_QUESTION:
@@ -56544,6 +56749,12 @@
 	            break;
 	        case CARD_DESCRIPTION:
 	            descriptionStyle = {};
+	            break;
+	        case CARD_SETTINGS:
+	            settingsStyle = {};
+	            break;
+	        case CARD_META:
+	            metaStyle = {};
 	            break;
 	    }
 	
@@ -56579,13 +56790,23 @@
 	                contents: props.description,
 	                isEditing: false
 	            })
+	        ),
+	        React.createElement(
+	            'div',
+	            { key: 'settings', style: settingsStyle },
+	            React.createElement(Settings, null)
+	        ),
+	        React.createElement(
+	            'div',
+	            { key: 'meta', style: metaStyle },
+	            React.createElement(Meta, null)
 	        )
 	    );
 	};
 	
 	if (true) {
 	    __TabGroupComponent.propTypes = {
-	        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+	        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS, CARD_META]),
 	        question: React.PropTypes.string.isRequired,
 	        answer: React.PropTypes.string.isRequired,
 	        description: React.PropTypes.string.isRequired
@@ -56625,17 +56846,7 @@
 	                })
 	            )
 	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement(RenderSourceTitleComponent, {
-	                    extraClasses: 'is-small'
-	                })
-	            )
-	        ),
+	        React.createElement(PreviewSourceTitleComponentWrap, null),
 	        React.createElement(CardContentTabs, null)
 	    );
 	};
@@ -56762,6 +56973,20 @@
 	    };
 	};
 	
+	var switchRevealPreviewSource = function switchRevealPreviewSource(dispatch) {
+	    return function (event) {
+	        dispatch(reduceIn(
+	        // reducer
+	        boolReducer,
+	        // path
+	        [SHOW_PREVIEW_SOURCE_BUTTONS],
+	        // action
+	        {
+	            type: event.target.checked
+	        }));
+	    };
+	};
+	
 	/* redux reducers */
 	
 	var markdownViewReducer = __webpack_require__(897);
@@ -56794,7 +57019,7 @@
 	
 	/* default state */
 	
-	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, CARD_TITLE, (_CARD_TITLE = {}, (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_CONTENTS, ''), _CARD_TITLE)), (0, _defineProperty3.default)(_initialState, CURRENT_TAB, CARD_QUESTION), (0, _defineProperty3.default)(_initialState, CARD_DESCRIPTION, (_CARD_DESCRIPTION = {}, (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_CONTENTS, ''), _CARD_DESCRIPTION)), (0, _defineProperty3.default)(_initialState, CARD_QUESTION, (_CARD_QUESTION = {}, (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_CONTENTS, ''), _CARD_QUESTION)), (0, _defineProperty3.default)(_initialState, CARD_ANSWER, (_CARD_ANSWER = {}, (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_CONTENTS, ''), _CARD_ANSWER)), (0, _defineProperty3.default)(_initialState, CARD_IS_ACTIVE, (0, _defineProperty3.default)({}, VALUE, true)), (0, _defineProperty3.default)(_initialState, IS_CONFIRM_SKIP, false), (0, _defineProperty3.default)(_initialState, SHOW_MAIN_CONTROLS, false), (0, _defineProperty3.default)(_initialState, CHOSEN_PERFORMANCE, NOT_SELECTED), _initialState);
+	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, CARD_TITLE, (_CARD_TITLE = {}, (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_CONTENTS, ''), _CARD_TITLE)), (0, _defineProperty3.default)(_initialState, CURRENT_TAB, CARD_QUESTION), (0, _defineProperty3.default)(_initialState, CARD_DESCRIPTION, (_CARD_DESCRIPTION = {}, (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_CONTENTS, ''), _CARD_DESCRIPTION)), (0, _defineProperty3.default)(_initialState, CARD_QUESTION, (_CARD_QUESTION = {}, (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_CONTENTS, ''), _CARD_QUESTION)), (0, _defineProperty3.default)(_initialState, CARD_ANSWER, (_CARD_ANSWER = {}, (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_CONTENTS, ''), _CARD_ANSWER)), (0, _defineProperty3.default)(_initialState, CARD_IS_ACTIVE, (0, _defineProperty3.default)({}, VALUE, true)), (0, _defineProperty3.default)(_initialState, IS_CONFIRM_SKIP, false), (0, _defineProperty3.default)(_initialState, SHOW_MAIN_CONTROLS, false), (0, _defineProperty3.default)(_initialState, SHOW_PREVIEW_SOURCE_BUTTONS, false), (0, _defineProperty3.default)(_initialState, CHOSEN_PERFORMANCE, NOT_SELECTED), (0, _defineProperty3.default)(_initialState, CARD_META, {}), _initialState);
 	
 	/* exports */
 	

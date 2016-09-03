@@ -47158,6 +47158,8 @@
 	var CARD_QUESTION = 'CARD_QUESTION';
 	var CARD_ANSWER = 'CARD_ANSWER';
 	var CARD_IS_ACTIVE = 'CARD_IS_ACTIVE';
+	var CARD_SETTINGS = 'CARD_SETTINGS';
+	var CARD_META = 'CARD_META';
 	
 	var MARKDOWN_CONTENTS = 'MARKDOWN_CONTENTS';
 	var POST_TO = 'POST_TO'; // URL to send POST request
@@ -47182,7 +47184,9 @@
 	    CARD_DESCRIPTION: CARD_DESCRIPTION,
 	    CARD_QUESTION: CARD_QUESTION,
 	    CARD_ANSWER: CARD_ANSWER,
+	    CARD_SETTINGS: CARD_SETTINGS,
 	    CARD_IS_ACTIVE: CARD_IS_ACTIVE,
+	    CARD_META: CARD_META,
 	
 	    MARKDOWN_CONTENTS: MARKDOWN_CONTENTS,
 	    POST_TO: POST_TO,
@@ -60341,11 +60345,11 @@
 	            React.createElement(
 	                'a',
 	                {
-	                    href: '#render',
+	                    href: '#preview',
 	                    className: classnames(extraClasses, 'button', { 'is-primary': currentTab === MARKDOWN_VIEW_RENDER }),
 	                    onClick: switchTab(MARKDOWN_VIEW_RENDER)
 	                },
-	                'Render'
+	                'Preview'
 	            )
 	        );
 	    }
@@ -60356,11 +60360,11 @@
 	        React.createElement(
 	            'a',
 	            {
-	                href: '#render',
+	                href: '#preview',
 	                className: classnames(extraClasses, 'button', { 'is-primary': currentTab === MARKDOWN_VIEW_RENDER }),
 	                onClick: switchTab(MARKDOWN_VIEW_RENDER)
 	            },
-	            'Render'
+	            'Preview'
 	        ),
 	        ' ',
 	        React.createElement(
@@ -60431,6 +60435,8 @@
 	var CARD_DESCRIPTION = _require.CARD_DESCRIPTION;
 	var CARD_QUESTION = _require.CARD_QUESTION;
 	var CARD_ANSWER = _require.CARD_ANSWER;
+	var CARD_SETTINGS = _require.CARD_SETTINGS;
+	var CARD_META = _require.CARD_META;
 	
 	
 	var tabReducer = function tabReducer() {
@@ -60442,6 +60448,8 @@
 	        case CARD_QUESTION:
 	        case CARD_ANSWER:
 	        case CARD_DESCRIPTION:
+	        case CARD_SETTINGS:
+	        case CARD_META:
 	            state = action.type;
 	            break;
 	
