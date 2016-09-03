@@ -45,6 +45,26 @@ const FORGOT = 'FORGOT';
 
 /* react components */
 
+const CardTitle = require('components/dumb/card_title');
+
+const RenderSourceTitleComponent = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            [MARKDOWN_VIEW]: state[CARD_TITLE][MARKDOWN_VIEW]
+        };
+    },
+    // mapDispatchToProps
+    (dispatch) => {
+        return {
+            // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
+            switchTab: (markdownView) => {
+                return switchMarkdownView(dispatch, [CARD_TITLE, MARKDOWN_VIEW], markdownView);
+            }
+        };
+    }
+)(require('components/dumb/render_source'));
+
 const __PerformanceControls = function(props) {
 
     const isConfirmSkip = props[IS_CONFIRM_SKIP];
@@ -316,7 +336,7 @@ const AdvancedControls = function() {
     );
 };
 
-const ReviewControls = function(props) {
+const ReviewControls = function() {
 
     return (
         <div>
@@ -328,10 +348,56 @@ const ReviewControls = function(props) {
 
 };
 
-const DeckReview = function(props) {
+const __Card = function(props) {
+
+    const {title, mathjaxifyCardTitle} = props;
 
     return (
         <div>
+            <div className='columns' style={{marginBottom: 0}}>
+                <div className='column'>
+                    <CardTitle
+                        content={title}
+                        mathjaxify={mathjaxifyCardTitle}
+                        notice={'No card title rendered.'}
+                        isEditing={false}
+                    />
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <RenderSourceTitleComponent
+                        extraClasses='is-small'
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __Card.propTypes = {
+        title: React.PropTypes.string.isRequired,
+        mathjaxifyCardTitle: React.PropTypes.bool.isRequired,
+    };
+}
+
+const Card = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
+            title: state[CARD_TITLE][MARKDOWN_CONTENTS],
+        };
+    }
+
+)(__Card);
+
+const DeckReview = function() {
+
+    return (
+        <div>
+            <Card />
             <ReviewControls />
         </div>
     );
@@ -392,10 +458,29 @@ const switchPerformance = function(dispatch, performanceValue) {
             )
         );
     };
-}
+};
+
+const switchMarkdownView = function(dispatch, path, markdownView) {
+    return function(event) {
+        event.preventDefault();
+        dispatch(
+            reduceIn(
+                // reducer
+                markdownViewReducer,
+                // path
+                path,
+                // action
+                {
+                    type: markdownView
+                }
+            )
+        );
+    }
+};
 
 /* redux reducers */
 
+const markdownViewReducer = require('reducers/markdown_view');
 const boolReducer = require('reducers/bool');
 
 const performanceReducer = function(state = NOT_SELECTED, action) {
