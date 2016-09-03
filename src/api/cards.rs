@@ -1225,8 +1225,6 @@ pub fn deck_get_least_recently_reviewed_card(
         {active_query}
 
         ORDER BY
-            raw_score(cs.success, cs.fail) DESC
-        AND
             (strftime('%s','now') - cs.seen_at) DESC
         "),
         deck_id = deck_id,
