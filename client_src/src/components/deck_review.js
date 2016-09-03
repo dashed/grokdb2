@@ -24,6 +24,7 @@ const {
     CARD_QUESTION,
     CARD_ANSWER,
     CARD_IS_ACTIVE,
+    CARD_SETTINGS,
 
     POST_TO,
     VALUE,
@@ -42,6 +43,7 @@ const NOT_SELECTED = 'NOT_SELECTED';
 const RIGHT = 'RIGHT';
 const WRONG = 'WRONG';
 const FORGOT = 'FORGOT';
+const SHOW_PREVIEW_SOURCE_BUTTONS = 'SHOW_PREVIEW_SOURCE_BUTTONS';
 
 /* react components */
 
@@ -49,7 +51,7 @@ const CardTitle = require('components/dumb/card_title');
 const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
 
-const RenderSourceTitleComponent = connect(
+const __PreviewSourceTitleComponent = connect(
     // mapStateToProps
     (state) => {
         return {
@@ -67,7 +69,40 @@ const RenderSourceTitleComponent = connect(
     }
 )(require('components/dumb/render_source'));
 
-const RenderSourceTabComponent = connect(
+const __PreviewSourceTitleComponentWrap = function(props) {
+
+    if(!props.revealPreviewSourceChecked) {
+        return null;
+    }
+
+    return (
+        <div className='columns'>
+            <div className='column'>
+                <__PreviewSourceTitleComponent
+                    extraClasses='is-small'
+                />
+            </div>
+        </div>
+    );
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __PreviewSourceTitleComponentWrap.propTypes = {
+        revealPreviewSourceChecked: React.PropTypes.bool.isRequired,
+    };
+}
+
+const PreviewSourceTitleComponentWrap = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            revealPreviewSourceChecked: state[SHOW_PREVIEW_SOURCE_BUTTONS]
+        };
+    }
+
+)(__PreviewSourceTitleComponentWrap);
+
+const PreviewSourceTabComponent = connect(
     // mapStateToProps
     (state, ownProps) => {
         return {
@@ -357,6 +392,28 @@ const ReviewControls = function() {
         <div>
             <MainControls />
             <PerformanceControls />
+        </div>
+    );
+
+};
+
+const __Settings = function(props) {
+
+    const {dispatch, revealPreviewSourceChecked} = props;
+
+    return (
+        <div>
+            <div className='columns'>
+                <div className='column'>
+                    <label className='checkbox'>
+                        <input type='checkbox'
+                            onChange={switchRevealPreviewSource(dispatch)}
+                            checked={revealPreviewSourceChecked}
+                        />
+                        {' Reveal preview/source buttons'}
+                    </label>
+                </div>
+            </div>
             <div className='columns'>
                 <div className='column'>
                     <hr className='is-marginless'/>
@@ -365,8 +422,24 @@ const ReviewControls = function() {
             <AdvancedControls />
         </div>
     );
-
 };
+
+if(process.env.NODE_ENV !== 'production') {
+    __Settings.propTypes = {
+        dispatch: React.PropTypes.func.isRequired,
+        revealPreviewSourceChecked: React.PropTypes.bool.isRequired,
+    };
+}
+
+const Settings = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            revealPreviewSourceChecked: state[SHOW_PREVIEW_SOURCE_BUTTONS]
+        };
+    }
+
+)(__Settings);
 
 const __AnswerTab = function(props) {
 
@@ -396,7 +469,7 @@ const __AnswerTab = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     __AnswerTab.propTypes = {
-        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS]),
         dispatch: React.PropTypes.func.isRequired,
         shouldReveal: React.PropTypes.bool.isRequired,
     };
@@ -412,6 +485,44 @@ const AnswerTab = connect(
     }
 
 )(__AnswerTab);
+
+const __PreviewSource = function(props) {
+
+    const {currenTab} = props;
+
+    if (currenTab === CARD_SETTINGS) {
+        return null;
+    }
+
+    if (!props.revealPreviewSource) {
+        return null;
+    }
+
+    return (
+        <div className='columns'>
+            <div className='column'>
+                <PreviewSourceTabComponent currenTab={currenTab} />
+            </div>
+        </div>
+    );
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __PreviewSource.propTypes = {
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS]),
+        revealPreviewSource: React.PropTypes.bool.isRequired
+    };
+}
+
+const PreviewSource = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            revealPreviewSource: state[SHOW_PREVIEW_SOURCE_BUTTONS]
+        };
+    }
+
+)(__PreviewSource);
 
 const __CardContentTabs = function(props) {
 
@@ -448,17 +559,22 @@ const __CardContentTabs = function(props) {
                                     <span>{'Description'}</span>
                                 </a>
                             </li>
+                            <li
+                                className={classnames({
+                                    'is-active is-bold': currenTab === CARD_SETTINGS
+                                })}>
+                                <a
+                                    href='#description'
+                                    onClick={switchTab(dispatch, CARD_SETTINGS)}
+                                >
+                                    <span>{'Settings'}</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <div className='columns'>
-                <div className='column'>
-                    <RenderSourceTabComponent
-                        currenTab={currenTab}
-                    />
-                </div>
-            </div>
+            <PreviewSource currenTab={currenTab} />
             <div className='columns'>
                 <div className='column'>
                     <TabGroupComponent />
@@ -471,7 +587,7 @@ const __CardContentTabs = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     __CardContentTabs.propTypes = {
-        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS]),
         dispatch: React.PropTypes.func.isRequired
     };
 }
@@ -557,6 +673,7 @@ const __TabGroupComponent = function(props) {
     let questionStyle = {display: 'none'};
     let answerStyle = {display: 'none'};
     let descriptionStyle = {display: 'none'};
+    let settingsStyle = {display: 'none'};
 
     switch(props.currenTab) {
     case CARD_QUESTION:
@@ -567,6 +684,9 @@ const __TabGroupComponent = function(props) {
         break;
     case CARD_DESCRIPTION:
         descriptionStyle = {};
+        break;
+    case CARD_SETTINGS:
+        settingsStyle = {};
         break;
     }
 
@@ -596,13 +716,16 @@ const __TabGroupComponent = function(props) {
                     isEditing={false}
                 />
             </div>
+            <div key='settings' style={settingsStyle}>
+                <Settings />
+            </div>
         </div>
     );
 };
 
 if(process.env.NODE_ENV !== 'production') {
     __TabGroupComponent.propTypes = {
-        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS]),
         question: React.PropTypes.string.isRequired,
         answer: React.PropTypes.string.isRequired,
         description: React.PropTypes.string.isRequired,
@@ -638,13 +761,7 @@ const __Card = function(props) {
                     />
                 </div>
             </div>
-            <div className='columns'>
-                <div className='column'>
-                    <RenderSourceTitleComponent
-                        extraClasses='is-small'
-                    />
-                </div>
-            </div>
+            <PreviewSourceTitleComponentWrap />
             <CardContentTabs />
         </div>
     );
@@ -788,6 +905,23 @@ const switchTab = function(dispatch, newTab) {
     };
 };
 
+const switchRevealPreviewSource = function(dispatch) {
+    return function(event) {
+        dispatch(
+            reduceIn(
+                // reducer
+                boolReducer,
+                // path
+                [SHOW_PREVIEW_SOURCE_BUTTONS],
+                // action
+                {
+                    type: event.target.checked
+                }
+            )
+        );
+    };
+};
+
 /* redux reducers */
 
 const markdownViewReducer = require('reducers/markdown_view');
@@ -850,6 +984,7 @@ const initialState = {
 
     [IS_CONFIRM_SKIP]: false,
     [SHOW_MAIN_CONTROLS]: false,
+    [SHOW_PREVIEW_SOURCE_BUTTONS]: false,
 
     [CHOSEN_PERFORMANCE]: NOT_SELECTED
 
