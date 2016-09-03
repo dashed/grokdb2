@@ -25,6 +25,7 @@ const {
     CARD_ANSWER,
     CARD_IS_ACTIVE,
     CARD_SETTINGS,
+    CARD_META,
 
     POST_TO,
     VALUE,
@@ -397,6 +398,49 @@ const ReviewControls = function() {
 
 };
 
+const __Meta = function(props) {
+
+    let cachedReviewProcedure = props.cachedReviewProcedure;
+
+    try {
+        cachedReviewProcedure = JSON.parse(cachedReviewProcedure);
+    } catch(_err) {
+        return (
+            <div>
+                {'No meta info.'}
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <div className='columns'>
+                <div className='column'>
+                    <strong>{'This card was chosen for require via: '}</strong>
+                    {cachedReviewProcedure.sub_selection}
+                </div>
+            </div>
+        </div>
+    );
+
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __Meta.propTypes = {
+        cachedReviewProcedure: React.PropTypes.string.isRequired,
+    };
+}
+
+const Meta = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            cachedReviewProcedure: state[CARD_META] || ''
+        };
+    }
+
+)(__Meta);
+
 const __Settings = function(props) {
 
     const {dispatch, revealPreviewSourceChecked} = props;
@@ -469,7 +513,7 @@ const __AnswerTab = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     __AnswerTab.propTypes = {
-        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS]),
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS, CARD_META]),
         dispatch: React.PropTypes.func.isRequired,
         shouldReveal: React.PropTypes.bool.isRequired,
     };
@@ -494,6 +538,10 @@ const __PreviewSource = function(props) {
         return null;
     }
 
+    if (currenTab === CARD_META) {
+        return null;
+    }
+
     if (!props.revealPreviewSource) {
         return null;
     }
@@ -509,7 +557,7 @@ const __PreviewSource = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     __PreviewSource.propTypes = {
-        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS]),
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS, CARD_META]),
         revealPreviewSource: React.PropTypes.bool.isRequired
     };
 }
@@ -564,10 +612,21 @@ const __CardContentTabs = function(props) {
                                     'is-active is-bold': currenTab === CARD_SETTINGS
                                 })}>
                                 <a
-                                    href='#description'
+                                    href='#settings'
                                     onClick={switchTab(dispatch, CARD_SETTINGS)}
                                 >
                                     <span>{'Settings'}</span>
+                                </a>
+                            </li>
+                            <li
+                                className={classnames({
+                                    'is-active is-bold': currenTab === CARD_META
+                                })}>
+                                <a
+                                    href='#meta'
+                                    onClick={switchTab(dispatch, CARD_META)}
+                                >
+                                    <span>{'Meta'}</span>
                                 </a>
                             </li>
                         </ul>
@@ -587,7 +646,7 @@ const __CardContentTabs = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     __CardContentTabs.propTypes = {
-        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS]),
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS, CARD_META]),
         dispatch: React.PropTypes.func.isRequired
     };
 }
@@ -674,6 +733,7 @@ const __TabGroupComponent = function(props) {
     let answerStyle = {display: 'none'};
     let descriptionStyle = {display: 'none'};
     let settingsStyle = {display: 'none'};
+    let metaStyle = {display: 'none'};
 
     switch(props.currenTab) {
     case CARD_QUESTION:
@@ -687,6 +747,9 @@ const __TabGroupComponent = function(props) {
         break;
     case CARD_SETTINGS:
         settingsStyle = {};
+        break;
+    case CARD_META:
+        metaStyle = {};
         break;
     }
 
@@ -719,13 +782,16 @@ const __TabGroupComponent = function(props) {
             <div key='settings' style={settingsStyle}>
                 <Settings />
             </div>
+            <div key='meta' style={metaStyle}>
+                <Meta />
+            </div>
         </div>
     );
 };
 
 if(process.env.NODE_ENV !== 'production') {
     __TabGroupComponent.propTypes = {
-        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS]),
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS, CARD_META]),
         question: React.PropTypes.string.isRequired,
         answer: React.PropTypes.string.isRequired,
         description: React.PropTypes.string.isRequired,
@@ -986,7 +1052,9 @@ const initialState = {
     [SHOW_MAIN_CONTROLS]: false,
     [SHOW_PREVIEW_SOURCE_BUTTONS]: false,
 
-    [CHOSEN_PERFORMANCE]: NOT_SELECTED
+    [CHOSEN_PERFORMANCE]: NOT_SELECTED,
+
+    [CARD_META]: ''
 
 };
 
