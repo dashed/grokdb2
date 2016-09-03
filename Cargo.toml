@@ -24,7 +24,7 @@ rev = "9901095dd4a10da39d41c4af501cd91380356abd"
 # version = "~0.2.5"
 
 [dependencies.hyper]
-version = "0.9.8"
+version = "0.9.10"
 
 # this is copied
 # [dependencies.reroute]
@@ -43,16 +43,16 @@ rev = "c5caa64979866aa7a99d60de595b74c7d9d4ad01"
 # rev = "5941f1d071157923203a278c16fbaddec4077932"
 
 [dependencies]
-clippy = {version = "*", optional = true}
-serde = "0.8"
-serde_json = "0.8"
-serde_macros = "0.8"
-regex = "0.1"
+clippy = {version = "0.0.87", optional = true}
+serde = "0.8.6"
+serde_json = { git = "https://github.com/serde-rs/json"}
+serde_macros = "0.8.6"
+regex = "0.1.73"
 # horrorshow = "0.5"
 url = "1.1"
 conduit-mime-types = "0.7.3"
 lazy_static = "0.2.1"
-mime = "0.2.0"
+mime = "0.2.2"
 matches = "0.1.2"
 time = "0.1.35"
 quick-error = "1.1.0"
@@ -63,7 +63,7 @@ guardian = "0.3.0"
 indoc = "0.1"
 random-wheel = { git = "https://github.com/dashed/random-wheel-rs", branch = "range-type" }
 rand = "0.3"
-libc = "0.2"
+libc = "0.2.12"
 
 [features]
 default = []
