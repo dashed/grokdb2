@@ -47,6 +47,14 @@ const CardTitle = React.createClass({
         assignField: React.PropTypes.object.isRequired
     },
 
+    getDefaultProps() {
+        return {
+            mathjaxify: false,
+            isEditing: false,
+            assignField: {}
+        };
+    },
+
     componentDidUpdate() {
 
         if(!MathJax) {
@@ -134,7 +142,7 @@ const CardTitle = React.createClass({
                             placeholder='Card Title'
                             autoFocus
                             disabled={!this.props.isEditing}
-                            {...assign({}, this.props.assignField)}
+                            {...assign({value: this.props.content}, this.props.assignField)}
                         />
                     </p>
                 </div>
