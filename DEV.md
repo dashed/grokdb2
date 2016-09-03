@@ -8,7 +8,12 @@ git
 sqlite3
 ```
 
-// TODO: other dependencies?
+### OSX 
+
+```sh
+brew install sqlite3
+```
+// TODO: other dependencies? libc
 
 ## Javascript
 
