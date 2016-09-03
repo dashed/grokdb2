@@ -402,9 +402,7 @@ const __Meta = function(props) {
 
     let cachedReviewProcedure = props.cachedReviewProcedure;
 
-    try {
-        cachedReviewProcedure = JSON.parse(cachedReviewProcedure);
-    } catch(_err) {
+    if(!cachedReviewProcedure || !cachedReviewProcedure.sub_selection) {
         return (
             <div>
                 {'No meta info.'}
@@ -427,7 +425,7 @@ const __Meta = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     __Meta.propTypes = {
-        cachedReviewProcedure: React.PropTypes.string.isRequired,
+        cachedReviewProcedure: React.PropTypes.object.isRequired,
     };
 }
 
@@ -435,7 +433,7 @@ const Meta = connect(
     // mapStateToProps
     (state) => {
         return {
-            cachedReviewProcedure: state[CARD_META] || ''
+            cachedReviewProcedure: state[CARD_META] || {}
         };
     }
 
@@ -1054,7 +1052,7 @@ const initialState = {
 
     [CHOSEN_PERFORMANCE]: NOT_SELECTED,
 
-    [CARD_META]: ''
+    [CARD_META]: {}
 
 };
 
