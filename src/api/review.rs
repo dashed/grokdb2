@@ -226,7 +226,11 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
         }
     }
 
-    let sub_selection = match choose_subselection(context.clone(), selection, &active_selection, probabilities.clone()) {
+    let sub_selection = match choose_subselection(
+        context.clone(),
+        selection,
+        &active_selection,
+        probabilities.clone()) {
         Err(why) => {
             return Err(why);
         },
@@ -245,7 +249,7 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
                 }
             }
         },
-        SubSelection::LeastRecentlyReviewed => {
+        SubSelection::ReadyForReview => {
             match get_card_ready_for_review(
                 context.clone(),
                 selection,
@@ -256,7 +260,7 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
                 }
             }
         },
-        SubSelection::ReadyForReview => {
+        SubSelection::LeastRecentlyReviewed => {
             match get_least_recently_reviewed_card(
                 context.clone(),
                 selection,
@@ -266,7 +270,7 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
                     return Err(why);
                 }
             }
-        }
+        },
     };
 
     let review_procedure = CachedReviewProcedure {
@@ -352,6 +356,9 @@ fn get_new_card<T>(
         }
     };
 
+    // TODO: dev mode
+    assert!(num_of_cards > 0);
+
     // TODO: top N percent of least recently created
 
     // Generate a random value in the range [0, num_of_cards)
@@ -381,6 +388,9 @@ fn get_card_ready_for_review<T>(
             return Err(why);
         }
     };
+
+    // TODO: dev mode
+    assert!(num_of_cards > 0);
 
     let upper_bound = (TOP_N_PERCENT * (num_of_cards as f64)).ceil() as ItemCount;
     // TODO: dev mode
