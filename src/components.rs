@@ -381,7 +381,8 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     ");
                 }
 
-                script(type="text/javascript", async, src="/assets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML") {}
+                // TODO: moved to the body
+                // script(type="text/javascript", async, src="/assets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML") {}
 
             }
             body {
@@ -481,6 +482,10 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         }
                     }
                 }
+
+                // scripts before body
+
+                script(type="text/javascript", src="/assets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML") {}
 
                 script(type="text/javascript", src="/assets/mathjax_inline.js") {}
 

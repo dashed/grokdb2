@@ -42484,8 +42484,6 @@
 	
 	        var chosenPerformance = props[CHOSEN_PERFORMANCE];
 	
-	        console.log(chosenPerformance);
-	
 	        if (chosenPerformance === NOT_SELECTED) {
 	            return React.createElement(
 	                'a',

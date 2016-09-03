@@ -34,6 +34,15 @@ const {
 
 const {reduceIn} = require('lib/redux-tree');
 
+// TODO: move to constants?
+const SHOW_MAIN_CONTROLS = 'SHOW_MAIN_CONTROLS';
+
+const CHOSEN_PERFORMANCE = 'CHOSEN_PERFORMANCE';
+const NOT_SELECTED = 'NOT_SELECTED';
+const RIGHT = 'RIGHT';
+const WRONG = 'WRONG';
+const FORGOT = 'FORGOT';
+
 /* react components */
 
 const __PerformanceControls = function(props) {
@@ -50,22 +59,43 @@ const __PerformanceControls = function(props) {
         return null;
     }
 
+    const chosenPerformance = props[CHOSEN_PERFORMANCE];
+
+    const rightClassValue = chosenPerformance != RIGHT;
+    const wrongClassValue = chosenPerformance != WRONG;
+    const forgotClassValue = chosenPerformance != FORGOT;
     return (
         <div className='columns'>
             <div className='column is-one-third'>
-                <a className='button is-success is-fullwidth is-bold is-outlined'>
+                <a
+                    className={classnames('button is-success is-fullwidth is-bold',
+                        {
+                            'is-outlined': rightClassValue
+                        })}
+                    onClick={switchPerformance(props.dispatch, RIGHT)}
+                >
                     {'Right'}
                 </a>
             </div>
             <div className='column is-one-third'>
-                <a className='button is-danger is-fullwidth is-bold is-outlined'>
+                <a
+                    className={classnames('button is-danger is-fullwidth is-bold',
+                        {
+                            'is-outlined': wrongClassValue
+                        })}
+                    onClick={switchPerformance(props.dispatch, WRONG)}
+                >
                     {'Wrong'}
                 </a>
             </div>
             <div className='column is-one-third'>
                 <a
-                    className='button is-warning is-fullwidth is-bold is-outlined'
+                    className={classnames('button is-warning is-fullwidth is-bold',
+                        {
+                            'is-outlined': forgotClassValue
+                        })}
                     style={{color: '#978b52'}}
+                    onClick={switchPerformance(props.dispatch, FORGOT)}
                 >
                     {'Forgot'}
                 </a>
@@ -77,7 +107,14 @@ const __PerformanceControls = function(props) {
 if(process.env.NODE_ENV !== 'production') {
     __PerformanceControls.propTypes = {
         [IS_CONFIRM_SKIP]: React.PropTypes.bool.isRequired,
-        [SHOW_MAIN_CONTROLS]: React.PropTypes.bool.isRequired
+        [SHOW_MAIN_CONTROLS]: React.PropTypes.bool.isRequired,
+        [CHOSEN_PERFORMANCE]: React.PropTypes.oneOf([
+            NOT_SELECTED,
+            FORGOT,
+            RIGHT,
+            WRONG
+        ]),
+        dispatch: React.PropTypes.func.isRequired
     };
 }
 
@@ -86,7 +123,8 @@ const PerformanceControls = connect(
     (state) => {
         return {
             [IS_CONFIRM_SKIP]: state[IS_CONFIRM_SKIP],
-            [SHOW_MAIN_CONTROLS]: state[SHOW_MAIN_CONTROLS]
+            [SHOW_MAIN_CONTROLS]: state[SHOW_MAIN_CONTROLS],
+            [CHOSEN_PERFORMANCE]: state[CHOSEN_PERFORMANCE]
         };
     }
 
@@ -98,6 +136,16 @@ const __CommitButton = function(props) {
 
     if(showMainControls) {
 
+        const chosenPerformance = props[CHOSEN_PERFORMANCE];
+
+        if(chosenPerformance === NOT_SELECTED) {
+            return (
+                <a className='button is-fullwidth is-bold is-disabled'>
+                    {'How well did you answer the card?'}
+                </a>
+            );
+        }
+
         return (
             <a
                 href='#next_card'
@@ -106,7 +154,6 @@ const __CommitButton = function(props) {
                 {'Next Card'}
             </a>
         );
-
     }
 
     const {dispatch} = props;
@@ -124,7 +171,14 @@ const __CommitButton = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     __CommitButton.propTypes = {
-        [SHOW_MAIN_CONTROLS]: React.PropTypes.bool.isRequired
+        [SHOW_MAIN_CONTROLS]: React.PropTypes.bool.isRequired,
+        dispatch: React.PropTypes.func.isRequired,
+        [CHOSEN_PERFORMANCE]: React.PropTypes.oneOf([
+            NOT_SELECTED,
+            FORGOT,
+            RIGHT,
+            WRONG
+        ]),
     };
 }
 
@@ -132,7 +186,8 @@ const CommitButton = connect(
     // mapStateToProps
     (state) => {
         return {
-            [SHOW_MAIN_CONTROLS]: state[SHOW_MAIN_CONTROLS]
+            [SHOW_MAIN_CONTROLS]: state[SHOW_MAIN_CONTROLS],
+            [CHOSEN_PERFORMANCE]: state[CHOSEN_PERFORMANCE]
         };
     }
 
@@ -189,7 +244,8 @@ const __MainControls = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     __MainControls.propTypes = {
-        [IS_CONFIRM_SKIP]: React.PropTypes.bool.isRequired
+        [IS_CONFIRM_SKIP]: React.PropTypes.bool.isRequired,
+        dispatch: React.PropTypes.func.isRequired
     };
 }
 
@@ -241,7 +297,7 @@ const shouldConfirmSkip = function(dispatch, isConfirming) {
                 }
             )
         );
-    }
+    };
 };
 
 const shouldRevealAnswer = function(dispatch, shouldReveal) {
@@ -259,16 +315,53 @@ const shouldRevealAnswer = function(dispatch, shouldReveal) {
                 }
             )
         );
-    }
+    };
 };
+
+const switchPerformance = function(dispatch, performanceValue) {
+    return function(event) {
+        event.preventDefault();
+        dispatch(
+            reduceIn(
+                // reducer
+                performanceReducer,
+                // path
+                [CHOSEN_PERFORMANCE],
+                // action
+                {
+                    type: performanceValue
+                }
+            )
+        );
+    };
+}
 
 /* redux reducers */
 
 const boolReducer = require('reducers/bool');
 
-/* default state */
+const performanceReducer = function(state = NOT_SELECTED, action) {
 
-const SHOW_MAIN_CONTROLS = 'SHOW_MAIN_CONTROLS';
+    switch(action.type) {
+    case NOT_SELECTED:
+    case RIGHT:
+    case WRONG:
+    case FORGOT:
+        if(state === action.type && state != NOT_SELECTED) {
+            state = NOT_SELECTED;
+        } else {
+            state = action.type;
+        }
+
+        break;
+    default:
+        state = NOT_SELECTED;
+    }
+
+    return state;
+}
+
+/* default state */
 
 const initialState = {
 
@@ -302,7 +395,9 @@ const initialState = {
     },
 
     [IS_CONFIRM_SKIP]: false,
-    [SHOW_MAIN_CONTROLS]: false
+    [SHOW_MAIN_CONTROLS]: false,
+
+    [CHOSEN_PERFORMANCE]: NOT_SELECTED
 
 };
 

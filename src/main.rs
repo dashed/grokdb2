@@ -1,4 +1,4 @@
-#![feature(custom_derive, plugin)]
+#![feature(plugin, custom_derive)]
 #![plugin(serde_macros)]
 #![plugin(indoc)]
 #![cfg_attr(feature="clippy", feature(plugin))]
