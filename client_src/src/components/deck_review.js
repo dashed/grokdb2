@@ -224,21 +224,20 @@ const __MainControls = function(props) {
     }
 
     return (
-
-            <div className='columns'>
-                <div className='column is-two-thirds'>
-                    <CommitButton />
-                </div>
-                <div className='column is-one-third'>
-                    <a
-                        href='#confirm_skip'
-                        className='button is-danger is-fullwidth is-bold'
-                        onClick={shouldConfirmSkip(dispatch, true)}
-                    >
-                        {'Skip Card'}
-                    </a>
-                </div>
+        <div className='columns'>
+            <div className='column is-two-thirds'>
+                <CommitButton />
             </div>
+            <div className='column is-one-third'>
+                <a
+                    href='#confirm_skip'
+                    className='button is-danger is-fullwidth is-bold'
+                    onClick={shouldConfirmSkip(dispatch, true)}
+                >
+                    {'Skip Card'}
+                </a>
+            </div>
+        </div>
     );
 };
 
@@ -259,12 +258,71 @@ const MainControls = connect(
 
 )(__MainControls);
 
+const AdvancedControls = function() {
+
+    return (
+        <div>
+            <div className='columns'>
+                <div className='column'>
+                    <hr className='is-marginless'/>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <h4 className='title is-4'>{'Advanced Review Controls'}</h4>
+                </div>
+            </div>
+
+            <div className='columns'>
+                <div className='column'>
+                    <h5 className='title is-5'>{'Amount of time to wait to pick this card for review'}</h5>
+                </div>
+            </div>
+
+            <div className='columns'>
+                <div className='column is-two-thirds'>
+                    <input className='input' type='number' min='1' value='3' />
+                </div>
+                <div className='column is-one-third'>
+                    <div className='tabs is-toggle is-fullwidth'>
+                        <ul>
+                            <li>
+                                <a>
+                                    {'Minutes'}
+                                </a>
+                            </li>
+                            <li>
+                                <a>
+                                    {'Hours'}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div className='columns'>
+                <div className='column'>
+                    <h5 className='title is-5'>{'Number of other cards to review before picking this card for review'}</h5>
+                </div>
+            </div>
+
+            <div className='columns'>
+                <div className='column'>
+                    <input className='input' type='number' min='0' value='1' />
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const ReviewControls = function(props) {
 
     return (
         <div>
             <MainControls />
             <PerformanceControls />
+            <AdvancedControls />
         </div>
     );
 
