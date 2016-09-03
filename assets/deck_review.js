@@ -42382,6 +42382,16 @@
 	
 	var reduceIn = _require3.reduceIn;
 	
+	// TODO: move to constants?
+	
+	var SHOW_MAIN_CONTROLS = 'SHOW_MAIN_CONTROLS';
+	
+	var CHOSEN_PERFORMANCE = 'CHOSEN_PERFORMANCE';
+	var NOT_SELECTED = 'NOT_SELECTED';
+	var RIGHT = 'RIGHT';
+	var WRONG = 'WRONG';
+	var FORGOT = 'FORGOT';
+	
 	/* react components */
 	
 	var __PerformanceControls = function __PerformanceControls(props) {
@@ -42398,6 +42408,11 @@
 	        return null;
 	    }
 	
+	    var chosenPerformance = props[CHOSEN_PERFORMANCE];
+	
+	    var rightClassValue = chosenPerformance != RIGHT;
+	    var wrongClassValue = chosenPerformance != WRONG;
+	    var forgotClassValue = chosenPerformance != FORGOT;
 	    return React.createElement(
 	        'div',
 	        { className: 'columns' },
@@ -42406,7 +42421,12 @@
 	            { className: 'column is-one-third' },
 	            React.createElement(
 	                'a',
-	                { className: 'button is-success is-fullwidth is-bold is-outlined' },
+	                {
+	                    className: classnames('button is-success is-fullwidth is-bold', {
+	                        'is-outlined': rightClassValue
+	                    }),
+	                    onClick: switchPerformance(props.dispatch, RIGHT)
+	                },
 	                'Right'
 	            )
 	        ),
@@ -42415,7 +42435,12 @@
 	            { className: 'column is-one-third' },
 	            React.createElement(
 	                'a',
-	                { className: 'button is-danger is-fullwidth is-bold is-outlined' },
+	                {
+	                    className: classnames('button is-danger is-fullwidth is-bold', {
+	                        'is-outlined': wrongClassValue
+	                    }),
+	                    onClick: switchPerformance(props.dispatch, WRONG)
+	                },
 	                'Wrong'
 	            )
 	        ),
@@ -42425,8 +42450,11 @@
 	            React.createElement(
 	                'a',
 	                {
-	                    className: 'button is-warning is-fullwidth is-bold is-outlined',
-	                    style: { color: '#978b52' }
+	                    className: classnames('button is-warning is-fullwidth is-bold', {
+	                        'is-outlined': forgotClassValue
+	                    }),
+	                    style: { color: '#978b52' },
+	                    onClick: switchPerformance(props.dispatch, FORGOT)
 	                },
 	                'Forgot'
 	            )
@@ -42437,7 +42465,7 @@
 	if (true) {
 	    var _PerformanceControls;
 	
-	    __PerformanceControls.propTypes = (_PerformanceControls = {}, (0, _defineProperty3.default)(_PerformanceControls, IS_CONFIRM_SKIP, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), _PerformanceControls);
+	    __PerformanceControls.propTypes = (_PerformanceControls = {}, (0, _defineProperty3.default)(_PerformanceControls, IS_CONFIRM_SKIP, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, CHOSEN_PERFORMANCE, React.PropTypes.oneOf([NOT_SELECTED, FORGOT, RIGHT, WRONG])), (0, _defineProperty3.default)(_PerformanceControls, 'dispatch', React.PropTypes.func.isRequired), _PerformanceControls);
 	}
 	
 	var PerformanceControls = connect(
@@ -42445,7 +42473,7 @@
 	function (state) {
 	    var _ref;
 	
-	    return _ref = {}, (0, _defineProperty3.default)(_ref, IS_CONFIRM_SKIP, state[IS_CONFIRM_SKIP]), (0, _defineProperty3.default)(_ref, SHOW_MAIN_CONTROLS, state[SHOW_MAIN_CONTROLS]), _ref;
+	    return _ref = {}, (0, _defineProperty3.default)(_ref, IS_CONFIRM_SKIP, state[IS_CONFIRM_SKIP]), (0, _defineProperty3.default)(_ref, SHOW_MAIN_CONTROLS, state[SHOW_MAIN_CONTROLS]), (0, _defineProperty3.default)(_ref, CHOSEN_PERFORMANCE, state[CHOSEN_PERFORMANCE]), _ref;
 	})(__PerformanceControls);
 	
 	var __CommitButton = function __CommitButton(props) {
@@ -42453,6 +42481,18 @@
 	    var showMainControls = props[SHOW_MAIN_CONTROLS];
 	
 	    if (showMainControls) {
+	
+	        var chosenPerformance = props[CHOSEN_PERFORMANCE];
+	
+	        console.log(chosenPerformance);
+	
+	        if (chosenPerformance === NOT_SELECTED) {
+	            return React.createElement(
+	                'a',
+	                { className: 'button is-fullwidth is-bold is-disabled' },
+	                'How well did you answer the card?'
+	            );
+	        }
 	
 	        return React.createElement(
 	            'a',
@@ -42479,13 +42519,17 @@
 	};
 	
 	if (true) {
-	    __CommitButton.propTypes = (0, _defineProperty3.default)({}, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired);
+	    var _CommitButton$propTy;
+	
+	    __CommitButton.propTypes = (_CommitButton$propTy = {}, (0, _defineProperty3.default)(_CommitButton$propTy, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'dispatch', React.PropTypes.func.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, CHOSEN_PERFORMANCE, React.PropTypes.oneOf([NOT_SELECTED, FORGOT, RIGHT, WRONG])), _CommitButton$propTy);
 	}
 	
 	var CommitButton = connect(
 	// mapStateToProps
 	function (state) {
-	    return (0, _defineProperty3.default)({}, SHOW_MAIN_CONTROLS, state[SHOW_MAIN_CONTROLS]);
+	    var _ref2;
+	
+	    return _ref2 = {}, (0, _defineProperty3.default)(_ref2, SHOW_MAIN_CONTROLS, state[SHOW_MAIN_CONTROLS]), (0, _defineProperty3.default)(_ref2, CHOSEN_PERFORMANCE, state[CHOSEN_PERFORMANCE]), _ref2;
 	})(__CommitButton);
 	
 	var __MainControls = function __MainControls(props) {
@@ -42550,7 +42594,9 @@
 	};
 	
 	if (true) {
-	    __MainControls.propTypes = (0, _defineProperty3.default)({}, IS_CONFIRM_SKIP, React.PropTypes.bool.isRequired);
+	    var _MainControls$propTy;
+	
+	    __MainControls.propTypes = (_MainControls$propTy = {}, (0, _defineProperty3.default)(_MainControls$propTy, IS_CONFIRM_SKIP, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_MainControls$propTy, 'dispatch', React.PropTypes.func.isRequired), _MainControls$propTy);
 	}
 	
 	var MainControls = connect(
@@ -42611,15 +42657,52 @@
 	    };
 	};
 	
+	var switchPerformance = function switchPerformance(dispatch, performanceValue) {
+	    return function (event) {
+	        event.preventDefault();
+	        dispatch(reduceIn(
+	        // reducer
+	        performanceReducer,
+	        // path
+	        [CHOSEN_PERFORMANCE],
+	        // action
+	        {
+	            type: performanceValue
+	        }));
+	    };
+	};
+	
 	/* redux reducers */
 	
 	var boolReducer = __webpack_require__(899);
 	
+	var performanceReducer = function performanceReducer() {
+	    var state = arguments.length <= 0 || arguments[0] === undefined ? NOT_SELECTED : arguments[0];
+	    var action = arguments[1];
+	
+	
+	    switch (action.type) {
+	        case NOT_SELECTED:
+	        case RIGHT:
+	        case WRONG:
+	        case FORGOT:
+	            if (state === action.type && state != NOT_SELECTED) {
+	                state = NOT_SELECTED;
+	            } else {
+	                state = action.type;
+	            }
+	
+	            break;
+	        default:
+	            state = NOT_SELECTED;
+	    }
+	
+	    return state;
+	};
+	
 	/* default state */
 	
-	var SHOW_MAIN_CONTROLS = 'SHOW_MAIN_CONTROLS';
-	
-	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, CARD_TITLE, (_CARD_TITLE = {}, (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_CONTENTS, ''), _CARD_TITLE)), (0, _defineProperty3.default)(_initialState, CURRENT_TAB, CARD_QUESTION), (0, _defineProperty3.default)(_initialState, CARD_DESCRIPTION, (_CARD_DESCRIPTION = {}, (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_CONTENTS, ''), _CARD_DESCRIPTION)), (0, _defineProperty3.default)(_initialState, CARD_QUESTION, (_CARD_QUESTION = {}, (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_CONTENTS, ''), _CARD_QUESTION)), (0, _defineProperty3.default)(_initialState, CARD_ANSWER, (_CARD_ANSWER = {}, (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_CONTENTS, ''), _CARD_ANSWER)), (0, _defineProperty3.default)(_initialState, CARD_IS_ACTIVE, (0, _defineProperty3.default)({}, VALUE, true)), (0, _defineProperty3.default)(_initialState, IS_CONFIRM_SKIP, false), (0, _defineProperty3.default)(_initialState, SHOW_MAIN_CONTROLS, false), _initialState);
+	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, CARD_TITLE, (_CARD_TITLE = {}, (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_CONTENTS, ''), _CARD_TITLE)), (0, _defineProperty3.default)(_initialState, CURRENT_TAB, CARD_QUESTION), (0, _defineProperty3.default)(_initialState, CARD_DESCRIPTION, (_CARD_DESCRIPTION = {}, (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_CONTENTS, ''), _CARD_DESCRIPTION)), (0, _defineProperty3.default)(_initialState, CARD_QUESTION, (_CARD_QUESTION = {}, (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_CONTENTS, ''), _CARD_QUESTION)), (0, _defineProperty3.default)(_initialState, CARD_ANSWER, (_CARD_ANSWER = {}, (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_CONTENTS, ''), _CARD_ANSWER)), (0, _defineProperty3.default)(_initialState, CARD_IS_ACTIVE, (0, _defineProperty3.default)({}, VALUE, true)), (0, _defineProperty3.default)(_initialState, IS_CONFIRM_SKIP, false), (0, _defineProperty3.default)(_initialState, SHOW_MAIN_CONTROLS, false), (0, _defineProperty3.default)(_initialState, CHOSEN_PERFORMANCE, NOT_SELECTED), _initialState);
 	
 	/* exports */
 	

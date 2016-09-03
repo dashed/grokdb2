@@ -65,7 +65,7 @@ mod components;
 
 use context::{Context};
 use log_entry::LogEntry;
-use api::{configs, decks};
+use api::{configs, decks, cards};
 use route::parse_request_uri;
 use route::{RenderResponse, render_response};
 use types::DeckID;
@@ -150,6 +150,58 @@ fn main() {
 
     // freeze root_deck_id
     let root_deck_id = root_deck_id;
+
+    // TODO: debug
+    {
+
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+
+        let _read_guard = context::write_lock(context.clone());
+
+        for deck_num in 1..105 {
+
+            let request = decks::CreateDeck {
+                name: format!("deck {}", deck_num),
+                description: format!("description for deck {}", deck_num),
+            };
+
+            match decks::create_deck(context.clone(), request) {
+                Ok(deck) => {
+
+                    match decks::connect_decks(context.clone(), deck.id, root_deck_id) {
+                        Ok(_) => assert!(true),
+                        Err(_) => assert!(false)
+                    }
+                },
+                Err(_) => assert!(false),
+            }
+        }
+    };
+
+    {
+
+        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+
+        let _read_guard = context::write_lock(context.clone());
+
+        for card_num in 1..105 {
+
+            let request = cards::CreateCard {
+                title: format!("card num {}", card_num),
+                description: format!("card description {}", card_num),
+                question: format!("card question {}", card_num),
+                answer: format!("card answer {}", card_num),
+                is_active: card_num % 2 == 0
+            };
+
+            match cards::create_card(context.clone(), 1, request) {
+                Ok(_) => {
+                },
+                Err(_) => assert!(false),
+            }
+        }
+    };
+
 
     println!("Root deck id: {}", root_deck_id);
 
