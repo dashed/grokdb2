@@ -113,13 +113,19 @@ pub enum ReviewAction {
 pub struct RawReviewRequest {
     card_id: CardID,
     review_action: ReviewAction,
-    review_after: Option<Minutes>
+
+    time_till_available_for_review: Option<Minutes>,
+    cards_till_available_for_review: Option<ItemCount>,
+}
+
 }
 
 pub struct ReviewRequest {
     card_id: CardID,
     review_action: ReviewAction,
-    review_after: Minutes
+
+    time_till_available_for_review: Minutes,
+    cards_till_available_for_review: ItemCount,
 }
 
 pub trait Reviewable {

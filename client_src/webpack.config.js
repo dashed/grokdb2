@@ -68,7 +68,7 @@ module.exports = {
         deck_card_profile: "./src/deck_card_profile.js",
         deck_review: "./src/deck_review.js",
 
-        // TODO: remove; not used
+        // TODO: complete this... this is optmization step
         // vendor: vendor
     },
 
