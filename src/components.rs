@@ -213,12 +213,20 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                 },
                 DeckRoute::Review(ref card_for_review) => {
 
-                    let card_id = match *card_for_review {
+                    let (card_id, card_meta) = match *card_for_review {
                         None => {
                             return;
                         },
-                        Some((card_id, _)) => {
-                            card_id
+                        Some((card_id, ref cached_review_procedure)) => {
+
+                            let card_meta = match *cached_review_procedure {
+                                None => "".to_string(),
+                                Some(ref cached_review_procedure) => {
+                                    serde_json::to_string(cached_review_procedure).unwrap()
+                                }
+                            };
+
+                            (card_id, card_meta)
                         }
                     };
 
@@ -273,7 +281,8 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                         CARD_DESCRIPTION: {card_description},\
                                         CARD_QUESTION: {card_question},\
                                         CARD_ANSWER: {card_answer},\
-                                        CARD_IS_ACTIVE: {card_is_active}\
+                                        CARD_IS_ACTIVE: {card_is_active},\
+                                        CARD_META: {card_meta}\
                                     }};\
                                 ",
                                 deck_id = deck_id,
@@ -281,7 +290,8 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 card_description = card_description,
                                 card_question = card_question,
                                 card_answer = card_answer,
-                                card_is_active = card_is_active
+                                card_is_active = card_is_active,
+                                card_meta = card_meta
                             )
                         )
                     }
