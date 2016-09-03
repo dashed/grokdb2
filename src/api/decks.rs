@@ -654,7 +654,7 @@ impl Reviewable for Deck {
         };
 
         let query = format!("
-            INSERT OR REPLACE INTO CachedDeckReview(deck, card, cached_review_procedure)
+            INSERT OR REPLACE INTO CachedDeckReview(deck_id, card_id, cached_review_procedure)
             VALUES (:deck_id, :card_id, :cached_review_procedure);
         ");
 

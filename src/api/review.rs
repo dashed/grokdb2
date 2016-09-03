@@ -21,14 +21,14 @@ static TOP_N_PERCENT: f64 = 0.5;
 type Percent = f64;
 
 // limits cards to: active, inactive, or either/any
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum ActiveSelection {
     Active,
     Inactive,
     All
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum SubSelection {
     NewCards,
     LeastRecentlyReviewed,
@@ -82,7 +82,7 @@ impl Default for SubSelectionProbabilities {
 // }
 
 // struct containing the information on how a card was chosen for review
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CachedReviewProcedure {
 
     // within a group of cards (e.g. deck or stash)
@@ -194,6 +194,7 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
 
     match selection.get_cached_card(context.clone()) {
         Err(why) => {
+            // TODO: internal error logging
             return Err(why);
         },
         Ok(Some((card_id, cached_review_procedure))) => {
@@ -209,6 +210,7 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
     let probabilities: SubSelectionProbabilities = Default::default();
 
     if !probabilities.valid() {
+        // TODO: internal error logging
         let err = RawAPIError::BadInput("get_review_card", "Invalid sub-selection probabilities.");
         return Err(err);
     }
@@ -216,6 +218,7 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
     // ensure there are cards to review
     match selection.have_cards_for_review(context.clone(), &active_selection) {
         Err(why) => {
+            // TODO: internal error logging
             return Err(why);
         },
         Ok(false) => {
@@ -232,6 +235,7 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
         &active_selection,
         probabilities.clone()) {
         Err(why) => {
+            // TODO: internal error logging
             return Err(why);
         },
         Ok(sub_selection) => sub_selection
@@ -245,6 +249,7 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
                 &active_selection) {
                 Ok(card_id) => card_id,
                 Err(why) => {
+                    // TODO: internal error logging
                     return Err(why);
                 }
             }
@@ -256,6 +261,7 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
                 &active_selection) {
                 Ok(card_id) => card_id,
                 Err(why) => {
+                    // TODO: internal error logging
                     return Err(why);
                 }
             }
@@ -267,21 +273,28 @@ pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
                 &active_selection) {
                 Ok(card_id) => card_id,
                 Err(why) => {
+                    // TODO: internal error logging
                     return Err(why);
                 }
             }
         },
     };
 
-    let review_procedure = CachedReviewProcedure {
+    let cached_review_procedure = CachedReviewProcedure {
         active_selection: active_selection,
         sub_selection: sub_selection,
         sub_selection_prob: probabilities
     };
 
-    // TODO: cache
+    match selection.set_cache_card(context.clone(), card_id, cached_review_procedure.clone()) {
+        Ok(_) => {},
+        Err(why) => {
+            // TODO: internal error logging
+            return Err(why);
+        }
+    }
 
-    return Ok(Some((card_id, Some(review_procedure))));
+    return Ok(Some((card_id, Some(cached_review_procedure))));
 
 }
 
