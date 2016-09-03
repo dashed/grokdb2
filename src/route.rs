@@ -48,6 +48,7 @@ use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
 use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
 use api::cards;
+use api::review::{self, CachedReviewProcedure};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -99,7 +100,7 @@ pub enum DeckRoute {
     Settings(DeckSettings),
 
     Stats,
-    Review,
+    Review(Option<(CardID, Option<CachedReviewProcedure>)>),
 
     CardProfile(CardID, CardRoute)
 
@@ -922,21 +923,26 @@ fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
 
     }).bind(|i, deck_id| {
 
-        let _guard = context::read_lock(context.clone());
+        let exists = {
 
-        match decks::deck_exists(context.clone(), deck_id) {
-            Ok(exists) => {
+            let _guard = context::read_lock(context.clone());
 
-                if exists {
-                    __parse_route_deck(i, context.clone(), request, deck_id)
-                } else {
-                    i.ret(RenderResponse::RenderNotFound)
+            match decks::deck_exists(context.clone(), deck_id) {
+                Ok(exists) => exists,
+                Err(_) => {
+                    // TODO: internal error logging
+                    return i.ret(RenderResponse::RenderInternalServerError);
                 }
+            }
 
-            },
-            // TODO: internal error logging
-            Err(_) => i.ret(RenderResponse::RenderInternalServerError)
+        };
+
+        if exists {
+            __parse_route_deck(i, context.clone(), request, deck_id)
+        } else {
+            i.ret(RenderResponse::RenderNotFound)
         }
+
 
     })
 }
@@ -956,7 +962,7 @@ fn __parse_route_deck<'a>(
 
             let render_response =
                 // /review
-                parse_route_deck_review(request.clone(), deck_id) <|>
+                parse_route_deck_review(context.clone(), request.clone(), deck_id) <|>
                 // /decks
                 parse_route_deck_decks(context.clone(), request.clone(), deck_id) <|>
                 // /cards
@@ -1036,8 +1042,7 @@ fn parse_route_deck_stats<'a>(
 #[inline]
 fn parse_route_deck_review<'a>(
     input: Input<'a, u8>,
-    // NOTE: not needed
-    // context: Rc<RefCell<Context>>,
+    context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
     parse!{input;
@@ -1058,7 +1063,29 @@ fn parse_route_deck_review<'a>(
             if request.borrow().method != Method::Get {
                 RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
             } else {
-                let route = AppRoute::Deck(deck_id, DeckRoute::Review);
+
+                let _guard = context::write_lock(context.clone());
+
+                let deck = match decks::get_deck(context.clone(), deck_id) {
+                    Ok(deck) => deck,
+                    Err(why) => {
+                        // TODO: internal error logging
+                        panic!("{:?}", why);
+                    }
+                };
+
+
+                let deck_route = match review::get_review_card(context, &deck) {
+                    Ok(result) => {
+                        DeckRoute::Review(result)
+                    },
+                    Err(why) => {
+                        // TODO: internal error logging
+                        panic!("{:?}", why);
+                    }
+                };
+
+                let route = AppRoute::Deck(deck_id, deck_route);
                 RenderResponse::RenderComponent(route)
             }
         }

@@ -23,6 +23,7 @@ use route::{AppRoute, RenderResponse, DeckRoute, CardRoute, DeckSettings};
 use context::{self, Context};
 use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, SortOrderable};
 use api::{decks, cards};
+use api::review::{self, CachedReviewProcedure};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -63,7 +64,7 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
                 DeckRoute::NewCard => format!("/deck/{}/new/card", deck_id),
                 DeckRoute::Description => format!("/deck/{}/description", deck_id),
                 DeckRoute::Stats => format!("/deck/{}/stats", deck_id),
-                DeckRoute::Review => format!("/deck/{}/review", deck_id),
+                DeckRoute::Review(_) => format!("/deck/{}/review", deck_id),
                 DeckRoute::Settings(ref setting_mode) => {
                     match *setting_mode {
                         DeckSettings::Main => format!("/deck/{}/settings", deck_id),
@@ -210,9 +211,80 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         )
                     }
                 },
-                DeckRoute::Review => {
+                DeckRoute::Review(ref card_for_review) => {
 
-                    // TODO: complete
+                    let card_id = match *card_for_review {
+                        None => {
+                            return;
+                        },
+                        Some((card_id, _)) => {
+                            card_id
+                        }
+                    };
+
+                    let (card_title,
+                        card_description,
+                        card_question,
+                        card_answer,
+                        card_is_active) = match cards::get_card(context.clone(), card_id) {
+                        Ok(card) => {
+
+                            let card_title = MarkdownContents {
+                                MARKDOWN_CONTENTS: card.title
+                            };
+                            let card_title = serde_json::to_string(&card_title).unwrap();
+
+                            let card_description = MarkdownContents {
+                                MARKDOWN_CONTENTS: card.description
+                            };
+                            let card_description = serde_json::to_string(&card_description).unwrap();
+
+                            let card_question = MarkdownContents {
+                                MARKDOWN_CONTENTS: card.question
+                            };
+                            let card_question = serde_json::to_string(&card_question).unwrap();
+
+                            let card_answer = MarkdownContents {
+                                MARKDOWN_CONTENTS: card.answer
+                            };
+                            let card_answer = serde_json::to_string(&card_answer).unwrap();
+
+                            let is_active = BoolContents {
+                                VALUE: card.is_active
+                            };
+                            let is_active = serde_json::to_string(&is_active).unwrap();
+
+                            (card_title, card_description, card_question, card_answer, is_active)
+                        },
+                        Err(_) => {
+                            // TODO: internal error logging
+                            panic!();
+                        }
+                    };
+
+
+                    tmpl << html! {
+                        : raw!(
+                            format!(
+                                "window.__PRE_RENDER_STATE__ = \
+                                    {{\
+                                        POST_TO: '/api/deck/{deck_id}/review',\
+                                        CARD_TITLE: {card_title},\
+                                        CARD_DESCRIPTION: {card_description},\
+                                        CARD_QUESTION: {card_question},\
+                                        CARD_ANSWER: {card_answer},\
+                                        CARD_IS_ACTIVE: {card_is_active}\
+                                    }};\
+                                ",
+                                deck_id = deck_id,
+                                card_title = card_title,
+                                card_description = card_description,
+                                card_question = card_question,
+                                card_answer = card_answer,
+                                card_is_active = card_is_active
+                            )
+                        )
+                    }
 
                 },
                 DeckRoute::CardProfile(card_id, ref card_route) => {
@@ -573,17 +645,24 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 script(type="text/javascript", src="/assets/deck_card_profile.js") {}
                             }
                         },
-                        AppRoute::Deck(_, DeckRoute::Review) =>  {
-                            tmpl << html! {
+                        AppRoute::Deck(_, DeckRoute::Review(ref card_for_review)) =>  {
 
-                                script(type="text/javascript") {
-                                    |tmpl| {
-                                        pre_render_state(tmpl, context.clone(), &app_route);
+                            if card_for_review.is_some() {
+
+                                tmpl << html! {
+
+                                    script(type="text/javascript") {
+                                        |tmpl| {
+                                            pre_render_state(tmpl, context.clone(), &app_route);
+                                        }
                                     }
+
+                                    script(type="text/javascript", src="/assets/deck_review.js") {}
                                 }
 
-                                script(type="text/javascript", src="/assets/deck_review.js") {}
                             }
+
+
                         },
                         _ => {
                             // NOTE: No script here
@@ -742,11 +821,12 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             card_route
                         )
                     },
-                    DeckRoute::Review => {
+                    DeckRoute::Review(ref card_for_review) => {
                         DeckReview(
                             tmpl,
                             context.clone(),
-                            deck_id
+                            deck_id,
+                            card_for_review
                         )
                     },
                     DeckRoute::Stats => {
@@ -848,11 +928,11 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             li {
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
-                                        DeckRoute::Review)),
+                                        DeckRoute::Review(None))),
                                     class? = classnames!(
                                         "is-bold",
                                         "is-active" => {
-                                            matches!(*deck_route, DeckRoute::Review)
+                                            matches!(*deck_route, DeckRoute::Review(_))
                                         })
                                 ) {
                                     : "Review"
@@ -1444,7 +1524,35 @@ fn CardsPaginationComponent(tmpl: &mut TemplateBuffer,
 fn DeckReview(
     tmpl: &mut TemplateBuffer,
     context: Rc<RefCell<Context>>,
-    deck_id: DeckID) {
+    deck_id: DeckID,
+    card_for_review: &Option<(CardID, Option<CachedReviewProcedure>)>) {
+
+    if card_for_review.is_none() {
+
+        tmpl << html!{
+
+            div(class="columns") {
+                div(class="column") {
+                    h1(class="title") {
+                        : raw!("Reviewing Cards in this Deck")
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    article(class="message") {
+                        div(class="message-body") {
+                            : raw!("There are no cards to review.")
+                        }
+                    }
+                }
+            }
+
+        };
+
+        return;
+    }
 
     tmpl << html!{
 
@@ -1460,7 +1568,7 @@ fn DeckReview(
             // TODO: fix
             // : raw!(include_str!("react_components/deck_review"))
         }
-    }
+    };
 }
 
 #[inline]

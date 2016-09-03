@@ -21,14 +21,14 @@ static TOP_N_PERCENT: f64 = 0.5;
 type Percent = f64;
 
 // limits cards to: active, inactive, or either/any
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum ActiveSelection {
     Active,
     Inactive,
     All
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum SubSelection {
     NewCards,
     LeastRecentlyReviewed,
@@ -37,7 +37,7 @@ pub enum SubSelection {
 
 pub type Probability = f64;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SubSelectionProbabilities {
     new_cards: Probability,
     least_recently_reviewed: Probability,
@@ -82,7 +82,7 @@ impl Default for SubSelectionProbabilities {
 // }
 
 // struct containing the information on how a card was chosen for review
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CachedReviewProcedure {
 
     // within a group of cards (e.g. deck or stash)
