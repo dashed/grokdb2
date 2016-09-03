@@ -59239,6 +59239,13 @@
 	        assignField: React.PropTypes.object.isRequired
 	    },
 	
+	    getDefaultProps: function getDefaultProps() {
+	        return {
+	            mathjaxify: false,
+	            isEditing: false,
+	            assignField: {}
+	        };
+	    },
 	    componentDidUpdate: function componentDidUpdate() {
 	
 	        if (!MathJax) {
@@ -59330,7 +59337,7 @@
 	                        placeholder: 'Card Title',
 	                        autoFocus: true,
 	                        disabled: !this.props.isEditing
-	                    }, assign({}, this.props.assignField)))
+	                    }, assign({ value: this.props.content }, this.props.assignField)))
 	                )
 	            )
 	        );

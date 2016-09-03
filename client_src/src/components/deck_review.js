@@ -46,6 +46,8 @@ const FORGOT = 'FORGOT';
 /* react components */
 
 const CardTitle = require('components/dumb/card_title');
+const MarkdownRender = require('components/dumb/markdown_render');
+const MarkdownSource = require('components/dumb/markdown_source');
 
 const RenderSourceTitleComponent = connect(
     // mapStateToProps
@@ -60,6 +62,24 @@ const RenderSourceTitleComponent = connect(
             // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
             switchTab: (markdownView) => {
                 return switchMarkdownView(dispatch, [CARD_TITLE, MARKDOWN_VIEW], markdownView);
+            }
+        };
+    }
+)(require('components/dumb/render_source'));
+
+const RenderSourceTabComponent = connect(
+    // mapStateToProps
+    (state, ownProps) => {
+        return {
+            [MARKDOWN_VIEW]: state[ownProps.currenTab][MARKDOWN_VIEW]
+        };
+    },
+    // mapDispatchToProps
+    (dispatch, ownProps) => {
+        return {
+            // markdownView := MARKDOWN_VIEW_RENDER | MARKDOWN_VIEW_SOURCE
+            switchTab: (markdownView) => {
+                return switchMarkdownView(dispatch, [ownProps.currenTab, MARKDOWN_VIEW], markdownView);
             }
         };
     }
@@ -284,11 +304,6 @@ const AdvancedControls = function() {
         <div>
             <div className='columns'>
                 <div className='column'>
-                    <hr className='is-marginless'/>
-                </div>
-            </div>
-            <div className='columns'>
-                <div className='column'>
                     <h4 className='title is-4'>{'Advanced Review Controls'}</h4>
                 </div>
             </div>
@@ -342,11 +357,235 @@ const ReviewControls = function() {
         <div>
             <MainControls />
             <PerformanceControls />
+            <div className='columns'>
+                <div className='column'>
+                    <hr className='is-marginless'/>
+                </div>
+            </div>
             <AdvancedControls />
         </div>
     );
 
 };
+
+const __CardContentTabs = function(props) {
+
+    const {currenTab, dispatch} = props;
+
+    return (
+        <div>
+            <div className='columns'>
+                <div className='column'>
+                    <div className='tabs is-boxed'>
+                        <ul className='is-left'>
+                            <li
+                                className={classnames({
+                                    'is-active is-bold': currenTab === CARD_QUESTION,
+                                })}>
+                                <a
+                                    href='#question'
+                                    onClick={switchTab(dispatch, CARD_QUESTION)}
+                                >
+                                    <span>{'Question'}</span>
+                                </a>
+                            </li>
+                            <li
+                                className={classnames({
+                                    'is-active is-bold': currenTab === CARD_ANSWER
+                                })}>
+                                <a
+                                    href='#answer'
+                                    onClick={switchTab(dispatch, CARD_ANSWER)}
+                                >
+                                    <span>{'Answer'}</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <ul className='is-right'>
+                            <li
+                                className={classnames({
+                                    'is-active is-bold': currenTab === CARD_DESCRIPTION
+                                })}>
+                                <a
+                                    href='#description'
+                                    onClick={switchTab(dispatch, CARD_DESCRIPTION)}
+                                >
+                                    <span>{'Description'}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <RenderSourceTabComponent
+                        currenTab={currenTab}
+                    />
+                </div>
+            </div>
+            <div className='columns'>
+                <div className='column'>
+                    <TabGroupComponent />
+                </div>
+            </div>
+        </div>
+    );
+
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __CardContentTabs.propTypes = {
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+        dispatch: React.PropTypes.func.isRequired
+    };
+}
+
+const CardContentTabs = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            currenTab: state[CURRENT_TAB],
+        };
+    }
+
+)(__CardContentTabs);
+
+const __TabComponent = function(props) {
+
+    const markdownView = props[MARKDOWN_VIEW];
+
+    let sourceStyle = {};
+    let renderStyle = {};
+
+    switch(markdownView) {
+    case MARKDOWN_VIEW_RENDER:
+        sourceStyle.display = 'none';
+        break;
+
+    case MARKDOWN_VIEW_SOURCE:
+    default:
+        renderStyle.display = 'none';
+    }
+
+    return (
+        <div>
+            <div style={renderStyle}>
+                <MarkdownRender contents={props.contents} />
+            </div>
+            <div>
+                <div style={sourceStyle}>
+                    <MarkdownSource
+                        contents={props.contents}
+                        placeholder={props.placeholder}
+                        editable={false}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __TabComponent.propTypes = {
+        [MARKDOWN_VIEW]: React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE]),
+        contents: React.PropTypes.string.isRequired,
+        placeholder: React.PropTypes.string.isRequired,
+    };
+}
+
+const TabComponent = connect(
+    // mapStateToProps
+    (state, ownProps) => {
+
+        // validate ownProps.tab
+        if(process.env.NODE_ENV !== 'production') {
+            switch(ownProps.tab) {
+            case CARD_QUESTION:
+            case CARD_ANSWER:
+            case CARD_DESCRIPTION:
+                break;
+            default:
+                throw Error();
+            }
+        }
+
+        return {
+            [MARKDOWN_VIEW]: state[ownProps.tab][MARKDOWN_VIEW]
+        };
+    }
+)(__TabComponent);
+
+const __TabGroupComponent = function(props) {
+
+    let questionStyle = {display: 'none'};
+    let answerStyle = {display: 'none'};
+    let descriptionStyle = {display: 'none'};
+
+    switch(props.currenTab) {
+    case CARD_QUESTION:
+        questionStyle = {};
+        break;
+    case CARD_ANSWER:
+        answerStyle = {};
+        break;
+    case CARD_DESCRIPTION:
+        descriptionStyle = {};
+        break;
+    }
+
+    return (
+        <div>
+            <div key='question' style={questionStyle}>
+                <TabComponent
+                    tab={CARD_QUESTION}
+                    placeholder={'Card Question'}
+                    contents={props.question}
+                    isEditing={false}
+                />
+            </div>
+            <div key='answer' style={answerStyle}>
+                <TabComponent
+                    tab={CARD_ANSWER}
+                    placeholder={'Card Answer'}
+                    contents={props.answer}
+                    isEditing={false}
+                />
+            </div>
+            <div key='description' style={descriptionStyle}>
+                <TabComponent
+                    tab={CARD_DESCRIPTION}
+                    placeholder={'Card Description'}
+                    contents={props.description}
+                    isEditing={false}
+                />
+            </div>
+        </div>
+    );
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __TabGroupComponent.propTypes = {
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+        question: React.PropTypes.string.isRequired,
+        answer: React.PropTypes.string.isRequired,
+        description: React.PropTypes.string.isRequired,
+    };
+}
+
+const TabGroupComponent = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            question: state[CARD_QUESTION][MARKDOWN_CONTENTS],
+            answer: state[CARD_ANSWER][MARKDOWN_CONTENTS],
+            description: state[CARD_DESCRIPTION][MARKDOWN_CONTENTS],
+            currenTab: state[CURRENT_TAB],
+        };
+    }
+
+)(__TabGroupComponent);
 
 const __Card = function(props) {
 
@@ -371,6 +610,7 @@ const __Card = function(props) {
                     />
                 </div>
             </div>
+            <CardContentTabs />
         </div>
     );
 };
@@ -398,6 +638,11 @@ const DeckReview = function() {
     return (
         <div>
             <Card />
+            <div className='columns'>
+                <div className='column'>
+                    <hr className='is-marginless'/>
+                </div>
+            </div>
             <ReviewControls />
         </div>
     );
@@ -478,10 +723,29 @@ const switchMarkdownView = function(dispatch, path, markdownView) {
     }
 };
 
+const switchTab = function(dispatch, newTab) {
+    return function(event) {
+        event.preventDefault();
+        dispatch(
+            reduceIn(
+                // reducer
+                tabReducer,
+                // path
+                [CURRENT_TAB],
+                // action
+                {
+                    type: newTab
+                }
+            )
+        );
+    };
+};
+
 /* redux reducers */
 
 const markdownViewReducer = require('reducers/markdown_view');
 const boolReducer = require('reducers/bool');
+const tabReducer = require('reducers/card_tab');
 
 const performanceReducer = function(state = NOT_SELECTED, action) {
 

@@ -27,7 +27,8 @@ const {
     CARD_IS_ACTIVE,
 
     POST_TO,
-    IS_EDITING
+    IS_EDITING,
+    CURRENT_TAB
 } = require('global/constants');
 
 const {reduceIn} = require('lib/redux-tree');
@@ -442,7 +443,7 @@ const cardProfileContainerFactory = function(preRenderState) {
             return {
                 mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
                 postURL: state[POST_TO],
-                currenTab: state.CURRENT_TAB,
+                currenTab: state[CURRENT_TAB],
                 isEditing: state[IS_EDITING],
                 initialValues: {
                     title: state[CARD_TITLE][MARKDOWN_CONTENTS],
@@ -800,7 +801,7 @@ const switchTab = function(dispatch, newTab) {
                 // reducer
                 tabReducer,
                 // path
-                ['CURRENT_TAB'],
+                [CURRENT_TAB],
                 // action
                 {
                     type: newTab
@@ -832,7 +833,7 @@ const initialState = {
     },
 
     // CURRENT_TAB = CARD_QUESTION | CARD_ANSWER | CARD_DESCRIPTION
-    'CURRENT_TAB': CARD_QUESTION,
+    [CURRENT_TAB]: CARD_QUESTION,
 
     [CARD_DESCRIPTION]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,

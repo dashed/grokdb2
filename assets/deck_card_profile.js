@@ -24735,6 +24735,7 @@
 	var CARD_IS_ACTIVE = _require3.CARD_IS_ACTIVE;
 	var POST_TO = _require3.POST_TO;
 	var IS_EDITING = _require3.IS_EDITING;
+	var CURRENT_TAB = _require3.CURRENT_TAB;
 	
 	var _require4 = __webpack_require__(764);
 	
@@ -25242,7 +25243,7 @@
 	        return {
 	            mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
 	            postURL: state[POST_TO],
-	            currenTab: state.CURRENT_TAB,
+	            currenTab: state[CURRENT_TAB],
 	            isEditing: state[IS_EDITING],
 	            initialValues: {
 	                title: state[CARD_TITLE][MARKDOWN_CONTENTS],
@@ -25553,7 +25554,7 @@
 	        // reducer
 	        tabReducer,
 	        // path
-	        ['CURRENT_TAB'],
+	        [CURRENT_TAB],
 	        // action
 	        {
 	            type: newTab
@@ -25571,7 +25572,7 @@
 	
 	/* default state */
 	
-	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, IS_EDITING, false), (0, _defineProperty3.default)(_initialState, CARD_TITLE, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER)), (0, _defineProperty3.default)(_initialState, 'CURRENT_TAB', CARD_QUESTION), (0, _defineProperty3.default)(_initialState, CARD_DESCRIPTION, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER)), (0, _defineProperty3.default)(_initialState, CARD_QUESTION, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER)), (0, _defineProperty3.default)(_initialState, CARD_ANSWER, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER)), (0, _defineProperty3.default)(_initialState, CARD_IS_ACTIVE, {
+	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, IS_EDITING, false), (0, _defineProperty3.default)(_initialState, CARD_TITLE, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER)), (0, _defineProperty3.default)(_initialState, CURRENT_TAB, CARD_QUESTION), (0, _defineProperty3.default)(_initialState, CARD_DESCRIPTION, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER)), (0, _defineProperty3.default)(_initialState, CARD_QUESTION, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER)), (0, _defineProperty3.default)(_initialState, CARD_ANSWER, (0, _defineProperty3.default)({}, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER)), (0, _defineProperty3.default)(_initialState, CARD_IS_ACTIVE, {
 	    // [VALUE]
 	}), (0, _defineProperty3.default)(_initialState, 'form', reduxformReducer()), _initialState);
 	
@@ -60186,6 +60187,13 @@
 	        assignField: React.PropTypes.object.isRequired
 	    },
 	
+	    getDefaultProps: function getDefaultProps() {
+	        return {
+	            mathjaxify: false,
+	            isEditing: false,
+	            assignField: {}
+	        };
+	    },
 	    componentDidUpdate: function componentDidUpdate() {
 	
 	        if (!MathJax) {
@@ -60277,7 +60285,7 @@
 	                        placeholder: 'Card Title',
 	                        autoFocus: true,
 	                        disabled: !this.props.isEditing
-	                    }, assign({}, this.props.assignField)))
+	                    }, assign({ value: this.props.content }, this.props.assignField)))
 	                )
 	            )
 	        );
