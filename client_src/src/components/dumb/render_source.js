@@ -29,14 +29,14 @@ const RenderSourceComponent = function(props) {
                 >{'Source'}</a>
                 {' '}
                 <a
-                    href='#render'
+                    href='#preview'
                     className={classnames(
                         extraClasses,
                         'button',
                         {'is-primary': currentTab === MARKDOWN_VIEW_RENDER}
                     )}
                     onClick={switchTab(MARKDOWN_VIEW_RENDER)}
-                >{'Render'}</a>
+                >{'Preview'}</a>
             </div>
         );
 
@@ -45,14 +45,14 @@ const RenderSourceComponent = function(props) {
     return (
         <div>
             <a
-                href='#render'
+                href='#preview'
                 className={classnames(
                     extraClasses,
                     'button',
                     {'is-primary': currentTab === MARKDOWN_VIEW_RENDER}
                 )}
                 onClick={switchTab(MARKDOWN_VIEW_RENDER)}
-            >{'Render'}</a>
+            >{'Preview'}</a>
             {' '}
             <a
                 href='#source'
