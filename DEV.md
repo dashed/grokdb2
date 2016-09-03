@@ -15,6 +15,14 @@ brew install sqlite3
 ```
 // TODO: other dependencies? libc
 
+## Assets
+
+```sh
+cd assets
+unzip MathJax-2.6.1.zip 
+mv MathJax-2.6.1 mathjax
+```
+
 ## Javascript
 
 ```sh
