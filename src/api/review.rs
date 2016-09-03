@@ -118,8 +118,6 @@ pub struct RawReviewRequest {
     cards_till_available_for_review: Option<ItemCount>,
 }
 
-}
-
 pub struct ReviewRequest {
     card_id: CardID,
     review_action: ReviewAction,
