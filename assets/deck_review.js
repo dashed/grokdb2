@@ -56308,6 +56308,56 @@
 	    );
 	};
 	
+	var __AnswerTab = function __AnswerTab(props) {
+	    var shouldReveal = props.shouldReveal;
+	
+	
+	    if (!shouldReveal) {
+	        return null;
+	    }
+	
+	    var currenTab = props.currenTab;
+	    var dispatch = props.dispatch;
+	
+	
+	    return React.createElement(
+	        'li',
+	        {
+	            className: classnames({
+	                'is-active is-bold': currenTab === CARD_ANSWER
+	            }) },
+	        React.createElement(
+	            'a',
+	            {
+	                href: '#answer',
+	                onClick: switchTab(dispatch, CARD_ANSWER)
+	            },
+	            React.createElement(
+	                'span',
+	                null,
+	                'Answer'
+	            )
+	        )
+	    );
+	};
+	
+	if (true) {
+	    __AnswerTab.propTypes = {
+	        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+	        dispatch: React.PropTypes.func.isRequired,
+	        shouldReveal: React.PropTypes.bool.isRequired
+	    };
+	}
+	
+	var AnswerTab = connect(
+	// mapStateToProps
+	function (state) {
+	    return {
+	        currenTab: state[CURRENT_TAB],
+	        shouldReveal: state[SHOW_MAIN_CONTROLS]
+	    };
+	})(__AnswerTab);
+	
 	var __CardContentTabs = function __CardContentTabs(props) {
 	    var currenTab = props.currenTab;
 	    var dispatch = props.dispatch;
@@ -56347,25 +56397,7 @@
 	                                )
 	                            )
 	                        ),
-	                        React.createElement(
-	                            'li',
-	                            {
-	                                className: classnames({
-	                                    'is-active is-bold': currenTab === CARD_ANSWER
-	                                }) },
-	                            React.createElement(
-	                                'a',
-	                                {
-	                                    href: '#answer',
-	                                    onClick: switchTab(dispatch, CARD_ANSWER)
-	                                },
-	                                React.createElement(
-	                                    'span',
-	                                    null,
-	                                    'Answer'
-	                                )
-	                            )
-	                        )
+	                        React.createElement(AnswerTab, null)
 	                    ),
 	                    React.createElement(
 	                        'ul',
@@ -56672,6 +56704,15 @@
 	        // action
 	        {
 	            type: shouldReveal
+	        }));
+	        dispatch(reduceIn(
+	        // reducer
+	        tabReducer,
+	        // path
+	        [CURRENT_TAB],
+	        // action
+	        {
+	            type: CARD_ANSWER
 	        }));
 	    };
 	};

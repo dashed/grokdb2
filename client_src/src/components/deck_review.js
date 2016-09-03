@@ -368,6 +368,51 @@ const ReviewControls = function() {
 
 };
 
+const __AnswerTab = function(props) {
+
+    const {shouldReveal} = props;
+
+    if(!shouldReveal) {
+        return null;
+    }
+
+    const {currenTab, dispatch} = props;
+
+    return (
+        <li
+            className={classnames({
+                'is-active is-bold': currenTab === CARD_ANSWER
+            })}>
+            <a
+                href='#answer'
+                onClick={switchTab(dispatch, CARD_ANSWER)}
+            >
+                <span>{'Answer'}</span>
+            </a>
+        </li>
+    );
+
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __AnswerTab.propTypes = {
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION]),
+        dispatch: React.PropTypes.func.isRequired,
+        shouldReveal: React.PropTypes.bool.isRequired,
+    };
+}
+
+const AnswerTab = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            currenTab: state[CURRENT_TAB],
+            shouldReveal: state[SHOW_MAIN_CONTROLS]
+        };
+    }
+
+)(__AnswerTab);
+
 const __CardContentTabs = function(props) {
 
     const {currenTab, dispatch} = props;
@@ -389,17 +434,7 @@ const __CardContentTabs = function(props) {
                                     <span>{'Question'}</span>
                                 </a>
                             </li>
-                            <li
-                                className={classnames({
-                                    'is-active is-bold': currenTab === CARD_ANSWER
-                                })}>
-                                <a
-                                    href='#answer'
-                                    onClick={switchTab(dispatch, CARD_ANSWER)}
-                                >
-                                    <span>{'Answer'}</span>
-                                </a>
-                            </li>
+                            <AnswerTab />
                         </ul>
                         <ul className='is-right'>
                             <li
@@ -681,6 +716,18 @@ const shouldRevealAnswer = function(dispatch, shouldReveal) {
                 // action
                 {
                     type: shouldReveal
+                }
+            )
+        );
+        dispatch(
+            reduceIn(
+                // reducer
+                tabReducer,
+                // path
+                [CURRENT_TAB],
+                // action
+                {
+                    type: CARD_ANSWER
                 }
             )
         );
