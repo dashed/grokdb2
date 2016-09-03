@@ -1554,6 +1554,14 @@ fn DeckReview(
         return;
     }
 
+    // TODO: this is debug
+    let cached_review_procedure = match *card_for_review {
+        Some((_, Some(ref cached_review_procedure))) => {
+            serde_json::to_string(cached_review_procedure).unwrap().to_string()
+        },
+        _ => "".to_string(),
+    };
+
     tmpl << html!{
 
         div(class="columns") {
@@ -1567,6 +1575,10 @@ fn DeckReview(
         div(id="deck_review_container") {
             // TODO: fix
             // : raw!(include_str!("react_components/deck_review"))
+        }
+
+        div {
+            : cached_review_procedure
         }
     };
 }
