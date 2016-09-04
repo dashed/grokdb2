@@ -633,7 +633,7 @@ const __CardContentTabs = function(props) {
             </div>
             <PreviewSource currenTab={currenTab} />
             <div className='columns'>
-                <div className='column'>
+                <div className='column' style={{marginTop: '20px', marginBottom: '20px'}}>
                     <TabGroupComponent />
                 </div>
             </div>

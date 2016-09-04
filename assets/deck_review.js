@@ -56644,7 +56644,7 @@
 	            { className: 'columns' },
 	            React.createElement(
 	                'div',
-	                { className: 'column' },
+	                { className: 'column', style: { marginTop: '20px', marginBottom: '20px' } },
 	                React.createElement(TabGroupComponent, null)
 	            )
 	        )
