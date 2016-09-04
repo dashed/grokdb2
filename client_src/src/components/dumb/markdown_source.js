@@ -25,10 +25,10 @@ const MarkdownSource = function(props) {
         maxRows={10}
         className='textarea'
         placeholder={props.placeholder}
-        // TODO: remove
-        // onChange={this.onSourceChange}
         editable={props.editable}
-        disabled={!props.editable}
+        // NOTE: this disables scrolling; better approach is to use readOnly
+        // disabled={!props.editable}
+        readOnly={!props.editable}
         {...assignProps}
         {...etc}
         value={contents}
