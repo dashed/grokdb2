@@ -19,6 +19,7 @@ const {
 
     MARKDOWN_CONTENTS,
 
+    CARD_ID,
     CARD_TITLE,
     CARD_DESCRIPTION,
     CARD_QUESTION,
@@ -45,6 +46,7 @@ const RIGHT = 'RIGHT';
 const WRONG = 'WRONG';
 const FORGOT = 'FORGOT';
 const SHOW_PREVIEW_SOURCE_BUTTONS = 'SHOW_PREVIEW_SOURCE_BUTTONS';
+const SUBMITTING = 'SUBMITTING';
 
 /* react components */
 
@@ -140,38 +142,47 @@ const __PerformanceControls = function(props) {
     const rightClassValue = chosenPerformance != RIGHT;
     const wrongClassValue = chosenPerformance != WRONG;
     const forgotClassValue = chosenPerformance != FORGOT;
+
+    const submitting = props.submitting;
+
     return (
         <div className='columns'>
             <div className='column is-one-third'>
                 <a
+                    href='#right'
                     className={classnames('button is-success is-fullwidth is-bold',
                         {
-                            'is-outlined': rightClassValue
+                            'is-outlined': rightClassValue,
+                            'is-disabled': submitting
                         })}
-                    onClick={switchPerformance(props.dispatch, RIGHT)}
+                    onClick={submitting ? noOp() : switchPerformance(props.dispatch, RIGHT)}
                 >
                     {'Right'}
                 </a>
             </div>
             <div className='column is-one-third'>
                 <a
+                    href='#wrong'
                     className={classnames('button is-danger is-fullwidth is-bold',
                         {
-                            'is-outlined': wrongClassValue
+                            'is-outlined': wrongClassValue,
+                            'is-disabled': submitting
                         })}
-                    onClick={switchPerformance(props.dispatch, WRONG)}
+                    onClick={submitting ? noOp() : switchPerformance(props.dispatch, WRONG)}
                 >
                     {'Wrong'}
                 </a>
             </div>
             <div className='column is-one-third'>
                 <a
+                    href='#forgot'
                     className={classnames('button is-warning is-fullwidth is-bold',
                         {
-                            'is-outlined': forgotClassValue
+                            'is-outlined': forgotClassValue,
+                            'is-disabled': submitting
                         })}
                     style={{color: '#978b52'}}
-                    onClick={switchPerformance(props.dispatch, FORGOT)}
+                    onClick={submitting ? noOp() : switchPerformance(props.dispatch, FORGOT)}
                 >
                     {'Forgot'}
                 </a>
@@ -190,6 +201,7 @@ if(process.env.NODE_ENV !== 'production') {
             RIGHT,
             WRONG
         ]),
+        submitting: React.PropTypes.bool.isRequired,
         dispatch: React.PropTypes.func.isRequired
     };
 }
@@ -200,7 +212,8 @@ const PerformanceControls = connect(
         return {
             [IS_CONFIRM_SKIP]: state[IS_CONFIRM_SKIP],
             [SHOW_MAIN_CONTROLS]: state[SHOW_MAIN_CONTROLS],
-            [CHOSEN_PERFORMANCE]: state[CHOSEN_PERFORMANCE]
+            [CHOSEN_PERFORMANCE]: state[CHOSEN_PERFORMANCE],
+            submitting: state[SUBMITTING],
         };
     }
 
@@ -209,6 +222,7 @@ const PerformanceControls = connect(
 const __CommitButton = function(props) {
 
     const showMainControls = props[SHOW_MAIN_CONTROLS];
+    const {dispatch} = props;
 
     if(showMainControls) {
 
@@ -225,14 +239,15 @@ const __CommitButton = function(props) {
         return (
             <a
                 href='#next_card'
-                className='button is-success is-fullwidth is-bold'
+                className={classnames('button is-success is-fullwidth is-bold', {
+                    'is-disabled is-loading': props.submitting
+                })}
+                onClick={reviewCard(dispatch, props.postURL, props.reviewRequest)}
             >
                 {'Next Card'}
             </a>
         );
     }
-
-    const {dispatch} = props;
 
     return (
         <a
@@ -248,6 +263,8 @@ const __CommitButton = function(props) {
 if(process.env.NODE_ENV !== 'production') {
     __CommitButton.propTypes = {
         [SHOW_MAIN_CONTROLS]: React.PropTypes.bool.isRequired,
+        postURL: React.PropTypes.string.isRequired,
+        submitting: React.PropTypes.bool.isRequired,
         dispatch: React.PropTypes.func.isRequired,
         [CHOSEN_PERFORMANCE]: React.PropTypes.oneOf([
             NOT_SELECTED,
@@ -255,6 +272,7 @@ if(process.env.NODE_ENV !== 'production') {
             RIGHT,
             WRONG
         ]),
+        reviewRequest: React.PropTypes.object.isRequired,
     };
 }
 
@@ -263,7 +281,10 @@ const CommitButton = connect(
     (state) => {
         return {
             [SHOW_MAIN_CONTROLS]: state[SHOW_MAIN_CONTROLS],
-            [CHOSEN_PERFORMANCE]: state[CHOSEN_PERFORMANCE]
+            [CHOSEN_PERFORMANCE]: state[CHOSEN_PERFORMANCE],
+            submitting: state[SUBMITTING],
+            postURL: state[POST_TO],
+            reviewRequest: generateReviewRequest(state)
         };
     }
 
@@ -299,6 +320,8 @@ const __MainControls = function(props) {
         );
     }
 
+    const skipCardOnClick = props.submitting ? noOp() : shouldConfirmSkip(dispatch, true);
+
     return (
         <div className='columns'>
             <div className='column is-two-thirds'>
@@ -307,8 +330,11 @@ const __MainControls = function(props) {
             <div className='column is-one-third'>
                 <a
                     href='#confirm_skip'
-                    className='button is-danger is-fullwidth is-bold'
-                    onClick={shouldConfirmSkip(dispatch, true)}
+                    className={classnames('button is-danger is-fullwidth is-bold', {
+                        'is-disabled': props.submitting
+                    })}
+
+                    onClick={skipCardOnClick}
                 >
                     {'Skip Card'}
                 </a>
@@ -320,7 +346,8 @@ const __MainControls = function(props) {
 if(process.env.NODE_ENV !== 'production') {
     __MainControls.propTypes = {
         [IS_CONFIRM_SKIP]: React.PropTypes.bool.isRequired,
-        dispatch: React.PropTypes.func.isRequired
+        dispatch: React.PropTypes.func.isRequired,
+        submitting: React.PropTypes.bool.isRequired,
     };
 }
 
@@ -328,7 +355,8 @@ const MainControls = connect(
     // mapStateToProps
     (state) => {
         return {
-            [IS_CONFIRM_SKIP]: state[IS_CONFIRM_SKIP]
+            [IS_CONFIRM_SKIP]: state[IS_CONFIRM_SKIP],
+            submitting: state[SUBMITTING],
         };
     }
 
@@ -867,6 +895,42 @@ const DeckReview = function() {
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
+const noOp = function() {
+    return function(event) {
+        event.preventDefault();
+    };
+};
+
+const reviewCard = function(dispatch, postURL, reviewRequest) {
+    return function(event) {
+        event.preventDefault();
+
+        dispatch(
+            reduceIn(
+                // reducer
+                boolReducer,
+                // path
+                [SUBMITTING],
+                // action
+                {
+                    type: true
+                }
+            )
+        );
+
+        // fetch(postURL, {
+        //     method: 'POST',
+        //     headers: {
+        //         'Accept': 'application/json',
+        //         'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify(reviewRequest)
+        // })
+
+        // TODO: complete
+    };
+};
+
 const shouldConfirmSkip = function(dispatch, isConfirming) {
     return function(event) {
         event.preventDefault();
@@ -1019,6 +1083,8 @@ const initialState = {
 
     [POST_TO]: '',
 
+    [CARD_ID]: 0,
+
     [CARD_TITLE]: {
         [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
         [MARKDOWN_CONTENTS]: ''
@@ -1052,8 +1118,36 @@ const initialState = {
 
     [CHOSEN_PERFORMANCE]: NOT_SELECTED,
 
-    [CARD_META]: {}
+    [CARD_META]: {},
 
+    [SUBMITTING]: false
+
+};
+
+const generateReviewAction = function(performance) {
+
+    switch(performance) {
+    case RIGHT:
+        return 'Right';
+    case WRONG:
+        return 'Wrong';
+    case FORGOT:
+        return 'Forgot';
+    }
+
+    return 'Skip';
+};
+
+const generateReviewRequest = function(state) {
+
+    return {
+        card_id: Number(state[CARD_ID]),
+        review_action: generateReviewAction(state[CHOSEN_PERFORMANCE]),
+
+        // TODO: implement this
+        // time_till_available_for_review
+        // cards_till_available_for_review
+    };
 };
 
 /* exports */
