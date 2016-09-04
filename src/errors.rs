@@ -5,74 +5,42 @@ use serde::{Serialize, Serializer};
 use rusqlite::Error as SqliteError;
 
 /// /////////////////////////////////////////////////////////////////////////////
-// src: https://github.com/WhiteHouse/api-standards#error-handling
-//
-// 200 - OK
-// 400 - Bad Request
-// 500 - Internal Server Error
-#[derive(Debug, PartialEq)]
-pub enum APIStatus {
-    // #[serde(rename = "Reques success")]
-    Ok, // 200
 
-    // #[serde(rename = "Failure due to client-side problem")]
-    BadRequest, // 400
-
-    // #[serde(rename = "Failure due to server-side problem")]
-    ServerError, // 500
-}
-
-// NOTE: #[derive(Serialize)] is not used. Need custom serialization.
-impl Serialize for APIStatus {
-    // serialize APIStatus to human friendly message
-    fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: Serializer
-    {
-
-        let human_message = match self {
-            &APIStatus::Ok => "Request success.",
-            &APIStatus::BadRequest => "Failure due to client-side problem.",
-            &APIStatus::ServerError => "Failure due to server-side problem.",
-        };
-
-        return serializer.serialize_str(human_message);
-    }
-}
-
+// TODO: remove all of this
 // error struct for api endpoints
-#[derive(Debug, PartialEq, Serialize)]
-pub struct EndPointError {
-    pub status: APIStatus,
-    // pub developerMessage: String,
-    pub userMessage: String,
-}
+// #[derive(Debug, PartialEq, Serialize)]
+// pub struct EndPointError {
+//     pub status: APIStatus,
+//     // pub developerMessage: String,
+//     pub userMessage: String,
+// }
 
-impl EndPointError {
+// impl EndPointError {
 
-    pub fn bad_request(reason: String) -> Self {
-        EndPointError {
-            status: APIStatus::BadRequest,
-            userMessage: reason
-        }
-    }
+//     pub fn bad_request(reason: String) -> Self {
+//         EndPointError {
+//             status: APIStatus::BadRequest,
+//             userMessage: reason
+//         }
+//     }
 
-    pub fn server_error(reason: String) -> Self {
-        EndPointError {
-            status: APIStatus::ServerError,
-            userMessage: reason
-        }
-    }
+//     pub fn server_error(reason: String) -> Self {
+//         EndPointError {
+//             status: APIStatus::ServerError,
+//             userMessage: reason
+//         }
+//     }
 
-    pub fn status_code(&self) -> hyper::status::StatusCode {
-        let status_code = match self.status {
-            APIStatus::Ok => hyper::status::StatusCode::Ok,
-            APIStatus::BadRequest => hyper::status::StatusCode::BadRequest,
-            APIStatus::ServerError => hyper::status::StatusCode::InternalServerError,
-        };
+//     pub fn status_code(&self) -> hyper::status::StatusCode {
+//         let status_code = match self.status {
+//             APIStatus::Ok => hyper::status::StatusCode::Ok,
+//             APIStatus::BadRequest => hyper::status::StatusCode::BadRequest,
+//             APIStatus::ServerError => hyper::status::StatusCode::InternalServerError,
+//         };
 
-        status_code
-    }
-}
+//         status_code
+//     }
+// }
 
 quick_error! {
     #[derive(Debug)]

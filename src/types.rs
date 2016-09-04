@@ -6,6 +6,8 @@ use std::cell::RefCell;
 /* 3rd-party imports */
 
 use url::percent_encoding::{QUERY_ENCODE_SET, utf8_percent_encode};
+use serde_json;
+use hyper;
 
 /* local imports */
 
@@ -31,6 +33,34 @@ pub type Page = u64; // >= 1
 pub type PerPage = u64; // >= 1
 pub type Offset = u64; // >= 0
 pub type ItemCount = u64;
+
+#[derive(Serialize, Debug)]
+pub struct JSONResponse {
+    pub error: Option<String>,
+    pub payload: Option<serde_json::Value>
+}
+
+// src: https://github.com/WhiteHouse/api-standards#error-handling
+//
+// 200 - OK
+// 400 - Bad Request
+// 500 - Internal Server Error
+#[derive(Debug, PartialEq)]
+pub enum APIStatus {
+    Ok, // 200
+    BadRequest, // 400
+    ServerError, // 500
+}
+
+impl APIStatus {
+    pub fn status_code(&self) -> hyper::status::StatusCode {
+        match *self {
+            APIStatus::Ok => hyper::status::StatusCode::Ok,
+            APIStatus::BadRequest => hyper::status::StatusCode::BadRequest,
+            APIStatus::ServerError => hyper::status::StatusCode::InternalServerError,
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum Search {

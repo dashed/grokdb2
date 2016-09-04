@@ -41,9 +41,8 @@ use serde;
 
 /* local imports */
 
-use errors::EndPointError;
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
-use types::{DeckID, CardID, DecksPageQuery, CardsPageQuery, Search};
+use types::{APIStatus, DeckID, CardID, DecksPageQuery, CardsPageQuery, Search, JSONResponse};
 use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
 use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
@@ -120,16 +119,22 @@ pub enum DeckSettings {
 
 #[derive(Debug)]
 pub enum RenderResponse {
+
     // TODO: remove Render- prefix
     RenderComponent(AppRoute),
-    RenderJSON(String),
-    EndPointError(EndPointError),
 
-    RenderOk,
+    // API response
+    JSON(APIStatus, JSONResponse),
+
+    // TODO: remove
+    // RenderOk,
+
+    // these lead to html content
     RenderNotFound,
     RenderBadRequest,
     RenderInternalServerError,
 
+    // TODO: remove; do specific enums (http method not allowed)
     StatusCode(StatusCode),
 
     RenderAsset(ContentType, Vec<u8>),
@@ -436,8 +441,7 @@ fn __parse_route_api_card_update(
             match request.validate() {
                 None => {},
                 Some(reason) => {
-                    let err = EndPointError::bad_request(reason);
-                    return RenderResponse::EndPointError(err);
+                    return respond_json_with_error!(APIStatus::BadRequest; reason; None);
                 }
             }
 
@@ -465,7 +469,7 @@ fn __parse_route_api_card_update(
 
             match cards::update_card(context.clone(), card_id, request) {
                 Ok(_updated_card) => {
-                    return respond_json!(_updated_card);
+                    return respond_json!(Some(_updated_card));
                 },
                 Err(_) => {
                     // TODO: error logging
@@ -578,12 +582,11 @@ fn __parse_route_api_deck_review(
             let request: RawReviewRequest = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
                 Err(err) => {
-                    // TODO: error logging
-                    // println!("{:?}", err);
 
-                    let err = EndPointError::bad_request("Unable to interpret your request to review this deck. \
-                        Please try again.".to_string());
-                    return RenderResponse::EndPointError(err);
+                    // TODO: internal error logging
+                    let err = "Unable to interpret your request to review this deck. \
+                        Please try again.".to_string();
+                    return respond_json_with_error!(APIStatus::BadRequest; err; None);
                 }
             };
 
@@ -596,43 +599,47 @@ fn __parse_route_api_deck_review(
             let exists = match cards::card_exists(context.clone(), request.card_id) {
                 Ok(exists) => exists,
                 Err(_) => {
-                    // TODO: error logging
-                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
-                    return RenderResponse::EndPointError(err);
+
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
                 }
             };
 
             if !exists {
-                // TODO: error logging
-                // println!("{:?}", err);
 
-                let err = EndPointError::bad_request("This card does not appear to exist anymore.".to_string());
-                return RenderResponse::EndPointError(err);
+                // TODO: internal error logging
+                let err = "This card does not appear to exist anymore.".to_string();
+                return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
             }
 
             let in_deck = match cards::is_card_in_deck(context.clone(), request.card_id, parent_deck_id) {
                 Ok(in_deck) => in_deck,
                 Err(_) => {
-                    // TODO: error logging
-                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
-                    return RenderResponse::EndPointError(err);
+
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
                 }
             };
 
             if !in_deck {
-                // TODO: error logging
-                // println!("{:?}", err);
 
-                let err = EndPointError::bad_request("This card does not appear to be in this deck.".to_string());
-                return RenderResponse::EndPointError(err);
+                // TODO: internal error logging
+                let err = "This card does not appear to be in this deck.".to_string();
+                return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
             }
 
             let deck = match decks::get_deck(context.clone(), parent_deck_id) {
                 Ok(deck) => deck,
                 Err(_) => {
-                    // TODO: error logging
-                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
-                    return RenderResponse::EndPointError(err);
+
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
+
                 }
             };
 
@@ -641,11 +648,11 @@ fn __parse_route_api_deck_review(
 
                     match result {
                         None => {
-                            // TODO: error logging
-                            // println!("{:?}", err);
 
-                            let err = EndPointError::bad_request("This card does not appear to be chosen for review for this deck.".to_string());
-                            return RenderResponse::EndPointError(err);
+                            // TODO: internal error logging
+                            let err = "This card does not appear to be chosen for review for this deck.".to_string();
+                            return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
                         },
                         Some((card_id, _)) => {
                             card_id
@@ -654,49 +661,57 @@ fn __parse_route_api_deck_review(
 
                 },
                 Err(_) => {
-                    // TODO: error logging
-                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
-                    return RenderResponse::EndPointError(err);
+
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
+
                 }
             };
 
             if card_id != request.card_id {
-                // TODO: error logging
-                // println!("{:?}", err);
 
-                let err = EndPointError::bad_request("This card does not appear to be chosen for review for this deck.".to_string());
-                return RenderResponse::EndPointError(err);
+                // TODO: internal error logging
+                let err = "This card does not appear to be chosen for review for this deck.".to_string();
+                return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
             }
 
             // commit review request
             match request.commit(context.clone()) {
                 Ok(_) => {},
                 Err(_) => {
-                    // TODO: error logging
-                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
-                    return RenderResponse::EndPointError(err);
+
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
+
                 }
             }
 
             // fetch next card for review
             match ReviewResponse::new(context.clone(), deck) {
                 Ok(review_response) => {
-                    return respond_json!(review_response);
+                    return respond_json!(Some(review_response));
                 },
                 Err(_) => {
-                    // TODO: error logging
-                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
-                    return RenderResponse::EndPointError(err);
+
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
+
                 }
             }
 
         },
         Err(err) => {
             // internal reason: invalid utf8 input
-            // TODO: error logging
-            let err = EndPointError::bad_request("Unable to interpret your request to review this deck. \
-                Please try again.".to_string());
-            return RenderResponse::EndPointError(err);
+
+            // TODO: internal error logging
+            let err = "Unable to interpret your request to review this deck. \
+                Please try again.".to_string();
+            return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
         }
     }
 }
@@ -747,19 +762,20 @@ fn __parse_route_api_deck_new_deck(
             let request: CreateDeck = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
                 Err(err) => {
-                    // TODO: error logging
-                    // println!("{:?}", err);
 
-                    let err = EndPointError::bad_request("Unable to interpret your request to create a deck. \
-                        Please try again.".to_string());
-                    return RenderResponse::EndPointError(err);
+                    // TODO: internal error logging
+                    let err = "Unable to interpret your request to create a deck. \
+                        Please try again.".to_string();
+                    return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
                 }
             };
 
             // NOTE: deck name must not be empty
             if request.name.trim().len() <= 0 {
-                let err = EndPointError::bad_request("Deck name is required.".to_string());
-                return RenderResponse::EndPointError(err);
+                // TODO: internal error logging
+                let err = "Deck name is required.".to_string();
+                return respond_json_with_error!(APIStatus::BadRequest; err; None);
             }
 
             let _guard = context::write_lock(context.clone());
@@ -787,30 +803,35 @@ fn __parse_route_api_deck_new_deck(
                             //     parent_id: Some(parent_deck_id)
                             // };
 
-                            return respond_json!(response);
+                            return respond_json!(Some(response));
                         },
                         Err(_) => {
-                            // TODO: error logging
-                            let err = EndPointError::server_error("An internal server error occurred.".to_string());
-                            return RenderResponse::EndPointError(err);
+
+                            // TODO: internal error logging
+                            let err = "An internal server error occurred.".to_string();
+                            return respond_json_with_error!(APIStatus::ServerError; err; None);
                         }
                     }
 
                 },
                 Err(_) => {
-                    // TODO: error logging
-                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
-                    return RenderResponse::EndPointError(err);
+
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
+
                 }
             }
 
         },
         Err(err) => {
             // internal reason: invalid utf8 input
-            // TODO: error logging
-            let err = EndPointError::bad_request("Unable to interpret your request to create a deck. \
-                Please try again.".to_string());
-            return RenderResponse::EndPointError(err);
+
+            // TODO: internal error logging
+            let err = "Unable to interpret your request to create a deck. \
+                Please try again.".to_string();
+            return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
         }
     }
 }
@@ -870,8 +891,14 @@ fn __parse_route_api_deck_new_card(
             match request.validate() {
                 None => {},
                 Some(reason) => {
-                    let err = EndPointError::bad_request(reason);
-                    return RenderResponse::EndPointError(err);
+
+                    // TODO: code review this
+
+                    // TODO: internal error logging
+                    let err = "Unable to interpret your request to create a deck. \
+                        Please try again.".to_string();
+                    return respond_json_with_error!(APIStatus::BadRequest; reason; None);
+
                 }
             }
 
@@ -908,7 +935,7 @@ fn __parse_route_api_deck_new_card(
                         profile_url: view_route_to_link(context, app_route)
                     };
 
-                    return respond_json!(response);
+                    return respond_json!(Some(response));
 
                 },
                 Err(_) => {
@@ -969,10 +996,11 @@ fn __parse_route_api_deck_description(
 
             let request: UpdateDeckDescription = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
-                Err(err) => {
-                    // TODO: error logging
-                    // println!("{:?}", err);
-                    return RenderResponse::RenderBadRequest;
+                Err(_err) => {
+
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
                 }
             };
 
@@ -980,11 +1008,12 @@ fn __parse_route_api_deck_description(
 
             match decks::update_deck_description(context.clone(), deck_id, request) {
                 Err(_) => {
-                    // TODO: error logging
-                    return RenderResponse::RenderInternalServerError;
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
                 },
                 Ok(_) => {
-                    return RenderResponse::RenderOk;
+                    return respond_json!(None);
                 }
             }
         }
@@ -1044,17 +1073,20 @@ fn __parse_route_api_deck_settings_name(
     match request.read_to_string(&mut buffer) {
         Err(err) => {
             // invalid utf8 input
-            // TODO: error logging
-            return RenderResponse::RenderBadRequest;
+
+            // TODO: internal error logging
+            let err = "Unable to rename deck. Please try again.".to_string();
+            return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
         },
         Ok(_num_bytes_parsed) => {
 
             let request: UpdateDeckName = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
                 Err(err) => {
-                    // TODO: error logging
-                    // println!("{:?}", err);
-                    return RenderResponse::RenderBadRequest;
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
                 }
             };
 
@@ -1067,11 +1099,14 @@ fn __parse_route_api_deck_settings_name(
 
             match decks::update_deck_name(context.clone(), deck_id, request) {
                 Err(_) => {
-                    // TODO: error logging
-                    return RenderResponse::RenderInternalServerError;
+
+                    // TODO: internal error logging
+                    let err = "An internal server error occurred.".to_string();
+                    return respond_json_with_error!(APIStatus::ServerError; err; None);
+
                 },
                 Ok(_) => {
-                    return RenderResponse::RenderOk;
+                    return respond_json!(None);
                 }
             }
         }
@@ -1963,45 +1998,18 @@ pub fn render_response(context: Rc<RefCell<Context>>, render: RenderResponse, mu
         RenderResponse::RenderComponent(app_route) => {
             render_components(context, app_route, response);
         },
-        RenderResponse::RenderJSON(json_response) => {
+        RenderResponse::JSON(api_status, json_response) => {
 
-            *response.status_mut() = StatusCode::Ok;
-
-            response.headers_mut().set((hyper::header::ContentType(
-                mime!(Application/Json)
-            )));
-
-            response.send(json_response.as_bytes()).unwrap();
-
-        },
-        RenderResponse::EndPointError(endpoint_error) => {
-
-            let json_response = match serde_json::to_string(&endpoint_error) {
-                Ok(__json_response) => __json_response,
-                Err(why) => {
-
-                    // TODO: internal error logging
-
-                    *response.status_mut() = hyper::status::StatusCode::InternalServerError;
-                    response.send(b"").unwrap();
-
-                    return;
-
-                }
-            };
-
-            *response.status_mut() = endpoint_error.status_code();
+            *response.status_mut() = api_status.status_code();
 
             response.headers_mut().set((hyper::header::ContentType(
                 mime!(Application/Json)
             )));
 
+            let json_response = serde_json::to_string(&json_response).unwrap();
+
             response.send(json_response.as_bytes()).unwrap();
 
-        },
-        RenderResponse::RenderOk => {
-            *response.status_mut() = StatusCode::Ok;
-            response.send(b"").unwrap();
         },
         RenderResponse::RenderBadRequest => {
             // TODO: better page
