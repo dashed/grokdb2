@@ -687,7 +687,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 }
 
 #[inline]
-fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
+fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID, deck_route: &DeckRoute) {
 
     let deck_path = match decks::get_path_of_deck(context.clone(), deck_id) {
         Ok(path) => path,
@@ -758,6 +758,25 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                 }
             }
         }
+
+        |tmpl| {
+
+            match *deck_route {
+                DeckRoute::Review(ref card_for_review) => {
+                        tmpl << html!{
+
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                : raw!(" / ");
+                            }
+
+                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                : raw!("Review")
+                            }
+                        }
+                },
+                _ => {}
+            }
+        }
     }
 
 }
@@ -765,91 +784,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
 #[inline]
 fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID, deck_route: &DeckRoute) {
     tmpl << html!{
-        div(class="column") {
 
-            div(class="columns") {
-                div(class="column") {
-                    |tmpl| DeckPath(tmpl, context.clone(), deck_id);
-                }
-            }
-
-            |tmpl| {
-                match *deck_route {
-                    DeckRoute::Decks(ref decks_page_query, ref search) => {
-                        DecksChildren(
-                            tmpl,
-                            context.clone(),
-                            deck_id,
-                            decks_page_query,
-                            search
-                        )
-                    },
-                    DeckRoute::NewDeck => {
-                        NewDeck(
-                            tmpl,
-                            context.clone(),
-                            deck_id
-                        )
-                    },
-                    DeckRoute::NewCard => {
-                        NewCard(
-                            tmpl,
-                            context.clone(),
-                            deck_id
-                        )
-                    },
-                    DeckRoute::Description => {
-                        DeckDescription(
-                            tmpl,
-                            context.clone(),
-                            deck_id
-                        )
-                    },
-                    DeckRoute::Cards(ref cards_page_query, ref search) => {
-                        DeckCards(
-                            tmpl,
-                            context.clone(),
-                            deck_id,
-                            cards_page_query,
-                            search
-                        )
-                    },
-                    DeckRoute::Settings(ref setting_mode) => {
-                        DeckSettings(
-                            tmpl,
-                            context.clone(),
-                            setting_mode,
-                            deck_id
-                        )
-                    },
-                    DeckRoute::CardProfile(card_id, ref card_route) => {
-                        CardDetail(
-                            tmpl,
-                            context.clone(),
-                            deck_id,
-                            card_id,
-                            card_route
-                        )
-                    },
-                    DeckRoute::Review(ref card_for_review) => {
-                        DeckReview(
-                            tmpl,
-                            context.clone(),
-                            deck_id,
-                            card_for_review
-                        )
-                    },
-                    DeckRoute::Stats => {
-                        DeckStats(
-                            tmpl,
-                            context.clone(),
-                            deck_id
-                        )
-                    }
-                }
-            }
-
-        }
 
         div(class="column is-one-quarter") {
 
@@ -954,6 +889,93 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                 }
             }
         }
+
+        div(class="column") {
+
+            div(class="columns") {
+                div(class="column") {
+                    |tmpl| DeckPath(tmpl, context.clone(), deck_id, deck_route);
+                }
+            }
+
+            |tmpl| {
+                match *deck_route {
+                    DeckRoute::Decks(ref decks_page_query, ref search) => {
+                        DecksChildren(
+                            tmpl,
+                            context.clone(),
+                            deck_id,
+                            decks_page_query,
+                            search
+                        )
+                    },
+                    DeckRoute::NewDeck => {
+                        NewDeck(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
+                    },
+                    DeckRoute::NewCard => {
+                        NewCard(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
+                    },
+                    DeckRoute::Description => {
+                        DeckDescription(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
+                    },
+                    DeckRoute::Cards(ref cards_page_query, ref search) => {
+                        DeckCards(
+                            tmpl,
+                            context.clone(),
+                            deck_id,
+                            cards_page_query,
+                            search
+                        )
+                    },
+                    DeckRoute::Settings(ref setting_mode) => {
+                        DeckSettings(
+                            tmpl,
+                            context.clone(),
+                            setting_mode,
+                            deck_id
+                        )
+                    },
+                    DeckRoute::CardProfile(card_id, ref card_route) => {
+                        CardDetail(
+                            tmpl,
+                            context.clone(),
+                            deck_id,
+                            card_id,
+                            card_route
+                        )
+                    },
+                    DeckRoute::Review(ref card_for_review) => {
+                        DeckReview(
+                            tmpl,
+                            context.clone(),
+                            deck_id,
+                            card_for_review
+                        )
+                    },
+                    DeckRoute::Stats => {
+                        DeckStats(
+                            tmpl,
+                            context.clone(),
+                            deck_id
+                        )
+                    }
+                }
+            }
+
+        }
+
     }
 }
 
@@ -1544,20 +1566,21 @@ fn DeckReview(
             div(class="columns") {
                 div(class="column") {
                     h1(class="title") {
-                        : raw!("Reviewing Cards in this Deck")
+                        : raw!("No cards in this deck to review")
                     }
                 }
             }
 
-            div(class="columns") {
-                div(class="column") {
-                    article(class="message") {
-                        div(class="message-body") {
-                            : raw!("There are no cards to review.")
-                        }
-                    }
-                }
-            }
+            // TODO: remove
+            // div(class="columns") {
+            //     div(class="column") {
+            //         article(class="message") {
+            //             div(class="message-body") {
+            //                 : raw!("There are no cards to review.")
+            //             }
+            //         }
+            //     }
+            // }
 
         };
 
@@ -1566,13 +1589,14 @@ fn DeckReview(
 
     tmpl << html!{
 
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Reviewing Cards in this Deck")
-                }
-            }
-        }
+        // TODO: remove
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Reviewing Cards in this Deck")
+        //         }
+        //     }
+        // }
 
         div(id="deck_review_container") {
             // TODO: fix
