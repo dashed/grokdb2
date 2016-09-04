@@ -41,7 +41,7 @@ macro_rules! classnames {
     }};
 }
 
-/* link generator */
+/* link generators */
 
 #[inline]
 fn card_route_string(card_route: CardRoute) -> String {
@@ -101,6 +101,46 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
     }
 }
 
+pub fn generate_post_to(app_route: &AppRoute) -> String {
+    match *app_route {
+        AppRoute::Deck(deck_id, ref deck_route) => {
+            match *deck_route {
+                DeckRoute::NewDeck => {
+                    format!("/api/deck/{deck_id}/new/deck", deck_id = deck_id)
+                },
+                DeckRoute::NewCard => {
+                    format!("/api/deck/{deck_id}/new/card", deck_id = deck_id)
+                },
+                DeckRoute::Review(_) => {
+                    format!("/api/deck/{deck_id}/review", deck_id = deck_id)
+                },
+                DeckRoute::Description => {
+                    format!("/api/deck/{deck_id}/description", deck_id = deck_id)
+                },
+                DeckRoute::Settings(DeckSettings::Main) => {
+                    format!("/api/deck/{deck_id}/settings/name", deck_id = deck_id)
+                },
+                DeckRoute::CardProfile(card_id, ref card_route) => {
+                    match *card_route {
+                        CardRoute::Contents => {
+                            format!("/api/card/{card_id}/update", card_id = card_id)
+                        },
+                        _ => {
+                            panic!("invalid use of generate_post_to");
+                        }
+                    }
+                }
+                _ => {
+                    panic!("invalid use of generate_post_to");
+                }
+            }
+        },
+        _ => {
+            panic!("invalid use of generate_post_to");
+        }
+    }
+}
+
 /* javascript generator */
 
 #[derive(Serialize)]
@@ -131,10 +171,10 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
-                                        POST_TO: '/api/deck/{}/new/deck'\
+                                        POST_TO: '{post_to}'\
                                     }};\
                                 ",
-                                deck_id
+                                post_to = generate_post_to(app_route)
                             )
                         )
                     }
@@ -145,10 +185,10 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
-                                        POST_TO: '/api/deck/{}/new/card'\
+                                        POST_TO: '{post_to}'\
                                     }};\
                                 ",
-                                deck_id
+                                post_to = generate_post_to(app_route)
                             )
                         )
                     }
@@ -173,11 +213,12 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
-                                        POST_TO: '/api/deck/{deck_id}/description',\
+                                        POST_TO: '{post_to}',\
                                         DECK_DESCRIPTION: {markdown_contents}\
                                     }};\
                                 ",
-                                deck_id = deck_id, markdown_contents = markdown_contents
+                                post_to = generate_post_to(app_route),
+                                markdown_contents = markdown_contents
                             )
                         )
                     }
@@ -202,11 +243,12 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
-                                        POST_TO: '/api/deck/{deck_id}/settings/name',\
+                                        POST_TO: '{post_to}',\
                                         DECK_NAME: {markdown_contents}\
                                     }};\
                                 ",
-                                deck_id = deck_id, markdown_contents = markdown_contents
+                                post_to = generate_post_to(app_route),
+                                markdown_contents = markdown_contents
                             )
                         )
                     }
@@ -276,7 +318,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
-                                        POST_TO: '/api/deck/{deck_id}/review',\
+                                        POST_TO: '{post_to}',\
                                         CARD_TITLE: {card_title},\
                                         CARD_DESCRIPTION: {card_description},\
                                         CARD_QUESTION: {card_question},\
@@ -285,7 +327,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                         CARD_META: {card_meta}\
                                     }};\
                                 ",
-                                deck_id = deck_id,
+                                post_to = generate_post_to(app_route),
                                 card_title = card_title,
                                 card_description = card_description,
                                 card_question = card_question,
@@ -344,7 +386,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     format!(
                                         "window.__PRE_RENDER_STATE__ = \
                                             {{\
-                                                POST_TO: '/api/card/{card_id}/update',\
+                                                POST_TO: '{post_to}',\
                                                 CARD_TITLE: {title},\
                                                 CARD_DESCRIPTION: {description},\
                                                 CARD_QUESTION: {question},\
@@ -352,7 +394,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                                 CARD_IS_ACTIVE: {is_active}\
                                             }};\
                                         ",
-                                        card_id = card_id,
+                                        post_to = generate_post_to(app_route),
                                         title = title,
                                         description = description,
                                         question = question,

@@ -7,16 +7,25 @@ use std::rc::Rc;
 
 use random_wheel::RandomWheel;
 use rand::{thread_rng, Rng};
+use rusqlite::Connection;
+use rusqlite::types::ToSql;
 
 /* local imports */
 
 use context::{self, Context};
 use errors::RawAPIError;
-use types::{ItemCount, CardID, Offset, Minutes};
+use types::{ItemCount, CardID, DeckID, Offset, Minutes};
+use api::cards::{self, Card};
+use api::decks::{self, Deck};
+use route::{AppRoute, DeckRoute};
+use components::{generate_post_to};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
 static TOP_N_PERCENT: f64 = 0.5;
+static DEFAULT_TIME_TILL_AVAILABLE_FOR_REVIEW: Minutes = 180; // 180 minutes = 3 hours
+static DEFAULT_CARDS_TILL_AVAILABLE_FOR_REVIEW: ItemCount = 1;
+
 
 type Percent = f64;
 
@@ -101,11 +110,13 @@ pub struct CachedReviewProcedure {
     // card_chosen_by: ChosenCard
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub enum ReviewAction {
     Right,
     Wrong,
-    Forgot
+    Forgot,
+    Skip,
+    Reset
 }
 
 #[derive(Deserialize)]
@@ -118,12 +129,231 @@ pub struct RawReviewRequest {
     cards_till_available_for_review: Option<ItemCount>,
 }
 
+impl RawReviewRequest {
+    pub fn normalize(&self, deck_id: DeckID) -> ReviewRequest {
+
+        let time_till_available_for_review = match self.time_till_available_for_review {
+            None => DEFAULT_TIME_TILL_AVAILABLE_FOR_REVIEW,
+            Some(val) => val
+        };
+
+        let cards_till_available_for_review = match self.cards_till_available_for_review {
+            None => DEFAULT_CARDS_TILL_AVAILABLE_FOR_REVIEW,
+            Some(val) => val
+        };
+
+        ReviewRequest {
+            card_id: self.card_id,
+            deck_id: deck_id,
+            review_action: self.review_action.clone(),
+            time_till_available_for_review: time_till_available_for_review,
+            cards_till_available_for_review: cards_till_available_for_review
+        }
+    }
+}
+
 pub struct ReviewRequest {
-    card_id: CardID,
+    pub card_id: CardID,
+    deck_id: DeckID,
     review_action: ReviewAction,
 
     time_till_available_for_review: Minutes,
     cards_till_available_for_review: ItemCount,
+}
+
+impl ReviewRequest {
+    pub fn commit(&self, context: Rc<RefCell<Context>>) -> Result<(), RawAPIError> {
+
+        let _guard = context::write_lock(context.clone());
+
+        let deck = match decks::get_deck(context.clone(), self.deck_id) {
+            Ok(deck) => deck,
+            Err(why) => {
+                return Err(why);
+            }
+        };
+
+        match deck.remove_cache(context.clone()) {
+            Ok(_) => {},
+            Err(why) => {
+                return Err(why);
+            }
+        }
+
+        match self.review_card(context.clone()) {
+            Ok(_) => {},
+            Err(why) => {
+                return Err(why);
+            }
+        }
+
+        return Ok(());
+    }
+
+    fn review_card(
+        &self,
+        context: Rc<RefCell<Context>>,
+        ) -> Result<(), RawAPIError> {
+
+        assert!(context.borrow().is_write_locked());
+
+        let (changelog,
+            success,
+            fail,
+            times_reviewed,
+            times_seen,
+            seen_at,
+            reviewed_at) = match self.review_action {
+            ReviewAction::Right => {
+
+                let changelog = "Answered card correctly.";
+                let success = "success + 1";
+                let fail = "fail"; // no change
+                let times_reviewed = "times_reviewed + 1";
+                let times_seen = "times_seen + 1";
+                let seen_at = "strftime('%s', 'now')";
+                let reviewed_at = "strftime('%s', 'now')";
+
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at)
+            },
+            ReviewAction::Wrong => {
+
+                let changelog = "Answered card incorrectly.";
+                let success = "success"; // no change
+                let fail = "fail + 1";
+                let times_reviewed = "times_reviewed + 1";
+                let times_seen = "times_seen + 1";
+                let seen_at = "strftime('%s', 'now')";
+                let reviewed_at = "strftime('%s', 'now')";
+
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at)
+            },
+            ReviewAction::Forgot => {
+
+                let changelog = "Forgotten answer to the card.";
+                let success = "0";
+                let fail = "1";
+                let times_reviewed = "times_reviewed + 1";
+                let times_seen = "times_seen + 1";
+                let seen_at = "strftime('%s', 'now')";
+                let reviewed_at = "strftime('%s', 'now')";
+
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at)
+            },
+            ReviewAction::Skip => {
+
+                let changelog = "Skipped card.";
+                let success = "success"; // no change
+                let fail = "fail"; // no change
+                let times_reviewed = "times_reviewed"; // no change
+                let times_seen = "times_seen + 1";
+                let seen_at = "strftime('%s', 'now')";
+                let reviewed_at = "reviewed_at"; // no change
+
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at)
+            },
+            ReviewAction::Reset => {
+
+                let changelog = "Reset score.";
+                let success = "0";
+                let fail = "0";
+                let times_reviewed = "times_reviewed"; // no change
+                let times_seen = "times_seen"; // no change
+                let seen_at = "seen_at)"; // no change
+                let reviewed_at = "reviewed_at"; // no change
+
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at)
+            }
+        };
+
+        let review_after = self.time_till_available_for_review * 60;
+
+        let query = format!(indoc!("
+            UPDATE
+                CardsScore
+            SET
+                changelog = :changelog,
+                success = {success},
+                fail = {fail},
+                times_reviewed = {times_reviewed},
+                times_seen = {times_seen},
+                seen_at = {seen_at},
+                reviewed_at = {reviewed_at},
+                review_after = {review_after}
+            WHERE card_id = {card_id};
+        "),
+        success = success,
+        fail = fail,
+        times_reviewed = times_reviewed,
+        times_seen = times_seen,
+        seen_at = seen_at,
+        reviewed_at = reviewed_at,
+        review_after = review_after,
+        card_id = self.card_id);
+
+        let params: &[(&str, &ToSql)] = &[
+            (":changelog", &changelog),
+        ];
+
+        let context = context.borrow();
+        db_write_lock!(db_conn; context.database());
+        let db_conn: &Connection = db_conn;
+
+        match db_conn.execute_named(&query, params) {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            }
+            _ => {
+                /* query sucessfully executed */
+            }
+        }
+
+        return Ok(());
+    }
+
+}
+
+#[derive(Serialize)]
+pub struct ReviewResponse {
+    post_to: String,
+
+    has_card_for_review: bool,
+    card: Option<Card>
+}
+
+impl ReviewResponse {
+    pub fn new(context: Rc<RefCell<Context>>, deck: Deck) -> Result<Self, RawAPIError> {
+
+        let _guard = context::write_lock(context.clone());
+
+        let result = match get_review_card(context.clone(), &deck) {
+            Ok(result) => result,
+            Err(why) => {
+                return Err(why);
+            }
+        };
+
+        let card = match result {
+            None => None,
+            Some((card_id, _)) => {
+
+                match cards::get_card(context, card_id) {
+                    Ok(card) => Some(card),
+                    Err(why) => {
+                        return Err(why);
+                    }
+                }
+            }
+        };
+
+        let review_response = ReviewResponse {
+            post_to: generate_post_to(&AppRoute::Deck(deck.id, DeckRoute::Review(None))),
+            has_card_for_review: card.is_some(),
+            card: card
+        };
+
+        return Ok(review_response);
+    }
 }
 
 pub trait Reviewable {

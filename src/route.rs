@@ -48,7 +48,7 @@ use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
 use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
 use api::cards;
-use api::review::{self, CachedReviewProcedure};
+use api::review::{self, CachedReviewProcedure, RawReviewRequest, Reviewable, ReviewResponse};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -524,12 +524,180 @@ fn __parse_route_api_deck<'a>(
 -> U8Result<'a, RenderResponse> {
     parse!{input;
 
-        let render_response = parse_route_api_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
+        let render_response = parse_route_api_deck_review(context.clone(), request.clone(), deck_id) <|>
+            parse_route_api_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
             parse_route_api_deck_new_card(context.clone(), request.clone(), deck_id) <|>
             parse_route_api_deck_description(context.clone(), request.clone(), deck_id) <|>
             parse_route_api_deck_settings(context.clone(), request.clone(), deck_id);
 
         ret render_response
+    }
+}
+
+#[inline]
+fn parse_route_api_deck_review<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    parent_deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
+
+    parse!{input;
+
+        string_ignore_case(b"review");
+
+        eof();
+
+        ret {
+            __parse_route_api_deck_review(context, request, parent_deck_id)
+        }
+
+    }
+}
+
+#[inline]
+fn __parse_route_api_deck_review(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    parent_deck_id: DeckID)
+-> RenderResponse {
+
+    let mut request = request.borrow_mut();
+
+    if request.method != Method::Post {
+        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+    }
+
+    // POST /api/deck/:id/review =>
+
+    let mut buffer = String::new();
+
+    match request.read_to_string(&mut buffer) {
+        Ok(_num_bytes_parsed) => {
+
+            let request: RawReviewRequest = match serde_json::from_str(&buffer) {
+                Ok(request) => request,
+                Err(err) => {
+                    // TODO: error logging
+                    // println!("{:?}", err);
+
+                    let err = EndPointError::bad_request("Unable to interpret your request to review this deck. \
+                        Please try again.".to_string());
+                    return RenderResponse::EndPointError(err);
+                }
+            };
+
+            let request = request.normalize(parent_deck_id);
+
+            let _guard = context::write_lock(context.clone());
+
+            // invariant: deck exists
+
+            let exists = match cards::card_exists(context.clone(), request.card_id) {
+                Ok(exists) => exists,
+                Err(_) => {
+                    // TODO: error logging
+                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
+                    return RenderResponse::EndPointError(err);
+                }
+            };
+
+            if !exists {
+                // TODO: error logging
+                // println!("{:?}", err);
+
+                let err = EndPointError::bad_request("This card does not appear to exist anymore.".to_string());
+                return RenderResponse::EndPointError(err);
+            }
+
+            let in_deck = match cards::is_card_in_deck(context.clone(), request.card_id, parent_deck_id) {
+                Ok(in_deck) => in_deck,
+                Err(_) => {
+                    // TODO: error logging
+                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
+                    return RenderResponse::EndPointError(err);
+                }
+            };
+
+            if !in_deck {
+                // TODO: error logging
+                // println!("{:?}", err);
+
+                let err = EndPointError::bad_request("This card does not appear to be in this deck.".to_string());
+                return RenderResponse::EndPointError(err);
+            }
+
+            let deck = match decks::get_deck(context.clone(), parent_deck_id) {
+                Ok(deck) => deck,
+                Err(_) => {
+                    // TODO: error logging
+                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
+                    return RenderResponse::EndPointError(err);
+                }
+            };
+
+            let card_id = match deck.get_cached_card(context.clone()) {
+                Ok(result) => {
+
+                    match result {
+                        None => {
+                            // TODO: error logging
+                            // println!("{:?}", err);
+
+                            let err = EndPointError::bad_request("This card does not appear to be chosen for review for this deck.".to_string());
+                            return RenderResponse::EndPointError(err);
+                        },
+                        Some((card_id, _)) => {
+                            card_id
+                        }
+                    }
+
+                },
+                Err(_) => {
+                    // TODO: error logging
+                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
+                    return RenderResponse::EndPointError(err);
+                }
+            };
+
+            if card_id != request.card_id {
+                // TODO: error logging
+                // println!("{:?}", err);
+
+                let err = EndPointError::bad_request("This card does not appear to be chosen for review for this deck.".to_string());
+                return RenderResponse::EndPointError(err);
+            }
+
+            // commit review request
+            match request.commit(context.clone()) {
+                Ok(_) => {},
+                Err(_) => {
+                    // TODO: error logging
+                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
+                    return RenderResponse::EndPointError(err);
+                }
+            }
+
+            // fetch next card for review
+            match ReviewResponse::new(context.clone(), deck) {
+                Ok(review_response) => {
+                    return respond_json!(review_response);
+                },
+                Err(_) => {
+                    // TODO: error logging
+                    let err = EndPointError::server_error("An internal server error occurred.".to_string());
+                    return RenderResponse::EndPointError(err);
+                }
+            }
+
+        },
+        Err(err) => {
+            // internal reason: invalid utf8 input
+            // TODO: error logging
+            let err = EndPointError::bad_request("Unable to interpret your request to review this deck. \
+                Please try again.".to_string());
+            return RenderResponse::EndPointError(err);
+        }
     }
 }
 
