@@ -24,6 +24,7 @@ const CARD_ANSWER = 'CARD_ANSWER';
 const CARD_IS_ACTIVE = 'CARD_IS_ACTIVE';
 const CARD_SETTINGS = 'CARD_SETTINGS';
 const CARD_META = 'CARD_META';
+const CARD_ID = 'CARD_ID';
 
 const MARKDOWN_CONTENTS = 'MARKDOWN_CONTENTS';
 const POST_TO = 'POST_TO'; // URL to send POST request
@@ -51,6 +52,7 @@ module.exports = {
     CARD_SETTINGS,
     CARD_IS_ACTIVE,
     CARD_META,
+    CARD_ID,
 
     MARKDOWN_CONTENTS,
     POST_TO,

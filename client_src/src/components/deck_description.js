@@ -3,6 +3,7 @@ require('global/normalize');
 const React = require('react');
 
 const assign = require('lodash/assign');
+const get = require('lodash/get');
 
 const {Provider, connect} = require('react-redux');
 const {reduxForm, reducer: reduxformReducer} = require('redux-form');
@@ -12,6 +13,7 @@ const fetch = require('fetch-ponyfill')({
     Promise: require('bluebird')
 });
 
+const jsonDecode = require('helpers/json_decode');
 
 const {
 
@@ -165,25 +167,31 @@ const __DeckDescription = function(props) {
 
     return (
         <div>
-            <div key='render_source' className='columns' style={{marginBottom: 0}}>
+            <div key='render_source' className='columns'>
                 <div className='column'>
                     <RenderSourceDescriptionComponent />
                 </div>
             </div>
-            <div key='render' style={renderStyle}>
-                <MarkdownRender
-                    contents={renderContents}
-                    noContentMessage={noContentMessage}
-                />
-            </div>
-            <div key='source' style={sourceStyle}>
-                <MarkdownSource
-                    id='input-deck-description'
-                    contents={sourceContents}
-                    placeholder={'Deck Description'}
-                    assignProps={description}
-                    editable={isEditing}
-                />
+            <div key='content' className='columns'>
+                <div className='column'>
+
+                    <div key='render' style={renderStyle}>
+                        <MarkdownRender
+                            contents={renderContents}
+                            noContentMessage={noContentMessage}
+                        />
+                    </div>
+                    <div key='source' style={sourceStyle}>
+                        <MarkdownSource
+                            id='input-deck-description'
+                            contents={sourceContents}
+                            placeholder={'Deck Description'}
+                            assignProps={description}
+                            editable={isEditing}
+                        />
+                    </div>
+
+                </div>
             </div>
         </div>
     );
@@ -325,6 +333,7 @@ const deckDescriptionContainerFactory = function(preRenderState) {
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
+const defaultRESTError = 'Unable to send request to update deck description. Please try again.';
 const saveDescription = function(dispatch, postURL, formData) {
 
     return new Promise((resolve, reject) => {
@@ -342,10 +351,7 @@ const saveDescription = function(dispatch, postURL, formData) {
             })
         })
         .then(function(response) {
-
-            const jsonResponse = response.status != 200 ? response.json() : {};
-
-            return Promise.all([response.status, jsonResponse]);
+            return Promise.all([response.status, jsonDecode(response)]);
         }, function(/*err*/) {
 
             // network error
@@ -353,7 +359,7 @@ const saveDescription = function(dispatch, postURL, formData) {
 
             reject({
                 _error: {
-                    message: 'Unable to send request to update deck description. Please try again.'
+                    message: defaultRESTError
                 }
             });
         })
@@ -365,7 +371,7 @@ const saveDescription = function(dispatch, postURL, formData) {
 
                 reject({
                     _error: {
-                        message: jsonResponse.userMessage
+                        message: get(jsonResponse, ['payload', 'userMessage'], defaultRESTError)
                     }
                 });
 

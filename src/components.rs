@@ -1173,29 +1173,45 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
             : raw!(include_str!("react_components/deck_description"))
         }
 
-        div(class="columns", id="deck_description_container_stub", style="margin-top: 10px;") {
-            div(class="column") {
-                |tmpl| {
-                    if description.trim().len() <= 0 {
+        div(id="deck_description_container_stub", style="margin-top: 10px;") {
 
-                        tmpl << html!{
-                            div(class="message is-info") {
-                                div(class="message-body") {
-                                    : raw!("No description set for this deck. \
-                                        Click \"Edit\" button to add a description.");
+            div(class="columns") {
+                div(class="column") {
+                    a(class="button is-primary") {
+                        : raw!("Preview")
+                    }
+                    : raw!(" ");
+                    a(class="button") {
+                        : raw!("Source")
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    |tmpl| {
+                        if description.trim().len() <= 0 {
+
+                            tmpl << html!{
+                                div(class="message is-info") {
+                                    div(class="message-body") {
+                                        : raw!("No description set for this deck. \
+                                            Click \"Edit\" button to add a description.");
+                                    }
                                 }
-                            }
-                        };
+                            };
 
-                    } else {
+                        } else {
 
-                        tmpl << html! {
-                            : description
-                        };
+                            tmpl << html! {
+                                : description
+                            };
+                        }
                     }
                 }
             }
         }
+
     }
 }
 
