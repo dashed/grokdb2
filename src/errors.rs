@@ -107,22 +107,25 @@ quick_error! {
 // );
 
 
+// TODO: wtf was this for?
 macro_rules! handle_raw_api_error(
     ($reason: expr) => {{
         use errors;
         let _type_check: errors::RawAPIError = $reason;
 
-// TODO: logging backend
+        // TODO: logging backend
         println!("RAW API ERROR: {:?}", _type_check);
     }}
 );
 
-macro_rules! handle_serde_error(
-    ($reason: expr) => {{
-        use serde_json;
-        let _type_check: serde_json::error::Error = $reason;
+// TODO: wtf was this for?
+// TODO: remove
+// macro_rules! handle_serde_error(
+//     ($reason: expr) => {{
+//         use serde_json;
+//         let _type_check: serde_json::error::Error = $reason;
 
-// TODO: logging backend
-        println!("SERDE ERROR: {:?}", _type_check);
-    }}
-);
+// // TODO: logging backend
+//         println!("SERDE ERROR: {:?}", _type_check);
+//     }}
+// );
