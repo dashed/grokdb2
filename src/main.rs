@@ -267,7 +267,7 @@ fn main() {
                     // TODO: internal error logging
 
                     // panic!("{:?}", e);
-                    RenderResponse::RenderNotFound
+                    RenderResponse::NotFound
                 }
             };
             render
@@ -290,7 +290,7 @@ fn main() {
 
                 println!("PANIC REASON: {}", reason);
 
-                render_response(context.clone(), RenderResponse::RenderInternalServerError, response);
+                render_response(context.clone(), RenderResponse::InternalServerError, response);
                 return;
             },
             Ok(render) => {

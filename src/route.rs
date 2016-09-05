@@ -120,24 +120,19 @@ pub enum DeckSettings {
 #[derive(Debug)]
 pub enum RenderResponse {
 
-    // TODO: remove Render- prefix
-    RenderComponent(AppRoute),
+    Component(AppRoute),
+
+    // NOTE: these lead to html content
+    NotFound,
+    BadRequest,
+    InternalServerError,
 
     // API response
     JSON(APIStatus, JSONResponse),
 
-    // TODO: remove
-    // RenderOk,
+    Asset(ContentType, Vec<u8>),
 
-    // these lead to html content
-    RenderNotFound,
-    RenderBadRequest,
-    RenderInternalServerError,
-
-    // TODO: remove; do specific enums (http method not allowed)
-    StatusCode(StatusCode),
-
-    RenderAsset(ContentType, Vec<u8>),
+    MethodNotAllowed
 }
 
 /* route parser */
@@ -203,7 +198,7 @@ fn fetch_assets(request: Rc<RefCell<Request>>, path: String) -> RenderResponse {
     // Allow only GET requests
 
     if request.borrow().method != Method::Get {
-        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+        return RenderResponse::MethodNotAllowed;
     }
 
     // TODO: inlined resources here
@@ -220,12 +215,12 @@ fn fetch_assets(request: Rc<RefCell<Request>>, path: String) -> RenderResponse {
     // TODO: this is a security bottle-neck
     let req_path = match req_path.canonicalize() {
         Err(_) => {
-            return RenderResponse::RenderNotFound;
+            return RenderResponse::NotFound;
         },
         Ok(req_path) => {
 
             if !req_path.starts_with(starts_with.as_path()) {
-                return RenderResponse::RenderNotFound;
+                return RenderResponse::NotFound;
             }
 
             req_path
@@ -237,7 +232,7 @@ fn fetch_assets(request: Rc<RefCell<Request>>, path: String) -> RenderResponse {
         Ok(metadata) => {
 
             if !metadata.is_file() {
-                return RenderResponse::RenderNotFound;
+                return RenderResponse::NotFound;
             }
 
             // TODO: better way?
@@ -262,11 +257,11 @@ fn fetch_assets(request: Rc<RefCell<Request>>, path: String) -> RenderResponse {
 
             file.read_to_end(&mut content).unwrap();
 
-            RenderResponse::RenderAsset(content_type, content)
+            RenderResponse::Asset(content_type, content)
 
         },
         Err(e) => {
-            return RenderResponse::RenderNotFound;
+            return RenderResponse::NotFound;
         },
     }
 
@@ -319,7 +314,7 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
                 // null parser
 
                 ret {
-                    RenderResponse::RenderNotFound
+                    RenderResponse::NotFound
                 }
             }
         );
@@ -367,12 +362,12 @@ fn parse_route_api_card<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>,
                 if exists {
                     __parse_route_api_card(i, context.clone(), request, card_id)
                 } else {
-                    i.ret(RenderResponse::RenderNotFound)
+                    i.ret(RenderResponse::NotFound)
                 }
 
             },
             // TODO: internal error logging
-            Err(_) => i.ret(RenderResponse::RenderInternalServerError)
+            Err(_) => i.ret(RenderResponse::InternalServerError)
         }
     })
 
@@ -419,7 +414,7 @@ fn __parse_route_api_card_update(
     let mut request = request.borrow_mut();
 
     if request.method != Method::Post {
-        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+        return RenderResponse::MethodNotAllowed;
     }
 
     // POST /api/card/:id/update
@@ -434,7 +429,7 @@ fn __parse_route_api_card_update(
                 Err(err) => {
                     // TODO: error logging
                     // println!("{:?}", err);
-                    return RenderResponse::RenderBadRequest;
+                    return RenderResponse::BadRequest;
                 }
             };
 
@@ -473,7 +468,7 @@ fn __parse_route_api_card_update(
                 },
                 Err(_) => {
                     // TODO: error logging
-                    return RenderResponse::RenderInternalServerError;
+                    return RenderResponse::InternalServerError;
                 }
             }
 
@@ -481,7 +476,7 @@ fn __parse_route_api_card_update(
         Err(err) => {
             // invalid utf8 input
             // TODO: error logging
-            return RenderResponse::RenderBadRequest;
+            return RenderResponse::BadRequest;
         }
     }
 }
@@ -508,12 +503,12 @@ fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>,
                 if exists {
                     __parse_route_api_deck(i, context.clone(), request, deck_id)
                 } else {
-                    i.ret(RenderResponse::RenderBadRequest)
+                    i.ret(RenderResponse::BadRequest)
                 }
 
             },
             // TODO: internal error logging
-            Err(_) => i.ret(RenderResponse::RenderInternalServerError)
+            Err(_) => i.ret(RenderResponse::InternalServerError)
         }
     })
 
@@ -569,7 +564,7 @@ fn __parse_route_api_deck_review(
     let mut request = request.borrow_mut();
 
     if request.method != Method::Post {
-        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+        return RenderResponse::MethodNotAllowed;
     }
 
     // POST /api/deck/:id/review =>
@@ -749,7 +744,7 @@ fn __parse_route_api_deck_new_deck(
     let mut request = request.borrow_mut();
 
     if request.method != Method::Post {
-        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+        return RenderResponse::MethodNotAllowed;
     }
 
     // POST /api/deck/:id/new/deck => create a new deck within this deck
@@ -869,7 +864,7 @@ fn __parse_route_api_deck_new_card(
     let mut request = request.borrow_mut();
 
     if request.method != Method::Post {
-        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+        return RenderResponse::MethodNotAllowed;
     }
 
     // POST /api/deck/:id/new/card => create a new card within this deck
@@ -884,7 +879,7 @@ fn __parse_route_api_deck_new_card(
                 Err(err) => {
                     // TODO: error logging
                     // println!("{:?}", err);
-                    return RenderResponse::RenderBadRequest;
+                    return RenderResponse::BadRequest;
                 }
             };
 
@@ -940,7 +935,7 @@ fn __parse_route_api_deck_new_card(
                 },
                 Err(_) => {
                     // TODO: error logging
-                    return RenderResponse::RenderInternalServerError;
+                    return RenderResponse::InternalServerError;
                 }
             }
 
@@ -948,7 +943,7 @@ fn __parse_route_api_deck_new_card(
         Err(err) => {
             // invalid utf8 input
             // TODO: error logging
-            return RenderResponse::RenderBadRequest;
+            return RenderResponse::BadRequest;
         }
     }
 }
@@ -981,7 +976,7 @@ fn __parse_route_api_deck_description(
     let mut request = request.borrow_mut();
 
     if request.method != Method::Post {
-        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+        return RenderResponse::MethodNotAllowed;
     }
 
     let mut buffer = String::new();
@@ -990,7 +985,7 @@ fn __parse_route_api_deck_description(
         Err(err) => {
             // invalid utf8 input
             // TODO: error logging
-            return RenderResponse::RenderBadRequest;
+            return RenderResponse::BadRequest;
         },
         Ok(_num_bytes_parsed) => {
 
@@ -1065,7 +1060,7 @@ fn __parse_route_api_deck_settings_name(
     let mut request = request.borrow_mut();
 
     if request.method != Method::Post {
-        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+        return RenderResponse::MethodNotAllowed;
     }
 
     let mut buffer = String::new();
@@ -1092,7 +1087,7 @@ fn __parse_route_api_deck_settings_name(
 
             // NOTE: deck name must not be empty
             if request.name.trim().len() <= 0 {
-                return RenderResponse::RenderBadRequest;
+                return RenderResponse::BadRequest;
             }
 
             let _guard = context::write_lock(context.clone());
@@ -1134,7 +1129,7 @@ fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
                 Ok(exists) => exists,
                 Err(_) => {
                     // TODO: internal error logging
-                    return i.ret(RenderResponse::RenderInternalServerError);
+                    return i.ret(RenderResponse::InternalServerError);
                 }
             }
 
@@ -1143,7 +1138,7 @@ fn parse_route_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
         if exists {
             __parse_route_deck(i, context.clone(), request, deck_id)
         } else {
-            i.ret(RenderResponse::RenderNotFound)
+            i.ret(RenderResponse::NotFound)
         }
 
 
@@ -1233,10 +1228,10 @@ fn parse_route_deck_stats<'a>(
 
         ret {
             if request.borrow().method != Method::Get {
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                RenderResponse::MethodNotAllowed
             } else {
                 let route = AppRoute::Deck(deck_id, DeckRoute::Stats);
-                RenderResponse::RenderComponent(route)
+                RenderResponse::Component(route)
             }
         }
     }
@@ -1264,7 +1259,7 @@ fn parse_route_deck_review<'a>(
 
         ret {
             if request.borrow().method != Method::Get {
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                RenderResponse::MethodNotAllowed
             } else {
 
                 let _guard = context::write_lock(context.clone());
@@ -1289,7 +1284,7 @@ fn parse_route_deck_review<'a>(
                 };
 
                 let route = AppRoute::Deck(deck_id, deck_route);
-                RenderResponse::RenderComponent(route)
+                RenderResponse::Component(route)
             }
         }
     }
@@ -1318,10 +1313,10 @@ fn parse_route_deck_description<'a>(
 
         ret {
             if request.borrow().method != Method::Get {
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                RenderResponse::MethodNotAllowed
             } else {
                 let route = AppRoute::Deck(deck_id, DeckRoute::Description);
-                RenderResponse::RenderComponent(route)
+                RenderResponse::Component(route)
             }
         }
     }
@@ -1362,7 +1357,7 @@ fn route_deck_cards(
     query_string: Option<QueryString>) -> RenderResponse {
 
     if request.borrow().method != Method::Get {
-        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+        return RenderResponse::MethodNotAllowed;
     }
 
     let cards_route = match query_string {
@@ -1377,7 +1372,7 @@ fn route_deck_cards(
     };
 
     let decks = AppRoute::Deck(deck_id, cards_route);
-    return RenderResponse::RenderComponent(decks);
+    return RenderResponse::Component(decks);
 
 }
 
@@ -1407,12 +1402,12 @@ fn parse_route_deck_card_profile<'a>(
                     __parse_route_card(i, context.clone(), request, deck_id, card_id)
                 } else {
                     // TODO: redirect to /card/:id
-                    i.ret(RenderResponse::RenderNotFound)
+                    i.ret(RenderResponse::NotFound)
                 }
 
             },
             // TODO: internal error logging
-            Err(_) => i.ret(RenderResponse::RenderInternalServerError)
+            Err(_) => i.ret(RenderResponse::InternalServerError)
         }
 
     })
@@ -1459,7 +1454,7 @@ fn __parse_route_card<'a>(
 
             ret {
                 let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Contents));
-                RenderResponse::RenderComponent(route)
+                RenderResponse::Component(route)
             }
 
         });
@@ -1491,7 +1486,7 @@ fn parse_route_card_contents<'a>(
 
         ret {
             let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Contents));
-            RenderResponse::RenderComponent(route)
+            RenderResponse::Component(route)
         }
     }
 }
@@ -1518,7 +1513,7 @@ fn parse_route_card_review<'a>(
 
         ret {
             let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Review));
-            RenderResponse::RenderComponent(route)
+            RenderResponse::Component(route)
         }
     }
 }
@@ -1545,7 +1540,7 @@ fn parse_route_card_stats<'a>(
 
         ret {
             let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Stats));
-            RenderResponse::RenderComponent(route)
+            RenderResponse::Component(route)
         }
     }
 }
@@ -1572,7 +1567,7 @@ fn parse_route_card_settings<'a>(
 
         ret {
             let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Settings));
-            RenderResponse::RenderComponent(route)
+            RenderResponse::Component(route)
         }
     }
 }
@@ -1617,10 +1612,10 @@ fn parse_route_deck_settings_main<'a>(
 
         ret {
             if request.borrow().method != Method::Get {
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                RenderResponse::MethodNotAllowed
             } else {
                 let route = AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Main));
-                RenderResponse::RenderComponent(route)
+                RenderResponse::Component(route)
             }
         }
     }
@@ -1652,10 +1647,10 @@ fn parse_route_deck_settings_move<'a>(
 
         ret {
             if request.borrow().method != Method::Get {
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                RenderResponse::MethodNotAllowed
             } else {
                 let route = AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Move));
-                RenderResponse::RenderComponent(route)
+                RenderResponse::Component(route)
             }
         }
     }
@@ -1690,7 +1685,7 @@ fn route_deck_decks(
     query_string: Option<QueryString>) -> RenderResponse {
 
     if request.borrow().method != Method::Get {
-        return RenderResponse::StatusCode(StatusCode::MethodNotAllowed);
+        return RenderResponse::MethodNotAllowed;
     }
 
     let decks_route = match query_string {
@@ -1705,7 +1700,7 @@ fn route_deck_decks(
     };
 
     let decks = AppRoute::Deck(deck_id, decks_route);
-    return RenderResponse::RenderComponent(decks);
+    return RenderResponse::Component(decks);
 
 }
 
@@ -1736,10 +1731,10 @@ fn parse_route_deck_new_deck<'a>(
             // Allow only GET requests
 
             if request.borrow().method != Method::Get {
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                RenderResponse::MethodNotAllowed
             } else {
                 let route = AppRoute::Deck(deck_id, DeckRoute::NewDeck);
-                RenderResponse::RenderComponent(route)
+                RenderResponse::Component(route)
             }
         }
     }
@@ -1772,10 +1767,10 @@ fn parse_route_deck_new_card<'a>(
             // Allow only GET requests
 
             if request.borrow().method != Method::Get {
-                RenderResponse::StatusCode(StatusCode::MethodNotAllowed)
+                RenderResponse::MethodNotAllowed
             } else {
                 let route = AppRoute::Deck(deck_id, DeckRoute::NewCard);
-                RenderResponse::RenderComponent(route)
+                RenderResponse::Component(route)
             }
         }
     }
@@ -1995,7 +1990,7 @@ fn parse_query_string_test() {
 pub fn render_response(context: Rc<RefCell<Context>>, render: RenderResponse, mut response: Response) {
 
     match render {
-        RenderResponse::RenderComponent(app_route) => {
+        RenderResponse::Component(app_route) => {
             render_components(context, app_route, response);
         },
         RenderResponse::JSON(api_status, json_response) => {
@@ -2011,31 +2006,31 @@ pub fn render_response(context: Rc<RefCell<Context>>, render: RenderResponse, mu
             response.send(json_response.as_bytes()).unwrap();
 
         },
-        RenderResponse::RenderBadRequest => {
+        RenderResponse::BadRequest => {
             // TODO: better page
             let message = format!("400 Bad Request");
             *response.status_mut() = StatusCode::BadRequest;
             response.send(message.as_bytes()).unwrap();
         },
-        RenderResponse::RenderNotFound => {
+        RenderResponse::NotFound => {
             // TODO: better 404 page
             let message = format!("404 Not Found");
             *response.status_mut() = StatusCode::NotFound;
             response.send(message.as_bytes()).unwrap();
         },
-        RenderResponse::RenderInternalServerError => {
+        RenderResponse::InternalServerError => {
             // TODO: better 500 page
             let message = format!("500 Internal Server Error");
             *response.status_mut() = StatusCode::NotFound;
             response.send(message.as_bytes()).unwrap();
         },
-        RenderResponse::RenderAsset(header, content) => {
+        RenderResponse::Asset(header, content) => {
             response.headers_mut().set((header));
             response.send(&content).unwrap();
         },
-        RenderResponse::StatusCode(status_code) => {
-            *response.status_mut() = status_code;
-            let message = format!("{}", status_code);
+        RenderResponse::MethodNotAllowed => {
+            *response.status_mut() = StatusCode::MethodNotAllowed;
+            let message = format!("{}", StatusCode::MethodNotAllowed);
             response.send(message.as_bytes()).unwrap();
         }
     }
@@ -2086,7 +2081,7 @@ fn render_components(context: Rc<RefCell<Context>>, app_route: AppRoute, mut res
 
         println!("TEMPLATE RENDERING PANIC: {}", reason);
 
-        render_response(context.clone(), RenderResponse::RenderInternalServerError, response);
+        render_response(context.clone(), RenderResponse::InternalServerError, response);
         return;
     }
 
@@ -2096,7 +2091,7 @@ fn render_components(context: Rc<RefCell<Context>>, app_route: AppRoute, mut res
 
             // TODO: internal error logging
 
-            render_response(context.clone(), RenderResponse::RenderInternalServerError, response);
+            render_response(context.clone(), RenderResponse::InternalServerError, response);
             return;
         }
         Ok(rendered) => {
