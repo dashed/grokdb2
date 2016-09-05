@@ -333,7 +333,7 @@ const deckDescriptionContainerFactory = function(preRenderState) {
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
-const defaultRESTError = 'Unable to send request to update deck description. Please try again.';
+const defaultRESTError = 'Unable to update deck description. Please try again.';
 const saveDescription = function(dispatch, postURL, formData) {
 
     return new Promise((resolve, reject) => {
@@ -352,16 +352,6 @@ const saveDescription = function(dispatch, postURL, formData) {
         })
         .then(function(response) {
             return Promise.all([response.status, jsonDecode(response)]);
-        }, function(/*err*/) {
-
-            // network error
-            // console.log('network err:', err);
-
-            reject({
-                _error: {
-                    message: defaultRESTError
-                }
-            });
         })
         .then(function([statusCode, jsonResponse]) {
 
@@ -371,7 +361,7 @@ const saveDescription = function(dispatch, postURL, formData) {
 
                 reject({
                     _error: {
-                        message: get(jsonResponse, ['payload', 'userMessage'], defaultRESTError)
+                        message: get(jsonResponse, ['error'], defaultRESTError)
                     }
                 });
 
@@ -430,21 +420,11 @@ const saveDescription = function(dispatch, postURL, formData) {
             default: // Unexpected http status code
                 reject({
                     _error: {
-                        message: 'Unable to update deck description.'
+                        message: defaultRESTError
                     }
                 });
             }
 
-        }, function(/*err*/) {
-
-            // json parsing fail
-            // console.log('err:', err);
-
-            reject({
-                _error: {
-                    message: 'Unable to update deck description.'
-                }
-            });
         })
         .catch(function(/*err*/) {
 
@@ -453,7 +433,7 @@ const saveDescription = function(dispatch, postURL, formData) {
 
             reject({
                 _error: {
-                    message: 'Unable to update deck description.'
+                    message: defaultRESTError
                 }
             });
         });
