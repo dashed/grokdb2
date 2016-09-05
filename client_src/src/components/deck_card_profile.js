@@ -3,6 +3,7 @@ require('global/normalize');
 const React = require('react');
 
 const assign = require('lodash/assign');
+const get = require('lodash/get');
 
 const {Provider, connect} = require('react-redux');
 const {reduxForm, reducer: reduxformReducer} = require('redux-form');
@@ -11,6 +12,8 @@ const classnames = require('classnames');
 const fetch = require('fetch-ponyfill')({
     Promise: require('bluebird')
 });
+
+const jsonDecode = require('helpers/json_decode');
 
 const {
 
@@ -463,6 +466,7 @@ const cardProfileContainerFactory = function(preRenderState) {
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
+const defaultRESTError = 'Unable to update card. Please try again.';
 const saveCard = function(dispatch, postURL, formData) {
 
     return new Promise((resolve, reject) => {
@@ -488,27 +492,9 @@ const saveCard = function(dispatch, postURL, formData) {
             })
         })
         .then(function(response) {
-
-            let jsonResponse = {};
-            try {
-                jsonResponse = response.json();
-            } catch(_err) {
-                jsonResponse = {};
-            };
-
-            return Promise.all([response.status, jsonResponse]);
-        }, function(/*err*/) {
-
-            // network error
-            // console.log('network err:', err);
-
-            reject({
-                _error: {
-                    message: 'Unable to send request to update card. Please try again.'
-                }
-            });
+            return Promise.all([response.status, jsonDecode(response)]);
         })
-        .then(function([statusCode, jsonResponse]) {
+        .then(function([statusCode, __jsonResponse]) {
 
             switch(statusCode) {
             case 400: // Bad Request
@@ -516,7 +502,7 @@ const saveCard = function(dispatch, postURL, formData) {
 
                 reject({
                     _error: {
-                        message: jsonResponse.userMessage
+                        message: get(__jsonResponse, ['error'], defaultRESTError)
                     }
                 });
 
@@ -524,6 +510,8 @@ const saveCard = function(dispatch, postURL, formData) {
                 break;
 
             case 200: // Ok
+
+                const newCard = __jsonResponse.payload;
 
                 // update card contents
                 dispatch(
@@ -535,7 +523,7 @@ const saveCard = function(dispatch, postURL, formData) {
                         // action
                         {
                             type: MARKDOWN_CONTENTS,
-                            payload: jsonResponse.title
+                            payload: newCard.title
                         }
                     )
                 );
@@ -549,7 +537,7 @@ const saveCard = function(dispatch, postURL, formData) {
                         // action
                         {
                             type: MARKDOWN_CONTENTS,
-                            payload: jsonResponse.description
+                            payload: newCard.description
                         }
                     )
                 );
@@ -563,7 +551,7 @@ const saveCard = function(dispatch, postURL, formData) {
                         // action
                         {
                             type: MARKDOWN_CONTENTS,
-                            payload: jsonResponse.question
+                            payload: newCard.question
                         }
                     )
                 );
@@ -577,7 +565,7 @@ const saveCard = function(dispatch, postURL, formData) {
                         // action
                         {
                             type: MARKDOWN_CONTENTS,
-                            payload: jsonResponse.answer
+                            payload: newCard.answer
                         }
                     )
                 );
@@ -590,7 +578,7 @@ const saveCard = function(dispatch, postURL, formData) {
                         [CARD_IS_ACTIVE, 'VALUE'],
                         // action
                         {
-                            type: !!jsonResponse.is_active
+                            type: !!newCard.is_active
                         }
                     )
                 );
@@ -669,21 +657,11 @@ const saveCard = function(dispatch, postURL, formData) {
             default: // Unexpected http status code
                 reject({
                     _error: {
-                        message: 'Unable to update deck description.'
+                        message: defaultRESTError
                     }
                 });
             }
 
-        }, function(/*err*/) {
-
-            // json parsing fail
-            // console.log('err:', err);
-
-            reject({
-                _error: {
-                    message: 'Unable to update deck description.'
-                }
-            });
         })
         .catch(function(/*err*/) {
 
@@ -692,7 +670,7 @@ const saveCard = function(dispatch, postURL, formData) {
 
             reject({
                 _error: {
-                    message: 'Unable to update deck description.'
+                    message: defaultRESTError
                 }
             });
         });
