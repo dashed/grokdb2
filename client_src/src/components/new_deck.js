@@ -248,7 +248,7 @@ const NewDeckContainer = reduxForm(
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
-const defaultRESTError = 'Unable to send request to create new deck. Please try again.';
+const defaultRESTError = 'Unable to create new deck. Please try again.';
 const addNewDeck = function(postURL, formData) {
 
     return new Promise((resolve, reject) => {

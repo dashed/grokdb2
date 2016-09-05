@@ -3,6 +3,7 @@ require('global/normalize');
 const React = require('react');
 
 const assign = require('lodash/assign');
+const get = require('lodash/get');
 
 const {Provider, connect} = require('react-redux');
 const {reduxForm, reducer: reduxformReducer} = require('redux-form');
@@ -12,6 +13,7 @@ const fetch = require('fetch-ponyfill')({
     Promise: require('bluebird')
 });
 
+const jsonDecode = require('helpers/json_decode');
 
 const {
 
@@ -159,6 +161,7 @@ const deckSettingsNameContainerFactory = function(preRenderState) {
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
+const defaultRESTError = 'Unable to update deck name. Please try again.';
 const saveName = function(dispatch, postURL, formData) {
 
     return new Promise((resolve, reject) => {
@@ -176,21 +179,9 @@ const saveName = function(dispatch, postURL, formData) {
             })
         })
         .then(function(response) {
-
-            return Promise.all([response.status]);
-        }, function(err) {
-
-            // TODO: handle on network failure, etc
-
-            console.log('err:', err);
-
-            reject({
-                _error: {
-                    message: 'Unable to update deck name.'
-                }
-            });
+            return Promise.all([response.status, jsonDecode(response)]);
         })
-        .then(function([statusCode]) {
+        .then(function([statusCode, jsonResponse]) {
 
             switch(statusCode) {
             case 400: // Bad Request
@@ -204,7 +195,7 @@ const saveName = function(dispatch, postURL, formData) {
                 // how to detect errors
                 reject({
                     _error: {
-                        message: 'Unable to update deck name.'
+                        message: get(jsonResponse, ['error'], defaultRESTError)
                     }
                 });
 
@@ -251,30 +242,20 @@ const saveName = function(dispatch, postURL, formData) {
             default: // Unexpected http status code
                 reject({
                     _error: {
-                        message: 'Unable to update deck name.'
+                        message: defaultRESTError
                     }
                 });
             }
 
-        }, function(err) {
-
-            // TODO: handle on json parsing fail
-            console.log('err:', err);
-
-            reject({
-                _error: {
-                    message: 'Unable to update deck name.'
-                }
-            });
         })
-        .catch(function(err) {
+        .catch(function(_err) {
 
             // TODO: handle
-            console.log('err:', err);
+            // console.log('err:', err);
 
             reject({
                 _error: {
-                    message: 'Unable to update deck name.'
+                    message: defaultRESTError
                 }
             });
         });

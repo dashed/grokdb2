@@ -771,7 +771,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                     ) {
                                         // NOTE: we wrap the mathjax-ified name with id of '__deck_name'.
                                         //       when renaming the deck, a react component can re-render this
-                                        span(class="__deck_name") {
+                                        span(class="__deck_name", style="font-weight:bold;") {
                                             |tmpl| MathJaxInline(tmpl, deck.name.clone(), true);
                                         }
                                     }
