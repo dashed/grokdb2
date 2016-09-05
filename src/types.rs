@@ -49,7 +49,7 @@ pub struct JSONResponse {
 pub enum APIStatus {
     Ok, // 200
     BadRequest, // 400
-    MethodNotAllowed // 405
+    MethodNotAllowed, // 405
     ServerError, // 500
 }
 
