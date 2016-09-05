@@ -248,7 +248,7 @@ const saveName = function(dispatch, postURL, formData) {
             }
 
         })
-        .catch(function(_err) {
+        .catch(function(/*err*/) {
 
             // TODO: handle
             // console.log('err:', err);

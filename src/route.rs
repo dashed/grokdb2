@@ -912,8 +912,7 @@ fn __parse_route_api_deck_new_card(
                     // TODO: code review this
 
                     // TODO: internal error logging
-                    return respond_json_with_error!(APIStatus::BadRequest;
-                        "Unable to create a new card. Please try again.".to_string(); None);
+                    return respond_json_with_error!(APIStatus::BadRequest; reason; None);
 
                 }
             }

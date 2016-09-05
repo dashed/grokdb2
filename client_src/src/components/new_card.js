@@ -3,6 +3,7 @@ require('global/normalize');
 const React = require('react');
 
 const assign = require('lodash/assign');
+const get = require('lodash/get');
 
 const {Provider, connect} = require('react-redux');
 const {reduxForm, reducer: reduxformReducer} = require('redux-form');
@@ -11,6 +12,8 @@ const classnames = require('classnames');
 const fetch = require('fetch-ponyfill')({
     Promise: require('bluebird')
 });
+
+const jsonDecode = require('helpers/json_decode');
 
 const {
 
@@ -361,6 +364,7 @@ const NewCardContainer = reduxForm(
 /* redux action dispatchers */
 // NOTE: FSA compliant
 
+const defaultRESTError = 'Unable to create new card. Please try again.';
 const addNewCard = function(postURL, formData) {
 
     return new Promise((resolve, reject) => {
@@ -380,19 +384,7 @@ const addNewCard = function(postURL, formData) {
             })
         })
         .then(function(response) {
-
-            return Promise.all([response.status, response.json()]);
-        }, function(/*err*/) {
-
-            // network error
-            // console.log('network err:', err);
-
-            reject({
-                _error: {
-                    message: 'Unable to send request to create new card. Please try again.'
-                }
-            });
-
+            return Promise.all([response.status, jsonDecode(response)]);
         })
         .then(function([statusCode, jsonResponse]) {
 
@@ -402,7 +394,7 @@ const addNewCard = function(postURL, formData) {
 
                 reject({
                     _error: {
-                        message: jsonResponse.userMessage
+                        message: get(jsonResponse, ['error'], defaultRESTError)
                     }
                 });
 
@@ -411,28 +403,17 @@ const addNewCard = function(postURL, formData) {
 
             case 200: // Ok
 
-                window.location.href = jsonResponse.profile_url;
+                window.location.href = jsonResponse.payload.profile_url;
                 break;
 
             default: // Unexpected http status code
                 reject({
                     _error: {
-                        message: 'Unable to create new card.'
+                        message: defaultRESTError
                     }
                 });
             }
 
-        }, function(/*err*/) {
-
-
-            // json parsing fail
-            // console.log('err:', err);
-
-            reject({
-                _error: {
-                    message: 'Unable to create new card.'
-                }
-            });
         })
         .catch(function(/*err*/) {
 
@@ -441,7 +422,7 @@ const addNewCard = function(postURL, formData) {
 
             reject({
                 _error: {
-                    message: 'Unable to create new card.'
+                    message: defaultRESTError
                 }
             });
         });
