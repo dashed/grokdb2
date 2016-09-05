@@ -49,6 +49,7 @@ pub struct JSONResponse {
 pub enum APIStatus {
     Ok, // 200
     BadRequest, // 400
+    MethodNotAllowed // 405
     ServerError, // 500
 }
 
@@ -58,6 +59,7 @@ impl APIStatus {
             APIStatus::Ok => hyper::status::StatusCode::Ok,
             APIStatus::BadRequest => hyper::status::StatusCode::BadRequest,
             APIStatus::ServerError => hyper::status::StatusCode::InternalServerError,
+            APIStatus::MethodNotAllowed => hyper::status::StatusCode::MethodNotAllowed,
         }
     }
 }

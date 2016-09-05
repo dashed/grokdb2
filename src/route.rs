@@ -55,6 +55,13 @@ use api::review::{self, CachedReviewProcedure, RawReviewRequest, Reviewable, Rev
 
 lazy_static! {
     static ref MIME_TYPES: mime_types::Types = mime_types::Types::new().unwrap();
+
+    // TODO: internationalization for these strings below
+    static ref INTERNAL_SERVER_ERROR_STRING: String = "An internal server error occurred.".to_string();
+
+    // NOTE: This is for API responses
+    static ref API_METHOD_NOT_ALLOWED_STRING: String =
+        "An invalid request was sent. (ERROR: Method not allowed)".to_string();
 }
 
 /* router types */
@@ -503,12 +510,17 @@ fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>,
                 if exists {
                     __parse_route_api_deck(i, context.clone(), request, deck_id)
                 } else {
-                    i.ret(RenderResponse::BadRequest)
+                    i.ret({
+                        let reason = "This deck does not exist.".to_string();
+                        respond_json_with_error!(APIStatus::BadRequest; reason; None)
+                    })
                 }
 
             },
-            // TODO: internal error logging
-            Err(_) => i.ret(RenderResponse::InternalServerError)
+            Err(_) => i.ret({
+                // TODO: internal error logging
+                respond_json_with_error!(APIStatus::ServerError; INTERNAL_SERVER_ERROR_STRING.clone(); None)
+            })
         }
     })
 
@@ -523,11 +535,14 @@ fn __parse_route_api_deck<'a>(
 -> U8Result<'a, RenderResponse> {
     parse!{input;
 
-        let render_response = parse_route_api_deck_review(context.clone(), request.clone(), deck_id) <|>
+        // TODO: reorder for micro optimization
+        let render_response =
+            parse_route_api_deck_description(context.clone(), request.clone(), deck_id) <|>
+            parse_route_api_deck_settings(context.clone(), request.clone(), deck_id) <|>
             parse_route_api_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
             parse_route_api_deck_new_card(context.clone(), request.clone(), deck_id) <|>
-            parse_route_api_deck_description(context.clone(), request.clone(), deck_id) <|>
-            parse_route_api_deck_settings(context.clone(), request.clone(), deck_id);
+            // TODO: code review
+            parse_route_api_deck_review(context.clone(), request.clone(), deck_id);
 
         ret render_response
     }
@@ -744,7 +759,11 @@ fn __parse_route_api_deck_new_deck(
     let mut request = request.borrow_mut();
 
     if request.method != Method::Post {
-        return RenderResponse::MethodNotAllowed;
+
+        // TODO: internal error logging
+        return respond_json_with_error!(APIStatus::MethodNotAllowed;
+            API_METHOD_NOT_ALLOWED_STRING.clone(); None);
+
     }
 
     // POST /api/deck/:id/new/deck => create a new deck within this deck
@@ -803,8 +822,8 @@ fn __parse_route_api_deck_new_deck(
                         Err(_) => {
 
                             // TODO: internal error logging
-                            let err = "An internal server error occurred.".to_string();
-                            return respond_json_with_error!(APIStatus::ServerError; err; None);
+                            return respond_json_with_error!(APIStatus::ServerError;
+                                INTERNAL_SERVER_ERROR_STRING.clone(); None);
                         }
                     }
 
@@ -812,8 +831,8 @@ fn __parse_route_api_deck_new_deck(
                 Err(_) => {
 
                     // TODO: internal error logging
-                    let err = "An internal server error occurred.".to_string();
-                    return respond_json_with_error!(APIStatus::ServerError; err; None);
+                    return respond_json_with_error!(APIStatus::ServerError;
+                        INTERNAL_SERVER_ERROR_STRING.clone(); None);
 
                 }
             }
@@ -864,7 +883,10 @@ fn __parse_route_api_deck_new_card(
     let mut request = request.borrow_mut();
 
     if request.method != Method::Post {
-        return RenderResponse::MethodNotAllowed;
+
+        // TODO: internal error logging
+        return respond_json_with_error!(APIStatus::MethodNotAllowed;
+            API_METHOD_NOT_ALLOWED_STRING.clone(); None);
     }
 
     // POST /api/deck/:id/new/card => create a new card within this deck
@@ -877,9 +899,9 @@ fn __parse_route_api_deck_new_card(
             let request: cards::CreateCard = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
                 Err(err) => {
-                    // TODO: error logging
-                    // println!("{:?}", err);
-                    return RenderResponse::BadRequest;
+                    // TODO: internal error logging
+                    return respond_json_with_error!(APIStatus::BadRequest;
+                        "Unable to create a new card. Please try again.".to_string(); None);
                 }
             };
 
@@ -890,9 +912,8 @@ fn __parse_route_api_deck_new_card(
                     // TODO: code review this
 
                     // TODO: internal error logging
-                    let err = "Unable to interpret your request to create a deck. \
-                        Please try again.".to_string();
-                    return respond_json_with_error!(APIStatus::BadRequest; reason; None);
+                    return respond_json_with_error!(APIStatus::BadRequest;
+                        "Unable to create a new card. Please try again.".to_string(); None);
 
                 }
             }
@@ -934,16 +955,19 @@ fn __parse_route_api_deck_new_card(
 
                 },
                 Err(_) => {
-                    // TODO: error logging
-                    return RenderResponse::InternalServerError;
+                    // TODO: internal error logging
+                    return respond_json_with_error!(APIStatus::ServerError;
+                        INTERNAL_SERVER_ERROR_STRING.clone(); None);
                 }
             }
 
         },
         Err(err) => {
             // invalid utf8 input
-            // TODO: error logging
-            return RenderResponse::BadRequest;
+
+            // TODO: internal error logging
+            return respond_json_with_error!(APIStatus::BadRequest;
+                "Unable to create a new card. Please try again.".to_string(); None);
         }
     }
 }
@@ -976,7 +1000,10 @@ fn __parse_route_api_deck_description(
     let mut request = request.borrow_mut();
 
     if request.method != Method::Post {
-        return RenderResponse::MethodNotAllowed;
+
+        // TODO: internal error logging
+        return respond_json_with_error!(APIStatus::MethodNotAllowed;
+            API_METHOD_NOT_ALLOWED_STRING.clone(); None);
     }
 
     let mut buffer = String::new();
@@ -984,8 +1011,10 @@ fn __parse_route_api_deck_description(
     match request.read_to_string(&mut buffer) {
         Err(err) => {
             // invalid utf8 input
-            // TODO: error logging
-            return RenderResponse::BadRequest;
+
+            // TODO: internal error logging
+            return respond_json_with_error!(APIStatus::BadRequest;
+                "Unable to update deck description. Please try again.".to_string(); None);
         },
         Ok(_num_bytes_parsed) => {
 
@@ -994,8 +1023,8 @@ fn __parse_route_api_deck_description(
                 Err(_err) => {
 
                     // TODO: internal error logging
-                    let err = "An internal server error occurred.".to_string();
-                    return respond_json_with_error!(APIStatus::ServerError; err; None);
+                    return respond_json_with_error!(APIStatus::BadRequest;
+                        "Unable to update deck description. Please try again.".to_string(); None);
                 }
             };
 
@@ -1004,8 +1033,8 @@ fn __parse_route_api_deck_description(
             match decks::update_deck_description(context.clone(), deck_id, request) {
                 Err(_) => {
                     // TODO: internal error logging
-                    let err = "An internal server error occurred.".to_string();
-                    return respond_json_with_error!(APIStatus::ServerError; err; None);
+                    return respond_json_with_error!(APIStatus::ServerError;
+                        INTERNAL_SERVER_ERROR_STRING.clone(); None);
                 },
                 Ok(_) => {
                     return respond_json!(None);
@@ -1027,6 +1056,7 @@ fn parse_route_api_deck_settings<'a>(
         string_ignore_case(b"settings");
         parse_byte_limit(b'/', 5);
 
+        // TODO: other settings???
         let response = parse_route_api_deck_settings_name(context.clone(), request.clone(), deck_id);
 
         ret response
@@ -1060,14 +1090,18 @@ fn __parse_route_api_deck_settings_name(
     let mut request = request.borrow_mut();
 
     if request.method != Method::Post {
-        return RenderResponse::MethodNotAllowed;
+
+        // TODO: internal error logging
+        return respond_json_with_error!(APIStatus::MethodNotAllowed;
+            API_METHOD_NOT_ALLOWED_STRING.clone(); None);
+
     }
 
     let mut buffer = String::new();
 
     match request.read_to_string(&mut buffer) {
-        Err(err) => {
-            // invalid utf8 input
+        Err(_why) => {
+            // Possible reason: invalid utf8 input
 
             // TODO: internal error logging
             let err = "Unable to rename deck. Please try again.".to_string();
@@ -1080,14 +1114,18 @@ fn __parse_route_api_deck_settings_name(
                 Ok(request) => request,
                 Err(err) => {
                     // TODO: internal error logging
-                    let err = "An internal server error occurred.".to_string();
-                    return respond_json_with_error!(APIStatus::ServerError; err; None);
+                    let err = "Unable to rename deck. Please try again.".to_string();
+                    return respond_json_with_error!(APIStatus::BadRequest; err; None);
                 }
             };
 
             // NOTE: deck name must not be empty
             if request.name.trim().len() <= 0 {
-                return RenderResponse::BadRequest;
+
+                // TODO: internal error logging
+                let err = "Deck name must not be empty.".to_string();
+                return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
             }
 
             let _guard = context::write_lock(context.clone());
