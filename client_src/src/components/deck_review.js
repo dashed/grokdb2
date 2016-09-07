@@ -1414,8 +1414,8 @@ const cardReducer = function(state, action) {
 
         const __card = payload.card_for_review.card;
         postTo = payload.card_for_review.post_to;
-        cardMeta = isPlainObject(payload.card_for_review.meta) ?
-            payload.card_for_review.meta : {};
+        cardMeta = isPlainObject(payload.card_for_review.card_meta) ?
+            payload.card_for_review.card_meta : {};
 
         card = {
             id: __card.id,
