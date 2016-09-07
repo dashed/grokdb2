@@ -665,8 +665,6 @@ fn __parse_route_api_deck_review_post(
             // invariant: deck exists
             let deck = handle_api_result!(decks::get_deck(context.clone(), parent_deck_id));
 
-            // invariant: deck exists
-
             let exists = handle_api_result!(cards::card_exists(context.clone(), request.card_id));
 
             if !exists {

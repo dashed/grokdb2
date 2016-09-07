@@ -455,6 +455,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     display: flex;\
                                     min-height: 100vh;\
                                     flex-direction: column;\
+                                    background-color: #ffffff;\
                                 }\
                             ");
                             : raw!("\
