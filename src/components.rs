@@ -319,6 +319,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
                                         POST_TO: '{post_to}',\
+                                        CARD_ID: {card_id},\
                                         CARD_TITLE: {card_title},\
                                         CARD_DESCRIPTION: {card_description},\
                                         CARD_QUESTION: {card_question},\
@@ -328,6 +329,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     }};\
                                 ",
                                 post_to = generate_post_to(app_route),
+                                card_id = card_id,
                                 card_title = card_title,
                                 card_description = card_description,
                                 card_question = card_question,

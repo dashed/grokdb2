@@ -316,7 +316,8 @@ impl ReviewRequest {
 #[derive(Serialize)]
 pub struct CardForReview {
     post_to: String,
-    card: Card
+    card: Card,
+    card_meta: Option<CachedReviewProcedure>
 }
 
 #[derive(Serialize)]
@@ -339,12 +340,12 @@ impl ReviewResponse {
 
         // generat JSON response
 
-        let card = match result {
-            None => None,
-            Some((card_id, _)) => {
+        let (card, cached_review_procedure) = match result {
+            None => (None, None),
+            Some((card_id, cached_review_procedure)) => {
 
                 match cards::get_card(context, card_id) {
-                    Ok(card) => Some(card),
+                    Ok(card) => (Some(card), cached_review_procedure),
                     Err(why) => {
                         return Err(why);
                     }
@@ -357,7 +358,8 @@ impl ReviewResponse {
         let card_for_review = if let Some(card) = card {
             let card_for_review = CardForReview {
                 post_to: generate_post_to(&AppRoute::Deck(deck.id, DeckRoute::Review(None))),
-                card: card
+                card: card,
+                card_meta: cached_review_procedure
             };
 
             Some(card_for_review)

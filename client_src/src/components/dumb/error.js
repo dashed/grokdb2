@@ -1,4 +1,5 @@
 const React = require('react');
+const isFunction = require('lodash/isFunction');
 
 const ErrorComponent = function(props) {
 
@@ -6,13 +7,26 @@ const ErrorComponent = function(props) {
         return null;
     }
 
+    if(isFunction(props.onConfirm)) {
+
+        return (
+            <div className='columns'>
+                <div className='column'>
+                    <div className='notification is-danger'>
+                        <button className='delete' onClick={props.onConfirm}></button>
+                        {props.error}
+                    </div>
+                </div>
+            </div>
+        );
+
+    }
+
     return (
         <div className='columns'>
             <div className='column'>
-                <div className='message is-danger'>
-                    <div className='message-body'>
-                        {props.error}
-                    </div>
+                <div className='notification is-danger'>
+                    {props.error}
                 </div>
             </div>
         </div>
@@ -22,7 +36,8 @@ const ErrorComponent = function(props) {
 
 if(process.env.NODE_ENV !== 'production') {
     ErrorComponent.propTypes = {
-        error: React.PropTypes.string
+        error: React.PropTypes.string,
+        onConfirm: React.PropTypes.func
     };
 }
 

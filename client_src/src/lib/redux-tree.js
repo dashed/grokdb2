@@ -8,6 +8,7 @@ const lodashSetIn = require('lodash/set');
 const lodashMerge = require('lodash/merge');
 const lodashMergeWith = require('lodash/mergeWith');
 const lodashIsArray = require('lodash/isArray');
+const lodashIsString = require('lodash/isString');
 // TODO: npm install npm.im/warning
 
 // sentinel value
@@ -27,8 +28,20 @@ const customMerge = (_oldValue, newValue, key, destObject) => {
     }
 };
 
+// if path points to root
+const __isRoot = (path) => {
+    // see: https://github.com/lodash/lodash/issues/2638
+    return (lodashIsArray(path) && path.length <= 0) ||
+        (lodashIsString(path) && path.trim().length <= 0);
+};
+
 const __getIn = (rootData, path) => {
-    return lodashGetIn(rootData, path)
+
+    if(__isRoot(path)) {
+        return rootData;
+    }
+
+    return lodashGetIn(rootData, path);
 };
 
 // NOTE:
@@ -38,7 +51,7 @@ const __setIn = (rootData, path, newValue) => {
 
     const isArray = lodashIsArray(rootData);
 
-    const patch = lodashSetIn(isArray ? [] : {}, path, newValue);
+    const patch = __isRoot(path) ? newValue : lodashSetIn(isArray ? [] : {}, path, newValue);
 
     // NOTE: the following will not work: {...state, ...patch};
 
@@ -73,6 +86,7 @@ const treeReducer = (state, action) => {
             // TODO: improve error
             throw Error('no path');
         }
+
     }
 
     const oldValue = getIn(state, path);

@@ -3,6 +3,8 @@ require('global/normalize');
 const React = require('react');
 
 const assign = require('lodash/assign');
+const get = require('lodash/get');
+const isPlainObject = require('lodash/isPlainObject');
 
 const {Provider, connect} = require('react-redux');
 const classnames = require('classnames');
@@ -10,6 +12,8 @@ const classnames = require('classnames');
 const fetch = require('fetch-ponyfill')({
     Promise: require('bluebird')
 });
+
+const jsonDecode = require('helpers/json_decode');
 
 const {
 
@@ -47,12 +51,16 @@ const WRONG = 'WRONG';
 const FORGOT = 'FORGOT';
 const SHOW_PREVIEW_SOURCE_BUTTONS = 'SHOW_PREVIEW_SOURCE_BUTTONS';
 const SUBMITTING = 'SUBMITTING';
+const ERROR = 'ERROR';
+const ERROR_MESSAGE = 'ERROR_MESSAGE';
+const SET_CARD = 'SET_CARD';
 
 /* react components */
 
 const CardTitle = require('components/dumb/card_title');
 const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
+const ErrorComponent = require('components/dumb/error');
 
 const __PreviewSourceTitleComponent = connect(
     // mapStateToProps
@@ -181,7 +189,9 @@ const __PerformanceControls = function(props) {
                             'is-outlined': forgotClassValue,
                             'is-disabled': submitting
                         })}
-                    style={{color: '#978b52'}}
+                    style={{
+                        color: '#978b52'
+                    }}
                     onClick={submitting ? noOp() : switchPerformance(props.dispatch, FORGOT)}
                 >
                     {'Forgot'}
@@ -242,7 +252,7 @@ const __CommitButton = function(props) {
                 className={classnames('button is-success is-fullwidth is-bold', {
                     'is-disabled is-loading': props.submitting
                 })}
-                onClick={reviewCard(dispatch, props.postURL, props.reviewRequest)}
+                onClick={reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting)}
             >
                 {'Next Card'}
             </a>
@@ -296,13 +306,17 @@ const __MainControls = function(props) {
     const isConfirmSkip = props[IS_CONFIRM_SKIP];
 
     if(isConfirmSkip) {
+
         return (
 
                 <div className='columns'>
                     <div className='column is-half'>
                         <a
                             href='#confirm_skip'
-                            className='button is-success is-fullwidth is-bold'
+                            className={classnames('button is-success is-fullwidth is-bold', {
+                                'is-disabled': props.submitting
+                            })}
+                            onClick={reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting)}
                         >
                             {'Yes, skip'}
                         </a>
@@ -310,7 +324,9 @@ const __MainControls = function(props) {
                     <div className='column is-half'>
                         <a
                             href='#cancel_confirm_skip'
-                            className='button is-danger is-fullwidth is-bold'
+                            className={classnames('button is-danger is-fullwidth is-bold', {
+                                'is-disabled': props.submitting
+                            })}
                             onClick={shouldConfirmSkip(dispatch, false)}
                         >
                             {'No, do not skip'}
@@ -348,6 +364,8 @@ if(process.env.NODE_ENV !== 'production') {
         [IS_CONFIRM_SKIP]: React.PropTypes.bool.isRequired,
         dispatch: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
+        reviewRequest: React.PropTypes.object.isRequired,
+        postURL: React.PropTypes.string.isRequired,
     };
 }
 
@@ -357,6 +375,8 @@ const MainControls = connect(
         return {
             [IS_CONFIRM_SKIP]: state[IS_CONFIRM_SKIP],
             submitting: state[SUBMITTING],
+            reviewRequest: generateReviewRequest(state),
+            postURL: state[POST_TO],
         };
     }
 
@@ -877,7 +897,9 @@ const Card = connect(
 
 )(__Card);
 
-const DeckReview = function() {
+const __DeckReview = function(props) {
+
+    const {error, dispatch} = props;
 
     return (
         <div>
@@ -887,10 +909,28 @@ const DeckReview = function() {
                     <hr className='is-marginless'/>
                 </div>
             </div>
+            <ErrorComponent error={error && error.message || ''} onConfirm={confirmError(dispatch)} />
             <ReviewControls />
         </div>
     );
 };
+
+if(process.env.NODE_ENV !== 'production') {
+    __DeckReview.propTypes = {
+        error: React.PropTypes.object,
+        dispatch: React.PropTypes.func.isRequired
+    };
+}
+
+
+const DeckReview = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            error: state.ERROR
+        };
+    }
+)(__DeckReview);
 
 /* redux action dispatchers */
 // NOTE: FSA compliant
@@ -901,9 +941,14 @@ const noOp = function() {
     };
 };
 
-const reviewCard = function(dispatch, postURL, reviewRequest) {
+const defaultRESTError = 'Unable to review this card. Please try again.';
+const reviewCard = function(dispatch, postURL, reviewRequest, submitting = true) {
     return function(event) {
         event.preventDefault();
+
+        if(submitting) {
+            return;
+        }
 
         dispatch(
             reduceIn(
@@ -918,16 +963,187 @@ const reviewCard = function(dispatch, postURL, reviewRequest) {
             )
         );
 
-        // fetch(postURL, {
-        //     method: 'POST',
-        //     headers: {
-        //         'Accept': 'application/json',
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify(reviewRequest)
-        // })
+        fetch(postURL, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reviewRequest)
+        })
+        .then(function(response) {
+            return Promise.all([response.status, jsonDecode(response)]);
+        })
+        .then(function([statusCode, jsonResponse]) {
 
-        // TODO: complete
+            dispatch(
+                reduceIn(
+                    // reducer
+                    boolReducer,
+                    // path
+                    [SUBMITTING],
+                    // action
+                    {
+                        type: false
+                    }
+                )
+            );
+
+            switch(statusCode) {
+            case 500: // Internal Server Error
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        errorReducer,
+                        // path
+                        [ERROR],
+                        // action
+                        {
+                            type: ERROR_MESSAGE,
+                            payload: get(jsonResponse, ['error'], defaultRESTError)
+                        }
+                    )
+                );
+
+                return;
+                break;
+
+            case 400: // Bad Request
+
+                if(jsonResponse.payload) {
+
+                    dispatch(
+                        reduceIn(
+                            // reducer
+                            errorReducer,
+                            // path
+                            [ERROR],
+                            // action
+                            {
+                                type: ERROR_MESSAGE,
+                                payload: get(jsonResponse, ['error'], '')
+                            }
+                        )
+                    );
+
+                    dispatch(
+                        reduceIn(
+                            // reducer
+                            cardReducer,
+                            // path
+                            [],
+                            // action
+                            {
+                                type: SET_CARD,
+                                payload: jsonResponse.payload
+                            }
+                        )
+                    );
+                } else {
+
+                    dispatch(
+                        reduceIn(
+                            // reducer
+                            errorReducer,
+                            // path
+                            [ERROR],
+                            // action
+                            {
+                                type: ERROR_MESSAGE,
+                                payload: get(jsonResponse, ['error'], 'Unable to review this card.')
+                            }
+                        )
+                    );
+
+                }
+
+                return;
+                break;
+
+            case 200: // Ok
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        errorReducer,
+                        // path
+                        [ERROR],
+                        // action
+                        {
+                            type: ERROR_MESSAGE,
+                            payload: get(jsonResponse, ['error'], '')
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        cardReducer,
+                        // path
+                        [],
+                        // action
+                        {
+                            type: SET_CARD,
+                            payload: jsonResponse.payload
+                        }
+                    )
+                );
+
+                return;
+                break;
+
+            default: // Unexpected http status code
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        errorReducer,
+                        // path
+                        [ERROR],
+                        // action
+                        {
+                            type: ERROR_MESSAGE,
+                            payload: get(jsonResponse, ['error'], defaultRESTError)
+                        }
+                    )
+                );
+            }
+        })
+        .catch(function(/*err*/) {
+
+            // any other errors
+            // console.log('err:', err);
+
+            dispatch(
+                reduceIn(
+                    // reducer
+                    boolReducer,
+                    // path
+                    [SUBMITTING],
+                    // action
+                    {
+                        type: false
+                    }
+                )
+            );
+
+            dispatch(
+                reduceIn(
+                    // reducer
+                    errorReducer,
+                    // path
+                    [ERROR],
+                    // action
+                    {
+                        type: ERROR_MESSAGE,
+                        payload: defaultRESTError
+                    }
+                )
+            );
+
+        });
+
     };
 };
 
@@ -1050,6 +1266,25 @@ const switchRevealPreviewSource = function(dispatch) {
     };
 };
 
+const confirmError = function(dispatch) {
+    return function(event) {
+        event.preventDefault();
+        dispatch(
+            reduceIn(
+                // reducer
+                errorReducer,
+                // path
+                [ERROR],
+                // action
+                {
+                    type: ERROR_MESSAGE,
+                    payload: ''
+                }
+            )
+        );
+    };
+};
+
 /* redux reducers */
 
 const markdownViewReducer = require('reducers/markdown_view');
@@ -1077,7 +1312,7 @@ const performanceReducer = function(state = NOT_SELECTED, action) {
     return state;
 }
 
-/* default state */
+/* app state */
 
 const initialState = {
 
@@ -1120,7 +1355,11 @@ const initialState = {
 
     [CARD_META]: {},
 
-    [SUBMITTING]: false
+    [SUBMITTING]: false,
+
+    [ERROR]: {
+        message: ''
+    }
 
 };
 
@@ -1138,11 +1377,125 @@ const generateReviewAction = function(performance) {
     return 'Skip';
 };
 
+const errorReducer = function(state, action) {
+
+    switch(action.type) {
+    case ERROR_MESSAGE:
+
+        state = {
+            message: action.payload || ''
+        };
+
+        break;
+    default:
+
+        state = {
+            message: ''
+        };
+    }
+
+    return state;
+};
+
+const cardReducer = function(state, action) {
+
+    const {payload} = action;
+
+    let card;
+    let postTo = '';
+    let cardMeta = {};
+
+    switch(action.type) {
+    case SET_CARD:
+
+        if(!payload.has_card_for_review) {
+            return state;
+        }
+
+        const __card = payload.card_for_review.card;
+        postTo = payload.card_for_review.post_to;
+        cardMeta = isPlainObject(payload.card_for_review.meta) ?
+            payload.card_for_review.meta : {};
+
+        card = {
+            id: __card.id,
+            title: __card.title,
+            description: __card.description,
+            question: __card.question,
+            answer: __card.answer,
+            is_active: __card.is_active
+        };
+
+        break;
+    default:
+
+        card = {
+            id: 0,
+            title: '',
+            description: '',
+            question: '',
+            answer: '',
+            is_active: false
+        };
+    }
+
+    const newState = {
+        [POST_TO]: postTo,
+
+        [CARD_ID]: card.id,
+
+        [CARD_TITLE]: {
+            [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+            [MARKDOWN_CONTENTS]: card.title
+        },
+
+        [CURRENT_TAB]: CARD_QUESTION,
+
+        [CARD_DESCRIPTION]: {
+            [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+            [MARKDOWN_CONTENTS]: card.description
+        },
+
+        [CARD_QUESTION]: {
+            [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+            [MARKDOWN_CONTENTS]: card.question
+        },
+
+        [CARD_ANSWER]: {
+            [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+            [MARKDOWN_CONTENTS]: card.answer
+        },
+
+        [CARD_IS_ACTIVE]: {
+            [VALUE]: card.is_active
+        },
+
+        [IS_CONFIRM_SKIP]: false,
+        [SHOW_MAIN_CONTROLS]: false,
+        [SHOW_PREVIEW_SOURCE_BUTTONS]: false,
+
+        [CHOSEN_PERFORMANCE]: NOT_SELECTED,
+
+        [CARD_META]: cardMeta,
+
+        // TODO: remove??
+        // [SUBMITTING]: false,
+
+        // TODO: remove??
+        // [ERROR]: {
+        //     message: ''
+        // }
+    };
+
+    return assign({}, state, newState);
+};
+
+// TODO: this is not a reducer; move this somewhere
 const generateReviewRequest = function(state) {
 
     return {
         card_id: Number(state[CARD_ID]),
-        review_action: generateReviewAction(state[CHOSEN_PERFORMANCE]),
+        review_action: generateReviewAction(!!state[IS_CONFIRM_SKIP] ? void 0 : state[CHOSEN_PERFORMANCE]),
 
         // TODO: implement this
         // time_till_available_for_review
