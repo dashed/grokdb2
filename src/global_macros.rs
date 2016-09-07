@@ -1,5 +1,26 @@
 /* ////////////////////////////////////////////////////////////////////////// */
 
+macro_rules! handle_api_result {
+    ($api:expr) => {{
+        match $api {
+            Ok(result) => result,
+            Err(_err) => {
+
+                // TODO: for translation, pass context to handle_api_result! macro to get
+                //       client language preference
+
+                use errors::RawAPIError;
+                let _err: RawAPIError = _err;
+
+                // TODO: internal error logging
+                return respond_json_with_error!(APIStatus::ServerError;
+                    "An internal server error occurred.".to_string(); None);
+
+            }
+        }
+    }}
+}
+
 macro_rules! respond_json {
     (Some($payload:expr)) => {{
 
@@ -36,17 +57,17 @@ macro_rules! respond_json_with_error {
         use route;
         use serde_json;
 
-        {
-            use types::APIStatus;
-
-            match $api_status {
-                APIStatus::Ok => {
-                    // TODO: error logging??
-                    panic!("unexpected api status");
-                },
-                _ => {}
-            }
-        };
+        // TODO: remove
+        // {
+        //     use types::APIStatus;
+        //     match $api_status {
+        //         APIStatus::Ok => {
+        //             // TODO: error logging??
+        //             panic!("unexpected api status");
+        //         },
+        //         _ => {}
+        //     }
+        // };
 
         let response = JSONResponse {
             error: Some($err),

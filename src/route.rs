@@ -511,7 +511,7 @@ fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>,
                     __parse_route_api_deck(i, context.clone(), request, deck_id)
                 } else {
                     i.ret({
-                        let reason = "This deck does not exist.".to_string();
+                        let reason = "Deck does not exist.".to_string();
                         respond_json_with_error!(APIStatus::BadRequest; reason; None)
                     })
                 }
@@ -576,13 +576,72 @@ fn __parse_route_api_deck_review(
     parent_deck_id: DeckID)
 -> RenderResponse {
 
-    let mut request = request.borrow_mut();
+    let method = {
+        let request = request.borrow();
+        request.method.clone()
+    };
 
-    if request.method != Method::Post {
-        return RenderResponse::MethodNotAllowed;
+    match method {
+        Method::Get => {
+            // GET /api/deck/:id/review
+            return __parse_route_api_deck_review_get(context, request, parent_deck_id);
+        },
+        Method::Post => {
+            // POST /api/deck/:id/review
+            return __parse_route_api_deck_review_post(context, request, parent_deck_id);
+        },
+        _ => {
+
+            // TODO: internal error logging
+            return respond_json_with_error!(APIStatus::MethodNotAllowed;
+                API_METHOD_NOT_ALLOWED_STRING.clone(); None);
+        }
     }
 
-    // POST /api/deck/:id/review =>
+}
+
+#[inline]
+fn __parse_route_api_deck_review_get(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    parent_deck_id: DeckID) -> RenderResponse {
+
+    // invariant: deck exists
+    let deck = match decks::get_deck(context.clone(), parent_deck_id) {
+        Ok(deck) => deck,
+        Err(_) => {
+
+            // TODO: internal error logging
+            return respond_json_with_error!(APIStatus::ServerError;
+                INTERNAL_SERVER_ERROR_STRING.clone(); None);
+
+        }
+    };
+
+    // fetch card for review
+    match ReviewResponse::new(context.clone(), deck) {
+        Ok(review_response) => {
+
+            return respond_json!(Some(review_response));
+        },
+        Err(_) => {
+
+            // TODO: internal error logging
+            return respond_json_with_error!(APIStatus::ServerError;
+                INTERNAL_SERVER_ERROR_STRING.clone(); None);
+
+        }
+    }
+
+}
+
+#[inline]
+fn __parse_route_api_deck_review_post(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    parent_deck_id: DeckID) -> RenderResponse {
+
+    let mut request = request.borrow_mut();
 
     let mut buffer = String::new();
 
@@ -594,8 +653,7 @@ fn __parse_route_api_deck_review(
                 Err(err) => {
 
                     // TODO: internal error logging
-                    let err = "Unable to interpret your request to review this deck. \
-                        Please try again.".to_string();
+                    let err = "Unable to review the card in this deck. Please try again.".to_string();
                     return respond_json_with_error!(APIStatus::BadRequest; err; None);
                 }
             };
@@ -605,121 +663,89 @@ fn __parse_route_api_deck_review(
             let _guard = context::write_lock(context.clone());
 
             // invariant: deck exists
+            let deck = handle_api_result!(decks::get_deck(context.clone(), parent_deck_id));
 
-            let exists = match cards::card_exists(context.clone(), request.card_id) {
-                Ok(exists) => exists,
-                Err(_) => {
+            // invariant: deck exists
 
-                    // TODO: internal error logging
-                    let err = "An internal server error occurred.".to_string();
-                    return respond_json_with_error!(APIStatus::ServerError; err; None);
-                }
-            };
+            let exists = handle_api_result!(cards::card_exists(context.clone(), request.card_id));
 
             if !exists {
 
-                // TODO: internal error logging
+                // TODO: code repeat
+                let review_response = handle_api_result!(ReviewResponse::new(context.clone(), deck));
+
                 let err = "This card does not appear to exist anymore.".to_string();
-                return respond_json_with_error!(APIStatus::BadRequest; err; None);
+                return respond_json_with_error!(APIStatus::BadRequest; err; Some(review_response));
 
             }
 
-            let in_deck = match cards::is_card_in_deck(context.clone(), request.card_id, parent_deck_id) {
-                Ok(in_deck) => in_deck,
-                Err(_) => {
-
-                    // TODO: internal error logging
-                    let err = "An internal server error occurred.".to_string();
-                    return respond_json_with_error!(APIStatus::ServerError; err; None);
-                }
-            };
+            let in_deck = handle_api_result!(cards::is_card_in_deck(context.clone(),
+                request.card_id, parent_deck_id));
 
             if !in_deck {
 
+                // commit review request
+                handle_api_result!(request.commit(context.clone()));
+
+                // TODO: code repeat
+                let review_response = handle_api_result!(ReviewResponse::new(context.clone(), deck));
+
                 // TODO: internal error logging
-                let err = "This card does not appear to be in this deck.".to_string();
-                return respond_json_with_error!(APIStatus::BadRequest; err; None);
+                let err = "This card does not appear to be in this deck. \
+                    However, the card will still be considered reviewed.".to_string();
+                return respond_json_with_error!(APIStatus::Ok; err; Some(review_response));
 
             }
 
-            let deck = match decks::get_deck(context.clone(), parent_deck_id) {
-                Ok(deck) => deck,
-                Err(_) => {
+            let card_id = match handle_api_result!(deck.get_cached_card(context.clone())) {
+                None => {
+
+                    // commit review request
+                    handle_api_result!(request.commit(context.clone()));
+
+                    // TODO: code repeat
+                    let review_response = handle_api_result!(ReviewResponse::new(context.clone(), deck));
 
                     // TODO: internal error logging
-                    let err = "An internal server error occurred.".to_string();
-                    return respond_json_with_error!(APIStatus::ServerError; err; None);
-
-                }
-            };
-
-            let card_id = match deck.get_cached_card(context.clone()) {
-                Ok(result) => {
-
-                    match result {
-                        None => {
-
-                            // TODO: internal error logging
-                            let err = "This card does not appear to be chosen for review for this deck.".to_string();
-                            return respond_json_with_error!(APIStatus::BadRequest; err; None);
-
-                        },
-                        Some((card_id, _)) => {
-                            card_id
-                        }
-                    }
+                    let err = "This card does not appear to be chosen for review for this deck. \
+                        However, the card will still be considered reviewed.".to_string();
+                    return respond_json_with_error!(APIStatus::Ok; err; Some(review_response));
 
                 },
-                Err(_) => {
-
-                    // TODO: internal error logging
-                    let err = "An internal server error occurred.".to_string();
-                    return respond_json_with_error!(APIStatus::ServerError; err; None);
-
+                Some((card_id, _)) => {
+                    card_id
                 }
             };
 
             if card_id != request.card_id {
 
+                // commit review request
+                handle_api_result!(request.commit(context.clone()));
+
+                // TODO: code repeat
+                let review_response = handle_api_result!(ReviewResponse::new(context.clone(), deck));
+
                 // TODO: internal error logging
-                let err = "This card does not appear to be chosen for review for this deck.".to_string();
-                return respond_json_with_error!(APIStatus::BadRequest; err; None);
+                let err = "This card does not appear to be chosen for review for this deck. \
+                    However, the card will still be considered reviewed.".to_string();
+                return respond_json_with_error!(APIStatus::Ok; err; None);
 
             }
 
             // commit review request
-            match request.commit(context.clone()) {
-                Ok(_) => {},
-                Err(_) => {
-
-                    // TODO: internal error logging
-                    let err = "An internal server error occurred.".to_string();
-                    return respond_json_with_error!(APIStatus::ServerError; err; None);
-
-                }
-            }
+            handle_api_result!(request.commit(context.clone()));
 
             // fetch next card for review
-            match ReviewResponse::new(context.clone(), deck) {
-                Ok(review_response) => {
-                    return respond_json!(Some(review_response));
-                },
-                Err(_) => {
+            let review_response = handle_api_result!(ReviewResponse::new(context.clone(), deck));
 
-                    // TODO: internal error logging
-                    let err = "An internal server error occurred.".to_string();
-                    return respond_json_with_error!(APIStatus::ServerError; err; None);
-
-                }
-            }
+            return respond_json!(Some(review_response));
 
         },
         Err(err) => {
             // internal reason: invalid utf8 input
 
             // TODO: internal error logging
-            let err = "Unable to interpret your request to review this deck. \
-                Please try again.".to_string();
+            let err = "Unable to review the card in this deck. Please try again.".to_string();
             return respond_json_with_error!(APIStatus::BadRequest; err; None);
 
         }

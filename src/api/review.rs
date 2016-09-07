@@ -314,11 +314,15 @@ impl ReviewRequest {
 }
 
 #[derive(Serialize)]
-pub struct ReviewResponse {
+pub struct CardForReview {
     post_to: String,
+    card: Card
+}
 
+#[derive(Serialize)]
+pub struct ReviewResponse {
     has_card_for_review: bool,
-    card: Option<Card>
+    card_for_review: Option<CardForReview>
 }
 
 impl ReviewResponse {
@@ -333,6 +337,8 @@ impl ReviewResponse {
             }
         };
 
+        // generat JSON response
+
         let card = match result {
             None => None,
             Some((card_id, _)) => {
@@ -346,10 +352,23 @@ impl ReviewResponse {
             }
         };
 
+        let has_card_for_review = card.is_some();
+
+        let card_for_review = if let Some(card) = card {
+            let card_for_review = CardForReview {
+                post_to: generate_post_to(&AppRoute::Deck(deck.id, DeckRoute::Review(None))),
+                card: card
+            };
+
+            Some(card_for_review)
+        } else {
+            None
+        };
+
         let review_response = ReviewResponse {
-            post_to: generate_post_to(&AppRoute::Deck(deck.id, DeckRoute::Review(None))),
-            has_card_for_review: card.is_some(),
-            card: card
+            has_card_for_review: has_card_for_review,
+            card_for_review: card_for_review
+
         };
 
         return Ok(review_response);
