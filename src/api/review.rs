@@ -6,7 +6,7 @@ use std::rc::Rc;
 /* 3rd-party imports */
 
 use random_wheel::RandomWheel;
-use rand::{thread_rng, Rng};
+use rand::{thread_rng, Rng, SeedableRng, ChaChaRng};
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
 
@@ -60,13 +60,17 @@ impl SubSelectionProbabilities {
             self.ready_for_review > 0.0;
     }
 
-    fn gen_wheel(&self) -> RandomWheel<Probability, SubSelection> {
+    fn gen_wheel(&self) -> RandomWheel<Probability, SubSelection, ChaChaRng> {
 
-        let mut rw: RandomWheel<Probability, SubSelection> = RandomWheel::new();
+        let mut rng = thread_rng();
+        let s = rng.gen_iter::<u32>().take(8).collect::<Vec<u32>>();
+        let mut ra: ChaChaRng = SeedableRng::from_seed(&s[..]);
+
+        let mut rw: RandomWheel<Probability, SubSelection, ChaChaRng> = RandomWheel::new(ra);
 
         rw.push(self.new_cards, SubSelection::NewCards);
-        rw.push(self.least_recently_reviewed, SubSelection::LeastRecentlyReviewed);
         rw.push(self.ready_for_review, SubSelection::ReadyForReview);
+        rw.push(self.least_recently_reviewed, SubSelection::LeastRecentlyReviewed);
 
         return rw;
     }
