@@ -1319,36 +1319,45 @@ fn parse_route_deck_review<'a>(
         );
 
         ret {
-            if request.borrow().method != Method::Get {
-                RenderResponse::MethodNotAllowed
-            } else {
-
-                let _guard = context::write_lock(context.clone());
-
-                let deck = match decks::get_deck(context.clone(), deck_id) {
-                    Ok(deck) => deck,
-                    Err(why) => {
-                        // TODO: internal error logging
-                        panic!("{:?}", why);
-                    }
-                };
-
-
-                let deck_route = match review::get_review_card(context, &deck) {
-                    Ok(result) => {
-                        DeckRoute::Review(result)
-                    },
-                    Err(why) => {
-                        // TODO: internal error logging
-                        panic!("{:?}", why);
-                    }
-                };
-
-                let route = AppRoute::Deck(deck_id, deck_route);
-                RenderResponse::Component(route)
-            }
+            __parse_route_deck_review(context, request, deck_id)
         }
     }
+}
+
+#[inline]
+fn __parse_route_deck_review(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> RenderResponse {
+
+    if request.borrow().method != Method::Get {
+        return RenderResponse::MethodNotAllowed;
+    }
+
+    let _guard = context::write_lock(context.clone());
+
+    let deck = match decks::get_deck(context.clone(), deck_id) {
+        Ok(deck) => deck,
+        Err(why) => {
+            // TODO: internal error logging
+            return RenderResponse::InternalServerError;
+        }
+    };
+
+
+    let deck_route = match review::get_review_card(context, &deck) {
+        Ok(result) => {
+            DeckRoute::Review(result)
+        },
+        Err(why) => {
+            // TODO: internal error logging
+            return RenderResponse::InternalServerError;
+        }
+    };
+
+    let route = AppRoute::Deck(deck_id, deck_route);
+    return RenderResponse::Component(route)
+
 }
 
 #[inline]
