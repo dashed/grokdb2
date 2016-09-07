@@ -266,6 +266,7 @@ impl ReviewRequest {
             }
         };
 
+        // NOTE: convert from minutes to seconds
         let review_after = self.time_till_available_for_review * 60;
 
         let query = format!(indoc!("
@@ -663,7 +664,6 @@ fn get_card_ready_for_review<T>(
     let upper_bound = (TOP_N_PERCENT * (num_of_cards as f64)).ceil() as ItemCount;
     // TODO: dev mode
     assert!(upper_bound > 0);
-    let upper_bound = upper_bound + 1;
 
     // Generate a random value in the range [0, num_of_cards)
     let card_idx = thread_rng().gen_range(0, upper_bound);
@@ -694,10 +694,12 @@ fn get_least_recently_reviewed_card<T>(
         }
     };
 
+    // TODO: dev mode
+    assert!(num_of_cards > 0);
+
     let upper_bound = (TOP_N_PERCENT * (num_of_cards as f64)).ceil() as ItemCount;
     // TODO: dev mode
     assert!(upper_bound > 0);
-    let upper_bound = upper_bound + 1;
 
     // Generate a random value in the range [0, num_of_cards)
     let card_idx = thread_rng().gen_range(0, upper_bound);
