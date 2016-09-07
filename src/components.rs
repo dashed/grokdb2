@@ -915,20 +915,23 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                     : "Settings"
                                 }
                             }
-                            li {
-                                a(href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(deck_id,
-                                        DeckRoute::Review(None))),
-                                    class? = classnames!(
-                                        "is-bold",
-                                        "is-active" => {
-                                            matches!(*deck_route, DeckRoute::Review(_))
-                                        })
-                                ) {
-                                    : "Review"
-                                }
-                            }
+
                         }
+                    }
+
+                }
+                div(class="panel-block") {
+
+                    a(href = view_route_to_link(context.clone(),
+                        AppRoute::Deck(deck_id,
+                            DeckRoute::Review(None))),
+                        class? = classnames!(
+                            "is-bold button is-primary is-fullwidth",
+                            "is-outlined" => {
+                                !matches!(*deck_route, DeckRoute::Review(_))
+                            })
+                    ) {
+                        : "Review"
                     }
 
                 }
