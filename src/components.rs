@@ -257,6 +257,21 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                     let (card_id, card_meta) = match *card_for_review {
                         None => {
+
+                            tmpl << html! {
+                                : raw!(
+                                    format!(
+                                        "window.__PRE_RENDER_STATE__ = \
+                                            {{\
+                                                POST_TO: '{post_to}',\
+                                                HAS_CARD_FOR_REVIEW: false
+                                            }};\
+                                        ",
+                                        post_to = generate_post_to(app_route)
+                                    )
+                                )
+                            };
+
                             return;
                         },
                         Some((card_id, ref cached_review_procedure)) => {
@@ -338,7 +353,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 card_meta = card_meta
                             )
                         )
-                    }
+                    };
 
                 },
                 DeckRoute::CardProfile(card_id, ref card_route) => {
@@ -702,22 +717,16 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         },
                         AppRoute::Deck(_, DeckRoute::Review(ref card_for_review)) =>  {
 
-                            if card_for_review.is_some() {
+                            tmpl << html! {
 
-                                tmpl << html! {
-
-                                    script(type="text/javascript") {
-                                        |tmpl| {
-                                            pre_render_state(tmpl, context.clone(), &app_route);
-                                        }
+                                script(type="text/javascript") {
+                                    |tmpl| {
+                                        pre_render_state(tmpl, context.clone(), &app_route);
                                     }
-
-                                    script(type="text/javascript", src="/assets/deck_review.js") {}
                                 }
 
+                                script(type="text/javascript", src="/assets/deck_review.js") {}
                             }
-
-
                         },
                         _ => {
                             // NOTE: No script here

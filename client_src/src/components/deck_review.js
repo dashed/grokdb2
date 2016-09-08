@@ -55,8 +55,6 @@ const ERROR = 'ERROR';
 const ERROR_MESSAGE = 'ERROR_MESSAGE';
 const SET_CARD = 'SET_CARD';
 const HAS_CARD_FOR_REVIEW = 'HAS_CARD_FOR_REVIEW';
-// TODO: remove
-// const FETCH_SUBMITTING = 'FETCH_SUBMITTING';
 
 /* react components */
 
@@ -1650,7 +1648,6 @@ const cardReducer = function(state, action) {
         answer: '',
         is_active: false
     };
-    let postTo = '';
     let cardMeta = {};
     let hasCardForReview = false;
 
@@ -1662,8 +1659,6 @@ const cardReducer = function(state, action) {
             hasCardForReview = true;
 
             const __card = payload.card_for_review.card;
-
-            postTo = payload.card_for_review.post_to;
 
             cardMeta = isPlainObject(payload.card_for_review.card_meta) ?
                 payload.card_for_review.card_meta : {};
@@ -1680,13 +1675,9 @@ const cardReducer = function(state, action) {
         }
 
         break;
-    default:
-
-
     }
 
     const newState = {
-        [POST_TO]: postTo,
 
         [CARD_ID]: card.id,
 
