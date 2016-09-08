@@ -17,7 +17,7 @@ dependencies = [
  "pcg 0.0.1 (git+https://github.com/codahale/pcg)",
  "quick-error 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
- "random-wheel 0.3.1 (git+https://github.com/dashed/random-wheel-rs?branch=range-type)",
+ "random-wheel 0.3.1 (git+https://github.com/dashed/random-wheel-rs)",
  "regex 0.1.75 (registry+https://github.com/rust-lang/crates.io-index)",
  "rusqlite 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -525,7 +525,7 @@ dependencies = [
 [[package]]
 name = "random-wheel"
 version = "0.3.1"
-source = "git+https://github.com/dashed/random-wheel-rs?branch=range-type#f8a0be0f1bdf58ac93e4f2b751fa297ea1b7cc5c"
+source = "git+https://github.com/dashed/random-wheel-rs#4f508ea1139fe0546906a5d19feb211f9bacfa98"
 dependencies = [
  "num 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -811,7 +811,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum quick-error 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0aad603e8d7fb67da22dbdf1f4b826ce8829e406124109e73cf1b2454b93a71c"
 "checksum quine-mc_cluskey 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)" = "07589615d719a60c8dd8a4622e7946465dfef20d1a428f969e3443e7386d5f45"
 "checksum rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)" = "2791d88c6defac799c3f20d74f094ca33b9332612d9aef9078519c82e4fe04a5"
-"checksum random-wheel 0.3.1 (git+https://github.com/dashed/random-wheel-rs?branch=range-type)" = "<none>"
+"checksum random-wheel 0.3.1 (git+https://github.com/dashed/random-wheel-rs)" = "<none>"
 "checksum regex 0.1.75 (registry+https://github.com/rust-lang/crates.io-index)" = "f62414f9d3b0f53e827ac46d6f8ce2ff6a91afd724225a5986e54e81e170693c"
 "checksum regex-syntax 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "279401017ae31cf4e15344aa3f085d0e2e5c1e70067289ef906906fdbe92c8fd"
 "checksum rusqlite 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)" = "e9b3854687228334d8a579cd2f666ddd7fb46a5f68ac0460da2898394c4679d2"
