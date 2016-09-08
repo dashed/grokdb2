@@ -43,7 +43,7 @@ const __ToolBar = function(props) {
 
     if(isEditing) {
 
-        const {handleSubmit, initialContent, newContent, postURL, resetForm} = props;
+        const {handleSubmit, postURL, resetForm} = props;
 
         const cancel = function() {
             resetForm();
@@ -96,8 +96,6 @@ if(process.env.NODE_ENV !== 'production') {
         isEditing: React.PropTypes.bool.isRequired,
         dispatch: React.PropTypes.func.isRequired,
         submitting: React.PropTypes.bool.isRequired,
-        initialContent: React.PropTypes.string.isRequired,
-        newContent: React.PropTypes.string.isRequired,
         postURL: React.PropTypes.string.isRequired,
         handleSubmit: React.PropTypes.func.isRequired,
         resetForm: React.PropTypes.func.isRequired,
@@ -109,7 +107,6 @@ const ToolBar = connect(
     (state) => {
         return {
             isEditing: state[DECK_DESCRIPTION][IS_EDITING],
-            initialContent: state[DECK_DESCRIPTION][MARKDOWN_CONTENTS],
             postURL: state[POST_TO]
         };
     }
@@ -246,7 +243,6 @@ const __DeckDescriptionContainer = function(props) {
                             handleSubmit={handleSubmit}
                             resetForm={resetForm}
                             submitting={submitting}
-                            newContent={description.value}
                         />
                     </div>
                 </div>
@@ -269,7 +265,6 @@ const __DeckDescriptionContainer = function(props) {
                         handleSubmit={handleSubmit}
                         resetForm={resetForm}
                         submitting={submitting}
-                        newContent={description.value}
                     />
                 </div>
             </div>
