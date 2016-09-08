@@ -159,7 +159,7 @@ const __PerformanceControls = function(props) {
             <div className='column is-one-third'>
                 <a
                     href='#right'
-                    className={classnames('button is-success is-fullwidth is-bold',
+                    className={classnames('button is-success is-fullwidth is-bold is-medium',
                         {
                             'is-outlined': rightClassValue,
                             'is-disabled': submitting
@@ -172,7 +172,7 @@ const __PerformanceControls = function(props) {
             <div className='column is-one-third'>
                 <a
                     href='#wrong'
-                    className={classnames('button is-danger is-fullwidth is-bold',
+                    className={classnames('button is-danger is-fullwidth is-bold is-medium',
                         {
                             'is-outlined': wrongClassValue,
                             'is-disabled': submitting
@@ -185,7 +185,7 @@ const __PerformanceControls = function(props) {
             <div className='column is-one-third'>
                 <a
                     href='#forgot'
-                    className={classnames('button is-warning is-fullwidth is-bold',
+                    className={classnames('button is-warning is-fullwidth is-bold is-medium',
                         {
                             'is-outlined': forgotClassValue,
                             'is-disabled': submitting
@@ -241,7 +241,7 @@ const __CommitButton = function(props) {
 
         if(chosenPerformance === NOT_SELECTED) {
             return (
-                <a className='button is-fullwidth is-bold is-disabled'>
+                <a className='button is-fullwidth is-bold is-disabled is-medium'>
                     {'How well did you answer the card?'}
                 </a>
             );
@@ -250,7 +250,7 @@ const __CommitButton = function(props) {
         return (
             <a
                 href='#next_card'
-                className={classnames('button is-success is-fullwidth is-bold', {
+                className={classnames('button is-success is-fullwidth is-bold is-medium', {
                     'is-disabled is-loading': props.submitting
                 })}
                 onClick={reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting)}
@@ -263,7 +263,7 @@ const __CommitButton = function(props) {
     return (
         <a
             href='#reveal_answer'
-            className='button is-success is-fullwidth is-bold'
+            className='button is-success is-fullwidth is-bold is-medium'
             onClick={shouldRevealAnswer(dispatch, true)}
         >
             {'Reveal Answer'}
@@ -314,7 +314,7 @@ const __MainControls = function(props) {
                     <div className='column is-half'>
                         <a
                             href='#confirm_skip'
-                            className={classnames('button is-success is-fullwidth is-bold', {
+                            className={classnames('button is-success is-fullwidth is-bold is-medium', {
                                 'is-disabled': props.submitting
                             })}
                             onClick={reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting)}
@@ -325,7 +325,7 @@ const __MainControls = function(props) {
                     <div className='column is-half'>
                         <a
                             href='#cancel_confirm_skip'
-                            className={classnames('button is-danger is-fullwidth is-bold', {
+                            className={classnames('button is-danger is-fullwidth is-bold is-medium', {
                                 'is-disabled': props.submitting
                             })}
                             onClick={shouldConfirmSkip(dispatch, false)}
@@ -347,7 +347,7 @@ const __MainControls = function(props) {
             <div className='column is-one-third'>
                 <a
                     href='#confirm_skip'
-                    className={classnames('button is-danger is-fullwidth is-bold', {
+                    className={classnames('button is-danger is-fullwidth is-bold is-medium', {
                         'is-disabled': props.submitting
                     })}
 
@@ -914,7 +914,7 @@ const __DeckReview = function(props) {
 
                                 <a
                                     href='#fetch_card'
-                                    className={classnames('button is-primary is-bold', {
+                                    className={classnames('button is-primary is-bold is-medium', {
                                         'is-disabled is-loading': props.fetchSubmitting
                                     })}
                                     onClick={fetchCard(dispatch, props.postURL, props.fetchSubmitting)}
