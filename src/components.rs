@@ -931,7 +931,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                 !matches!(*deck_route, DeckRoute::Review(_))
                             })
                     ) {
-                        : "Review"
+                        : "Review Deck"
                     }
 
                 }
@@ -1064,20 +1064,6 @@ fn CardDetailNav(
                                 li {
                                     a(href = view_route_to_link(context.clone(),
                                         AppRoute::Deck(deck_id,
-                                            DeckRoute::CardProfile(card_id, CardRoute::Review))),
-                                        class? = classnames!(
-                                            "is-bold",
-                                            "is-active" => {
-                                                matches!(*deck_route,
-                                                    DeckRoute::CardProfile(_, CardRoute::Review))
-                                            })
-                                    ) {
-                                        : "Review"
-                                    }
-                                }
-                                li {
-                                    a(href = view_route_to_link(context.clone(),
-                                        AppRoute::Deck(deck_id,
                                             DeckRoute::CardProfile(card_id, CardRoute::Stats))),
                                         class? = classnames!(
                                             "is-bold",
@@ -1104,6 +1090,24 @@ fn CardDetailNav(
                                     }
                                 }
                             }
+                        }
+
+                    }
+
+                    div(class="panel-block") {
+
+                        a(href = view_route_to_link(context.clone(),
+                            AppRoute::Deck(deck_id,
+                                DeckRoute::CardProfile(card_id, CardRoute::Review))),
+
+                            class? = classnames!(
+                                "is-bold button is-primary is-fullwidth",
+                                "is-outlined" => {
+                                    !matches!(*deck_route, DeckRoute::CardProfile(_, CardRoute::Review))
+                                })
+
+                        ) {
+                            : "Review Card"
                         }
 
                     }
