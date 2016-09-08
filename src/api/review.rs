@@ -8,7 +8,7 @@ use std::ops::DerefMut;
 /* 3rd-party imports */
 
 use random_wheel::RandomWheel;
-use rand::{thread_rng, Rng, SeedableRng, ChaChaRng};
+use rand::{thread_rng, Rng, SeedableRng};
 use rand::distributions::{Exp, IndependentSample};
 use pcg::PcgRng;
 use rusqlite::Connection;
@@ -94,8 +94,7 @@ impl SubSelectionProbabilities {
 
         let mut rw: RandomWheel<Probability, SubSelection, PcgRng> = RandomWheel::new(pcg);
 
-
-        // rw.push(self.new_cards, SubSelection::NewCards);
+        rw.push(self.new_cards, SubSelection::NewCards);
         rw.push(self.ready_for_review, SubSelection::ReadyForReview);
         rw.push(self.least_recently_reviewed, SubSelection::LeastRecentlyReviewed);
 
@@ -107,8 +106,8 @@ impl Default for SubSelectionProbabilities {
     fn default() -> Self {
         SubSelectionProbabilities {
             new_cards: 30.0,
-            least_recently_reviewed: 30.0,
-            ready_for_review: 40.0
+            least_recently_reviewed: 25.0,
+            ready_for_review: 45.0
         }
     }
 }
