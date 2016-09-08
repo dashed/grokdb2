@@ -684,7 +684,7 @@ fn __parse_route_api_deck_review_post(
 
                 // TODO: internal error logging
                 let err = "This card does not appear to be in this deck. \
-                    However, the card will still be considered reviewed.".to_string();
+                    However, the card will still be reviewed.".to_string();
                 return respond_json_with_error!(APIStatus::Ok; err; Some(review_response));
 
             }
@@ -700,7 +700,7 @@ fn __parse_route_api_deck_review_post(
 
                     // TODO: internal error logging
                     let err = "This card does not appear to be chosen for review for this deck. \
-                        However, the card will still be considered reviewed.".to_string();
+                        However, the card will still be reviewed.".to_string();
                     return respond_json_with_error!(APIStatus::Ok; err; Some(review_response));
 
                 },
