@@ -159,7 +159,7 @@ fn main() {
 
         let _read_guard = context::write_lock(context.clone());
 
-        for deck_num in 1..105 {
+        for deck_num in 1..245 {
 
             let request = decks::CreateDeck {
                 name: format!("deck {}", deck_num),
@@ -185,7 +185,7 @@ fn main() {
 
         let _read_guard = context::write_lock(context.clone());
 
-        for card_num in 1..105 {
+        for card_num in 1..245 {
 
             let request = cards::CreateCard {
                 title: format!("card num {}", card_num),
