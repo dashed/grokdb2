@@ -436,7 +436,14 @@ const AdvancedControls = function() {
     );
 };
 
-const ReviewControls = function() {
+const __ReviewControls = function(props) {
+
+    const {currenTab} = props;
+
+    // Don't show main controls unless user is viewing question or answer
+    if(!(currenTab === CARD_QUESTION || currenTab === CARD_ANSWER)) {
+        return null;
+    }
 
     return (
         <div>
@@ -446,6 +453,22 @@ const ReviewControls = function() {
     );
 
 };
+
+if(process.env.NODE_ENV !== 'production') {
+    __ReviewControls.propTypes = {
+        currenTab: React.PropTypes.oneOf([CARD_QUESTION, CARD_ANSWER, CARD_DESCRIPTION, CARD_SETTINGS, CARD_META]),
+    };
+}
+
+const ReviewControls = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            currenTab: state[CURRENT_TAB],
+        };
+    }
+
+)(__ReviewControls);
 
 const __Meta = function(props) {
 
