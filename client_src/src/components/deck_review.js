@@ -55,6 +55,8 @@ const ERROR = 'ERROR';
 const ERROR_MESSAGE = 'ERROR_MESSAGE';
 const SET_CARD = 'SET_CARD';
 const HAS_CARD_FOR_REVIEW = 'HAS_CARD_FOR_REVIEW';
+// TODO: remove
+// const FETCH_SUBMITTING = 'FETCH_SUBMITTING';
 
 /* react components */
 
@@ -905,7 +907,28 @@ const __DeckReview = function(props) {
     if(!hasCardForReview) {
         return (
             <div>
-                {'no card for review'}
+                <ErrorComponent error={error && error.message || ''} onConfirm={confirmError(dispatch)} />
+                <div className='columns'>
+                    <div className='column'>
+                        <div className='card is-fullwidth'>
+                            <div className='card-content has-text-centered'>
+                                <h1 className='title'>{'No card available for review'}</h1>
+
+                                <a
+                                    href='#fetch_card'
+                                    className={classnames('button is-primary is-bold', {
+                                        'is-disabled is-loading': props.fetchSubmitting
+                                    })}
+                                    onClick={fetchCard(dispatch, props.postURL, props.fetchSubmitting)}
+                                >
+                                    {'Fetch a card'}
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         );
     }
@@ -929,6 +952,8 @@ if(process.env.NODE_ENV !== 'production') {
         error: React.PropTypes.object,
         dispatch: React.PropTypes.func.isRequired,
         hasCardForReview: React.PropTypes.bool.isRequired,
+        fetchSubmitting: React.PropTypes.bool.isRequired,
+        postURL: React.PropTypes.string.isRequired,
     };
 }
 
@@ -938,7 +963,9 @@ const DeckReview = connect(
     (state) => {
         return {
             error: state[ERROR],
-            hasCardForReview: state[HAS_CARD_FOR_REVIEW]
+            hasCardForReview: state[HAS_CARD_FOR_REVIEW],
+            fetchSubmitting: state[SUBMITTING],
+            postURL: state[POST_TO]
         };
     }
 )(__DeckReview);
@@ -949,6 +976,207 @@ const DeckReview = connect(
 const noOp = function() {
     return function(event) {
         event.preventDefault();
+    };
+};
+
+const defaultFetchRESTError = 'Unable to fetch a card for review. Please try again.';
+const fetchCard = function(dispatch, fetchURL, fetchSubmitting = true) {
+    return function(event) {
+        event.preventDefault();
+
+        if(fetchSubmitting) {
+            return;
+        }
+
+        dispatch(
+            reduceIn(
+                // reducer
+                boolReducer,
+                // path
+                [SUBMITTING],
+                // action
+                {
+                    type: true
+                }
+            )
+        );
+
+        fetch(fetchURL, {
+            method: 'GET'
+        })
+        .then(function(response) {
+            return Promise.all([response.status, jsonDecode(response)]);
+        })
+        .then(function([statusCode, jsonResponse]) {
+
+            dispatch(
+                reduceIn(
+                    // reducer
+                    boolReducer,
+                    // path
+                    [SUBMITTING],
+                    // action
+                    {
+                        type: false
+                    }
+                )
+            );
+
+            switch(statusCode) {
+            case 500: // Internal Server Error
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        errorReducer,
+                        // path
+                        [ERROR],
+                        // action
+                        {
+                            type: ERROR_MESSAGE,
+                            payload: get(jsonResponse, ['error'], defaultFetchRESTError)
+                        }
+                    )
+                );
+
+                return;
+                break;
+
+            case 400: // Bad Request
+
+                if(jsonResponse.payload) {
+
+                    dispatch(
+                        reduceIn(
+                            // reducer
+                            errorReducer,
+                            // path
+                            [ERROR],
+                            // action
+                            {
+                                type: ERROR_MESSAGE,
+                                payload: get(jsonResponse, ['error'], '')
+                            }
+                        )
+                    );
+
+                    dispatch(
+                        reduceIn(
+                            // reducer
+                            cardReducer,
+                            // path
+                            [],
+                            // action
+                            {
+                                type: SET_CARD,
+                                payload: jsonResponse.payload
+                            }
+                        )
+                    );
+
+                } else {
+
+                    dispatch(
+                        reduceIn(
+                            // reducer
+                            errorReducer,
+                            // path
+                            [ERROR],
+                            // action
+                            {
+                                type: ERROR_MESSAGE,
+                                payload: get(jsonResponse, ['error'], 'Unable to review this card.')
+                            }
+                        )
+                    );
+
+                }
+
+                return;
+                break;
+
+            case 200: // Ok
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        errorReducer,
+                        // path
+                        [ERROR],
+                        // action
+                        {
+                            type: ERROR_MESSAGE,
+                            payload: get(jsonResponse, ['error'], '')
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        cardReducer,
+                        // path
+                        [],
+                        // action
+                        {
+                            type: SET_CARD,
+                            payload: jsonResponse.payload
+                        }
+                    )
+                );
+
+                return;
+                break;
+
+            default: // Unexpected http status code
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        errorReducer,
+                        // path
+                        [ERROR],
+                        // action
+                        {
+                            type: ERROR_MESSAGE,
+                            payload: get(jsonResponse, ['error'], defaultFetchRESTError)
+                        }
+                    )
+                );
+            }
+        })
+        .catch(function(/*err*/) {
+
+            // any other errors
+            // console.log('err:', err);
+
+            dispatch(
+                reduceIn(
+                    // reducer
+                    boolReducer,
+                    // path
+                    [SUBMITTING],
+                    // action
+                    {
+                        type: false
+                    }
+                )
+            );
+
+            dispatch(
+                reduceIn(
+                    // reducer
+                    errorReducer,
+                    // path
+                    [ERROR],
+                    // action
+                    {
+                        type: ERROR_MESSAGE,
+                        payload: defaultFetchRESTError
+                    }
+                )
+            );
+
+        });
     };
 };
 
@@ -1051,6 +1279,7 @@ const reviewCard = function(dispatch, postURL, reviewRequest, submitting = true)
                             }
                         )
                     );
+
                 } else {
 
                     dispatch(
@@ -1361,8 +1590,7 @@ const initialState = {
     [IS_CONFIRM_SKIP]: false,
     [SHOW_MAIN_CONTROLS]: false,
     [SHOW_PREVIEW_SOURCE_BUTTONS]: false,
-    // TODO: debug
-    [HAS_CARD_FOR_REVIEW]: false,
+    [HAS_CARD_FOR_REVIEW]: true,
 
     [CHOSEN_PERFORMANCE]: NOT_SELECTED,
 
@@ -1436,7 +1664,7 @@ const cardReducer = function(state, action) {
             const __card = payload.card_for_review.card;
 
             postTo = payload.card_for_review.post_to;
-            
+
             cardMeta = isPlainObject(payload.card_for_review.card_meta) ?
                 payload.card_for_review.card_meta : {};
 

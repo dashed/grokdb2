@@ -1729,33 +1729,36 @@ fn DeckReview(
     deck_id: DeckID,
     card_for_review: &Option<(CardID, Option<CachedReviewProcedure>)>) {
 
-    if card_for_review.is_none() {
 
-        tmpl << html!{
+    // TODO: remove
 
-            div(class="columns") {
-                div(class="column") {
-                    h1(class="title") {
-                        : raw!("No cards in this deck to review")
-                    }
-                }
-            }
+    // if card_for_review.is_none() {
 
-            // TODO: remove
-            // div(class="columns") {
-            //     div(class="column") {
-            //         article(class="message") {
-            //             div(class="message-body") {
-            //                 : raw!("There are no cards to review.")
-            //             }
-            //         }
-            //     }
-            // }
+    //     tmpl << html!{
 
-        };
+    //         div(class="columns") {
+    //             div(class="column") {
+    //                 h1(class="title") {
+    //                     : raw!("No cards in this deck to review")
+    //                 }
+    //             }
+    //         }
 
-        return;
-    }
+    //         // TODO: remove
+    //         // div(class="columns") {
+    //         //     div(class="column") {
+    //         //         article(class="message") {
+    //         //             div(class="message-body") {
+    //         //                 : raw!("There are no cards to review.")
+    //         //             }
+    //         //         }
+    //         //     }
+    //         // }
+
+    //     };
+
+    //     return;
+    // }
 
     tmpl << html!{
 
