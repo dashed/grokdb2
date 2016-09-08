@@ -54,6 +54,7 @@ const SUBMITTING = 'SUBMITTING';
 const ERROR = 'ERROR';
 const ERROR_MESSAGE = 'ERROR_MESSAGE';
 const SET_CARD = 'SET_CARD';
+const HAS_CARD_FOR_REVIEW = 'HAS_CARD_FOR_REVIEW';
 
 /* react components */
 
@@ -899,7 +900,15 @@ const Card = connect(
 
 const __DeckReview = function(props) {
 
-    const {error, dispatch} = props;
+    const {error, dispatch, hasCardForReview} = props;
+
+    if(!hasCardForReview) {
+        return (
+            <div>
+                {'no card for review'}
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -918,7 +927,8 @@ const __DeckReview = function(props) {
 if(process.env.NODE_ENV !== 'production') {
     __DeckReview.propTypes = {
         error: React.PropTypes.object,
-        dispatch: React.PropTypes.func.isRequired
+        dispatch: React.PropTypes.func.isRequired,
+        hasCardForReview: React.PropTypes.bool.isRequired,
     };
 }
 
@@ -927,7 +937,8 @@ const DeckReview = connect(
     // mapStateToProps
     (state) => {
         return {
-            error: state.ERROR
+            error: state[ERROR],
+            hasCardForReview: state[HAS_CARD_FOR_REVIEW]
         };
     }
 )(__DeckReview);
@@ -1350,6 +1361,8 @@ const initialState = {
     [IS_CONFIRM_SKIP]: false,
     [SHOW_MAIN_CONTROLS]: false,
     [SHOW_PREVIEW_SOURCE_BUTTONS]: false,
+    // TODO: debug
+    [HAS_CARD_FOR_REVIEW]: false,
 
     [CHOSEN_PERFORMANCE]: NOT_SELECTED,
 
@@ -1401,42 +1414,47 @@ const cardReducer = function(state, action) {
 
     const {payload} = action;
 
-    let card;
+    let card = {
+        id: 0,
+        title: '',
+        description: '',
+        question: '',
+        answer: '',
+        is_active: false
+    };
     let postTo = '';
     let cardMeta = {};
+    let hasCardForReview = false;
 
     switch(action.type) {
     case SET_CARD:
 
-        if(!payload.has_card_for_review) {
-            return state;
+        if(payload.has_card_for_review) {
+
+            hasCardForReview = true;
+
+            const __card = payload.card_for_review.card;
+
+            postTo = payload.card_for_review.post_to;
+            
+            cardMeta = isPlainObject(payload.card_for_review.card_meta) ?
+                payload.card_for_review.card_meta : {};
+
+            card = {
+                id: __card.id,
+                title: __card.title,
+                description: __card.description,
+                question: __card.question,
+                answer: __card.answer,
+                is_active: __card.is_active
+            };
+
         }
-
-        const __card = payload.card_for_review.card;
-        postTo = payload.card_for_review.post_to;
-        cardMeta = isPlainObject(payload.card_for_review.card_meta) ?
-            payload.card_for_review.card_meta : {};
-
-        card = {
-            id: __card.id,
-            title: __card.title,
-            description: __card.description,
-            question: __card.question,
-            answer: __card.answer,
-            is_active: __card.is_active
-        };
 
         break;
     default:
 
-        card = {
-            id: 0,
-            title: '',
-            description: '',
-            question: '',
-            answer: '',
-            is_active: false
-        };
+
     }
 
     const newState = {
@@ -1473,6 +1491,7 @@ const cardReducer = function(state, action) {
         [IS_CONFIRM_SKIP]: false,
         [SHOW_MAIN_CONTROLS]: false,
         [SHOW_PREVIEW_SOURCE_BUTTONS]: false,
+        [HAS_CARD_FOR_REVIEW]: hasCardForReview,
 
         [CHOSEN_PERFORMANCE]: NOT_SELECTED,
 
