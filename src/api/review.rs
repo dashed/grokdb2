@@ -427,6 +427,13 @@ pub trait Reviewable {
 
     /* least recently reviewed */
 
+    fn get_least_recently_reviewed_card(&self,
+        context: Rc<RefCell<Context>>,
+        active_selection: &ActiveSelection,
+        card_idx: Offset) -> Result<CardID, RawAPIError>;
+
+    /* cards for review */
+
     fn have_cards_for_review(&self,
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection) -> Result<bool, RawAPIError>;
@@ -434,12 +441,6 @@ pub trait Reviewable {
     fn deck_num_of_cards_for_review(&self,
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection) -> Result<ItemCount, RawAPIError>;
-
-    fn get_least_recently_reviewed_card(&self,
-        context: Rc<RefCell<Context>>,
-        active_selection: &ActiveSelection,
-        card_idx: Offset) -> Result<CardID, RawAPIError>;
-
 }
 
 /* helpers */
