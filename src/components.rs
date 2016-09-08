@@ -1308,7 +1308,7 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
             }
 
             div(class="columns") {
-                div(class="column") {
+                div(class="column", style="margin-top:20px;margin-bottom:20px;") {
                     |tmpl| {
                         if description.trim().len() <= 0 {
 
