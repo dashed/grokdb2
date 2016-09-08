@@ -1030,7 +1030,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                         AppRoute::Deck(deck_id,
                             DeckRoute::Review(None))),
                         class? = classnames!(
-                            "is-bold button is-primary is-fullwidth",
+                            "is-bold button is-primary is-fullwidth is-medium",
                             "is-outlined" => {
                                 !matches!(*deck_route, DeckRoute::Review(_))
                             })
@@ -1205,7 +1205,7 @@ fn CardDetailNav(
                                 DeckRoute::CardProfile(card_id, CardRoute::Review))),
 
                             class? = classnames!(
-                                "is-bold button is-primary is-fullwidth",
+                                "is-bold button is-primary is-fullwidth is-medium",
                                 "is-outlined" => {
                                     !matches!(*deck_route, DeckRoute::CardProfile(_, CardRoute::Review))
                                 })

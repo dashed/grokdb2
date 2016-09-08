@@ -56642,7 +56642,7 @@
 	                'a',
 	                {
 	                    href: '#right',
-	                    className: classnames('button is-success is-fullwidth is-bold', {
+	                    className: classnames('button is-success is-fullwidth is-bold is-medium', {
 	                        'is-outlined': rightClassValue,
 	                        'is-disabled': submitting
 	                    }),
@@ -56658,7 +56658,7 @@
 	                'a',
 	                {
 	                    href: '#wrong',
-	                    className: classnames('button is-danger is-fullwidth is-bold', {
+	                    className: classnames('button is-danger is-fullwidth is-bold is-medium', {
 	                        'is-outlined': wrongClassValue,
 	                        'is-disabled': submitting
 	                    }),
@@ -56674,7 +56674,7 @@
 	                'a',
 	                {
 	                    href: '#forgot',
-	                    className: classnames('button is-warning is-fullwidth is-bold', {
+	                    className: classnames('button is-warning is-fullwidth is-bold is-medium', {
 	                        'is-outlined': forgotClassValue,
 	                        'is-disabled': submitting
 	                    }),
@@ -56716,7 +56716,7 @@
 	        if (chosenPerformance === NOT_SELECTED) {
 	            return React.createElement(
 	                'a',
-	                { className: 'button is-fullwidth is-bold is-disabled' },
+	                { className: 'button is-fullwidth is-bold is-disabled is-medium' },
 	                'How well did you answer the card?'
 	            );
 	        }
@@ -56725,7 +56725,7 @@
 	            'a',
 	            {
 	                href: '#next_card',
-	                className: classnames('button is-success is-fullwidth is-bold', {
+	                className: classnames('button is-success is-fullwidth is-bold is-medium', {
 	                    'is-disabled is-loading': props.submitting
 	                }),
 	                onClick: reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting)
@@ -56738,7 +56738,7 @@
 	        'a',
 	        {
 	            href: '#reveal_answer',
-	            className: 'button is-success is-fullwidth is-bold',
+	            className: 'button is-success is-fullwidth is-bold is-medium',
 	            onClick: shouldRevealAnswer(dispatch, true)
 	        },
 	        'Reveal Answer'
@@ -56776,7 +56776,7 @@
 	                    'a',
 	                    {
 	                        href: '#confirm_skip',
-	                        className: classnames('button is-success is-fullwidth is-bold', {
+	                        className: classnames('button is-success is-fullwidth is-bold is-medium', {
 	                            'is-disabled': props.submitting
 	                        }),
 	                        onClick: reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting)
@@ -56791,7 +56791,7 @@
 	                    'a',
 	                    {
 	                        href: '#cancel_confirm_skip',
-	                        className: classnames('button is-danger is-fullwidth is-bold', {
+	                        className: classnames('button is-danger is-fullwidth is-bold is-medium', {
 	                            'is-disabled': props.submitting
 	                        }),
 	                        onClick: shouldConfirmSkip(dispatch, false)
@@ -56819,7 +56819,7 @@
 	                'a',
 	                {
 	                    href: '#confirm_skip',
-	                    className: classnames('button is-danger is-fullwidth is-bold', {
+	                    className: classnames('button is-danger is-fullwidth is-bold is-medium', {
 	                        'is-disabled': props.submitting
 	                    }),
 	
@@ -57507,7 +57507,7 @@
 	                                'a',
 	                                {
 	                                    href: '#fetch_card',
-	                                    className: classnames('button is-primary is-bold', {
+	                                    className: classnames('button is-primary is-bold is-medium', {
 	                                        'is-disabled is-loading': props.fetchSubmitting
 	                                    }),
 	                                    onClick: fetchCard(dispatch, props.postURL, props.fetchSubmitting)
