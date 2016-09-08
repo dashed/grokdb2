@@ -933,6 +933,7 @@ const __DeckReview = function(props) {
 
     return (
         <div>
+            <ErrorComponent error={error && error.message || ''} onConfirm={confirmError(dispatch)} />
             <Card />
             <div className='columns'>
                 <div className='column'>
