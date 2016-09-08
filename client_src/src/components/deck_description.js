@@ -45,8 +45,6 @@ const __ToolBar = function(props) {
 
         const {handleSubmit, initialContent, newContent, postURL, resetForm} = props;
 
-        const shouldNotSave = String(newContent).trim() == String(initialContent).trim();
-
         const cancel = function() {
             resetForm();
         };
@@ -57,7 +55,7 @@ const __ToolBar = function(props) {
                     <div className='level-item'>
                         <a
                             className={classnames('button is-success', {
-                                'is-disabled': submitting || shouldNotSave,
+                                'is-disabled': submitting,
                                 'is-loading': submitting
                             })}
                             onClick={handleSubmit(saveDescription.bind(null, dispatch, postURL))}>
