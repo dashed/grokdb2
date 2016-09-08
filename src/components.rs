@@ -819,7 +819,102 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                             }
                         }
                 },
-                _ => {}
+                DeckRoute::Description => {
+                        tmpl << html!{
+
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                : raw!(" / ");
+                            }
+
+                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                : raw!("Deck Description")
+                            }
+                        }
+                },
+                DeckRoute::Decks(_, _) => {
+                        tmpl << html!{
+
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                : raw!(" / ");
+                            }
+
+                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                : raw!("Decks")
+                            }
+                        }
+                },
+                DeckRoute::Cards(_, _) => {
+                        tmpl << html!{
+
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                : raw!(" / ");
+                            }
+
+                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                : raw!("Cards")
+                            }
+                        }
+                },
+                DeckRoute::NewCard => {
+                        tmpl << html!{
+
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                : raw!(" / ");
+                            }
+
+                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                : raw!("Add New Card")
+                            }
+                        }
+                },
+                DeckRoute::NewDeck => {
+                        tmpl << html!{
+
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                : raw!(" / ");
+                            }
+
+                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                : raw!("Add New Deck")
+                            }
+                        }
+                },
+                DeckRoute::Settings(_) => {
+                        tmpl << html!{
+
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                : raw!(" / ");
+                            }
+
+                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                : raw!("Settings")
+                            }
+                        }
+                },
+                DeckRoute::Stats => {
+                        tmpl << html!{
+
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                : raw!(" / ");
+                            }
+
+                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                : raw!("Statistics")
+                            }
+                        }
+                },
+                DeckRoute::CardProfile(card_id, _) => {
+                        tmpl << html!{
+
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                : raw!(" / ");
+                            }
+
+                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                : raw!(format!("Card #{}", card_id))
+                            }
+                        }
+                }
             }
         }
     }
@@ -1125,13 +1220,15 @@ fn CardDetailNav(
 #[inline]
 fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
     tmpl << html!{
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Add New Deck")
-                }
-            }
-        }
+
+        // TODO: remove
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Add New Deck")
+        //         }
+        //     }
+        // }
 
         div(id="new_deck_container") {
             : raw!(include_str!("react_components/new_deck"))
@@ -1142,13 +1239,15 @@ fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: De
 #[inline]
 fn NewCard(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
     tmpl << html!{
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Add New Card")
-                }
-            }
-        }
+
+        // TODO: remove
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Add New Card")
+        //         }
+        //     }
+        // }
 
         div(id="new_card_container") {
             // TODO: fix
@@ -1171,13 +1270,15 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
     };
 
     tmpl << html!{
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Deck Description")
-                }
-            }
-        }
+
+        // TODO: keep?
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Deck Description")
+        //         }
+        //     }
+        // }
 
         div(id="deck_description_container") {
             : raw!(include_str!("react_components/deck_description"))
@@ -1234,14 +1335,15 @@ fn DeckCards(
     search: &Search) {
 
     tmpl << html!{
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Cards")
-                }
-            }
-        }
 
+        // TODO: remove
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Cards")
+        //         }
+        //     }
+        // }
 
         div(class="columns") {
             div(class="column") {
@@ -1681,13 +1783,15 @@ fn DeckStats(
     deck_id: DeckID) {
 
     tmpl << html!{
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Deck Statistics")
-                }
-            }
-        }
+
+        // TODO: remove
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Deck Statistics")
+        //         }
+        //     }
+        // }
 
     }
 }
@@ -1700,13 +1804,15 @@ fn DeckSettings(
     deck_id: DeckID) {
 
     tmpl << html!{
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Deck Settings")
-                }
-            }
-        }
+
+        // TODO: remove
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Deck Settings")
+        //         }
+        //     }
+        // }
 
         |tmpl| DeckSettingsNav(tmpl, context.clone(), &setting_mode, deck_id);
 
@@ -1850,13 +1956,14 @@ fn DecksChildren(tmpl: &mut TemplateBuffer,
 
     tmpl << html!{
 
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Decks")
-                }
-            }
-        }
+        // TODO: keep?
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Decks")
+        //         }
+        //     }
+        // }
 
         div(class="columns") {
             div(class="column") {
