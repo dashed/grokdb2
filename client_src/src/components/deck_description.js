@@ -154,6 +154,10 @@ const __DeckDescription = function(props) {
     switch(markdownView) {
     case MARKDOWN_VIEW_RENDER:
         sourceStyle.display = 'none';
+
+        renderStyle.marginTop = '20px';
+        renderStyle.marginBottom = '20px';
+
         break;
 
     case MARKDOWN_VIEW_SOURCE:

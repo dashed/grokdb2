@@ -682,7 +682,7 @@ const __CardContentTabs = function(props) {
             </div>
             <PreviewSource currenTab={currenTab} />
             <div className='columns'>
-                <div className='column' style={{marginTop: '20px', marginBottom: '20px'}}>
+                <div className='column'>
                     <TabGroupComponent />
                 </div>
             </div>
@@ -718,6 +718,9 @@ const __TabComponent = function(props) {
     switch(markdownView) {
     case MARKDOWN_VIEW_RENDER:
         sourceStyle.display = 'none';
+
+        renderStyle.marginTop = '20px';
+        renderStyle.marginBottom = '20px';
         break;
 
     case MARKDOWN_VIEW_SOURCE:
