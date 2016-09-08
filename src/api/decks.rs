@@ -516,15 +516,25 @@ pub fn get_deck_children(
             Decks
         ON DecksClosure.descendent = Decks.deck_id");
 
-    let where_order_sql = format!(indoc!("
+    let where_sql = format!(indoc!("
             ancestor = {deck_id}
         AND
             depth = 1
-        ORDER BY
-            Decks.name
-        COLLATE NOCASE ASC"), deck_id = deck_id);
+    "), deck_id = deck_id);
 
-    let query = pagination!(select_sql; select_sql; where_order_sql; "DecksClosure.descendent"; per_page; offset);
+    let order_by_sql = format!(indoc!("
+        Decks.name
+        COLLATE NOCASE ASC
+    "));
+
+    let query = pagination!(
+        select_sql = select_sql;
+        not_in = "DecksClosure.descendent";
+        inner_select_sql = select_sql;
+        where_sql = Some(&where_sql);
+        order_by_sql = Some(&order_by_sql);
+        offset = offset;
+        per_page = per_page);
 
     let context = context.borrow();
     db_read_lock!(db_conn; context.database());
@@ -727,21 +737,40 @@ impl Reviewable for Deck {
     fn get_least_recently_reviewed_card(&self,
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection,
+        top_n: ItemCount,
         card_idx: Offset) -> Result<CardID, RawAPIError> {
-        return cards::deck_get_least_recently_reviewed_card(context, self.id, active_selection, card_idx);
+
+        return cards::deck_get_least_recently_reviewed_card(
+            context,
+            self.id,
+            active_selection,
+            top_n,
+            card_idx);
+
     }
 
     /* cards for review */
 
     fn have_cards_for_review(&self, context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection) -> Result<bool, RawAPIError> {
-        return cards::deck_have_cards_for_review(context, self.id, active_selection);
+
+        return cards::deck_have_cards_for_review(
+            context,
+            self.id,
+            active_selection
+        );
+
     }
 
     fn deck_num_of_cards_for_review(&self,
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection) -> Result<ItemCount, RawAPIError> {
-        return cards::deck_num_of_cards_for_review(context.clone(), self.id, active_selection);
+
+        return cards::deck_num_of_cards_for_review(
+            context,
+            self.id,
+            active_selection
+        );
     }
 
 }

@@ -28,6 +28,7 @@ extern crate chrono;
 extern crate random_wheel;
 extern crate rand;
 extern crate libc;
+extern crate pcg;
 
 /* rust lib imports */
 

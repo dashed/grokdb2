@@ -2,11 +2,15 @@
 
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
+use std::ops::DerefMut;
 
 /* 3rd-party imports */
 
 use random_wheel::RandomWheel;
 use rand::{thread_rng, Rng, SeedableRng, ChaChaRng};
+use rand::distributions::{Exp, IndependentSample};
+use pcg::PcgRng;
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
 
@@ -21,6 +25,25 @@ use route::{AppRoute, DeckRoute};
 use components::{generate_post_to};
 
 /* ////////////////////////////////////////////////////////////////////////// */
+
+lazy_static! {
+    static ref RAND_GENERATOR: Arc<Mutex<PcgRng>> = {
+        use rand::{self, Rng, SeedableRng};
+        use pcg::PcgRng;
+        use std::sync::{Arc, Mutex};
+
+        // generate seed for pcg
+        let mut rng = rand::thread_rng();
+        let s = rng.gen_iter::<u64>().take(2).collect::<Vec<u64>>();
+
+        // init pcg generator
+        let pcg = PcgRng::from_seed([s[0], s[1]]);
+
+        Arc::new(Mutex::new(pcg))
+
+    };
+
+}
 
 static TOP_N_PERCENT: f64 = 0.5;
 static DEFAULT_TIME_TILL_AVAILABLE_FOR_REVIEW: Minutes = 180; // 180 minutes = 3 hours
@@ -60,15 +83,19 @@ impl SubSelectionProbabilities {
             self.ready_for_review > 0.0;
     }
 
-    fn gen_wheel(&self) -> RandomWheel<Probability, SubSelection, ChaChaRng> {
+    fn gen_wheel(&self) -> RandomWheel<Probability, SubSelection, PcgRng> {
 
+        // generate seed for pcg
         let mut rng = thread_rng();
-        let s = rng.gen_iter::<u32>().take(8).collect::<Vec<u32>>();
-        let mut ra: ChaChaRng = SeedableRng::from_seed(&s[..]);
+        let s = rng.gen_iter::<u64>().take(2).collect::<Vec<u64>>();
 
-        let mut rw: RandomWheel<Probability, SubSelection, ChaChaRng> = RandomWheel::new(ra);
+        // init pcg generator
+        let mut pcg = PcgRng::from_seed([s[0], s[1]]);
 
-        rw.push(self.new_cards, SubSelection::NewCards);
+        let mut rw: RandomWheel<Probability, SubSelection, PcgRng> = RandomWheel::new(pcg);
+
+
+        // rw.push(self.new_cards, SubSelection::NewCards);
         rw.push(self.ready_for_review, SubSelection::ReadyForReview);
         rw.push(self.least_recently_reviewed, SubSelection::LeastRecentlyReviewed);
 
@@ -430,6 +457,7 @@ pub trait Reviewable {
     fn get_least_recently_reviewed_card(&self,
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection,
+        top_n: ItemCount,
         card_idx: Offset) -> Result<CardID, RawAPIError>;
 
     /* cards for review */
@@ -572,7 +600,7 @@ fn choose_subselection<T>(
     let wheel = probabilities.gen_wheel();
 
     // TODO: dev only
-    assert!(wheel.len() == 3);
+    assert!(wheel.len() > 0);
 
     for (_, subselection) in wheel {
 
@@ -707,9 +735,9 @@ fn get_least_recently_reviewed_card<T>(
     assert!(upper_bound > 0);
 
     // Generate a random value in the range [0, num_of_cards)
-    let card_idx = thread_rng().gen_range(0, upper_bound);
+    let card_idx = gen_card_select(upper_bound);
 
-    match selection.get_least_recently_reviewed_card(context, active_selection, card_idx) {
+    match selection.get_least_recently_reviewed_card(context, active_selection, upper_bound, card_idx) {
         Ok(card_id) => {
             return Ok(card_id);
         },
@@ -717,5 +745,40 @@ fn get_least_recently_reviewed_card<T>(
             return Err(why);
         }
     }
+
+}
+
+// generate number from
+#[inline]
+fn gen_card_select(upper_bound: ItemCount) -> Offset {
+
+    // TODO: dev mode
+    assert!(upper_bound > 0);
+
+    let exp = Exp::new(5.0);
+
+    let mut guard = (*RAND_GENERATOR).lock().unwrap();
+    let pcg: &mut PcgRng = guard.deref_mut();
+
+    let pin: f64 = exp.ind_sample(pcg);
+
+    if pin.is_infinite() {
+        return upper_bound - 1;
+    }
+
+    // normalize to [0, 100)
+    let pin = if pin >= 100.0 {
+        pin % 100.0
+    } else {
+        pin
+    };
+
+    let card_idx = (pin * (upper_bound as f64)).floor() as Offset;
+
+    // TODO: dev mode
+    assert!(0 <= card_idx);
+    assert!(card_idx < upper_bound);
+
+    return card_idx;
 
 }

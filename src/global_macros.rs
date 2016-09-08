@@ -1,6 +1,7 @@
 /* ////////////////////////////////////////////////////////////////////////// */
 
-macro_rules! handle_api_result {
+// used for handling API for json
+macro_rules! handle_api_result_json {
     ($api:expr) => {{
         match $api {
             Ok(result) => result,
@@ -12,9 +13,34 @@ macro_rules! handle_api_result {
                 use errors::RawAPIError;
                 let _err: RawAPIError = _err;
 
+                println!("{:?}", _err);
+
                 // TODO: internal error logging
                 return respond_json_with_error!(APIStatus::ServerError;
                     "An internal server error occurred.".to_string(); None);
+
+            }
+        }
+    }}
+}
+
+macro_rules! handle_api_result_html {
+    ($api:expr) => {{
+        match $api {
+            Ok(result) => result,
+            Err(_err) => {
+
+                // TODO: for translation, pass context to handle_api_result! macro to get
+                //       client language preference
+
+                use errors::RawAPIError;
+                let _err: RawAPIError = _err;
+
+                println!("{:?}", _err);
+
+                // TODO: internal error logging
+
+                return RenderResponse::InternalServerError;
 
             }
         }

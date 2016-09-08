@@ -443,19 +443,30 @@ pub fn cards_in_deck(
         {search_inner_join}
         "), search_inner_join = search_inner_join);
 
-    let where_order_sql = format!(indoc!("
+    let where_sql = format!(indoc!("
         dc.ancestor = {deck_id}
 
         {search_where_cond}
-
-        ORDER BY c.created_at DESC"),
+    "),
     deck_id = deck_id,
     search_where_cond = search_where_cond);
+
+    let order_by_sql = format!(indoc!("
+        c.created_at
+        DESC
+    "));
 
     let offset = cards_page_query.get_offset();
     let per_page = cards_page_query.get_per_page();
 
-    let query = pagination!(select_sql; inner_select_sql; where_order_sql; "c.oid"; per_page; offset);
+    let query = pagination!(
+        select_sql = select_sql;
+        not_in = "c.oid";
+        inner_select_sql = inner_select_sql;
+        where_sql = Some(&where_sql);
+        order_by_sql = Some(&order_by_sql);
+        offset = offset;
+        per_page = per_page);
 
     let mut context = context.borrow_mut();
     db_read_lock!(db_conn; context.database());
@@ -894,7 +905,7 @@ pub fn deck_get_new_card_for_review(
         ");
 
     // TODO: order by from least created to most recently created
-    let where_order_sql = format!(indoc!("
+    let where_sql = format!(indoc!("
         dc.ancestor = {deck_id}
         AND
             (c.created_at - cs.seen_at) = 0
@@ -903,16 +914,18 @@ pub fn deck_get_new_card_for_review(
         deck_id = deck_id,
         active_query = active_query);
 
+
     let per_page = 1;
     let offset = index;
 
     let query = pagination!(
-        select_sql;
-        select_sql;
-        where_order_sql;
-        "c.oid";
-        per_page;
-        offset);
+        select_sql = select_sql;
+        not_in = "c.oid";
+        inner_select_sql = select_sql;
+        where_sql = Some(&where_sql);
+        order_by_sql = None;
+        offset = offset;
+        per_page = per_page);
 
     let context = context.borrow();
     db_read_lock!(db_conn; context.database());
@@ -1131,28 +1144,31 @@ pub fn deck_get_card_ready_for_review(
         ON c.card_id = cs.card_id
         ");
 
-    let where_order_sql = format!(indoc!("
+    let where_sql = format!(indoc!("
             dc.ancestor = {deck_id}
         AND
             (cs.seen_at + cs.review_after) >= strftime('%s', 'now')
         {active_query}
-
-        ORDER BY
-            raw_score(cs.success, cs.fail) DESC
         "),
         deck_id = deck_id,
         active_query = active_query);
+
+    let order_by_sql = format!(indoc!("
+        raw_score(cs.success, cs.fail)
+        DESC
+    "));
 
     let per_page = 1;
     let offset = index;
 
     let query = pagination!(
-        select_sql;
-        select_sql;
-        where_order_sql;
-        "c.oid";
-        per_page;
-        offset);
+        select_sql = select_sql;
+        not_in = "c.oid";
+        inner_select_sql = select_sql;
+        where_sql = Some(&where_sql);
+        order_by_sql = Some(&order_by_sql);
+        offset = offset;
+        per_page = per_page);
 
     let context = context.borrow();
     db_read_lock!(db_conn; context.database());
@@ -1173,6 +1189,130 @@ pub fn deck_get_card_ready_for_review(
 // TODO: need test
 #[inline]
 pub fn deck_get_least_recently_reviewed_card(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    active_selection: &review::ActiveSelection,
+    top_n: ItemCount,
+    index: Offset
+) -> Result<CardID, RawAPIError> {
+
+    // TODO: dev mode
+    assert!(0 <= index);
+    assert!(index < top_n);
+
+    assert!(context.borrow().is_read_locked());
+
+    // parse active
+
+    let mut is_active = true;
+    let mut params: Vec<(&str, &ToSql)> = vec![];
+
+    let active_query = match *active_selection {
+        ActiveSelection::Active => {
+
+            let active_query = "AND c.is_active = :is_active";
+            is_active = true;
+            params.push((":is_active", &is_active));
+
+            active_query
+        },
+        ActiveSelection::Inactive => {
+
+            let active_query = "AND c.is_active = :is_active";
+            is_active = false;
+            params.push((":is_active", &is_active));
+
+            active_query
+        },
+        ActiveSelection::All => {
+
+            let active_query = "";
+
+            active_query
+        }
+    };
+
+    // top N selection query
+
+    let top_n_query = format!(indoc!("
+        SELECT
+
+            c.card_id,
+            cs.success,
+            cs.fail
+
+        FROM DecksClosure AS dc
+
+        INNER JOIN Cards AS c
+        ON c.deck_id = dc.descendent
+
+        INNER JOIN CardsScore AS cs
+        ON c.card_id = cs.card_id
+
+        WHERE
+
+            dc.ancestor = {deck_id}
+
+            {active_query}
+
+        ORDER BY
+
+            (strftime('%s','now') - cs.seen_at) DESC
+
+        LIMIT {top_n}
+        "),
+        deck_id = deck_id,
+        active_query = active_query,
+        top_n = top_n);
+
+    // sort top n query based on score
+
+    let select_sql = format!(indoc!("
+        SELECT
+
+            tnq.card_id
+
+        FROM
+
+            ({top_n_query}) AS tnq
+        "),
+        top_n_query = top_n_query);
+
+    let order_by_sql = format!(indoc!("
+            raw_score(tnq.success, tnq.fail) DESC
+        "));
+
+    let per_page = 1;
+    let offset = index;
+
+    let query = pagination!(
+        select_sql = select_sql;
+        not_in = "tnq.card_id";
+        inner_select_sql = select_sql;
+        where_sql = None;
+        order_by_sql = Some(&order_by_sql);
+        offset = offset;
+        per_page = per_page);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let result = db_conn.query_row_named(&query, params.as_slice(), |row| -> CardID {
+        return row.get(0);
+    });
+
+    match result {
+        Ok(card_id) => return Ok(card_id),
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+}
+
+// TODO: remove this
+#[inline]
+pub fn ___deck_get_least_recently_reviewed_card(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
     active_selection: &review::ActiveSelection,
@@ -1220,26 +1360,29 @@ pub fn deck_get_least_recently_reviewed_card(
         ON c.card_id = cs.card_id
         ");
 
-    let where_order_sql = format!(indoc!("
+    let where_sql = format!(indoc!("
             dc.ancestor = {deck_id}
         {active_query}
-
-        ORDER BY
-            (strftime('%s','now') - cs.seen_at) DESC
         "),
         deck_id = deck_id,
         active_query = active_query);
+
+    let order_by_sql = format!(indoc!("
+        (strftime('%s','now') - cs.seen_at)
+        DESC
+    "));
 
     let per_page = 1;
     let offset = index;
 
     let query = pagination!(
-        select_sql;
-        select_sql;
-        where_order_sql;
-        "c.oid";
-        per_page;
-        offset);
+        select_sql = select_sql;
+        not_in = "c.oid";
+        inner_select_sql = select_sql;
+        where_sql = Some(&where_sql);
+        order_by_sql = Some(&order_by_sql);
+        offset = offset;
+        per_page = per_page);
 
     let context = context.borrow();
     db_read_lock!(db_conn; context.database());

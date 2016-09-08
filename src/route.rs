@@ -469,15 +469,9 @@ fn __parse_route_api_card_update(
 
             let _guard = context::write_lock(context.clone());
 
-            match cards::update_card(context.clone(), card_id, request) {
-                Ok(_updated_card) => {
-                    return respond_json!(Some(_updated_card));
-                },
-                Err(_) => {
-                    // TODO: error logging
-                    return RenderResponse::InternalServerError;
-                }
-            }
+            let updated_card = handle_api_result_html!(cards::update_card(context.clone(), card_id, request));
+
+            return respond_json!(Some(updated_card));
 
         },
         Err(err) => {
@@ -663,30 +657,30 @@ fn __parse_route_api_deck_review_post(
             let _guard = context::write_lock(context.clone());
 
             // invariant: deck exists
-            let deck = handle_api_result!(decks::get_deck(context.clone(), parent_deck_id));
+            let deck = handle_api_result_json!(decks::get_deck(context.clone(), parent_deck_id));
 
-            let exists = handle_api_result!(cards::card_exists(context.clone(), request.card_id));
+            let exists = handle_api_result_json!(cards::card_exists(context.clone(), request.card_id));
 
             if !exists {
 
                 // TODO: code repeat
-                let review_response = handle_api_result!(ReviewResponse::new(context.clone(), deck));
+                let review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));
 
                 let err = "This card does not appear to exist anymore.".to_string();
                 return respond_json_with_error!(APIStatus::BadRequest; err; Some(review_response));
 
             }
 
-            let in_deck = handle_api_result!(cards::is_card_in_deck(context.clone(),
+            let in_deck = handle_api_result_json!(cards::is_card_in_deck(context.clone(),
                 request.card_id, parent_deck_id));
 
             if !in_deck {
 
                 // commit review request
-                handle_api_result!(request.commit(context.clone()));
+                handle_api_result_json!(request.commit(context.clone()));
 
                 // TODO: code repeat
-                let review_response = handle_api_result!(ReviewResponse::new(context.clone(), deck));
+                let review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));
 
                 // TODO: internal error logging
                 let err = "This card does not appear to be in this deck. \
@@ -695,14 +689,14 @@ fn __parse_route_api_deck_review_post(
 
             }
 
-            let card_id = match handle_api_result!(deck.get_cached_card(context.clone())) {
+            let card_id = match handle_api_result_json!(deck.get_cached_card(context.clone())) {
                 None => {
 
                     // commit review request
-                    handle_api_result!(request.commit(context.clone()));
+                    handle_api_result_json!(request.commit(context.clone()));
 
                     // TODO: code repeat
-                    let review_response = handle_api_result!(ReviewResponse::new(context.clone(), deck));
+                    let review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));
 
                     // TODO: internal error logging
                     let err = "This card does not appear to be chosen for review for this deck. \
@@ -718,10 +712,10 @@ fn __parse_route_api_deck_review_post(
             if card_id != request.card_id {
 
                 // commit review request
-                handle_api_result!(request.commit(context.clone()));
+                handle_api_result_json!(request.commit(context.clone()));
 
                 // TODO: code repeat
-                let review_response = handle_api_result!(ReviewResponse::new(context.clone(), deck));
+                let review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));
 
                 // TODO: internal error logging
                 let err = "This card does not appear to be chosen for review for this deck. \
@@ -731,10 +725,10 @@ fn __parse_route_api_deck_review_post(
             }
 
             // commit review request
-            handle_api_result!(request.commit(context.clone()));
+            handle_api_result_json!(request.commit(context.clone()));
 
             // fetch next card for review
-            let review_response = handle_api_result!(ReviewResponse::new(context.clone(), deck));
+            let review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));
 
             return respond_json!(Some(review_response));
 
@@ -1336,23 +1330,12 @@ fn __parse_route_deck_review(
 
     let _guard = context::write_lock(context.clone());
 
-    let deck = match decks::get_deck(context.clone(), deck_id) {
-        Ok(deck) => deck,
-        Err(why) => {
-            // TODO: internal error logging
-            return RenderResponse::InternalServerError;
-        }
-    };
+    let deck = handle_api_result_html!(decks::get_deck(context.clone(), deck_id));
 
+    let deck_route = {
+        let result = handle_api_result_html!(review::get_review_card(context, &deck));
 
-    let deck_route = match review::get_review_card(context, &deck) {
-        Ok(result) => {
-            DeckRoute::Review(result)
-        },
-        Err(why) => {
-            // TODO: internal error logging
-            return RenderResponse::InternalServerError;
-        }
+        DeckRoute::Review(result)
     };
 
     let route = AppRoute::Deck(deck_id, deck_route);
