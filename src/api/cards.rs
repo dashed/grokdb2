@@ -904,7 +904,6 @@ pub fn deck_get_new_card_for_review(
         ON c.card_id = cs.card_id
         ");
 
-    // TODO: order by from least created to most recently created
     let where_sql = format!(indoc!("
         dc.ancestor = {deck_id}
         AND
@@ -914,6 +913,11 @@ pub fn deck_get_new_card_for_review(
         deck_id = deck_id,
         active_query = active_query);
 
+    // least recently created to most recently created
+    let order_by_sql = format!(indoc!("
+        (strftime('%s','now') - c.created_at)
+        DESC
+    "));
 
     let per_page = 1;
     let offset = index;
@@ -923,7 +927,7 @@ pub fn deck_get_new_card_for_review(
         not_in = "c.oid";
         inner_select_sql = select_sql;
         where_sql = Some(&where_sql);
-        order_by_sql = None;
+        order_by_sql = Some(&order_by_sql);
         offset = offset;
         per_page = per_page);
 

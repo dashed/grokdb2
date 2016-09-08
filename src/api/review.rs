@@ -8,7 +8,7 @@ use std::ops::DerefMut;
 /* 3rd-party imports */
 
 use random_wheel::RandomWheel;
-use rand::{thread_rng, Rng, SeedableRng};
+use rand::{Rng, SeedableRng};
 use rand::distributions::{Exp, IndependentSample};
 use pcg::PcgRng;
 use rusqlite::Connection;
@@ -86,8 +86,10 @@ impl SubSelectionProbabilities {
     fn gen_wheel(&self) -> RandomWheel<Probability, SubSelection, PcgRng> {
 
         // generate seed for pcg
-        let mut rng = thread_rng();
-        let s = rng.gen_iter::<u64>().take(2).collect::<Vec<u64>>();
+        let mut guard = (*RAND_GENERATOR).lock().unwrap();
+        let pcg: &mut PcgRng = guard.deref_mut();
+
+        let s = pcg.gen_iter::<u64>().take(2).collect::<Vec<u64>>();
 
         // init pcg generator
         let mut pcg = PcgRng::from_seed([s[0], s[1]]);
@@ -663,7 +665,7 @@ fn get_new_card<T>(
     // TODO: top N percent of least recently created
 
     // Generate a random value in the range [0, num_of_cards)
-    let card_idx = thread_rng().gen_range(0, num_of_cards);
+    let card_idx = gen_card_select(num_of_cards);
 
     match selection.get_new_card_for_review(context, active_selection, card_idx) {
         Ok(card_id) => {
@@ -698,7 +700,7 @@ fn get_card_ready_for_review<T>(
     assert!(upper_bound > 0);
 
     // Generate a random value in the range [0, num_of_cards)
-    let card_idx = thread_rng().gen_range(0, upper_bound);
+    let card_idx = gen_card_select(upper_bound);
 
     match selection.get_card_ready_for_review(context, active_selection, card_idx) {
         Ok(card_id) => {
