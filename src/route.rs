@@ -286,8 +286,7 @@ fn parse_assets<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Re
     parse!{input;
 
         string_ignore_case(b"assets");
-
-        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"/");
 
         // TODO: query string cache bust
         let path = string_till(|i| or(i, |i| parse_then_value(i, |i| token(i, b'?'), ()), eof));
@@ -344,7 +343,7 @@ fn parse_route_api<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, requ
 
         string_ignore_case(b"api");
 
-        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"/");
 
         let render_response = parse_route_api_deck(context.clone(), request.clone()) <|>
             parse_route_api_card(context.clone(), request.clone());
@@ -360,9 +359,9 @@ fn parse_route_api_card<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>,
     (parse!{input;
 
         string_ignore_case(b"card");
-        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"/");
         let card_id: CardID = decimal();
-        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"/");
 
         ret card_id
 
@@ -495,9 +494,8 @@ fn parse_route_api_deck<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>,
     (parse!{input;
 
         string_ignore_case(b"deck");
-        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"/");
         let deck_id: DeckID = decimal();
-        parse_byte_limit(b'/', 5);
 
         ret deck_id
 
@@ -534,44 +532,40 @@ fn __parse_route_api_deck<'a>(
     request: Rc<RefCell<Request>>,
     deck_id: DeckID)
 -> U8Result<'a, RenderResponse> {
+
     parse!{input;
 
-        // TODO: reorder for micro optimization
-        let render_response =
-            parse_route_api_deck_description(context.clone(), request.clone(), deck_id) <|>
-            parse_route_api_deck_settings(context.clone(), request.clone(), deck_id) <|>
-            parse_route_api_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
-            parse_route_api_deck_new_card(context.clone(), request.clone(), deck_id) <|>
-            parse_route_api_deck_review(context.clone(), request.clone(), deck_id) <|>
-            parse_route_api_deck_root(context.clone(), request.clone(), deck_id);
+        let render_response = or(|i| parse!{i;
+
+            string_ignore_case(b"/");
+
+            // TODO: reorder for micro optimization
+            let render_response =
+                parse_route_api_deck_description(context.clone(), request.clone(), deck_id) <|>
+                parse_route_api_deck_settings(context.clone(), request.clone(), deck_id) <|>
+                parse_route_api_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
+                parse_route_api_deck_new_card(context.clone(), request.clone(), deck_id) <|>
+                parse_route_api_deck_review(context.clone(), request.clone(), deck_id);
+
+            ret render_response
+
+        }, |i| parse!{i;
+
+            eof();
+
+            ret {
+                parse_route_api_deck_root(context.clone(), request.clone(), deck_id)
+            }
+
+        });
 
         ret render_response
     }
+
 }
 
 #[inline]
-fn parse_route_api_deck_root<'a>(
-    input: Input<'a, u8>,
-    context: Rc<RefCell<Context>>,
-    request: Rc<RefCell<Request>>,
-    parent_deck_id: DeckID)
--> U8Result<'a, RenderResponse> {
-
-    // Endpoints:
-    // DELETE /api/deck/:deck_id
-
-    parse!{input;
-
-        eof();
-
-        ret {
-            __parse_route_api_deck_root(context, request, parent_deck_id)
-        }
-    }
-}
-
-#[inline]
-fn __parse_route_api_deck_root(
+fn parse_route_api_deck_root(
     context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
     deck_id: DeckID) -> RenderResponse {
@@ -835,7 +829,7 @@ fn parse_route_api_deck_new_deck<'a>(
     parse!{input;
 
         string_ignore_case(b"new");
-        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"/");
         string_ignore_case(b"deck");
 
         eof();
@@ -959,7 +953,7 @@ fn parse_route_api_deck_new_card<'a>(
     parse!{input;
 
         string_ignore_case(b"new");
-        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"/");
         string_ignore_case(b"card");
 
         eof();
@@ -1151,7 +1145,7 @@ fn parse_route_api_deck_settings<'a>(
     parse!{input;
 
         string_ignore_case(b"settings");
-        parse_byte_limit(b'/', 5);
+        string_ignore_case(b"/");
 
         // TODO: other settings???
         let response = parse_route_api_deck_settings_name(context.clone(), request.clone(), deck_id);
