@@ -1855,7 +1855,7 @@ fn DeckSettingsNav(
                     ul {
                         li(
                             class? = classnames!(
-                                "is-active" => {
+                                "is-active is-bold" => {
                                     matches!(*setting_mode, DeckSettings::Main)
                                 })
                             ) {
@@ -1870,7 +1870,7 @@ fn DeckSettingsNav(
                         }
                         li(
                             class? = classnames!(
-                                "is-active" => {
+                                "is-active is-bold" => {
                                     matches!(*setting_mode, DeckSettings::Move)
                                 })
                             ) {
