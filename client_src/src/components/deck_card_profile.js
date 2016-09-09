@@ -59,7 +59,7 @@ const __ToolBar = function(props) {
                 <div className='level-left'>
                     <div className='level-item'>
                         <a
-                            className={classnames('button is-success', {
+                            className={classnames('button is-success is-bold', {
                                 'is-disabled': submitting ||
                                     !shouldSaveCard(props.title, props.question),
                                 'is-loading': submitting
@@ -73,7 +73,7 @@ const __ToolBar = function(props) {
                 <div className='level-right'>
                     <div className='level-item'>
                         <a
-                            className={classnames('button is-danger')}
+                            className={classnames('button is-danger is-bold')}
                             onClick={switchEditMode(dispatch, false, cancel)}>
                             {'Cancel & Discard'}
                         </a>
