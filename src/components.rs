@@ -1295,13 +1295,15 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
 
         div(id="deck_description_container_stub", style="margin-top: 10px;") {
 
+            // NOTE: this mocks react component
+
             div(class="columns") {
                 div(class="column") {
-                    a(class="button is-primary") {
+                    a(class="button is-primary is-bold") {
                         : raw!("Preview")
                     }
                     : raw!(" ");
-                    a(class="button") {
+                    a(class="button is-bold") {
                         : raw!("Source")
                     }
                 }
