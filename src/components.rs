@@ -967,7 +967,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
             |tmpl| CardDetailNav(tmpl, context.clone(), deck_id, deck_route);
 
             nav(class="panel") {
-                p(class="panel-heading", style="font-weight: normal;") {
+                p(class="panel-heading is-bold") {
                     : raw!("Deck #");
                     : deck_id
                 }
@@ -1170,7 +1170,7 @@ fn CardDetailNav(
             tmpl << html!{
 
                 nav(class="panel") {
-                    p(class="panel-heading", style="font-weight: normal;") {
+                    p(class="panel-heading is-bold") {
                         : raw!("Card #");
                         : card_id
                     }
