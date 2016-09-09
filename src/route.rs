@@ -317,7 +317,10 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
 
                 ret {
 
-                    let root_deck_id = user::get_root_deck(context.clone());
+                    let root_deck_id = {
+                        let _guard = context::read_lock(context.clone());
+                        user::get_root_deck(context.clone())
+                    };
 
                     route_deck_decks(context, request, root_deck_id, query_string)
                 }
@@ -599,7 +602,10 @@ fn parse_route_api_deck_root(
     // handle DELETE request to delete this deck
 
     // check if this deck is root deck
-    let root_deck_id = user::get_root_deck(context.clone());
+    let root_deck_id = {
+        let _guard = context::read_lock(context.clone());
+        user::get_root_deck(context.clone())
+    };
 
     if root_deck_id == deck_id {
 
