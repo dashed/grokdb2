@@ -346,10 +346,27 @@ fn parse_route_api<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, requ
         string_ignore_case(b"/");
 
         let render_response = parse_route_api_deck(context.clone(), request.clone()) <|>
-            parse_route_api_card(context.clone(), request.clone());
+            parse_route_api_card(context.clone(), request.clone()) <|>
+            invalid_route_api(context.clone());
 
         ret render_response
 
+    }
+}
+
+#[inline]
+fn invalid_route_api<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>)
+-> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        ret {
+
+            // TODO: statically allocate this?
+
+            let reason = "Invalid API Path.".to_string();
+
+            respond_json_with_error!(APIStatus::BadRequest; reason; None)
+        }
     }
 }
 
