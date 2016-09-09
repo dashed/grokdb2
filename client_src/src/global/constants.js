@@ -28,6 +28,7 @@ const CARD_ID = 'CARD_ID';
 
 const MARKDOWN_CONTENTS = 'MARKDOWN_CONTENTS';
 const POST_TO = 'POST_TO'; // URL to send POST request
+const DELETE_TO = 'DELETE_TO'; // URL to send DELETE request
 const IS_EDITING = 'IS_EDITING';
 
 const VALUE = 'VALUE';
@@ -56,6 +57,7 @@ module.exports = {
 
     MARKDOWN_CONTENTS,
     POST_TO,
+    DELETE_TO,
     IS_EDITING,
 
     VALUE,

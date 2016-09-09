@@ -535,10 +535,31 @@ fn __parse_route_api_deck<'a>(
             parse_route_api_deck_settings(context.clone(), request.clone(), deck_id) <|>
             parse_route_api_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
             parse_route_api_deck_new_card(context.clone(), request.clone(), deck_id) <|>
-            // TODO: code review
-            parse_route_api_deck_review(context.clone(), request.clone(), deck_id);
+            parse_route_api_deck_review(context.clone(), request.clone(), deck_id) <|>
+            parse_route_api_deck_root(context.clone(), request.clone(), deck_id);
 
         ret render_response
+    }
+}
+
+#[inline]
+fn parse_route_api_deck_root<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    parent_deck_id: DeckID)
+-> U8Result<'a, RenderResponse> {
+
+    // Endpoints:
+    // DELETE /api/deck/:deck_id
+
+    parse!{input;
+
+        eof();
+
+        ret {
+
+        }
     }
 }
 

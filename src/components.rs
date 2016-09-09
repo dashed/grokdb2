@@ -101,6 +101,26 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
     }
 }
 
+#[inline]
+pub fn generate_delete_to(app_route: &AppRoute) -> String {
+    match *app_route {
+        AppRoute::Deck(deck_id, ref deck_route) => {
+            match *deck_route {
+                DeckRoute::Settings(DeckSettings::Main) => {
+                    format!("/api/deck/{deck_id}", deck_id = deck_id)
+                },
+                _ => {
+                    panic!("invalid use of generate_delete_to");
+                }
+            }
+        },
+        _ => {
+            panic!("invalid use of generate_delete_to");
+        }
+    }
+}
+
+#[inline]
 pub fn generate_post_to(app_route: &AppRoute) -> String {
     match *app_route {
         AppRoute::Deck(deck_id, ref deck_route) => {
@@ -243,12 +263,19 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
-                                        POST_TO: '{post_to}',\
-                                        DECK_NAME: {markdown_contents}\
+                                        NAME: {{\
+                                            POST_TO: '{post_to_rename}',\
+                                            DECK_NAME: {markdown_contents}\
+                                        }},\
+                                        DELETE: {{\
+                                            DELETE_TO: '{delete_to}'
+                                        }}\
                                     }};\
                                 ",
-                                post_to = generate_post_to(app_route),
-                                markdown_contents = markdown_contents
+                                // TODO: refactor this
+                                post_to_rename = generate_post_to(app_route),
+                                markdown_contents = markdown_contents,
+                                delete_to = generate_delete_to(app_route)
                             )
                         )
                     }
@@ -1939,11 +1966,6 @@ fn DeckSettingsMain(
             // : raw!(include_str!("react_components/deck_description"))
         }
 
-        div(class="columns", id="settings_deck_name_container_stub", style="margin-top: 10px;") {
-            div(class="column") {
-                : &deck.name
-            }
-        }
     }
 }
 

@@ -6,14 +6,27 @@ if(process.env.NODE_ENV !== 'production') {
     invariant(!window.__POST_RENDER_STATE__, 'we do not expect to consume window.__POST_RENDER_STATE__');
 }
 
+/* rename component */
+
 const deckSettingsNameMaker = require('components/deck_settings/name');
 
-const preRenderState = window.__PRE_RENDER_STATE__;
-const postRenderState = deckSettingsNameMaker.initialState;
+const preRenderStateName = window.__PRE_RENDER_STATE__.NAME;
+const postRenderStateName = deckSettingsNameMaker.initialState;
 
 client(
     deckSettingsNameMaker,
-    preRenderState,
-    postRenderState, document.getElementById('deck_settings_main_name_container'));
+    preRenderStateName,
+    postRenderStateName, document.getElementById('deck_settings_main_name_container'));
 
-// TODO: delete component
+
+/* delete component */
+
+const deckSettingsDeleteMaker = require('components/deck_settings/delete');
+
+const preRenderStateDelete = window.__PRE_RENDER_STATE__.DELETE;
+const postRenderStateDelete = deckSettingsDeleteMaker.initialState;
+
+client(
+    deckSettingsDeleteMaker,
+    preRenderStateDelete,
+    postRenderStateDelete, document.getElementById('deck_settings_main_delete_container'));
