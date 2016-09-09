@@ -166,6 +166,45 @@ pub fn deck_exists(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<boo
     }
 }
 
+// TODO: test
+#[inline]
+pub fn delete_deck(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID
+    ) -> Result<(), RawAPIError> {
+
+    assert!(context.borrow().is_write_locked());
+
+    // delete this deck and all of its descendents
+
+    let query = format!(indoc!("
+        DELETE FROM
+            Decks
+        WHERE deck_id IN (
+            SELECT
+                descendent
+            FROM DecksClosure
+            WHERE
+                ancestor = {deck_id}
+        );
+    "), deck_id = deck_id);
+
+    let context = context.borrow();
+    db_write_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    match db_conn.execute_named(query, params) {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+        }
+        _ => {
+            /* query sucessfully executed */
+        }
+    }
+
+    return Ok(());
+}
+
 #[inline]
 pub fn create_deck(context: Rc<RefCell<Context>>, create_deck_request: CreateDeck) -> Result<Deck, RawAPIError> {
 
