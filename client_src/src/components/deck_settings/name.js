@@ -96,7 +96,7 @@ const __DeckSettingsNameContainer = function(props) {
             <div className='columns'>
                 <div className='column'>
                     <a
-                        className={classnames('button is-success', {
+                        className={classnames('button is-success is-bold', {
                             'is-disabled':
                                 submitting ||
                                 String(name.value).trim().length <= 0 ||

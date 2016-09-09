@@ -81,7 +81,7 @@ const __ToolBar = function(props) {
             <div className='level-left'>
                 <div className='level-item'>
                     <a
-                        className={classnames('button is-success')}
+                        className={classnames('button is-success is-bold')}
                         onClick={switchEditMode(dispatch, true)}>
                         {'Edit'}
                     </a>

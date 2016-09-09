@@ -22,7 +22,7 @@ const RenderSourceComponent = function(props) {
                     href='#source'
                     className={classnames(
                         extraClasses,
-                        'button',
+                        'button is-bold',
                         {'is-primary': currentTab === MARKDOWN_VIEW_SOURCE}
                     )}
                     onClick={switchTab(MARKDOWN_VIEW_SOURCE)}
@@ -32,7 +32,7 @@ const RenderSourceComponent = function(props) {
                     href='#preview'
                     className={classnames(
                         extraClasses,
-                        'button',
+                        'button is-bold',
                         {'is-primary': currentTab === MARKDOWN_VIEW_RENDER}
                     )}
                     onClick={switchTab(MARKDOWN_VIEW_RENDER)}
@@ -48,7 +48,7 @@ const RenderSourceComponent = function(props) {
                 href='#preview'
                 className={classnames(
                     extraClasses,
-                    'button',
+                    'button is-bold',
                     {'is-primary': currentTab === MARKDOWN_VIEW_RENDER}
                 )}
                 onClick={switchTab(MARKDOWN_VIEW_RENDER)}
@@ -58,7 +58,7 @@ const RenderSourceComponent = function(props) {
                 href='#source'
                 className={classnames(
                     extraClasses,
-                    'button',
+                    'button is-bold',
                     {'is-primary': currentTab === MARKDOWN_VIEW_SOURCE}
                 )}
                 onClick={switchTab(MARKDOWN_VIEW_SOURCE)}
