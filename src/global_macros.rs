@@ -10,6 +10,7 @@ macro_rules! handle_api_result_json {
                 // TODO: for translation, pass context to handle_api_result! macro to get
                 //       client language preference
 
+                // type enforcement
                 use errors::RawAPIError;
                 let _err: RawAPIError = _err;
 

@@ -47,6 +47,7 @@ use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
 use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
 use api::cards;
+use api::user;
 use api::review::{self, CachedReviewProcedure, RawReviewRequest, Reviewable, ReviewResponse};
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -116,6 +117,12 @@ pub enum DeckRoute {
     // http://stackoverflow.com/a/26897298/412627
     // http://programmers.stackexchange.com/questions/114156/why-are-there-are-no-put-and-delete-methods-on-html-forms
     // Delete
+}
+
+impl Default for DeckRoute {
+    fn default() -> Self {
+        DeckRoute::Decks(Default::default(), Default::default())
+    }
 }
 
 #[derive(Debug)]
@@ -311,7 +318,7 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
 
                 ret {
 
-                    let root_deck_id = context.borrow().root_deck_id;
+                    let root_deck_id = user::get_root_deck(context.clone());
 
                     route_deck_decks(context, request, root_deck_id, query_string)
                 }
@@ -558,9 +565,61 @@ fn parse_route_api_deck_root<'a>(
         eof();
 
         ret {
-
+            __parse_route_api_deck_root(context, request, parent_deck_id)
         }
     }
+}
+
+#[inline]
+fn __parse_route_api_deck_root(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> RenderResponse {
+
+    let method = {
+        let request = request.borrow();
+        request.method.clone()
+    };
+
+    if method != Method::Delete {
+        return RenderResponse::MethodNotAllowed;
+    }
+
+    // handle DELETE request to delete this deck
+
+    // check if this deck is root deck
+    let root_deck_id = user::get_root_deck(context.clone());
+
+    if root_deck_id == deck_id {
+
+        // TODO: review and revise phrasing as necessary
+        let err = "You are not allowed to delete the top-most deck.".to_string();
+        return respond_json_with_error!(APIStatus::BadRequest; err; None);
+    }
+
+    // get parent deck
+    let parent_deck_id = match handle_api_result_json!(decks::get_parent_id_of_deck(context.clone(), deck_id)) {
+        None => {
+
+            // TODO: error: parent_deck_id should exist
+
+            // TODO: internal error logging
+            return respond_json_with_error!(APIStatus::ServerError;
+                "An internal server error occurred.".to_string(); None);
+
+        },
+        Some(parent_deck_id) => parent_deck_id
+    };
+
+    // delete deck
+    handle_api_result_json!(decks::delete_deck(context.clone(), deck_id));
+
+    // TODO: generate redirect response
+    let deck_delete_response = decks::DeleteDeckResponse {
+        redirect_to: view_route_to_link(context, AppRoute::Deck(parent_deck_id, Default::default()))
+    };
+
+    return respond_json!(Some(deck_delete_response));
 }
 
 #[inline]

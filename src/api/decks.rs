@@ -58,6 +58,11 @@ pub struct DeckCreateResponse {
     pub profile_url: String
 }
 
+#[derive(Debug, Serialize)]
+pub struct DeleteDeckResponse {
+    pub redirect_to: String
+}
+
 #[inline]
 pub fn get_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Deck, RawAPIError> {
 
@@ -193,9 +198,9 @@ pub fn delete_deck(
     db_write_lock!(db_conn; context.database());
     let db_conn: &Connection = db_conn;
 
-    match db_conn.execute_named(query, params) {
+    match db_conn.execute(&query, &[]) {
         Err(sqlite_error) => {
-            return Err(RawAPIError::SQLError(sqlite_error, query.to_string()));
+            return Err(RawAPIError::SQLError(sqlite_error, query));
         }
         _ => {
             /* query sucessfully executed */
@@ -371,10 +376,12 @@ pub fn get_parent_id_of_deck(context: Rc<RefCell<Context>>, child: DeckID) -> Re
     let query = format!("
         SELECT
             ancestor
-        FROM DecksClosure
+        FROM
+            DecksClosure
         WHERE
-        descendent = {deck_id}
-        AND depth = 1
+            descendent = {deck_id}
+        AND
+            depth = 1
         LIMIT 1;
     ", deck_id = child);
 
