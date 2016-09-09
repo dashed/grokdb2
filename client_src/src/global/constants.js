@@ -36,6 +36,9 @@ const VALUE = 'VALUE';
 const IS_CONFIRM_SKIP = 'IS_CONFIRM_SKIP';
 const CURRENT_TAB = 'CURRENT_TAB';
 
+const ERROR = 'ERROR';
+const ERROR_MESSAGE = 'ERROR_MESSAGE';
+
 module.exports = {
 
     MARKDOWN_VIEW,
@@ -63,5 +66,8 @@ module.exports = {
     VALUE,
 
     IS_CONFIRM_SKIP,
-    CURRENT_TAB
+    CURRENT_TAB,
+
+    ERROR,
+    ERROR_MESSAGE,
 };

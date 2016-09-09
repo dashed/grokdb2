@@ -22,7 +22,7 @@ use serde_json;
 use route::{AppRoute, RenderResponse, DeckRoute, CardRoute, DeckSettings};
 use context::{self, Context};
 use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, SortOrderable};
-use api::{decks, cards};
+use api::{decks, cards, user};
 use api::review::{self, CachedReviewProcedure};
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -718,7 +718,8 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 script(type="text/javascript", src="/assets/deck_description.js") {}
                             }
                         },
-                        AppRoute::Deck(_, DeckRoute::Settings(DeckSettings::Main)) =>  {
+                        AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Main)) =>  {
+
                             tmpl << html! {
 
                                 script(type="text/javascript") {
@@ -729,6 +730,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                                 script(type="text/javascript", src="/assets/deck_settings_main.js") {}
                             }
+
                         },
                         AppRoute::Deck(_, DeckRoute::CardProfile(_card_id, ref _card_route)) =>  {
                             tmpl << html! {
@@ -1948,22 +1950,30 @@ fn DeckSettingsMain(
             // : raw!(include_str!("react_components/deck_description"))
         }
 
-        div(class="columns") {
-            div(class="column") {
-                hr(class="is-marginless");
-            }
-        }
+        |tmpl| {
 
-        div(class="columns") {
-            div(class="column") {
-                h4(class="title is-4") {
-                    : raw!("Delete Deck")
-                }
-            }
-        }
+            if !user::is_root_deck(context.clone(), deck_id) {
+                tmpl << html!{
 
-        div(id="deck_settings_main_delete_container") {
-            // : raw!(include_str!("react_components/deck_description"))
+                    div(class="columns") {
+                        div(class="column") {
+                            hr(class="is-marginless");
+                        }
+                    }
+
+                    div(class="columns") {
+                        div(class="column") {
+                            h4(class="title is-4") {
+                                : raw!("Delete Deck")
+                            }
+                        }
+                    }
+
+                    div(id="deck_settings_main_delete_container") {
+                        // : raw!(include_str!("react_components/deck_description"))
+                    }
+                };
+            }
         }
 
     }

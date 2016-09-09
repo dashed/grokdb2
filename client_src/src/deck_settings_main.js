@@ -21,12 +21,17 @@ client(
 
 /* delete component */
 
-const deckSettingsDeleteMaker = require('components/deck_settings/delete');
+const deleteContainer = document.getElementById('deck_settings_main_delete_container');
 
-const preRenderStateDelete = window.__PRE_RENDER_STATE__.DELETE;
-const postRenderStateDelete = deckSettingsDeleteMaker.initialState;
+if(deleteContainer) {
 
-client(
-    deckSettingsDeleteMaker,
-    preRenderStateDelete,
-    postRenderStateDelete, document.getElementById('deck_settings_main_delete_container'));
+    const deckSettingsDeleteMaker = require('components/deck_settings/delete');
+
+    const preRenderStateDelete = window.__PRE_RENDER_STATE__.DELETE;
+    const postRenderStateDelete = deckSettingsDeleteMaker.initialState;
+
+    client(
+        deckSettingsDeleteMaker,
+        preRenderStateDelete,
+        postRenderStateDelete, deleteContainer);
+}

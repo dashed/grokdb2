@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 /* local imports */
 
-use context::Context;
+use context::{self, Context};
 use types::{DeckID};
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -20,4 +20,13 @@ pub fn get_root_deck(context: Rc<RefCell<Context>>) -> DeckID {
     let context = context.borrow();
 
     return context.root_deck_id;
+}
+
+#[inline]
+pub fn is_root_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool {
+
+    let _guard = context::read_lock(context.clone());
+
+    get_root_deck(context.clone()) == deck_id
+
 }

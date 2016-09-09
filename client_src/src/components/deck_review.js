@@ -36,7 +36,11 @@ const {
     VALUE,
 
     IS_CONFIRM_SKIP,
-    CURRENT_TAB
+    CURRENT_TAB,
+
+    ERROR,
+    ERROR_MESSAGE,
+
 } = require('global/constants');
 
 const {reduceIn} = require('lib/redux-tree');
@@ -51,8 +55,6 @@ const WRONG = 'WRONG';
 const FORGOT = 'FORGOT';
 const SHOW_PREVIEW_SOURCE_BUTTONS = 'SHOW_PREVIEW_SOURCE_BUTTONS';
 const SUBMITTING = 'SUBMITTING';
-const ERROR = 'ERROR';
-const ERROR_MESSAGE = 'ERROR_MESSAGE';
 const SET_CARD = 'SET_CARD';
 const HAS_CARD_FOR_REVIEW = 'HAS_CARD_FOR_REVIEW';
 
@@ -1577,58 +1579,6 @@ const performanceReducer = function(state = NOT_SELECTED, action) {
     return state;
 }
 
-/* app state */
-
-const initialState = {
-
-    [POST_TO]: '',
-
-    [CARD_ID]: 0,
-
-    [CARD_TITLE]: {
-        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
-        [MARKDOWN_CONTENTS]: ''
-    },
-
-    // CURRENT_TAB = CARD_QUESTION | CARD_ANSWER | CARD_DESCRIPTION
-    [CURRENT_TAB]: CARD_QUESTION,
-
-    [CARD_DESCRIPTION]: {
-        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
-        [MARKDOWN_CONTENTS]: ''
-    },
-
-    [CARD_QUESTION]: {
-        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
-        [MARKDOWN_CONTENTS]: ''
-    },
-
-    [CARD_ANSWER]: {
-        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
-        [MARKDOWN_CONTENTS]: ''
-    },
-
-    [CARD_IS_ACTIVE]: {
-        [VALUE]: true
-    },
-
-    [IS_CONFIRM_SKIP]: false,
-    [SHOW_MAIN_CONTROLS]: false,
-    [SHOW_PREVIEW_SOURCE_BUTTONS]: false,
-    [HAS_CARD_FOR_REVIEW]: true,
-
-    [CHOSEN_PERFORMANCE]: NOT_SELECTED,
-
-    [CARD_META]: {},
-
-    [SUBMITTING]: false,
-
-    [ERROR]: {
-        message: ''
-    }
-
-};
-
 const generateReviewAction = function(performance) {
 
     switch(performance) {
@@ -1643,25 +1593,7 @@ const generateReviewAction = function(performance) {
     return 'Skip';
 };
 
-const errorReducer = function(state, action) {
-
-    switch(action.type) {
-    case ERROR_MESSAGE:
-
-        state = {
-            message: action.payload || ''
-        };
-
-        break;
-    default:
-
-        state = {
-            message: ''
-        };
-    }
-
-    return state;
-};
+const errorReducer = require('reducers/error_message');
 
 const cardReducer = function(state, action) {
 
@@ -1766,6 +1698,56 @@ const generateReviewRequest = function(state) {
         // time_till_available_for_review
         // cards_till_available_for_review
     };
+};
+
+/* app state */
+
+const initialState = {
+
+    [POST_TO]: '',
+
+    [CARD_ID]: 0,
+
+    [CARD_TITLE]: {
+        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+        [MARKDOWN_CONTENTS]: ''
+    },
+
+    // CURRENT_TAB = CARD_QUESTION | CARD_ANSWER | CARD_DESCRIPTION
+    [CURRENT_TAB]: CARD_QUESTION,
+
+    [CARD_DESCRIPTION]: {
+        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+        [MARKDOWN_CONTENTS]: ''
+    },
+
+    [CARD_QUESTION]: {
+        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+        [MARKDOWN_CONTENTS]: ''
+    },
+
+    [CARD_ANSWER]: {
+        [MARKDOWN_VIEW]: MARKDOWN_VIEW_RENDER,
+        [MARKDOWN_CONTENTS]: ''
+    },
+
+    [CARD_IS_ACTIVE]: {
+        [VALUE]: true
+    },
+
+    [IS_CONFIRM_SKIP]: false,
+    [SHOW_MAIN_CONTROLS]: false,
+    [SHOW_PREVIEW_SOURCE_BUTTONS]: false,
+    [HAS_CARD_FOR_REVIEW]: true,
+
+    [CHOSEN_PERFORMANCE]: NOT_SELECTED,
+
+    [CARD_META]: {},
+
+    [SUBMITTING]: false,
+
+    [ERROR]: errorReducer(),
+
 };
 
 /* exports */

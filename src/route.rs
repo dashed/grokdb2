@@ -602,12 +602,7 @@ fn parse_route_api_deck_root(
     // handle DELETE request to delete this deck
 
     // check if this deck is root deck
-    let root_deck_id = {
-        let _guard = context::read_lock(context.clone());
-        user::get_root_deck(context.clone())
-    };
-
-    if root_deck_id == deck_id {
+    if user::is_root_deck(context.clone(), deck_id) {
 
         // TODO: review and revise phrasing as necessary
         let err = "You are not allowed to delete the top-most deck.".to_string();
