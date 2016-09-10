@@ -65,10 +65,14 @@ module.exports = {
         new_card: "./src/new_card.js",
         deck_description: "./src/deck_description.js",
         deck_settings_main: "./src/deck_settings_main.js",
+
         deck_card_profile: "./src/deck_card_profile.js",
+        deck_card_settings: "./src/deck_card_settings.js",
+
         deck_review: "./src/deck_review.js",
 
         // TODO: complete this... this is optmization step
+        // TODO: need common chunks stuff
         // vendor: vendor
     },
 
