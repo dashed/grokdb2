@@ -2071,6 +2071,10 @@ fn DeckSettingsMain(
                                 : raw!("Delete Deck")
                             }
 
+                            h2(class="subtitle") {
+                                : raw!("This action is irreversible!")
+                            }
+
                             p {
                                 : raw!(format!(
                                     "By deleting this deck, {count_of_descendents} {deck_noun} \
@@ -2596,7 +2600,26 @@ fn CardDetailSettings(
             }
         }
 
-        div(id="card_settings_container") {
+        div(class="columns") {
+            div(class="column") {
+                hr(class="is-marginless");
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+
+                h4(class="title is-4") {
+                    : raw!("Delete card")
+                }
+
+                h2(class="subtitle") {
+                    : raw!("This action is irreversible!")
+                }
+            }
+        }
+
+        div(id="card_settings_main_delete_container") {
         }
     }
 }

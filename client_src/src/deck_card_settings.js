@@ -8,3 +8,12 @@ if(process.env.NODE_ENV !== 'production') {
 
 /* delete component */
 
+const cardSettingsDeleteMaker = require('components/card_settings/delete');
+
+const preRenderStateDelete = window.__PRE_RENDER_STATE__;
+const postRenderStateDelete = cardSettingsDeleteMaker.initialState;
+
+client(
+    cardSettingsDeleteMaker,
+    preRenderStateDelete,
+    postRenderStateDelete, document.getElementById('card_settings_main_delete_container'));
