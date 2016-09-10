@@ -41,6 +41,7 @@ const {reduceIn} = require('lib/redux-tree');
 const MarkdownRender = require('components/dumb/markdown_render');
 const MarkdownSource = require('components/dumb/markdown_source');
 const CardTitle = require('components/dumb/card_title');
+const ErrorComponent = require('components/dumb/error');
 
 const __ToolBar = function(props) {
 
@@ -298,15 +299,15 @@ const __CardProfileContainer = function(props) {
         submitting,
         handleSubmit,
         resetForm,
-        // TODO: remove
-        // postURL,
         dispatch,
         currenTab,
-        isEditing
+        isEditing,
+        error
     } = props;
 
     return (
         <div>
+            <ErrorComponent error={error && error.message || ''} />
             <div className='columns' style={{marginBottom: 0}}>
                 <div className='column'>
                     <ToolBar
@@ -425,6 +426,7 @@ if(process.env.NODE_ENV !== 'production') {
         dispatch: React.PropTypes.func.isRequired,
         resetForm: React.PropTypes.func.isRequired,
         isEditing: React.PropTypes.bool.isRequired,
+        error: React.PropTypes.object.isRequired,
     };
 }
 
