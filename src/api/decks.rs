@@ -470,6 +470,53 @@ pub fn get_path_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Resul
 }
 
 #[inline]
+pub fn get_num_descendents(
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID) -> Result<ItemCount, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let query = format!(indoc!("
+        SELECT
+            COUNT(1)
+        FROM
+            DecksClosure
+        INNER JOIN
+            Decks
+        ON DecksClosure.descendent = Decks.deck_id
+        WHERE
+            ancestor = {deck_id}
+        AND
+            depth >= 1;"), deck_id = deck_id);
+
+    let result = {
+        let context = context.borrow();
+        db_read_lock!(db_conn; context.database());
+        let db_conn: &Connection = db_conn;
+
+        let result = db_conn.query_row(&query, &[], |row| -> i64 {
+            return row.get(0);
+        });
+        result
+    };
+
+    match result {
+        Ok(count) => {
+            // TODO: dev mode
+            assert!(count >= 0);
+
+            let count = count as ItemCount;
+
+            return Ok(count)
+        },
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+}
+
+// This is direct children.
+#[inline]
 pub fn get_deck_children_total_count(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID) -> Result<ItemCount, RawAPIError> {
@@ -502,7 +549,7 @@ pub fn get_deck_children_total_count(
         WHERE
             ancestor = {deck_id}
         AND
-            depth = 1"), deck_id = deck_id);
+            depth = 1;"), deck_id = deck_id);
 
     let result = {
         let context = context.borrow();

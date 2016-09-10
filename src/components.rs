@@ -1952,6 +1952,42 @@ fn DeckSettingsMain(
 
         |tmpl| {
 
+            // get number of decks
+            let (count_of_descendents, deck_noun) = match decks::get_num_descendents(context.clone(), deck_id) {
+                Ok(count_of_descendents) => {
+
+                    let deck_noun = if count_of_descendents == 1 {
+                        "deck"
+                    } else {
+                        "decks"
+                    };
+
+                    (count_of_descendents, deck_noun)
+                },
+                Err(_) => {
+                    // TODO: internal error logging
+                    panic!();
+                }
+            };
+
+            // get number of cards
+            let (count_of_cards, card_noun) = match cards::total_num_of_cards_in_deck(context.clone(), deck_id) {
+                Ok(count_of_cards) => {
+
+                    let card_noun = if count_of_cards == 1 {
+                        "card"
+                    } else {
+                        "cards"
+                    };
+
+                    (count_of_cards, card_noun)
+                },
+                Err(_) => {
+                    // TODO: internal error logging
+                    panic!();
+                }
+            };
+
             if !user::is_root_deck(context.clone(), deck_id) {
                 tmpl << html!{
 
@@ -1965,6 +2001,16 @@ fn DeckSettingsMain(
                         div(class="column") {
                             h4(class="title is-4") {
                                 : raw!("Delete Deck")
+                            }
+
+                            p {
+                                : raw!(format!(
+                                    "By deleting this deck, {count_of_descendents} {deck_noun} \
+                                    and {count_of_cards} {card_noun} will also be deleted.",
+                                    count_of_descendents = count_of_descendents,
+                                    deck_noun = deck_noun,
+                                    count_of_cards = count_of_cards,
+                                    card_noun = card_noun))
                             }
                         }
                     }
