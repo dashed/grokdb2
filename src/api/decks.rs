@@ -17,7 +17,7 @@ use context::Context;
 use types::{UnixTimestamp, DeckID, CardID, DecksPageQuery, Search, ItemCount, Offset};
 use errors::RawAPIError;
 use constants;
-use api::review::{Reviewable, ActiveSelection, CachedReviewProcedure};
+use api::review::{self, Reviewable, ActiveSelection, CachedReviewProcedure};
 use api::cards;
 
 /* ////////////////////////////////////////////////////////////////////////// */
@@ -698,7 +698,7 @@ impl Reviewable for Deck {
                     },
                     Ok(false) => {
 
-                        match self.remove_cache(context) {
+                        match review::remove_cache_in_all_sources(context, card_id) {
                             Err(why) => {
                                 return Err(why);
                             },
@@ -710,32 +710,6 @@ impl Reviewable for Deck {
                 }
             }
         }
-    }
-
-    // remove card review entry by deck
-    fn remove_cache(&self, context: Rc<RefCell<Context>>) -> Result<(), RawAPIError> {
-
-        assert!(context.borrow().is_write_locked());
-
-        let query = format!(indoc!("
-            DELETE FROM
-                CachedDeckReview
-            WHERE deck_id = {deck_id};
-        "), deck_id = self.id);
-
-        let context = context.borrow();
-        db_read_lock!(db_conn; context.database());
-        let db_conn: &Connection = db_conn;
-
-        match db_conn.execute_named(&query, &[]) {
-            Err(sqlite_error) => {
-                return Err(RawAPIError::SQLError(sqlite_error, query));
-            },
-            _ => {/* query sucessfully executed */},
-        }
-
-        return Ok(());
-
     }
 
     fn set_cache_card(&self,

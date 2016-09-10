@@ -48,7 +48,8 @@ use components::{AppComponent, view_route_to_link};
 use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
 use api::cards;
 use api::user;
-use api::review::{self, CachedReviewProcedure, RawReviewRequest, Reviewable, ReviewResponse};
+use api::review::{self,
+    CachedReviewProcedure, RawDeckReviewRequest, RawCardReviewRequest, Reviewable, ReviewResponse};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -428,7 +429,8 @@ fn __parse_route_api_card<'a>(
             string_ignore_case(b"/");
 
             // TODO: reorder for micro optimization
-            let render_response = parse_route_api_card_update(context.clone(), request.clone(), card_id);
+            let render_response = parse_route_api_card_update(context.clone(), request.clone(), card_id) <|>
+                parse_route_api_card_review(context.clone(), request.clone(), card_id);
 
             ret render_response
 
@@ -476,6 +478,78 @@ fn parse_route_api_card_root(
 
     return respond_json!(Some(card_delete_response));
 }
+
+#[inline]
+fn parse_route_api_card_review<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    card_id: CardID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"review");
+        eof();
+
+        ret {
+            __parse_route_api_card_review(context, request, card_id)
+        }
+    }
+}
+
+#[inline]
+fn __parse_route_api_card_review(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    card_id: CardID) -> RenderResponse {
+
+    // invariant: card exists
+
+    let mut request = request.borrow_mut();
+
+    if request.method != Method::Post {
+        return RenderResponse::MethodNotAllowed;
+    }
+
+    // POST /api/card/:id/review
+
+    let mut buffer = String::new();
+
+    match request.read_to_string(&mut buffer) {
+        Ok(_num_bytes_parsed) => {
+
+            let request: RawCardReviewRequest = match serde_json::from_str(&buffer) {
+                Ok(request) => request,
+                Err(err) => {
+
+                    // TODO: internal error logging
+                    let err = "Unable to review this card. Please try again.".to_string();
+                    return respond_json_with_error!(APIStatus::BadRequest; err; None);
+                }
+            };
+
+            let request = request.normalize(card_id);
+
+            let _guard = context::write_lock(context.clone());
+
+            // commit review request
+            handle_api_result_json!(request.commit(context.clone()));
+
+            let card = handle_api_result_json!(cards::get_card(context.clone(), card_id));
+
+            return respond_json!(Some(card));
+
+        },
+        Err(err) => {
+            // internal reason: invalid utf8 input
+
+            // TODO: internal error logging
+            let err = "Unable to review this card. Please try again.".to_string();
+            return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
+        }
+    }
+}
+
 
 #[inline]
 fn parse_route_api_card_update<'a>(
@@ -789,7 +863,7 @@ fn __parse_route_api_deck_review_post(
     match request.read_to_string(&mut buffer) {
         Ok(_num_bytes_parsed) => {
 
-            let request: RawReviewRequest = match serde_json::from_str(&buffer) {
+            let request: RawDeckReviewRequest = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
                 Err(err) => {
 
@@ -799,7 +873,7 @@ fn __parse_route_api_deck_review_post(
                 }
             };
 
-            let request = request.normalize(parent_deck_id);
+            let request = request.normalize();
 
             let _guard = context::write_lock(context.clone());
 

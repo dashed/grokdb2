@@ -153,7 +153,7 @@ pub enum ReviewAction {
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct RawReviewRequest {
+pub struct RawDeckReviewRequest {
     card_id: CardID,
     review_action: ReviewAction,
 
@@ -161,8 +161,32 @@ pub struct RawReviewRequest {
     cards_till_available_for_review: Option<ItemCount>,
 }
 
-impl RawReviewRequest {
-    pub fn normalize(&self, deck_id: DeckID) -> ReviewRequest {
+impl RawDeckReviewRequest {
+
+    pub fn normalize(&self) -> CardReviewRequest {
+
+        let request = RawCardReviewRequest {
+            review_action: self.review_action.clone(),
+
+            time_till_available_for_review: self.time_till_available_for_review,
+            cards_till_available_for_review: self.cards_till_available_for_review
+        };
+
+        request.normalize(self.card_id)
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RawCardReviewRequest {
+    review_action: ReviewAction,
+
+    time_till_available_for_review: Option<Minutes>,
+    cards_till_available_for_review: Option<ItemCount>,
+}
+
+impl RawCardReviewRequest {
+    pub fn normalize(&self, card_id: CardID) -> CardReviewRequest {
 
         let time_till_available_for_review = match self.time_till_available_for_review {
             None => DEFAULT_TIME_TILL_AVAILABLE_FOR_REVIEW,
@@ -174,45 +198,38 @@ impl RawReviewRequest {
             Some(val) => val
         };
 
-        ReviewRequest {
-            card_id: self.card_id,
-            deck_id: deck_id,
+        CardReviewRequest {
+            card_id: card_id,
             review_action: self.review_action.clone(),
             time_till_available_for_review: time_till_available_for_review,
             cards_till_available_for_review: cards_till_available_for_review
         }
+
     }
 }
 
-pub struct ReviewRequest {
+pub struct CardReviewRequest {
     pub card_id: CardID,
-    deck_id: DeckID,
     review_action: ReviewAction,
 
     time_till_available_for_review: Minutes,
     cards_till_available_for_review: ItemCount,
 }
 
-impl ReviewRequest {
+impl CardReviewRequest {
+
     pub fn commit(&self, context: Rc<RefCell<Context>>) -> Result<(), RawAPIError> {
 
         let _guard = context::write_lock(context.clone());
 
-        let deck = match decks::get_deck(context.clone(), self.deck_id) {
-            Ok(deck) => deck,
-            Err(why) => {
-                return Err(why);
-            }
-        };
-
-        match deck.remove_cache(context.clone()) {
+        match remove_cache_in_all_sources(context.clone(), self.card_id) {
             Ok(_) => {},
             Err(why) => {
                 return Err(why);
             }
         }
 
-        match self.review_card(context.clone()) {
+        match self.review_card(context) {
             Ok(_) => {},
             Err(why) => {
                 return Err(why);
@@ -416,7 +433,6 @@ pub trait Reviewable {
 
     fn get_cached_card(&self, context: Rc<RefCell<Context>>)
         -> Result<Option<(CardID, Option<CachedReviewProcedure>)>, RawAPIError>;
-    fn remove_cache(&self, context: Rc<RefCell<Context>>) -> Result<(), RawAPIError>;
     fn set_cache_card(&self,
         context: Rc<RefCell<Context>>,
         card_id: CardID,
@@ -473,6 +489,37 @@ pub trait Reviewable {
 }
 
 /* helpers */
+
+#[inline]
+// remove card review entry by card_id in all cache sources
+pub fn remove_cache_in_all_sources(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<(), RawAPIError> {
+
+    // TODO: move this into separate function when adding stash cache
+
+    assert!(context.borrow().is_write_locked());
+
+    let query = format!(indoc!("
+        DELETE FROM
+            CachedDeckReview
+        WHERE
+            card_id = {card_id};
+    "), card_id = card_id);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    match db_conn.execute_named(&query, &[]) {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        },
+        _ => {/* query sucessfully executed */},
+    }
+
+    return Ok(());
+
+}
+
 
 #[inline]
 pub fn get_review_card<T>(context: Rc<RefCell<Context>>, selection: &T)
