@@ -381,7 +381,6 @@ fn parse_route_api_card<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>,
         string_ignore_case(b"card");
         string_ignore_case(b"/");
         let card_id: CardID = decimal();
-        string_ignore_case(b"/");
 
         ret card_id
 
@@ -395,12 +394,20 @@ fn parse_route_api_card<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>,
                 if exists {
                     __parse_route_api_card(i, context.clone(), request, card_id)
                 } else {
-                    i.ret(RenderResponse::NotFound)
+
+                    i.ret({
+                        let reason = "Card does not exist.".to_string();
+                        respond_json_with_error!(APIStatus::BadRequest; reason; None)
+                    })
+
                 }
 
             },
             // TODO: internal error logging
-            Err(_) => i.ret(RenderResponse::InternalServerError)
+            Err(_) => i.ret({
+                // TODO: internal error logging
+                respond_json_with_error!(APIStatus::ServerError; INTERNAL_SERVER_ERROR_STRING.clone(); None)
+            })
         }
     })
 
@@ -413,12 +420,61 @@ fn __parse_route_api_card<'a>(
     request: Rc<RefCell<Request>>,
     card_id: CardID)
 -> U8Result<'a, RenderResponse> {
+
     parse!{input;
 
-        let render_response = parse_route_api_card_update(context.clone(), request.clone(), card_id);
+        let render_response = or(|i| parse!{i;
+
+            string_ignore_case(b"/");
+
+            // TODO: reorder for micro optimization
+            let render_response = parse_route_api_card_update(context.clone(), request.clone(), card_id);
+
+            ret render_response
+
+        }, |i| parse!{i;
+
+            eof();
+
+            ret {
+                parse_route_api_card_root(context.clone(), request.clone(), card_id)
+            }
+
+        });
 
         ret render_response
     }
+
+}
+
+#[inline]
+fn parse_route_api_card_root(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    card_id: DeckID) -> RenderResponse {
+
+    let method = {
+        let request = request.borrow();
+        request.method.clone()
+    };
+
+    if method != Method::Delete {
+        return RenderResponse::MethodNotAllowed;
+    }
+
+    // handle DELETE request to delete this card
+
+    let card = handle_api_result_json!(cards::get_card(context.clone(), card_id));
+
+    // delete card
+    handle_api_result_json!(cards::delete_card(context.clone(), card_id));
+
+    let card_delete_response = cards::DeleteCardResponse {
+        redirect_to: view_route_to_link(context, AppRoute::Deck(card.deck_id,
+            DeckRoute::Cards(Default::default(), Default::default())))
+    };
+
+    return respond_json!(Some(card_delete_response));
 }
 
 #[inline]
@@ -626,7 +682,6 @@ fn parse_route_api_deck_root(
     // delete deck
     handle_api_result_json!(decks::delete_deck(context.clone(), deck_id));
 
-    // TODO: generate redirect response
     let deck_delete_response = decks::DeleteDeckResponse {
         redirect_to: view_route_to_link(context, AppRoute::Deck(parent_deck_id, Default::default()))
     };
@@ -2185,9 +2240,6 @@ pub fn render_response(context: Rc<RefCell<Context>>, render: RenderResponse, mu
 
 #[inline]
 fn render_components(context: Rc<RefCell<Context>>, app_route: AppRoute, mut response: Response) {
-
-    assert!(!context.borrow().is_read_locked());
-    assert!(!context.borrow().is_write_locked());
 
     let app_component = {
         FnRenderer::new(|tmpl| {

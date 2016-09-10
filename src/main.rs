@@ -248,6 +248,8 @@ fn main() {
 
         let context = Rc::new(RefCell::new(context));
 
+        let _guard = context::write_lock(context.clone());
+
         // middleware/logging
         // TODO: complete
 

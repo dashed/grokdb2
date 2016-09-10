@@ -109,6 +109,18 @@ pub fn generate_delete_to(app_route: &AppRoute) -> String {
                 DeckRoute::Settings(DeckSettings::Main) => {
                     format!("/api/deck/{deck_id}", deck_id = deck_id)
                 },
+                DeckRoute::CardProfile(card_id, ref card_route) => {
+
+                    match *card_route {
+                        CardRoute::Settings => {
+                            format!("/api/card/{card_id}", card_id = card_id)
+                        },
+                        _ => {
+                            panic!("invalid use of generate_delete_to");
+                        }
+                    }
+
+                },
                 _ => {
                     panic!("invalid use of generate_delete_to");
                 }
@@ -732,17 +744,58 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             }
 
                         },
-                        AppRoute::Deck(_, DeckRoute::CardProfile(_card_id, ref _card_route)) =>  {
-                            tmpl << html! {
+                        AppRoute::Deck(_, DeckRoute::CardProfile(_card_id, ref card_route)) =>  {
 
-                                script(type="text/javascript") {
-                                    |tmpl| {
-                                        pre_render_state(tmpl, context.clone(), &app_route);
+                            match *card_route {
+                                CardRoute::Contents => {
+
+                                    tmpl << html! {
+
+                                        script(type="text/javascript") {
+                                            |tmpl| {
+                                                pre_render_state(tmpl, context.clone(), &app_route);
+                                            }
+                                        }
+
+                                        script(type="text/javascript", src="/assets/deck_card_profile.js") {}
                                     }
-                                }
 
-                                script(type="text/javascript", src="/assets/deck_card_profile.js") {}
+                                },
+                                CardRoute::Review => {
+
+                                    tmpl << html! {
+
+                                        script(type="text/javascript") {
+                                            |tmpl| {
+                                                pre_render_state(tmpl, context.clone(), &app_route);
+                                            }
+                                        }
+
+                                        script(type="text/javascript", src="/assets/deck_card_review.js") {}
+                                    }
+
+                                },
+                                CardRoute::Stats => {
+
+                                    // TODO: complete
+
+                                },
+                                CardRoute::Settings => {
+
+                                    tmpl << html! {
+
+                                        script(type="text/javascript") {
+                                            |tmpl| {
+                                                pre_render_state(tmpl, context.clone(), &app_route);
+                                            }
+                                        }
+
+                                        script(type="text/javascript", src="/assets/deck_card_settings.js") {}
+                                    }
+
+                                }
                             }
+
                         },
                         AppRoute::Deck(_, DeckRoute::Review(ref card_for_review)) =>  {
 

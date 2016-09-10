@@ -89,6 +89,11 @@ impl UpdateCard {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct DeleteCardResponse {
+    pub redirect_to: String
+}
+
 #[inline]
 pub fn get_card(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<Card, RawAPIError> {
 
@@ -237,6 +242,37 @@ pub fn create_card(
     };
 
     return get_card(context, card_id);
+}
+
+// TODO: test
+#[inline]
+pub fn delete_card(
+    context: Rc<RefCell<Context>>,
+    card_id: CardID
+    ) -> Result<(), RawAPIError> {
+
+    assert!(context.borrow().is_write_locked());
+
+    let query = format!(indoc!("
+        DELETE FROM
+            Cards
+        WHERE card_id = {card_id};
+    "), card_id = card_id);
+
+    let context = context.borrow();
+    db_write_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    match db_conn.execute(&query, &[]) {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+        _ => {
+            /* query sucessfully executed */
+        }
+    }
+
+    return Ok(());
 }
 
 // TODO: needs test
