@@ -1075,7 +1075,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                         "is-bold",
                                         "is-active" => {
                                             matches!(*deck_route, DeckRoute::Description)
-                                        })
+                                        }),
                                     style = raw!("padding-bottom:2px;")
                                 ) {
                                     : "Description"
@@ -1091,7 +1091,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                             // TODO: re-review this
                                             matches!(*deck_route, DeckRoute::NewDeck) ||
                                             matches!(*deck_route, DeckRoute::Decks(_, _))
-                                        })
+                                        }),
                                     style = raw!("padding-top:2px;padding-bottom:2px;")
                                 ) {
                                     : "Decks"
@@ -1106,7 +1106,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                         "is-active" => {
                                             matches!(*deck_route, DeckRoute::NewCard) ||
                                             matches!(*deck_route, DeckRoute::Cards(_, _))
-                                        })
+                                        }),
                                     style = raw!("padding-top:2px;padding-bottom:2px;")
                                 ) {
                                     : "Cards"
@@ -1120,7 +1120,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                         "is-bold",
                                         "is-active" => {
                                             matches!(*deck_route, DeckRoute::Stats)
-                                        })
+                                        }),
                                     style = raw!("padding-top:2px;padding-bottom:2px;")
                                 ) {
                                     : "Stats"
@@ -1134,7 +1134,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                         "is-bold",
                                         "is-active" => {
                                             matches!(*deck_route, DeckRoute::Settings(_))
-                                        })
+                                        }),
                                     style = raw!("padding-top:2px;")
                                 ) {
                                     : "Settings"
@@ -1281,7 +1281,7 @@ fn CardDetailNav(
                                             "is-active" => {
                                                 matches!(*deck_route,
                                                     DeckRoute::CardProfile(_, CardRoute::Contents))
-                                            })
+                                            }),
                                         style = raw!("padding-bottom:2px;")
                                     ) {
                                         : "Contents"
@@ -1296,7 +1296,7 @@ fn CardDetailNav(
                                             "is-active" => {
                                                 matches!(*deck_route,
                                                     DeckRoute::CardProfile(_, CardRoute::Stats))
-                                            })
+                                            }),
                                         style = raw!("padding-top:2px;padding-bottom:2px;")
                                     ) {
                                         : "Stats"
@@ -1311,7 +1311,7 @@ fn CardDetailNav(
                                             "is-active" => {
                                                 matches!(*deck_route,
                                                     DeckRoute::CardProfile(_, CardRoute::Settings))
-                                            })
+                                            }),
                                         style = raw!("padding-top:2px;")
                                     ) {
                                         : "Settings"
