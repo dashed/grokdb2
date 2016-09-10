@@ -873,172 +873,174 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
     let num_of_items = deck_path.len();
 
     tmpl << html!{
-        @ for (index, deck_id) in deck_path.iter().enumerate() {
-            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                |tmpl| {
-                    if index == 0 {
-                        tmpl << html!{
-                            : raw!("/ ");
-                        }
-                    } else {
-                        tmpl << html!{
-                            : raw!(" / ");
+        div(style="margin-top:10px;") {
+            @ for (index, deck_id) in deck_path.iter().enumerate() {
+                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                    |tmpl| {
+                        if index == 0 {
+                            tmpl << html!{
+                                : raw!("/ ");
+                            }
+                        } else {
+                            tmpl << html!{
+                                : raw!(" / ");
+                            }
                         }
                     }
                 }
-            }
-            |tmpl| {
+                |tmpl| {
 
-                match decks::get_deck(context.clone(), *deck_id) {
-                    Ok(deck) => {
+                    match decks::get_deck(context.clone(), *deck_id) {
+                        Ok(deck) => {
 
-                        if (index + 1) >= num_of_items {
+                            if (index + 1) >= num_of_items {
 
-                            tmpl << html!{
-                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    a(href = generateDeckPathLink(context.clone(), *deck_id, deck_route)
-                                    ) {
-                                        // NOTE: we wrap the mathjax-ified name with id of '__deck_name'.
-                                        //       when renaming the deck, a react component can re-render this
-                                        span(class="__deck_name", style="font-weight:bold;") {
-                                            |tmpl| MathJaxInline(tmpl, deck.name.clone(), true);
+                                tmpl << html!{
+                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                        a(href = generateDeckPathLink(context.clone(), *deck_id, deck_route)
+                                        ) {
+                                            // NOTE: we wrap the mathjax-ified name with id of '__deck_name'.
+                                            //       when renaming the deck, a react component can re-render this
+                                            span(class="__deck_name", style="font-weight:bold;") {
+                                                |tmpl| MathJaxInline(tmpl, deck.name.clone(), true);
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                        } else {
+                            } else {
 
-                            tmpl << html!{
-                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    a(href = generateDeckPathLink(context.clone(), *deck_id, deck_route)
-                                    ) {
-                                        |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
+                                tmpl << html!{
+                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                        a(href = generateDeckPathLink(context.clone(), *deck_id, deck_route)
+                                        ) {
+                                            |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
+                                        }
                                     }
                                 }
+
                             }
 
+                        },
+                        Err(_) => {
+                            // TODO: internal error logging
+                            panic!();
                         }
-
-                    },
-                    Err(_) => {
-                        // TODO: internal error logging
-                        panic!();
                     }
                 }
             }
-        }
 
-        |tmpl| {
+            |tmpl| {
 
-            match *deck_route {
-                DeckRoute::Review(ref card_for_review) => {
-                        tmpl << html!{
+                match *deck_route {
+                    DeckRoute::Review(ref card_for_review) => {
+                            tmpl << html!{
 
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                : raw!(" / ");
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    : raw!(" / ");
+                                }
+
+                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                    : raw!("Review")
+                                }
                             }
+                    },
+                    DeckRoute::Description => {
+                            tmpl << html!{
 
-                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                : raw!("Review")
-                            }
-                        }
-                },
-                DeckRoute::Description => {
-                        tmpl << html!{
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    : raw!(" / ");
+                                }
 
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                : raw!(" / ");
+                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                    : raw!("Deck Description")
+                                }
                             }
+                    },
+                    DeckRoute::Decks(_, _) => {
+                            tmpl << html!{
 
-                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                : raw!("Deck Description")
-                            }
-                        }
-                },
-                DeckRoute::Decks(_, _) => {
-                        tmpl << html!{
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    : raw!(" / ");
+                                }
 
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                : raw!(" / ");
+                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                    : raw!("Decks")
+                                }
                             }
+                    },
+                    DeckRoute::Cards(_, _) => {
+                            tmpl << html!{
 
-                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                : raw!("Decks")
-                            }
-                        }
-                },
-                DeckRoute::Cards(_, _) => {
-                        tmpl << html!{
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    : raw!(" / ");
+                                }
 
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                : raw!(" / ");
+                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                    : raw!("Cards")
+                                }
                             }
+                    },
+                    DeckRoute::NewCard => {
+                            tmpl << html!{
 
-                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                : raw!("Cards")
-                            }
-                        }
-                },
-                DeckRoute::NewCard => {
-                        tmpl << html!{
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    : raw!(" / ");
+                                }
 
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                : raw!(" / ");
+                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                    : raw!("Add New Card")
+                                }
                             }
+                    },
+                    DeckRoute::NewDeck => {
+                            tmpl << html!{
 
-                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                : raw!("Add New Card")
-                            }
-                        }
-                },
-                DeckRoute::NewDeck => {
-                        tmpl << html!{
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    : raw!(" / ");
+                                }
 
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                : raw!(" / ");
+                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                    : raw!("Add New Deck")
+                                }
                             }
+                    },
+                    DeckRoute::Settings(_) => {
+                            tmpl << html!{
 
-                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                : raw!("Add New Deck")
-                            }
-                        }
-                },
-                DeckRoute::Settings(_) => {
-                        tmpl << html!{
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    : raw!(" / ");
+                                }
 
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                : raw!(" / ");
+                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                    : raw!("Settings")
+                                }
                             }
+                    },
+                    DeckRoute::Stats => {
+                            tmpl << html!{
 
-                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                : raw!("Settings")
-                            }
-                        }
-                },
-                DeckRoute::Stats => {
-                        tmpl << html!{
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    : raw!(" / ");
+                                }
 
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                : raw!(" / ");
+                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                    : raw!("Statistics")
+                                }
                             }
+                    },
+                    DeckRoute::CardProfile(card_id, _) => {
+                            tmpl << html!{
 
-                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                : raw!("Statistics")
-                            }
-                        }
-                },
-                DeckRoute::CardProfile(card_id, _) => {
-                        tmpl << html!{
+                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                    : raw!(" / ");
+                                }
 
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                : raw!(" / ");
+                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                    : raw!(format!("Card #{}", card_id))
+                                }
                             }
-
-                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                : raw!(format!("Card #{}", card_id))
-                            }
-                        }
+                    }
                 }
             }
         }
