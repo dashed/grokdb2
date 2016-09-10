@@ -54,8 +54,8 @@ const __DeleteDeck = function(props) {
                 </div>
                 <div className='columns'>
                     <div className='column'>
-                        <div className='control is-grouped'>
-                            <p className='control'>
+                        <div className='level'>
+                            <div className='level-left'>
                                 <a
                                     className={classnames('button is-bold', {
                                         'is-disabled': submitting,
@@ -65,8 +65,8 @@ const __DeleteDeck = function(props) {
                                     >
                                     {'Cancel'}
                                 </a>
-                            </p>
-                            <p className='control'>
+                            </div>
+                            <div className='level-right'>
                                 <a
                                     className={classnames('button is-danger is-bold', {
                                         'is-disabled': submitting,
@@ -76,7 +76,7 @@ const __DeleteDeck = function(props) {
                                     >
                                     {'Delete'}
                                 </a>
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
