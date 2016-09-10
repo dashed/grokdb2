@@ -1946,7 +1946,7 @@ fn DeckSettingsMain(
             }
         }
 
-        div(id="deck_settings_main_name_container") {
+        div(id="deck_settings_main_name_container", style="margin-bottom:10px;") {
             // : raw!(include_str!("react_components/deck_description"))
         }
 
