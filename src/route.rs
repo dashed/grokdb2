@@ -85,7 +85,7 @@ pub enum AppRoute {
     // CardInDeck(DeckID, CardID, CardRoute),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum CardRoute {
     Contents,
     Review,
@@ -93,7 +93,7 @@ pub enum CardRoute {
     Settings
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DeckRoute {
 
     NewCard,
@@ -125,7 +125,7 @@ impl Default for DeckRoute {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DeckSettings {
     Main,
     Move

@@ -838,6 +838,28 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 }
 
 #[inline]
+fn generateDeckPathLink(context: Rc<RefCell<Context>>, deck_id: DeckID, deck_route: &DeckRoute) -> String {
+
+    let __deck_route = match *deck_route {
+
+        DeckRoute::NewCard |
+        DeckRoute::NewDeck |
+        DeckRoute::Description |
+        DeckRoute::Stats |
+        DeckRoute::Review(_) |
+        DeckRoute::CardProfile(_, _) |
+        DeckRoute::Settings(_) => {
+
+            deck_route.clone()
+        },
+        DeckRoute::Decks(ref _page_query, ref _search) => DeckRoute::Decks(Default::default(), Default::default()),
+        DeckRoute::Cards(ref _page_query, ref _search) => DeckRoute::Cards(Default::default(), Default::default())
+    };
+
+    view_route_to_link(context, AppRoute::Deck(deck_id, __deck_route))
+}
+
+#[inline]
 fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID, deck_route: &DeckRoute) {
 
     let deck_path = match decks::get_path_of_deck(context.clone(), deck_id) {
@@ -874,9 +896,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
 
                             tmpl << html!{
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    a(href = view_route_to_link(context.clone(),
-                                        AppRoute::Deck(*deck_id,
-                                            DeckRoute::Decks(Default::default(), Default::default())))
+                                    a(href = generateDeckPathLink(context.clone(), *deck_id, deck_route)
                                     ) {
                                         // NOTE: we wrap the mathjax-ified name with id of '__deck_name'.
                                         //       when renaming the deck, a react component can re-render this
@@ -891,8 +911,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
 
                             tmpl << html!{
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    a(href = view_route_to_link(context.clone(),
-                                        AppRoute::Deck(*deck_id, DeckRoute::Decks(Default::default(), Default::default())))
+                                    a(href = generateDeckPathLink(context.clone(), *deck_id, deck_route)
                                     ) {
                                         |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
                                     }
