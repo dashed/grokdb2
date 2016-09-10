@@ -284,7 +284,6 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                         }}\
                                     }};\
                                 ",
-                                // TODO: refactor this
                                 post_to_rename = generate_post_to(app_route),
                                 markdown_contents = markdown_contents,
                                 delete_to = generate_delete_to(app_route)
@@ -456,6 +455,22 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                         question = question,
                                         answer = answer,
                                         is_active = is_active
+                                    )
+                                )
+                            }
+
+                        },
+                        CardRoute::Settings => {
+
+                            tmpl << html! {
+                                : raw!(
+                                    format!(
+                                        "window.__PRE_RENDER_STATE__ = \
+                                            {{\
+                                                DELETE_TO: '{delete_to}'\
+                                            }};\
+                                        ",
+                                        delete_to = generate_delete_to(app_route)
                                     )
                                 )
                             }
