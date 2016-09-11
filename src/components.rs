@@ -2077,7 +2077,14 @@ fn DeckSettingsMain(
                 }
             };
 
-            if !user::is_root_deck(context.clone(), deck_id) {
+            let is_root_deck = match user::is_root_deck(context.clone(), deck_id) {
+                Ok(is_root_deck) => is_root_deck,
+                Err(_) => {
+                    panic!();
+                }
+            };
+
+            if !is_root_deck {
                 tmpl << html!{
 
                     div(class="columns") {

@@ -7,11 +7,12 @@ use std::rc::Rc;
 
 use context::{self, Context};
 use types::{DeckID};
+use errors::RawAPIError;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
 #[inline]
-pub fn get_root_deck(context: Rc<RefCell<Context>>) -> DeckID {
+pub fn get_root_deck(context: Rc<RefCell<Context>>) -> Result<DeckID, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
 
@@ -19,14 +20,21 @@ pub fn get_root_deck(context: Rc<RefCell<Context>>) -> DeckID {
 
     let context = context.borrow();
 
-    return context.root_deck_id;
+    return Ok(context.root_deck_id);
 }
 
 #[inline]
-pub fn is_root_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool {
+pub fn is_root_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<bool, RawAPIError> {
 
     let _guard = context::read_lock(context.clone());
 
-    get_root_deck(context.clone()) == deck_id
+    match get_root_deck(context.clone()) {
+        Ok(root_deck_id) => {
+            return Ok(root_deck_id == deck_id);
+        },
+        Err(why) => {
+            return Err(why);
+        }
+    }
 
 }

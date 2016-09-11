@@ -317,13 +317,7 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
                 eof();
 
                 ret {
-
-                    let root_deck_id = {
-                        let _guard = context::read_lock(context.clone());
-                        user::get_root_deck(context.clone())
-                    };
-
-                    route_deck_decks(context, request, root_deck_id, query_string)
+                    __parse_route_root(context, request, query_string)
                 }
             },
             |i| parse!{i;
@@ -338,6 +332,21 @@ fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, req
 
         ret result
     }
+}
+
+#[inline]
+fn __parse_route_root(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    query_string: Option<QueryString>) -> RenderResponse {
+
+    let root_deck_id = {
+        let _guard = context::read_lock(context.clone());
+        handle_api_result_html!(user::get_root_deck(context.clone()))
+    };
+
+    route_deck_decks(context, request, root_deck_id, query_string)
+
 }
 
 #[inline]
@@ -732,7 +741,7 @@ fn parse_route_api_deck_root(
     // handle DELETE request to delete this deck
 
     // check if this deck is root deck
-    if user::is_root_deck(context.clone(), deck_id) {
+    if handle_api_result_html!(user::is_root_deck(context.clone(), deck_id)) {
 
         // TODO: review and revise phrasing as necessary
         let err = "You are not allowed to delete the top-most deck.".to_string();
