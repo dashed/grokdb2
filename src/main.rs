@@ -128,7 +128,7 @@ fn main() {
 
             let root_deck = decks::create_deck(bootstrap_context.clone(), request).unwrap();
 
-            user:;set_root_deck(bootstrap_context.clone(), root_deck.id).unwrap();
+            user::set_root_deck(bootstrap_context.clone(), root_deck.id).unwrap();
 
             root_deck_id = root_deck.id;
         }
