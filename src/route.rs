@@ -342,7 +342,17 @@ fn __parse_route_root(
 
     let root_deck_id = {
         let _guard = context::read_lock(context.clone());
-        handle_api_result_html!(user::get_root_deck(context.clone()))
+        let result = handle_api_result_html!(user::get_root_deck(context.clone()));
+
+        match result {
+            None => {
+
+                // TODO: fix; this is fatal error, since root deck should exists
+
+                return RenderResponse::InternalServerError;
+            },
+            Some(root_deck_id) => root_deck_id
+        }
     };
 
     route_deck_decks(context, request, root_deck_id, query_string)

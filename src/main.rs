@@ -66,7 +66,7 @@ mod components;
 
 use context::{Context};
 use log_entry::LogEntry;
-use api::{configs, decks, cards};
+use api::{decks, cards, user};
 use route::parse_request_uri;
 use route::{RenderResponse, render_response};
 use types::DeckID;
@@ -94,38 +94,27 @@ fn main() {
 
         let _read_guard = context::write_lock(bootstrap_context.clone());
 
-        let should_create_root_deck = match configs::get_config(bootstrap_context.clone(),
-                                                                configs::CONFIG_ROOT_DECK_ID_KEY.to_string())
-            .unwrap() {
-            Some(config) => {
-                let deck_id = config.value;
-
-                match deck_id.parse::<DeckID>() {
-                    Ok(deck_id) => {
-
-                        match decks::deck_exists(bootstrap_context.clone(), deck_id) {
-                            Ok(exists) => {
-
-                                if exists {
-                                    root_deck_id = deck_id;
-                                }
-
-                                !exists
+        let should_create_root_deck: bool = match user::get_root_deck(bootstrap_context.clone()) {
+            Ok(maybe_deck_id) => {
+                match maybe_deck_id {
+                    None => true,
+                    Some(deck_id) => {
+                        match user::is_root_deck(bootstrap_context.clone(), deck_id) {
+                            Ok(confirm) => {
+                                !confirm
                             },
                             Err(why) => {
-                                handle_raw_api_error!(why);
-
                                 // TODO: fix
-                                panic!("decks::deck_exists");
+                                panic!("unable to confirm root_deck");
                             }
                         }
-
                     }
-                    Err(_) => true,
                 }
-
+            },
+            Err(why) => {
+                // TODO: fix
+                panic!("unable to get root_deck");
             }
-            None => true,
         };
 
 
@@ -139,10 +128,7 @@ fn main() {
 
             let root_deck = decks::create_deck(bootstrap_context.clone(), request).unwrap();
 
-            configs::set_config(bootstrap_context.clone(),
-                                configs::CONFIG_ROOT_DECK_ID_KEY.to_string(),
-                                format!("{}", root_deck.id))
-                .unwrap();
+            user:;set_root_deck(bootstrap_context.clone(), root_deck.id).unwrap();
 
             root_deck_id = root_deck.id;
         }
