@@ -218,6 +218,7 @@ END;
 // - card will be eligible for review after seen_at + review_after >= strftime('%s', 'now')
 // rational:
 // - skipping a card will update seen_at, but not reviewed_at
+// - reviewed_at_count is the Nth review that the user reviewed the card
 const CARDS_SCORE: &'static str = "
 CREATE TABLE IF NOT EXISTS CardsScore (
 
@@ -232,7 +233,10 @@ CREATE TABLE IF NOT EXISTS CardsScore (
     seen_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
     reviewed_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
 
+    reviewed_at_count INT NOT NULL DEFAULT 0,
+
     review_after INT NOT NULL DEFAULT 10800,
+    cards_till_ready_for_review INT NOT NULL DEFAULT 0,
 
     card_id INTEGER NOT NULL,
 
