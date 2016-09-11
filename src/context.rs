@@ -11,7 +11,7 @@ use guardian::{ArcRwLockReadGuardian, ArcRwLockWriteGuardian};
 
 /* local imports */
 
-use types::{DeckID, ItemCount};
+use types::{DeckID, ItemCount, UserID};
 use api::decks::Deck;
 use api::cards::Card;
 use database::Database;
@@ -34,6 +34,7 @@ pub struct Context {
     pub lock_state_ref_read_count: u64,
     pub lock_state_ref_write_count: u64,
 
+    pub user_id: UserID,
     pub root_deck_id: DeckID,
     pub request_uri: String,
 
@@ -56,6 +57,7 @@ impl Context {
             lock_state_ref_read_count: 0,
             lock_state_ref_write_count: 0,
 
+            user_id: 42,
             root_deck_id: 1,
             request_uri: "".to_string(),
 

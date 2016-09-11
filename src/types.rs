@@ -26,6 +26,7 @@ pub type UnixTimestamp = i64;
 pub type DeckID = i64;
 pub type CardID = i64;
 pub type StashID = i64;
+pub type UserID = i64;
 
 // pagination
 // TODO: need compile-time check to ensure >= 1 constraint (rust doesn't support this yet)

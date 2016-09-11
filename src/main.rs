@@ -234,6 +234,7 @@ fn main() {
             lock_state_ref_read_count: 0,
             lock_state_ref_write_count: 0,
 
+            user_id: 42,
             root_deck_id: root_deck_id,
             request_uri: format!("{}", request.uri),
 
