@@ -17,6 +17,7 @@ use errors::RawAPIError;
 /* ////////////////////////////////////////////////////////////////////////// */
 
 pub const CONFIG_ROOT_DECK_ID_KEY: &'static str = "root_deck_id";
+pub const CONFIG_REVIEW_COUNT_KEY: &'static str = "review_count";
 
 #[derive(PartialEq, Debug)]
 pub struct Config {

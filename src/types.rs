@@ -18,11 +18,13 @@ use api::{decks, cards};
 
 /* Types */
 
+// time
 pub type Minutes = u64;
 pub type Seconds = u64;
 pub type UnixTimestamp = i64;
 
 // TODO: change to u64? it's i64 b/c sqlite requires it.
+// resource id
 pub type DeckID = i64;
 pub type CardID = i64;
 pub type StashID = i64;
@@ -33,7 +35,9 @@ pub type UserID = i64;
 pub type Page = u64; // >= 1
 pub type PerPage = u64; // >= 1
 pub type Offset = u64; // >= 0
-pub type ItemCount = u64;
+pub type ItemCount = u64; // >= 0
+
+pub type ReviewCount = u64; // >= 0
 
 #[derive(Serialize, Debug)]
 pub struct JSONResponse {

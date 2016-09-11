@@ -6,11 +6,70 @@ use std::rc::Rc;
 /* local imports */
 
 use context::{self, Context};
-use types::{DeckID};
+use types::{DeckID, ReviewCount};
 use errors::RawAPIError;
 use api::{configs, decks};
 
 /* ////////////////////////////////////////////////////////////////////////// */
+
+#[inline]
+pub fn set_review_count(context: Rc<RefCell<Context>>,
+    review_count: ReviewCount) -> Result<ReviewCount, RawAPIError> {
+
+    assert!(context.borrow().is_write_locked());
+
+    // TODO: change this for monetized version by fetching from a user table
+
+    let encoded = format!("{}", review_count);
+
+    match configs::set_config(context.clone(), configs::CONFIG_REVIEW_COUNT_KEY.to_string(), encoded) {
+        Ok(_) => {
+            // config successful
+        },
+        Err(why) => {
+            return Err(why);
+        }
+    }
+
+    return Ok(review_count);
+}
+
+#[inline]
+pub fn get_review_count(context: Rc<RefCell<Context>>) -> Result<ReviewCount, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    // TODO: change this for monetized version by fetching from a user table
+
+    match configs::get_config(context.clone(), configs::CONFIG_REVIEW_COUNT_KEY.to_string()) {
+        Ok(config) => {
+
+            match config {
+                None => {
+                    return Ok(0);
+                },
+                Some(config) => {
+
+                    let review_count = config.value;
+
+                    match review_count.parse::<ReviewCount>() {
+                        Ok(review_count) => {
+                            return Ok(review_count);
+                        }
+                        Err(_) => {
+                            return Ok(0);
+                        }
+                    }
+                }
+            }
+
+        },
+        Err(why) => {
+            return Err(why);
+        }
+    }
+
+}
 
 #[inline]
 pub fn set_root_deck(context: Rc<RefCell<Context>>, root_deck_id: DeckID) -> Result<DeckID, RawAPIError> {
