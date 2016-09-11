@@ -683,6 +683,8 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                 script(type="text/javascript", src="/assets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML") {}
 
+                script(type="text/javascript", src="/assets/commons.js") {}
+
                 script(type="text/javascript", src="/assets/mathjax_inline.js") {}
 
                 |tmpl| {
@@ -2584,7 +2586,7 @@ fn CardDetailReview(
         }
 
         div(id="card_review_container") {
-
+            // TODO: static render
         }
     }
 }
