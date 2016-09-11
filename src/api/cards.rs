@@ -17,6 +17,7 @@ use types::{UnixTimestamp, CardID, DeckID, CardsPageQuery, Search, ItemCount, Of
 use errors::RawAPIError;
 use constants;
 use api::review::{self, ActiveSelection, CachedReviewProcedure};
+use api::user;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -1020,6 +1021,11 @@ pub fn deck_have_cards_ready_for_review(
         }
     };
 
+    let user_review_count = match try!(user::get_review_count(context.clone())) {
+        None => 0,
+        Some(review_count) => review_count
+    };
+
     let query = format!(indoc!("
         SELECT
             COUNT(1)
@@ -1035,11 +1041,14 @@ pub fn deck_have_cards_ready_for_review(
             dc.ancestor = {deck_id}
         AND
             (cs.seen_at + cs.review_after) >= strftime('%s', 'now')
+        AND
+            (cs.reviewed_at_count + cs.cards_till_ready_for_review) <= {user_review_count}
         {active_query}
         LIMIT 1;
     "),
     deck_id = deck_id,
-    active_query = active_query);
+    active_query = active_query,
+    user_review_count = user_review_count);
 
     let context = context.borrow();
     db_read_lock!(db_conn; context.database());
@@ -1096,6 +1105,11 @@ pub fn deck_num_of_cards_ready_for_review(
         }
     };
 
+    let user_review_count = match try!(user::get_review_count(context.clone())) {
+        None => 0,
+        Some(review_count) => review_count
+    };
+
     let query = format!(indoc!("
         SELECT
             COUNT(1)
@@ -1109,12 +1123,15 @@ pub fn deck_num_of_cards_ready_for_review(
 
         WHERE
             dc.ancestor = {deck_id}
-            AND
+        AND
                 (cs.seen_at + cs.review_after) >= strftime('%s', 'now')
+        AND
+            (cs.reviewed_at_count + cs.cards_till_ready_for_review) <= {user_review_count}
         {active_query};
     "),
     deck_id = deck_id,
-    active_query = active_query);
+    active_query = active_query,
+    user_review_count = user_review_count);
 
     let context = context.borrow();
     db_read_lock!(db_conn; context.database());
@@ -1143,6 +1160,11 @@ pub fn deck_get_card_ready_for_review(
     index: Offset) -> Result<CardID, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
+
+    let user_review_count = match try!(user::get_review_count(context.clone())) {
+        None => 0,
+        Some(review_count) => review_count
+    };
 
     let mut is_active = true;
     let mut params: Vec<(&str, &ToSql)> = vec![];
@@ -1188,10 +1210,13 @@ pub fn deck_get_card_ready_for_review(
             dc.ancestor = {deck_id}
         AND
             (cs.seen_at + cs.review_after) >= strftime('%s', 'now')
+        AND
+            (cs.reviewed_at_count + cs.cards_till_ready_for_review) <= {user_review_count}
         {active_query}
         "),
         deck_id = deck_id,
-        active_query = active_query);
+        active_query = active_query,
+        user_review_count = user_review_count);
 
     let order_by_sql = format!(indoc!("
         raw_score(cs.success, cs.fail)

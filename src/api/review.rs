@@ -18,9 +18,10 @@ use rusqlite::types::ToSql;
 
 use context::{self, Context};
 use errors::RawAPIError;
-use types::{ItemCount, CardID, DeckID, Offset, Minutes};
+use types::{ItemCount, CardID, DeckID, Offset, Minutes, ReviewCount};
 use api::cards::{self, Card};
 use api::decks::{self, Deck};
+use api::user;
 use route::{AppRoute, DeckRoute};
 use components::{generate_post_to};
 
@@ -182,7 +183,7 @@ pub struct RawCardReviewRequest {
     review_action: ReviewAction,
 
     time_till_available_for_review: Option<Minutes>,
-    cards_till_available_for_review: Option<ItemCount>,
+    cards_till_available_for_review: Option<ItemCount>
 }
 
 impl RawCardReviewRequest {
@@ -246,13 +247,19 @@ impl CardReviewRequest {
 
         assert!(context.borrow().is_write_locked());
 
+        let review_count = match try!(user::get_review_count(context.clone())) {
+            None => 0,
+            Some(review_count) => review_count
+        };
+
         let (changelog,
             success,
             fail,
             times_reviewed,
             times_seen,
             seen_at,
-            reviewed_at) = match self.review_action {
+            reviewed_at,
+            reviewed_at_count,) = match self.review_action {
             ReviewAction::Right => {
 
                 let changelog = "Answered card correctly.";
@@ -262,8 +269,9 @@ impl CardReviewRequest {
                 let times_seen = "times_seen + 1";
                 let seen_at = "strftime('%s', 'now')";
                 let reviewed_at = "strftime('%s', 'now')";
+                let reviewed_at_count = review_count + 1;
 
-                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at)
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at, reviewed_at_count)
             },
             ReviewAction::Wrong => {
 
@@ -274,8 +282,9 @@ impl CardReviewRequest {
                 let times_seen = "times_seen + 1";
                 let seen_at = "strftime('%s', 'now')";
                 let reviewed_at = "strftime('%s', 'now')";
+                let reviewed_at_count = review_count + 1;
 
-                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at)
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at, reviewed_at_count)
             },
             ReviewAction::Forgot => {
 
@@ -286,8 +295,9 @@ impl CardReviewRequest {
                 let times_seen = "times_seen + 1";
                 let seen_at = "strftime('%s', 'now')";
                 let reviewed_at = "strftime('%s', 'now')";
+                let reviewed_at_count = review_count + 1;
 
-                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at)
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at, reviewed_at_count)
             },
             ReviewAction::Skip => {
 
@@ -298,8 +308,9 @@ impl CardReviewRequest {
                 let times_seen = "times_seen + 1";
                 let seen_at = "strftime('%s', 'now')";
                 let reviewed_at = "reviewed_at"; // no change
+                let reviewed_at_count = review_count; // no change
 
-                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at)
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at, reviewed_at_count)
             },
             ReviewAction::Reset => {
 
@@ -310,13 +321,18 @@ impl CardReviewRequest {
                 let times_seen = "times_seen"; // no change
                 let seen_at = "seen_at)"; // no change
                 let reviewed_at = "reviewed_at"; // no change
+                let reviewed_at_count = review_count; // no change
 
-                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at)
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at, reviewed_at_count)
             }
         };
 
+        // update review count
+        try!(user::set_review_count(context.clone(), reviewed_at_count));
+
         // NOTE: convert from minutes to seconds
         let review_after = self.time_till_available_for_review * 60;
+        let cards_till_ready_for_review = self.cards_till_available_for_review;
 
         let query = format!(indoc!("
             UPDATE
@@ -329,7 +345,9 @@ impl CardReviewRequest {
                 times_seen = {times_seen},
                 seen_at = {seen_at},
                 reviewed_at = {reviewed_at},
-                review_after = {review_after}
+                review_after = {review_after},
+                reviewed_at_count = {reviewed_at_count},
+                cards_till_ready_for_review = {cards_till_ready_for_review}
             WHERE card_id = {card_id};
         "),
         success = success,
@@ -339,6 +357,8 @@ impl CardReviewRequest {
         seen_at = seen_at,
         reviewed_at = reviewed_at,
         review_after = review_after,
+        reviewed_at_count = reviewed_at_count,
+        cards_till_ready_for_review = cards_till_ready_for_review,
         card_id = self.card_id);
 
         let params: &[(&str, &ToSql)] = &[

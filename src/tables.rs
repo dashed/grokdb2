@@ -231,11 +231,11 @@ CREATE TABLE IF NOT EXISTS CardsScore (
     times_seen INT NOT NULL DEFAULT 0,
 
     seen_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
+
     reviewed_at INT NOT NULL DEFAULT (strftime('%s', 'now')),
+    review_after INT NOT NULL DEFAULT 10800,
 
     reviewed_at_count INT NOT NULL DEFAULT 0,
-
-    review_after INT NOT NULL DEFAULT 10800,
     cards_till_ready_for_review INT NOT NULL DEFAULT 0,
 
     card_id INTEGER NOT NULL,
