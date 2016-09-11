@@ -75,10 +75,6 @@ use types::DeckID;
 
 fn main() {
 
-    /* global vars */
-
-    let mut root_deck_id = 1;
-
     /* database */
 
     let global_lock = {
@@ -94,49 +90,9 @@ fn main() {
 
         let _read_guard = context::write_lock(bootstrap_context.clone());
 
-        let should_create_root_deck: bool = match user::get_root_deck(bootstrap_context.clone()) {
-            Ok(maybe_deck_id) => {
-                match maybe_deck_id {
-                    None => true,
-                    Some(deck_id) => {
-                        match user::is_root_deck(bootstrap_context.clone(), deck_id) {
-                            Ok(confirm) => {
-                                !confirm
-                            },
-                            Err(why) => {
-                                // TODO: fix
-                                panic!("unable to confirm root_deck");
-                            }
-                        }
-                    }
-                }
-            },
-            Err(why) => {
-                // TODO: fix
-                panic!("unable to get root_deck");
-            }
-        };
-
-
-        if should_create_root_deck {
-            // root deck not found.
-            // create a root deck.
-            let request = decks::CreateDeck {
-                name: "Library".to_string(),
-                description: "".to_string(),
-            };
-
-            let root_deck = decks::create_deck(bootstrap_context.clone(), request).unwrap();
-
-            user::set_root_deck(bootstrap_context.clone(), root_deck.id).unwrap();
-
-            root_deck_id = root_deck.id;
-        }
+        user::set_up_user(bootstrap_context.clone()).unwrap();
 
     };
-
-    // freeze root_deck_id
-    let root_deck_id = root_deck_id;
 
     // TODO: debug
     {
@@ -144,6 +100,8 @@ fn main() {
         let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
 
         let _read_guard = context::write_lock(context.clone());
+
+        let root_deck_id = user::get_root_deck(context.clone()).unwrap().unwrap();
 
         for deck_num in 1..245 {
 
@@ -189,9 +147,6 @@ fn main() {
         }
     };
 
-
-    println!("Root deck id: {}", root_deck_id);
-
     /* server */
 
     let address = ("0.0.0.0", 3000);
@@ -221,7 +176,6 @@ fn main() {
             lock_state_ref_write_count: 0,
 
             user_id: 42,
-            root_deck_id: root_deck_id,
             request_uri: format!("{}", request.uri),
 
             /* caching */

@@ -35,7 +35,8 @@ pub struct Context {
     pub lock_state_ref_write_count: u64,
 
     pub user_id: UserID,
-    pub root_deck_id: DeckID,
+    // TODO: remove
+    // pub root_deck_id: DeckID,
     pub request_uri: String,
 
     /* cache */
@@ -58,7 +59,6 @@ impl Context {
             lock_state_ref_write_count: 0,
 
             user_id: 42,
-            root_deck_id: 1,
             request_uri: "".to_string(),
 
             // cache

@@ -13,6 +13,62 @@ use api::{configs, decks};
 /* ////////////////////////////////////////////////////////////////////////// */
 
 #[inline]
+pub fn set_up_user(context: Rc<RefCell<Context>>) -> Result<(), RawAPIError> {
+
+    assert!(context.borrow().is_write_locked());
+
+    // set up root deck
+
+    let should_create_root_deck: bool = match get_root_deck(context.clone()) {
+        Ok(maybe_deck_id) => {
+            match maybe_deck_id {
+                None => true,
+                Some(deck_id) => {
+                    match is_root_deck(context.clone(), deck_id) {
+                        Ok(confirm) => {
+                            !confirm
+                        },
+                        Err(why) => {
+                            return Err(why);
+                        }
+                    }
+                }
+            }
+        },
+        Err(why) => {
+            return Err(why);
+        }
+    };
+
+    if should_create_root_deck {
+        // root deck not found.
+        // create a root deck.
+        let request = decks::CreateDeck {
+            name: "Library".to_string(),
+            description: "".to_string(),
+        };
+
+        let root_deck = try!(decks::create_deck(context.clone(), request));
+
+        try!(set_root_deck(context.clone(), root_deck.id));
+
+    }
+
+    // set up review count
+
+    match try!(get_review_count(context.clone())) {
+        None => {
+            try!(set_review_count(context, 0));
+        },
+        Some(_) => {
+            // review count exists
+        }
+    }
+
+    return Ok(());
+}
+
+#[inline]
 pub fn set_review_count(context: Rc<RefCell<Context>>,
     review_count: ReviewCount) -> Result<ReviewCount, RawAPIError> {
 
@@ -35,7 +91,7 @@ pub fn set_review_count(context: Rc<RefCell<Context>>,
 }
 
 #[inline]
-pub fn get_review_count(context: Rc<RefCell<Context>>) -> Result<ReviewCount, RawAPIError> {
+pub fn get_review_count(context: Rc<RefCell<Context>>) -> Result<Option<ReviewCount>, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
 
@@ -46,7 +102,7 @@ pub fn get_review_count(context: Rc<RefCell<Context>>) -> Result<ReviewCount, Ra
 
             match config {
                 None => {
-                    return Ok(0);
+                    return Ok(None);
                 },
                 Some(config) => {
 
@@ -54,10 +110,10 @@ pub fn get_review_count(context: Rc<RefCell<Context>>) -> Result<ReviewCount, Ra
 
                     match review_count.parse::<ReviewCount>() {
                         Ok(review_count) => {
-                            return Ok(review_count);
+                            return Ok(Some(review_count));
                         }
                         Err(_) => {
-                            return Ok(0);
+                            return Ok(None);
                         }
                     }
                 }
