@@ -193,7 +193,7 @@ const __PerformanceControls = function(props) {
                             'is-disabled': submitting
                         })}
                     style={{
-                        color: '#978b52'
+                        color: '#454552'
                     }}
                     onClick={submitting ? noOp() : switchPerformance(props.dispatch, FORGOT)}
                 >
@@ -243,7 +243,10 @@ const __CommitButton = function(props) {
 
         if(chosenPerformance === NOT_SELECTED) {
             return (
-                <a className='button is-fullwidth is-bold is-disabled is-medium'>
+                <a
+                    className='button is-fullwidth is-bold is-disabled is-medium'
+                    style={{borderColor: 'transparent'}}
+                >
                     {'How well did you answer the card?'}
                 </a>
             );
@@ -256,8 +259,9 @@ const __CommitButton = function(props) {
                     'is-disabled is-loading': props.submitting
                 })}
                 onClick={reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting)}
+                style={{color: '#454552'}}
             >
-                {'Next Card'}
+                {'Answer, and get next card'}
             </a>
         );
     }
@@ -268,7 +272,7 @@ const __CommitButton = function(props) {
             className='button is-success is-fullwidth is-bold is-medium'
             onClick={shouldRevealAnswer(dispatch, true)}
         >
-            {'Reveal Answer'}
+            {'Reveal answer'}
         </a>
     );
 };
@@ -355,7 +359,7 @@ const __MainControls = function(props) {
 
                     onClick={skipCardOnClick}
                 >
-                    {'Skip Card'}
+                    {'Skip card'}
                 </a>
             </div>
         </div>
