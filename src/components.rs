@@ -372,6 +372,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
                                         POST_TO: '{post_to}',\
+                                        PROFILE_URL: '{profile_url}',\
                                         CARD_ID: {card_id},\
                                         CARD_TITLE: {card_title},\
                                         CARD_DESCRIPTION: {card_description},\
@@ -382,6 +383,8 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     }};\
                                 ",
                                 post_to = generate_post_to(app_route),
+                                profile_url = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, Default::default()))),
                                 card_id = card_id,
                                 card_title = card_title,
                                 card_description = card_description,
