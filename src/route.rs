@@ -94,6 +94,12 @@ pub enum CardRoute {
     Settings
 }
 
+impl Default for CardRoute {
+    fn default() -> Self {
+        CardRoute::Contents
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum DeckRoute {
 

@@ -385,7 +385,7 @@ impl CardReviewRequest {
 
 #[derive(Serialize)]
 pub struct CardForReview {
-    post_to: String,
+    post_to: String, // TODO: doesn't seem to be useful; remove
     profile_url: String,
     card: Card,
     card_meta: Option<CachedReviewProcedure>

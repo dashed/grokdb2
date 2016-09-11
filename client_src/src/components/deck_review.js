@@ -57,6 +57,7 @@ const SHOW_PREVIEW_SOURCE_BUTTONS = 'SHOW_PREVIEW_SOURCE_BUTTONS';
 const SUBMITTING = 'SUBMITTING';
 const SET_CARD = 'SET_CARD';
 const HAS_CARD_FOR_REVIEW = 'HAS_CARD_FOR_REVIEW';
+const PROFILE_URL = 'PROFILE_URL';
 
 /* react components */
 
@@ -892,18 +893,32 @@ const TabGroupComponent = connect(
 
 const __Card = function(props) {
 
-    const {title, mathjaxifyCardTitle} = props;
+    const {title, mathjaxifyCardTitle, cardID, profileURL} = props;
 
     return (
         <div>
             <div className='columns' style={{marginBottom: 0}}>
                 <div className='column'>
-                    <CardTitle
-                        content={title}
-                        mathjaxify={mathjaxifyCardTitle}
-                        notice={'No card title rendered.'}
-                        isEditing={false}
-                    />
+                    <div className='level'>
+                        <div className='level-left'>
+                            <div className='level-item'>
+                                <CardTitle
+                                    content={title}
+                                    mathjaxify={mathjaxifyCardTitle}
+                                    notice={'No card title rendered.'}
+                                    isEditing={false}
+                                />
+                            </div>
+                        </div>
+                        <div className='level-right'>
+                            <div className='level-item'>
+                                <a href={profileURL} className='button is-outlined'>
+                                    {'Card #' + cardID}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
             <PreviewSourceTitleComponentWrap />
@@ -916,6 +931,8 @@ if(process.env.NODE_ENV !== 'production') {
     __Card.propTypes = {
         title: React.PropTypes.string.isRequired,
         mathjaxifyCardTitle: React.PropTypes.bool.isRequired,
+        cardID: React.PropTypes.number.isRequired,
+        profileURL: React.PropTypes.string.isRequired,
     };
 }
 
@@ -925,6 +942,8 @@ const Card = connect(
         return {
             mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
             title: state[CARD_TITLE][MARKDOWN_CONTENTS],
+            cardID: state[CARD_ID],
+            profileURL: state[PROFILE_URL]
         };
     }
 
@@ -1613,6 +1632,7 @@ const cardReducer = function(state, action) {
     };
     let cardMeta = {};
     let hasCardForReview = false;
+    let profileURL = '';
 
     switch(action.type) {
     case SET_CARD:
@@ -1620,6 +1640,8 @@ const cardReducer = function(state, action) {
         if(payload.has_card_for_review) {
 
             hasCardForReview = true;
+
+            profileURL = payload.card_for_review.profile_url;
 
             const __card = payload.card_for_review.card;
 
@@ -1641,6 +1663,8 @@ const cardReducer = function(state, action) {
     }
 
     const newState = {
+
+        [PROFILE_URL]: profileURL,
 
         [CARD_ID]: card.id,
 
@@ -1709,6 +1733,7 @@ const generateReviewRequest = function(state) {
 const initialState = {
 
     [POST_TO]: '',
+    [PROFILE_URL]: '',
 
     [CARD_ID]: 0,
 
