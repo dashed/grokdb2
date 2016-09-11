@@ -1,79 +1,30 @@
+// NOTE:
+// - https://github.com/webpack/docs/wiki/optimization#multi-page-app
+
 var
 path = require('path'),
 webpack = require('webpack');
+var CommonsChunkPlugin = require("webpack/lib/optimize/CommonsChunkPlugin");
+var StatsPlugin = require('stats-webpack-plugin');
 
+// TODO: fix
 var is_production = process.env.NODE_ENV === 'production';
 
 var appRoot = __dirname;
-
-// TODO: delete this
-var vendor = [
-
-    // babel
-    // TODO: deferred to cdn
-    // 'babel-polyfill',
-
-    // TODO: generators are not used
-    // 'babel-runtime/regenerator',
-
-    // TODO: fix
-    // 'core-js',
-    // 'babel-runtime',
-
-
-    // 'babel-runtime/core-js',
-
-    // utils
-    'classnames',
-    // 'bluebird',
-    // 'little-loader',
-
-
-    // TODO: too big; import individual functions instead
-    // 'lodash',
-    'lodash/isFunction',
-    'lodash/get',
-    'lodash/set',
-    'lodash/merge',
-
-    // TODO: deferred to cdn via webpack externals
-    // react
-    'react',
-    'react-dom',
-
-
-
-    // 3rd-party react components
-    'react-textarea-autosize',
-
-
-
-    // redux
-    'redux',
-    'react-redux',
-    'redux-form',
-
-];
 
 module.exports = {
     colors: true,
     watch: true,
     entry: {
         mathjax_inline: "./src/mathjax_inline.js",
-
         new_deck: "./src/new_deck.js",
         new_card: "./src/new_card.js",
         deck_description: "./src/deck_description.js",
         deck_settings_main: "./src/deck_settings_main.js",
-
         deck_card_profile: "./src/deck_card_profile.js",
         deck_card_settings: "./src/deck_card_settings.js",
-
         deck_review: "./src/deck_review.js",
-
-        // TODO: complete this... this is optmization step
-        // TODO: need common chunks stuff
-        // vendor: vendor
+        card_review: "./src/card_review.js",
     },
 
     output: {
@@ -120,8 +71,12 @@ module.exports = {
           }
         }),
 
-        // TODO: avoid chunk loading to decrease loading cost
-        // new webpack.optimize.CommonsChunkPlugin(/* chunkName= */"vendor", /* filename= */"vendor.js")
+        new CommonsChunkPlugin("commons.js"),
+        new webpack.optimize.DedupePlugin(),
+        new StatsPlugin('stats.json', {
+          chunkModules: true,
+          // exclude: [/node_modules[\\\/]react/]
+        })
     ],
 
 
