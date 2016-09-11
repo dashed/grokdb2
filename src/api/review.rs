@@ -23,7 +23,7 @@ use api::cards::{self, Card};
 use api::decks::{self, Deck};
 use api::user;
 use route::{AppRoute, DeckRoute};
-use components::{generate_post_to};
+use components::{generate_post_to, view_route_to_link};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -386,6 +386,7 @@ impl CardReviewRequest {
 #[derive(Serialize)]
 pub struct CardForReview {
     post_to: String,
+    profile_url: String,
     card: Card,
     card_meta: Option<CachedReviewProcedure>
 }
@@ -414,7 +415,7 @@ impl ReviewResponse {
             None => (None, None),
             Some((card_id, cached_review_procedure)) => {
 
-                match cards::get_card(context, card_id) {
+                match cards::get_card(context.clone(), card_id) {
                     Ok(card) => (Some(card), cached_review_procedure),
                     Err(why) => {
                         return Err(why);
@@ -428,6 +429,8 @@ impl ReviewResponse {
         let card_for_review = if let Some(card) = card {
             let card_for_review = CardForReview {
                 post_to: generate_post_to(&AppRoute::Deck(deck.id, DeckRoute::Review(None))),
+                profile_url: view_route_to_link(context,
+                                    AppRoute::Deck(deck.id, DeckRoute::CardProfile(card.id, Default::default()))),
                 card: card,
                 card_meta: cached_review_procedure
             };
