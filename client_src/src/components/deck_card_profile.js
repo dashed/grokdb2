@@ -36,6 +36,8 @@ const {
 
 const {reduceIn} = require('lib/redux-tree');
 
+const MORE_TIMESTAMPS = 'MORE_TIMESTAMPS';
+
 /* react components */
 
 const MarkdownRender = require('components/dumb/markdown_render');
@@ -56,45 +58,40 @@ const __ToolBar = function(props) {
         };
 
         return (
-            <div className='level'>
-                <div className='level-left'>
-                    <div className='level-item'>
-                        <a
-                            className={classnames('button is-success is-bold', {
-                                'is-disabled': submitting ||
-                                    !shouldSaveCard(props.title, props.question),
-                                'is-loading': submitting
-                            })}
-                            onClick={handleSubmit(saveCard.bind(null, dispatch, postURL))}
-                            >
-                            {'Save'}
-                        </a>
-                    </div>
-                </div>
-                <div className='level-right'>
-                    <div className='level-item'>
-                        <a
-                            className={classnames('button is-danger is-bold')}
-                            onClick={switchEditMode(dispatch, false, cancel)}>
-                            {'Cancel & Discard'}
-                        </a>
-                    </div>
-                </div>
+            <div className='control is-grouped'>
+                <p className='control'>
+                    <a
+                        className={classnames('button is-success is-bold', {
+                            'is-disabled': submitting ||
+                                !shouldSaveCard(props.title, props.question),
+                            'is-loading': submitting
+                        })}
+                        onClick={handleSubmit(saveCard.bind(null, dispatch, postURL))}
+                        >
+                        {'Save'}
+                    </a>
+                </p>
+                <p className='control'>
+                    <a
+                        className={classnames('button is-danger is-bold')}
+                        onClick={switchEditMode(dispatch, false, cancel)}>
+                        {'Cancel & Discard'}
+                    </a>
+                </p>
             </div>
         );
+
     }
 
     return (
-        <div className='level'>
-            <div className='level-left'>
-                <div className='level-item'>
-                    <a
-                        className={classnames('button is-success is-bold')}
-                        onClick={switchEditMode(dispatch, true)}>
-                        {'Edit'}
-                    </a>
-                </div>
-            </div>
+        <div className='control is-grouped'>
+            <p className='control'>
+                <a
+                    className={classnames('button is-success is-bold')}
+                    onClick={switchEditMode(dispatch, true)}>
+                    {'Edit'}
+                </a>
+            </p>
         </div>
     );
 };
@@ -291,6 +288,47 @@ if(process.env.NODE_ENV !== 'production') {
     };
 }
 
+const __Timestamps = function(props) {
+
+    const {dispatch, moreTimestamps} = props;
+
+    if(moreTimestamps) {
+        return (
+            <div>
+                <small>{'Created at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
+                <small>{'Last edited at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
+                <small>{'Last picked for review at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
+                <small>{'Last answered at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
+                <small><a onClick={switchTimestamps(dispatch, false)}>{'Less'}</a></small>
+            </div>
+        );
+    }
+
+    return (
+        <div>
+            <small>{'Created at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
+            <small>{'Last edited at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
+            <small><a onClick={switchTimestamps(dispatch, true)}>{'More'}</a></small>
+        </div>
+    );
+};
+
+if(process.env.NODE_ENV !== 'production') {
+    __Timestamps.propTypes = {
+        moreTimestamps: React.PropTypes.bool.isRequired,
+        dispatch: React.PropTypes.func.isRequired,
+    };
+}
+
+const Timestamps = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            moreTimestamps: state[MORE_TIMESTAMPS]
+        };
+    }
+)(__Timestamps);
+
 const __CardProfileContainer = function(props) {
 
     const {
@@ -310,37 +348,28 @@ const __CardProfileContainer = function(props) {
             <ErrorComponent error={error && error.message || ''} />
             <div className='columns' style={{marginBottom: 0}}>
                 <div className='column'>
-                    <ToolBar
-                        handleSubmit={handleSubmit}
-                        resetForm={resetForm}
-                        submitting={submitting}
-                        question={question.value || ''}
-                        title={title.value || ''}
-                    />
-                </div>
-            </div>
-            <div className='columns'>
-                <div className='column'>
-                    <hr className='is-marginless'/>
-                </div>
-            </div>
-            <div className='columns' style={{marginBottom: 0}}>
-                <div className='column'>
-                    <label className='checkbox'>
-                        <input type='checkbox' {...assign({}, is_active)} disabled={!isEditing} />
-                        {' Active for review'}
-                    </label>
-                </div>
-            </div>
-            <div className='columns' style={{marginBottom: 0}}>
-                <div className='column'>
-                    <CardTitle
-                        content={title.value}
-                        mathjaxify={mathjaxifyCardTitle}
-                        notice={'No card title rendered.  Click on "Source" tab and enter a card title.'}
-                        isEditing={isEditing}
-                        assignField={title}
-                    />
+                    <div className='level'>
+                        <div className='level-item'>
+                            <CardTitle
+                                content={title.value}
+                                mathjaxify={mathjaxifyCardTitle}
+                                notice={'No card title rendered.  Click on "Source" tab and enter a card title.'}
+                                isEditing={isEditing}
+                                assignField={title}
+                            />
+                        </div>
+                        <div className='level-right' style={{marginLeft: '10px'}}>
+                            <div className='level-item'>
+                                <ToolBar
+                                    handleSubmit={handleSubmit}
+                                    resetForm={resetForm}
+                                    submitting={submitting}
+                                    question={question.value || ''}
+                                    title={title.value || ''}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className='columns'>
@@ -348,6 +377,26 @@ const __CardProfileContainer = function(props) {
                     <RenderSourceTitleComponent
                         extraClasses='is-small'
                     />
+                </div>
+            </div>
+            <div className='columns' style={{marginBottom: 0}}>
+                <div className='column'>
+                    <div className='level'>
+                        <div className='level-left'>
+                            <div className='level-item'>
+                                <Timestamps />
+                                {' '}
+                            </div>
+                        </div>
+                        <div className='level-right'>
+                            <div className='level-left'>
+                                <label className='checkbox'>
+                                    <input type='checkbox' {...assign({}, is_active)} disabled={!isEditing} />
+                                    {' Active for review'}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className='columns'>
@@ -685,6 +734,24 @@ const saveCard = function(dispatch, postURL, formData) {
 
 };
 
+const switchTimestamps = function(dispatch, reveal = false) {
+    return function(event) {
+        event.preventDefault();
+        dispatch(
+            reduceIn(
+                // reducer
+                boolReducer,
+                // path
+                [MORE_TIMESTAMPS],
+                // action
+                {
+                    type: reveal
+                }
+            )
+        );
+    };
+};
+
 const NOTHING = function() {};
 const switchEditMode = function(dispatch, isEditing, after = NOTHING) {
     return function(event) {
@@ -799,6 +866,7 @@ const switchTab = function(dispatch, newTab) {
 
 const markdownViewReducer = require('reducers/markdown_view');
 const tabReducer = require('reducers/card_tab');
+const boolReducer = require('reducers/bool');
 const editingReducer = require('reducers/bool');
 const isActiveReducer = require('reducers/bool');
 const markdownContentsReducer = require('reducers/markdown_contents');
@@ -837,6 +905,8 @@ const initialState = {
     [CARD_IS_ACTIVE]: {
         // [VALUE]
     },
+
+    [MORE_TIMESTAMPS]: false,
 
     // redux-form. generate initial state.
     form: reduxformReducer()
