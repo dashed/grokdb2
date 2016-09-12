@@ -157,6 +157,9 @@ pub fn generate_post_to(app_route: &AppRoute) -> String {
                         CardRoute::Contents => {
                             format!("/api/card/{card_id}/update", card_id = card_id)
                         },
+                        CardRoute::Review => {
+                            format!("/api/card/{card_id}/review", card_id = card_id)
+                        },
                         _ => {
                             panic!("invalid use of generate_post_to");
                         }
@@ -477,6 +480,67 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     )
                                 )
                             }
+
+                        },
+                        CardRoute::Review => {
+
+                            let (card_title,
+                                card_description,
+                                card_question,
+                                card_answer) = match cards::get_card(context.clone(), card_id) {
+                                Ok(card) => {
+
+                                    let card_title = MarkdownContents {
+                                        MARKDOWN_CONTENTS: card.title
+                                    };
+                                    let card_title = serde_json::to_string(&card_title).unwrap();
+
+                                    let card_description = MarkdownContents {
+                                        MARKDOWN_CONTENTS: card.description
+                                    };
+                                    let card_description = serde_json::to_string(&card_description).unwrap();
+
+                                    let card_question = MarkdownContents {
+                                        MARKDOWN_CONTENTS: card.question
+                                    };
+                                    let card_question = serde_json::to_string(&card_question).unwrap();
+
+                                    let card_answer = MarkdownContents {
+                                        MARKDOWN_CONTENTS: card.answer
+                                    };
+                                    let card_answer = serde_json::to_string(&card_answer).unwrap();
+
+                                    (card_title, card_description, card_question, card_answer)
+                                },
+                                Err(_) => {
+                                    // TODO: internal error logging
+                                    panic!();
+                                }
+                            };
+
+                            tmpl << html! {
+                                : raw!(
+                                    format!(
+                                        "window.__PRE_RENDER_STATE__ = \
+                                            {{\
+                                                POST_TO: '{post_to}',\
+                                                CARD_ID: {card_id},\
+                                                CARD_TITLE: {card_title},\
+                                                CARD_DESCRIPTION: {card_description},\
+                                                CARD_QUESTION: {card_question},\
+                                                CARD_ANSWER: {card_answer}\
+                                            }};\
+                                        ",
+                                        post_to = generate_post_to(app_route),
+                                        card_id = card_id,
+                                        card_title = card_title,
+                                        card_description = card_description,
+                                        card_question = card_question,
+                                        card_answer = card_answer
+                                    )
+                                )
+                            };
+
 
                         },
                         _ => {}
