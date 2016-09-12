@@ -141,7 +141,7 @@ const CardTitle = React.createClass({
                             type='text'
                             placeholder='Card Title'
                             autoFocus
-                            disabled={!this.props.isEditing}
+                            readOnly={!this.props.isEditing}
                             {...assign({value: this.props.content}, this.props.assignField)}
                         />
                     </p>
