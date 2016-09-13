@@ -608,7 +608,8 @@ const saveCard = function(dispatch, postURL, formData) {
 
             case 200: // Ok
 
-                const newCard = __jsonResponse.payload;
+                const newCard = __jsonResponse.payload.card;
+                const cardScore = __jsonResponse.payload.card_score;
 
                 // update card contents
                 dispatch(
@@ -676,6 +677,58 @@ const saveCard = function(dispatch, postURL, formData) {
                         // action
                         {
                             type: !!newCard.is_active
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        typeReducer,
+                        // path
+                        [CREATED_AT],
+                        // action
+                        {
+                            type: newCard.created_at
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        typeReducer,
+                        // path
+                        [UPDATED_AT],
+                        // action
+                        {
+                            type: newCard.updated_at
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        typeReducer,
+                        // path
+                        [SEEN_AT],
+                        // action
+                        {
+                            type: cardScore.seen_at
+                        }
+                    )
+                );
+
+                dispatch(
+                    reduceIn(
+                        // reducer
+                        typeReducer,
+                        // path
+                        [REVIEWED_AT],
+                        // action
+                        {
+                            type: cardScore.reviewed_at
                         }
                     )
                 );
@@ -912,6 +965,7 @@ const boolReducer = require('reducers/bool');
 const editingReducer = require('reducers/bool');
 const isActiveReducer = require('reducers/bool');
 const markdownContentsReducer = require('reducers/markdown_contents');
+const typeReducer = require('reducers/type');
 
 /* default state */
 
