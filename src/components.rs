@@ -1125,17 +1125,94 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                 }
                             }
                     },
-                    DeckRoute::CardProfile(card_id, _) => {
-                            tmpl << html!{
+                    DeckRoute::CardProfile(card_id, ref card_route) => {
 
-                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    : raw!(" / ");
+                        match *card_route {
+                            CardRoute::Contents => {
+
+                                tmpl << html!{
+
+                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                        : raw!(" / ");
+                                    }
+
+                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                        : raw!(format!("Card #{}", card_id))
+                                    }
                                 }
 
-                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                    : raw!(format!("Card #{}", card_id))
+                            },
+
+                            CardRoute::Review => {
+
+                                tmpl << html!{
+
+                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                        : raw!(" / ");
+                                    }
+
+                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                        : raw!(format!("Card #{}", card_id))
+                                    }
+
+                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                        : raw!(" / ");
+                                    }
+
+                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                        : raw!("Review")
+                                    }
                                 }
+
+                            },
+
+                            CardRoute::Stats => {
+
+                                tmpl << html!{
+
+                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                        : raw!(" / ");
+                                    }
+
+                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                        : raw!(format!("Card #{}", card_id))
+                                    }
+
+                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                        : raw!(" / ");
+                                    }
+
+                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                        : raw!("Statistics")
+                                    }
+                                }
+
+                            },
+
+                            CardRoute::Settings => {
+
+                                tmpl << html!{
+
+                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                        : raw!(" / ");
+                                    }
+
+                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                        : raw!(format!("Card #{}", card_id))
+                                    }
+
+                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                        : raw!(" / ");
+                                    }
+
+                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                        : raw!("Settings")
+                                    }
+                                }
+
                             }
+                        }
+
                     }
                 }
             }
@@ -2694,13 +2771,14 @@ fn CardDetailStats(
 
     tmpl << html!{
 
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Card Stats")
-                }
-            }
-        }
+        // TODO: remove
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Card Stats")
+        //         }
+        //     }
+        // }
 
         div(id="card_stats_container") {
         }
@@ -2716,19 +2794,20 @@ fn CardDetailSettings(
 
     tmpl << html!{
 
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Card Settings")
-                }
-            }
-        }
+        // TODO: remove
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Card Settings")
+        //         }
+        //     }
+        // }
 
-        div(class="columns") {
-            div(class="column") {
-                hr(class="is-marginless");
-            }
-        }
+        // div(class="columns") {
+        //     div(class="column") {
+        //         hr(class="is-marginless");
+        //     }
+        // }
 
         div(class="columns") {
             div(class="column") {
