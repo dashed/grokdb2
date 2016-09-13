@@ -1,4 +1,3 @@
-/*global MathJax: true */
 /*eslint new-cap: [2, {"capIsNewExceptions": ["MathJax.Hub.Queue", "Remove"]}]*/
 
 const React = require('react');
@@ -46,11 +45,12 @@ const MarkdownRenderInline = React.createClass({
 
     componentDidUpdate() {
 
+        const MathJax = window.MathJax;
+
         if(!MathJax) {
 
             if(process.env.NODE_ENV !== 'production') {
-                const invariant = require('invariant');
-                invariant(MathJax, 'no MathJax loaded');
+                console.warn('Expected MathJax');
             }
 
             return;
@@ -65,11 +65,12 @@ const MarkdownRenderInline = React.createClass({
 
     componentDidMount() {
 
+        const MathJax = window.MathJax;
+
         if(!MathJax) {
 
             if(process.env.NODE_ENV !== 'production') {
-                const invariant = require('invariant');
-                invariant(MathJax, 'no MathJax loaded');
+                console.warn('Expected MathJax');
             }
 
             return;
@@ -84,11 +85,12 @@ const MarkdownRenderInline = React.createClass({
 
     componentWillUnmount() {
 
+        const MathJax = window.MathJax;
+
         if(!MathJax) {
 
             if(process.env.NODE_ENV !== 'production') {
-                const invariant = require('invariant');
-                invariant(MathJax, 'no MathJax loaded');
+                console.warn('Expected MathJax');
             }
 
             return;
