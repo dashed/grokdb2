@@ -17,7 +17,8 @@ name = "grokdb2"
 # rename this
 # path = "src/guardian.rs"
 path = "src/main.rs"
-# path = "src/moo.rs"
+# path = "src/timezone_test.rs"
+# path = "src/pcg_test.rs"
 # path = "src/json_sandbox.rs"
 
 [dependencies.chomp]
@@ -57,6 +58,10 @@ random-wheel = { git = "https://github.com/dashed/random-wheel-rs", branch = "ma
 rand = "0.3"
 libc = "0.2.12"
 pcg = {git = "https://github.com/codahale/pcg"}
+
+# for timezones
+phf = "0.7.16"
+datetime = "0.4.2"
 
 [features]
 default = []

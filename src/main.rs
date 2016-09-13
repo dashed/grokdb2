@@ -29,6 +29,9 @@ extern crate random_wheel;
 extern crate rand;
 extern crate libc;
 extern crate pcg;
+extern crate phf;
+extern crate datetime;
+
 
 /* rust lib imports */
 
@@ -63,6 +66,7 @@ mod log_entry;
 mod route;
 mod components;
 mod timestamp;
+mod timezones;
 
 
 use context::{Context};
