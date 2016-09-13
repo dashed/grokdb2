@@ -16,7 +16,7 @@ pub fn to_string(source: NaiveDateTime) -> String {
     let timezone = FixedOffset::west(edt);
     let foo: DateTime<FixedOffset> = DateTime::from_utc(source, timezone);
 
-    let formatted = foo.format("%B %-d, %Y %-l:%M %p %Z (%:z)");
+    let formatted = foo.format("%B %-d, %Y %-l:%M %p (%:z)");
 
     format!("{}", formatted)
 }
