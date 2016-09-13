@@ -2748,13 +2748,15 @@ fn CardDetailReview(
     card_id: CardID) {
 
     tmpl << html!{
-        div(class="columns") {
-            div(class="column") {
-                h1(class="title") {
-                    : raw!("Reviewing Card")
-                }
-            }
-        }
+
+        // TODO: remove
+        // div(class="columns") {
+        //     div(class="column") {
+        //         h1(class="title") {
+        //             : raw!("Reviewing Card")
+        //         }
+        //     }
+        // }
 
         div(id="card_review_container") {
             // TODO: static render
