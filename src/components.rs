@@ -882,7 +882,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                             }
                                         }
 
-                                        script(type="text/javascript", src="/assets/deck_card_review.js") {}
+                                        script(type="text/javascript", src="/assets/card_review.js") {}
                                     }
 
                                 },

@@ -531,6 +531,22 @@ fn __parse_route_api_card_review(
 
     let mut request = request.borrow_mut();
 
+    if request.method == Method::Get {
+
+        // GET /api/card/:id/review
+
+        let card = handle_api_result_json!(cards::get_card(context.clone(), card_id));
+        let card_score = handle_api_result_json!(review::get_card_score(context.clone(), card_id));
+
+        let response = cards::ReviewCardResponse {
+            card: card,
+            card_score: card_score
+        };
+
+        return respond_json!(Some(response));
+
+    }
+
     if request.method != Method::Post {
         return RenderResponse::MethodNotAllowed;
     }
