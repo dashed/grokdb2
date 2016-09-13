@@ -708,18 +708,19 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     }
                                 }
 
-                                div(class="nav-item") {
-                                    a(
-                                        class? = classnames!(
-                                            "is-bold",
-                                            "button is-primary" => {
-                                                // TODO: re-review this
-                                                matches!(*app_route, AppRoute::Stashes)
-                                            }),
-                                        href="#") {
-                                        : raw!("Stashes")
-                                    }
-                                }
+                                // TODO: add when complete
+                                // div(class="nav-item") {
+                                //     a(
+                                //         class? = classnames!(
+                                //             "is-bold",
+                                //             "button is-primary" => {
+                                //                 // TODO: re-review this
+                                //                 matches!(*app_route, AppRoute::Stashes)
+                                //             }),
+                                //         href="#") {
+                                //         : raw!("Stashes")
+                                //     }
+                                // }
 
                                 div(class="nav-item") {
                                     a(
