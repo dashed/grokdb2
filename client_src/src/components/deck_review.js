@@ -1580,6 +1580,7 @@ const confirmError = function(dispatch) {
 const markdownViewReducer = require('reducers/markdown_view');
 const boolReducer = require('reducers/bool');
 const tabReducer = require('reducers/card_tab');
+const errorReducer = require('reducers/error_message');
 
 const performanceReducer = function(state = NOT_SELECTED, action) {
 
@@ -1615,8 +1616,6 @@ const generateReviewAction = function(performance) {
 
     return 'Skip';
 };
-
-const errorReducer = require('reducers/error_message');
 
 const cardReducer = function(state, action) {
 
@@ -1703,13 +1702,6 @@ const cardReducer = function(state, action) {
 
         [CARD_META]: cardMeta,
 
-        // TODO: remove??
-        // [SUBMITTING]: false,
-
-        // TODO: remove??
-        // [ERROR]: {
-        //     message: ''
-        // }
     };
 
     return assign({}, state, newState);
