@@ -298,7 +298,6 @@ const __Timestamps = function(props) {
     const {dispatch, moreTimestamps} = props;
 
     let elements = [];
-    let hasMore = false;
 
     if(props[CREATED_AT] == props[UPDATED_AT]) {
         elements.push([<small>{'Created at ' + props[CREATED_AT]}</small>, <br/>]);
@@ -307,37 +306,27 @@ const __Timestamps = function(props) {
         elements.push([<small>{'Created at ' + props[CREATED_AT]}</small>, <br/>]);
     }
 
-    if(moreTimestamps) {
-
-        if(props[CREATED_AT] != props[SEEN_AT]) {
-            elements.push([<small>{'Last picked for review at ' + props[SEEN_AT]}</small>,
-                <br/>]);
-        }
-
-        if(props[CREATED_AT] != props[REVIEWED_AT]) {
-            elements.push([<small>{'Last answered at ' + props[REVIEWED_AT]}</small>,
-                <br/>]);
-        }
-
-        elements.push(<small><a onClick={switchTimestamps(dispatch, false)}>{'Less'}</a></small>);
-
-        return (
-            <div>
-                {elements}
-            </div>
-        );
-    }
 
     if(props[CREATED_AT] != props[SEEN_AT]) {
-        hasMore = true;
+        elements.push([<small>{'Last picked for review at ' + props[SEEN_AT]}</small>, <br/>]);
     }
 
     if(props[CREATED_AT] != props[REVIEWED_AT]) {
-        hasMore = true;
+        elements.push([<small>{'Last answered at ' + props[REVIEWED_AT]}</small>, <br/>]);
     }
 
-    if(hasMore) {
-        elements.push(<small><a onClick={switchTimestamps(dispatch, true)}>{'More'}</a></small>);
+    if(elements.length > 2) {
+        if(moreTimestamps) {
+            elements.push(<small><a onClick={switchTimestamps(dispatch, false)}>{'Less'}</a></small>);
+        } else {
+
+            let n = elements.length;
+            while(n-- > 2) {
+                elements.pop();
+            }
+
+            elements.push(<small><a onClick={switchTimestamps(dispatch, true)}>{'More'}</a></small>);
+        }
     }
 
     return (
