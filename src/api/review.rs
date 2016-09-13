@@ -18,7 +18,7 @@ use rusqlite::types::ToSql;
 
 use context::{self, Context};
 use errors::RawAPIError;
-use types::{ItemCount, CardID, DeckID, Offset, Minutes, ReviewCount};
+use types::{ItemCount, CardID, DeckID, Offset, Minutes, ReviewCount, UnixTimestamp};
 use api::cards::{self, Card};
 use api::decks::{self, Deck};
 use api::user;
@@ -509,6 +509,100 @@ pub trait Reviewable {
     fn deck_num_of_cards_for_review(&self,
         context: Rc<RefCell<Context>>,
         active_selection: &ActiveSelection) -> Result<ItemCount, RawAPIError>;
+}
+
+pub struct CardScore {
+    pub changelog: String,
+
+    pub success: u64,
+    pub fail: u64,
+
+    pub times_reviewed: u64,
+    pub times_seen: u64,
+
+    pub seen_at: UnixTimestamp,
+    pub reviewed_at: UnixTimestamp,
+    pub review_after: u64,
+
+    pub reviewed_at_count: ReviewCount,
+    pub cards_till_ready_for_review: ReviewCount
+}
+
+#[inline]
+pub fn get_card_score(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<CardScore, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let query = format!(indoc!("
+        SELECT
+            changelog,
+
+            success,
+            fail,
+
+            times_reviewed,
+            times_seen,
+
+            seen_at,
+
+            reviewed_at,
+            review_after,
+
+            reviewed_at_count,
+            cards_till_ready_for_review
+
+        FROM CardsScore
+        WHERE
+            card_id = {card_id}
+        LIMIT 1;
+    "), card_id = card_id);
+
+    let results = {
+        let context = context.borrow();
+        db_read_lock!(db_conn; context.database());
+        let db_conn: &Connection = db_conn;
+
+        let results = db_conn.query_row(&query, &[], |row| -> CardScore {
+
+            let success: i64 =  row.get(1);
+            let fail: i64 =  row.get(2);
+            let times_reviewed: i64 =  row.get(3);
+            let times_seen: i64 =  row.get(4);
+            let review_after: i64 =  row.get(7);
+            let reviewed_at_count: i64 =  row.get(8);
+            let cards_till_ready_for_review: i64 =  row.get(9);
+
+
+            return CardScore {
+                changelog: row.get(0),
+
+                success: success as u64,
+                fail: fail as u64,
+
+                times_reviewed: times_reviewed as u64,
+                times_seen: times_seen as u64,
+
+                seen_at: row.get(5),
+                reviewed_at: row.get(6),
+                review_after: review_after as u64,
+
+                reviewed_at_count: reviewed_at_count as u64,
+                cards_till_ready_for_review: cards_till_ready_for_review as u64
+            };
+        });
+
+        results
+    };
+
+    match results {
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+        Ok(card_score) => {
+
+            return Ok(card_score);
+        }
+    };
 }
 
 /* helpers */

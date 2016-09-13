@@ -446,6 +446,22 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 }
                             };
 
+                            let (seen_at, reviewed_at) = match review::get_card_score(context.clone(), card_id) {
+                                Ok(card_score) => {
+
+                                    let seen_at = timestamp::to_string(
+                                        NaiveDateTime::from_timestamp(card_score.seen_at, 0));
+
+                                    let reviewed_at = timestamp::to_string(
+                                        NaiveDateTime::from_timestamp(card_score.reviewed_at, 0));
+
+                                    (seen_at, reviewed_at)
+                                },
+                                Err(_) => {
+                                    panic!();
+                                }
+                            };
+
                             tmpl << html! {
                                 : raw!(
                                     format!(
@@ -458,7 +474,9 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                                 CARD_ANSWER: {answer},\
                                                 CARD_IS_ACTIVE: {is_active},\
                                                 CREATED_AT: '{created_at}',\
-                                                UPDATED_AT: '{updated_at}'\
+                                                UPDATED_AT: '{updated_at}',\
+                                                SEEN_AT: '{seen_at}',\
+                                                REVIEWED_AT: '{reviewed_at}'\
                                             }};\
                                         ",
                                         post_to = generate_post_to(app_route),
@@ -468,7 +486,9 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                         answer = answer,
                                         is_active = is_active,
                                         created_at = created_at,
-                                        updated_at = updated_at
+                                        updated_at = updated_at,
+                                        seen_at = seen_at,
+                                        reviewed_at = reviewed_at
                                     )
                                 )
                             }
