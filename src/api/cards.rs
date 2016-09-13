@@ -17,7 +17,7 @@ use context::Context;
 use types::{UnixTimestamp, CardID, DeckID, CardsPageQuery, Search, ItemCount, Offset};
 use errors::RawAPIError;
 use constants;
-use api::review::{self, ActiveSelection, CachedReviewProcedure};
+use api::review::{self, ActiveSelection, CachedReviewProcedure, CardScore};
 use api::user;
 use timestamp;
 
@@ -32,8 +32,8 @@ pub struct Card {
     pub answer: String,
     pub description: String,
 
-    pub created_at: UnixTimestamp,
-    pub updated_at: UnixTimestamp,
+    pub created_at: String,
+    pub updated_at: String,
 
     pub deck_id: DeckID,
 
@@ -93,6 +93,12 @@ impl UpdateCard {
 }
 
 #[derive(Debug, Serialize)]
+pub struct UpdatedCardResponse {
+    pub card: Card,
+    pub card_score: CardScore
+}
+
+#[derive(Debug, Serialize)]
 pub struct DeleteCardResponse {
     pub redirect_to: String
 }
@@ -136,14 +142,18 @@ pub fn get_card(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<Card, 
         let db_conn: &Connection = db_conn;
 
         let results = db_conn.query_row(&query, &[], |row| -> Card {
+
+            let created_at: UnixTimestamp = row.get(5);
+            let updated_at: UnixTimestamp = row.get(6);
+
             return Card {
                 id: row.get(0),
                 title: row.get(1),
                 description: row.get(2),
                 question: row.get(3),
                 answer: row.get(4),
-                created_at: row.get(5),
-                updated_at: row.get(6),
+                created_at: timestamp::to_string(NaiveDateTime::from_timestamp(created_at, 0)),
+                updated_at: timestamp::to_string(NaiveDateTime::from_timestamp(updated_at, 0)),
                 deck_id: row.get(7),
                 is_active: row.get(8)
             };

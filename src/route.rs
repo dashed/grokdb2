@@ -650,9 +650,16 @@ fn __parse_route_api_card_update(
 
             let _guard = context::write_lock(context.clone());
 
-            let updated_card = handle_api_result_html!(cards::update_card(context.clone(), card_id, request));
+            let updated_card = handle_api_result_json!(cards::update_card(context.clone(), card_id, request));
 
-            return respond_json!(Some(updated_card));
+            let card_score = handle_api_result_json!(review::get_card_score(context.clone(), card_id));
+
+            let response = cards::UpdatedCardResponse {
+                card: updated_card,
+                card_score: card_score
+            };
+
+            return respond_json!(Some(response));
 
         },
         Err(err) => {
@@ -757,7 +764,7 @@ fn parse_route_api_deck_root(
     // handle DELETE request to delete this deck
 
     // check if this deck is root deck
-    if handle_api_result_html!(user::is_root_deck(context.clone(), deck_id)) {
+    if handle_api_result_json!(user::is_root_deck(context.clone(), deck_id)) {
 
         // TODO: review and revise phrasing as necessary
         let err = "You are not allowed to delete the top-most deck.".to_string();

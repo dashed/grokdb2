@@ -435,8 +435,8 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     };
                                     let is_active = serde_json::to_string(&is_active).unwrap();
 
-                                    let created_at = timestamp::to_string(NaiveDateTime::from_timestamp(card.created_at, 0));
-                                    let updated_at = timestamp::to_string(NaiveDateTime::from_timestamp(card.updated_at, 0));
+                                    let created_at = card.created_at;
+                                    let updated_at = card.updated_at;
 
                                     (title, question, answer, description, is_active, created_at, updated_at)
                                 },
@@ -449,11 +449,9 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             let (seen_at, reviewed_at) = match review::get_card_score(context.clone(), card_id) {
                                 Ok(card_score) => {
 
-                                    let seen_at = timestamp::to_string(
-                                        NaiveDateTime::from_timestamp(card_score.seen_at, 0));
+                                    let seen_at = card_score.seen_at;
 
-                                    let reviewed_at = timestamp::to_string(
-                                        NaiveDateTime::from_timestamp(card_score.reviewed_at, 0));
+                                    let reviewed_at = card_score.reviewed_at;
 
                                     (seen_at, reviewed_at)
                                 },

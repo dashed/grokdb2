@@ -13,6 +13,7 @@ use rand::distributions::{Exp, IndependentSample};
 use pcg::PcgRng;
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
+use chrono::naive::datetime::NaiveDateTime;
 
 /* local imports */
 
@@ -24,6 +25,7 @@ use api::decks::{self, Deck};
 use api::user;
 use route::{AppRoute, DeckRoute};
 use components::{generate_post_to, view_route_to_link};
+use timestamp;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -511,6 +513,7 @@ pub trait Reviewable {
         active_selection: &ActiveSelection) -> Result<ItemCount, RawAPIError>;
 }
 
+#[derive(Debug, Serialize)]
 pub struct CardScore {
     pub changelog: String,
 
@@ -520,8 +523,8 @@ pub struct CardScore {
     pub times_reviewed: u64,
     pub times_seen: u64,
 
-    pub seen_at: UnixTimestamp,
-    pub reviewed_at: UnixTimestamp,
+    pub seen_at: String,
+    pub reviewed_at: String,
     pub review_after: u64,
 
     pub reviewed_at_count: ReviewCount,
@@ -572,6 +575,8 @@ pub fn get_card_score(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<
             let reviewed_at_count: i64 =  row.get(8);
             let cards_till_ready_for_review: i64 =  row.get(9);
 
+            let seen_at: UnixTimestamp = row.get(5);
+            let reviewed_at: UnixTimestamp = row.get(6);
 
             return CardScore {
                 changelog: row.get(0),
@@ -582,8 +587,8 @@ pub fn get_card_score(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<
                 times_reviewed: times_reviewed as u64,
                 times_seen: times_seen as u64,
 
-                seen_at: row.get(5),
-                reviewed_at: row.get(6),
+                seen_at: timestamp::to_string(NaiveDateTime::from_timestamp(seen_at, 0)),
+                reviewed_at: timestamp::to_string(NaiveDateTime::from_timestamp(reviewed_at, 0)),
                 review_after: review_after as u64,
 
                 reviewed_at_count: reviewed_at_count as u64,
