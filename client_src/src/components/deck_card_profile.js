@@ -31,7 +31,12 @@ const {
 
     POST_TO,
     IS_EDITING,
-    CURRENT_TAB
+    CURRENT_TAB,
+
+    CREATED_AT,
+    UPDATED_AT,
+    SEEN_AT,
+    REVIEWED_AT,
 } = require('global/constants');
 
 const {reduceIn} = require('lib/redux-tree');
@@ -292,23 +297,52 @@ const __Timestamps = function(props) {
 
     const {dispatch, moreTimestamps} = props;
 
+    let elements = [];
+    let hasMore = false;
+
+    if(props[CREATED_AT] == props[UPDATED_AT]) {
+        elements.push([<small>{'Created at ' + props[CREATED_AT]}</small>, <br/>]);
+    } else {
+        elements.push([<small>{'Edited at ' + props[UPDATED_AT]}</small>, <br/>]);
+        elements.push([<small>{'Created at ' + props[CREATED_AT]}</small>, <br/>]);
+    }
+
     if(moreTimestamps) {
+
+        if(props[CREATED_AT] != props[SEEN_AT]) {
+            elements.push([<small>{'Last picked for review at ' + props[SEEN_AT]}</small>,
+                <br/>]);
+        }
+
+        if(props[CREATED_AT] != props[REVIEWED_AT]) {
+            elements.push([<small>{'Last answered at ' + props[REVIEWED_AT]}</small>,
+                <br/>]);
+        }
+
+        elements.push(<small><a onClick={switchTimestamps(dispatch, false)}>{'Less'}</a></small>);
+
         return (
             <div>
-                <small>{'Created at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
-                <small>{'Last edited at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
-                <small>{'Last picked for review at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
-                <small>{'Last answered at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
-                <small><a onClick={switchTimestamps(dispatch, false)}>{'Less'}</a></small>
+                {elements}
             </div>
         );
     }
 
+    if(props[CREATED_AT] != props[SEEN_AT]) {
+        hasMore = true;
+    }
+
+    if(props[CREATED_AT] != props[REVIEWED_AT]) {
+        hasMore = true;
+    }
+
+    if(hasMore) {
+        elements.push(<small><a onClick={switchTimestamps(dispatch, true)}>{'More'}</a></small>);
+    }
+
     return (
         <div>
-            <small>{'Created at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
-            <small>{'Last edited at June 16, 2016 10:30 PM (5 hours ago)'}</small><br/>
-            <small><a onClick={switchTimestamps(dispatch, true)}>{'More'}</a></small>
+            {elements}
         </div>
     );
 };
@@ -317,6 +351,10 @@ if(process.env.NODE_ENV !== 'production') {
     __Timestamps.propTypes = {
         moreTimestamps: React.PropTypes.bool.isRequired,
         dispatch: React.PropTypes.func.isRequired,
+        [CREATED_AT]: React.PropTypes.string.isRequired,
+        [UPDATED_AT]: React.PropTypes.string.isRequired,
+        [SEEN_AT]: React.PropTypes.string.isRequired,
+        [REVIEWED_AT]: React.PropTypes.string.isRequired,
     };
 }
 
@@ -324,7 +362,11 @@ const Timestamps = connect(
     // mapStateToProps
     (state) => {
         return {
-            moreTimestamps: state[MORE_TIMESTAMPS]
+            moreTimestamps: state[MORE_TIMESTAMPS],
+            [CREATED_AT]: state[CREATED_AT],
+            [UPDATED_AT]: state[UPDATED_AT],
+            [SEEN_AT]: state[SEEN_AT],
+            [REVIEWED_AT]: state[REVIEWED_AT],
         };
     }
 )(__Timestamps);
@@ -372,7 +414,7 @@ const __CardProfileContainer = function(props) {
                     </div>
                 </div>
             </div>
-            <div className='columns'>
+            <div className='columns' style={{marginBottom: 0}}>
                 <div className='column'>
                     <RenderSourceTitleComponent
                         extraClasses='is-small'
@@ -907,6 +949,10 @@ const initialState = {
     },
 
     [MORE_TIMESTAMPS]: false,
+    [CREATED_AT]: '',
+    [UPDATED_AT]: '',
+    [SEEN_AT]: '',
+    [REVIEWED_AT]: '',
 
     // redux-form. generate initial state.
     form: reduxformReducer()

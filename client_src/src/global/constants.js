@@ -39,6 +39,11 @@ const CURRENT_TAB = 'CURRENT_TAB';
 const ERROR = 'ERROR';
 const ERROR_MESSAGE = 'ERROR_MESSAGE';
 
+const CREATED_AT = 'CREATED_AT';
+const UPDATED_AT = 'UPDATED_AT';
+const SEEN_AT = 'SEEN_AT';
+const REVIEWED_AT = 'REVIEWED_AT';
+
 module.exports = {
 
     MARKDOWN_VIEW,
@@ -70,4 +75,9 @@ module.exports = {
 
     ERROR,
     ERROR_MESSAGE,
+
+    CREATED_AT,
+    UPDATED_AT,
+    SEEN_AT,
+    REVIEWED_AT,
 };
