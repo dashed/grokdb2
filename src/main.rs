@@ -66,6 +66,7 @@ mod log_entry;
 mod route;
 mod components;
 mod timestamp;
+#[allow(non_snake_case)]
 mod timezones;
 
 
