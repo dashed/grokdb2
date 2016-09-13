@@ -9,11 +9,14 @@ use chrono::offset::fixed::FixedOffset;
 #[inline]
 pub fn to_string(source: NaiveDateTime) -> String {
 
-    let est = 4 * 60 * 60;
-    let timezone = FixedOffset::west(est);
+    // TODO: fix
+    let edt = 4 * 60 * 60;
+    let est = 5 * 60 * 60;
+
+    let timezone = FixedOffset::west(edt);
     let foo: DateTime<FixedOffset> = DateTime::from_utc(source, timezone);
 
-    let formatted = foo.format("%B %-d, %Y %-l:%M %p");
+    let formatted = foo.format("%B %-d, %Y %-l:%M %p %Z (%:z)");
 
     format!("{}", formatted)
 }
