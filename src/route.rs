@@ -560,8 +560,14 @@ fn __parse_route_api_card_review(
             handle_api_result_json!(request.commit(context.clone()));
 
             let card = handle_api_result_json!(cards::get_card(context.clone(), card_id));
+            let card_score = handle_api_result_json!(review::get_card_score(context.clone(), card_id));
 
-            return respond_json!(Some(card));
+            let response = cards::ReviewCardResponse {
+                card: card,
+                card_score: card_score
+            };
+
+            return respond_json!(Some(response));
 
         },
         Err(err) => {

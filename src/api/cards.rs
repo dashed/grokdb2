@@ -98,6 +98,13 @@ pub struct UpdatedCardResponse {
     pub card_score: CardScore
 }
 
+// This response is for when reviewing card individually
+#[derive(Debug, Serialize)]
+pub struct ReviewCardResponse {
+    pub card: Card,
+    pub card_score: CardScore
+}
+
 #[derive(Debug, Serialize)]
 pub struct DeleteCardResponse {
     pub redirect_to: String
