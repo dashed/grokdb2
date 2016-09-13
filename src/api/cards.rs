@@ -529,14 +529,18 @@ pub fn cards_in_deck(
     };
 
     let maybe_iter = statement.query_map(&[], |row| -> Card {
+
+        let created_at: UnixTimestamp = row.get(5);
+        let updated_at: UnixTimestamp = row.get(6);
+
         return Card {
             id: row.get(0),
             title: row.get(1),
             description: row.get(2),
             question: row.get(3),
             answer: row.get(4),
-            created_at: row.get(5),
-            updated_at: row.get(6),
+            created_at: timestamp::to_string(NaiveDateTime::from_timestamp(created_at, 0)),
+            updated_at: timestamp::to_string(NaiveDateTime::from_timestamp(updated_at, 0)),
             deck_id: row.get(7),
             is_active: row.get(8)
         };
