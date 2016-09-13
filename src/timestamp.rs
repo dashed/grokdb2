@@ -169,11 +169,11 @@ impl Timerange {
         let pretty_remainder = Timerange::new(remainder).print(depth - 1);
 
         if remainder < 60 || depth <= 2 {
-            return format!("{} {} and {}", elapsed, unit, pretty_remainder);
+            return format!("{} {}, and {}", elapsed, unit, pretty_remainder);
         }
 
 
-        return format!("{} {} {}", elapsed, unit, pretty_remainder);
+        return format!("{} {}, {}", elapsed, unit, pretty_remainder);
 
     }
 }
