@@ -14,7 +14,7 @@ use hyper::mime::{Mime, TopLevel, SubLevel};
 use hyper::uri::RequestUri;
 use hyper::status::StatusCode;
 use hyper::header::{Header, HeaderFormat};
-
+use chrono::naive::datetime::NaiveDateTime;
 use serde_json;
 
 /* local imports */
@@ -24,6 +24,7 @@ use context::{self, Context};
 use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, SortOrderable};
 use api::{decks, cards, user};
 use api::review::{self, CachedReviewProcedure};
+use timestamp;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -404,8 +405,8 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     match *card_route {
                         CardRoute::Contents => {
 
-                            let (title, question, answer, description, is_active):
-                                (String, String, String, String, String) =
+                            let (title, question, answer, description, is_active, created_at, updated_at):
+                                (String, String, String, String, String, String, String) =
                                 match cards::get_card(context.clone(), card_id) {
                                 Ok(card) => {
 
@@ -434,7 +435,10 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     };
                                     let is_active = serde_json::to_string(&is_active).unwrap();
 
-                                    (title, question, answer, description, is_active)
+                                    let created_at = timestamp::to_string(NaiveDateTime::from_timestamp(card.created_at, 0));
+                                    let updated_at = timestamp::to_string(NaiveDateTime::from_timestamp(card.updated_at, 0));
+
+                                    (title, question, answer, description, is_active, created_at, updated_at)
                                 },
                                 Err(_) => {
                                     // TODO: internal error logging
@@ -452,7 +456,9 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                                 CARD_DESCRIPTION: {description},\
                                                 CARD_QUESTION: {question},\
                                                 CARD_ANSWER: {answer},\
-                                                CARD_IS_ACTIVE: {is_active}\
+                                                CARD_IS_ACTIVE: {is_active},\
+                                                CREATED_AT: '{created_at}',\
+                                                UPDATED_AT: '{updated_at}'\
                                             }};\
                                         ",
                                         post_to = generate_post_to(app_route),
@@ -460,7 +466,9 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                         description = description,
                                         question = question,
                                         answer = answer,
-                                        is_active = is_active
+                                        is_active = is_active,
+                                        created_at = created_at,
+                                        updated_at = updated_at
                                     )
                                 )
                             }

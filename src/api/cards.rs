@@ -9,6 +9,7 @@ use rusqlite::Connection;
 use rusqlite::types::ToSql;
 use rusqlite::Error as SqliteError;
 use serde_json;
+use chrono::naive::datetime::NaiveDateTime;
 
 /* local imports */
 
@@ -18,6 +19,7 @@ use errors::RawAPIError;
 use constants;
 use api::review::{self, ActiveSelection, CachedReviewProcedure};
 use api::user;
+use timestamp;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
