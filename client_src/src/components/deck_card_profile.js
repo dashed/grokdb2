@@ -306,13 +306,13 @@ const __Timestamps = function(props) {
         elements.push([<small>{'Created at ' + props[CREATED_AT]}</small>, <br/>]);
     }
 
+    if(props[CREATED_AT] != props[REVIEWED_AT]) {
+        elements.push([<small>{'Last answered at ' + props[REVIEWED_AT]}</small>, <br/>]);
+    }
+
 
     if(props[CREATED_AT] != props[SEEN_AT]) {
         elements.push([<small>{'Last picked for review at ' + props[SEEN_AT]}</small>, <br/>]);
-    }
-
-    if(props[CREATED_AT] != props[REVIEWED_AT]) {
-        elements.push([<small>{'Last answered at ' + props[REVIEWED_AT]}</small>, <br/>]);
     }
 
     if(elements.length > 2) {
