@@ -2844,6 +2844,67 @@ fn CardDetailSettings(
 
         div(class="columns") {
             div(class="column") {
+                div(class="tabs is-boxed") {
+                    ul {
+                        li(
+                            class? = classnames!(
+                                "is-active is-bold" => {
+                                    matches!(*card_settings, CardSettings::Main)
+                                })
+                            ) {
+                            a(href = view_route_to_link(
+                                context.clone(),
+                                AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id,
+                                    CardRoute::Settings(CardSettings::Main)))
+                                )) {
+                                span {
+                                    : "General"
+                                }
+                            }
+                        }
+                        li(
+                            class? = classnames!(
+                                "is-active is-bold" => {
+                                    matches!(*card_settings, CardSettings::Move)
+                                })
+                            ) {
+                            a(href = view_route_to_link(
+                                context.clone(),
+                                AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id,
+                                    CardRoute::Settings(CardSettings::Move)))
+                                )) {
+                                span {
+                                    : "Move"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        |tmpl| {
+            match *card_settings {
+                CardSettings::Main => CardSettingsMain(tmpl, context.clone(), deck_id, card_id),
+                CardSettings::Move => CardSettingsMove(tmpl, context.clone(), deck_id, card_id),
+            }
+        }
+
+
+    }
+}
+
+#[inline]
+fn CardSettingsMain(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    card_id: CardID) {
+
+    tmpl << html!{
+
+        div(class="columns") {
+            div(class="column") {
 
                 h4(class="title is-4") {
                     : raw!("Delete card")
@@ -2856,7 +2917,32 @@ fn CardDetailSettings(
         }
 
         div(id="card_settings_main_delete_container") {
+            // TODO: stubs....
         }
+
+    }
+}
+
+#[inline]
+fn CardSettingsMove(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    card_id: CardID) {
+
+    tmpl << html!{
+
+        div(class="columns") {
+            div(class="column") {
+
+                h4(class="title is-4") {
+                    : raw!("Move Card")
+                }
+
+            }
+        }
+
+
     }
 }
 
