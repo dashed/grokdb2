@@ -91,7 +91,13 @@ pub enum CardRoute {
     Contents,
     Review,
     Stats,
-    Settings
+    Settings(CardSettings)
+}
+
+#[derive(Debug, Clone)]
+pub enum CardSettings {
+    Main,
+    Move
 }
 
 impl Default for CardRoute {
@@ -176,6 +182,7 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>
             // /api/*
             parse_route_api(context.clone(), request.clone()) <|>
 
+            // TODO: complete
             // /card/*
             // parse_route_card() <|>
 
@@ -1759,7 +1766,7 @@ fn __parse_route_card<'a>(
                 parse_route_card_contents(context.clone(), request.clone(), deck_id, card_id) <|>
                 // /review
                 parse_route_card_review(context.clone(), request.clone(), deck_id, card_id) <|>
-                // /decks
+                // /stats
                 parse_route_card_stats(context.clone(), request.clone(), deck_id, card_id) <|>
                 // /settings
                 parse_route_card_settings(context.clone(), request.clone(), deck_id, card_id);
@@ -1884,18 +1891,83 @@ fn parse_route_card_settings<'a>(
 
         string_ignore_case(b"settings");
 
+        let response = parse_route_card_settings_move(request.clone(), deck_id, card_id) <|>
+            parse_route_card_settings_main(request.clone(), deck_id, card_id);
+
+        ret response
+
+    }
+}
+
+#[inline]
+fn parse_route_card_settings_main<'a>(
+    input: Input<'a, u8>,
+    // NOTE: not needed
+    // context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    card_id: CardID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
         option(|i| parse_byte_limit(i, b'/', 5), ());
 
-        // TODO: simplify is query string is not consumed
+        or(
+            |i| parse!{i;
+                token(b'?');
+                ret {()}
+            },
+            eof
+        );
+
+        ret {
+            if request.borrow().method != Method::Get {
+                RenderResponse::MethodNotAllowed
+            } else {
+
+                let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id,
+                    CardRoute::Settings(CardSettings::Main)));
+
+                RenderResponse::Component(route)
+            }
+        }
+    }
+}
+
+#[inline]
+fn parse_route_card_settings_move<'a>(
+    input: Input<'a, u8>,
+    // NOTE: not needed
+    // context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    card_id: CardID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        // TODO: place this here?
+        parse_byte_limit(b'/', 5);
+
+        string_ignore_case(b"move");
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
         let query_string = option(|i| parse!{i;
             let query_string = parse_query_string();
 
             ret Some(query_string)
         }, None);
 
+        eof();
+
         ret {
-            let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Settings));
-            RenderResponse::Component(route)
+            if request.borrow().method != Method::Get {
+                RenderResponse::MethodNotAllowed
+            } else {
+
+                let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id,
+                    CardRoute::Settings(CardSettings::Move)));
+
+                RenderResponse::Component(route)
+            }
         }
     }
 }

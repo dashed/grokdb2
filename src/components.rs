@@ -19,7 +19,7 @@ use serde_json;
 
 /* local imports */
 
-use route::{AppRoute, RenderResponse, DeckRoute, CardRoute, DeckSettings};
+use route::{AppRoute, RenderResponse, DeckRoute, CardRoute, DeckSettings, CardSettings};
 use context::{self, Context};
 use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, SortOrderable};
 use api::{decks, cards, user};
@@ -50,7 +50,12 @@ fn card_route_string(card_route: CardRoute) -> String {
         CardRoute::Contents => "contents".to_string(),
         CardRoute::Review => "review".to_string(),
         CardRoute::Stats => "stats".to_string(),
-        CardRoute::Settings => "settings".to_string()
+        CardRoute::Settings(ref card_settings) => {
+            match *card_settings {
+                CardSettings::Main => "settings".to_string(),
+                CardSettings::Move => "settings/move".to_string(),
+            }
+        }
     }
 }
 
@@ -113,8 +118,16 @@ pub fn generate_delete_to(app_route: &AppRoute) -> String {
                 DeckRoute::CardProfile(card_id, ref card_route) => {
 
                     match *card_route {
-                        CardRoute::Settings => {
-                            format!("/api/card/{card_id}", card_id = card_id)
+                        CardRoute::Settings(ref card_settings) => {
+                            match *card_settings {
+                                CardSettings::Main => {
+                                    format!("/api/card/{card_id}", card_id = card_id)
+                                },
+                                _ => {
+                                    panic!("invalid use of generate_delete_to");
+                                }
+                            }
+
                         },
                         _ => {
                             panic!("invalid use of generate_delete_to");
@@ -492,19 +505,28 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             }
 
                         },
-                        CardRoute::Settings => {
+                        CardRoute::Settings(ref card_settings) => {
 
-                            tmpl << html! {
-                                : raw!(
-                                    format!(
-                                        "window.__PRE_RENDER_STATE__ = \
-                                            {{\
-                                                DELETE_TO: '{delete_to}'\
-                                            }};\
-                                        ",
-                                        delete_to = generate_delete_to(app_route)
-                                    )
-                                )
+                            match *card_settings {
+                                CardSettings::Main => {
+
+                                    tmpl << html! {
+                                        : raw!(
+                                            format!(
+                                                "window.__PRE_RENDER_STATE__ = \
+                                                    {{\
+                                                        DELETE_TO: '{delete_to}'\
+                                                    }};\
+                                                ",
+                                                delete_to = generate_delete_to(app_route)
+                                            )
+                                        )
+                                    }
+
+                                },
+                                CardSettings::Move => {
+                                    // TODO: complete
+                                }
                             }
 
                         },
@@ -891,19 +913,27 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     // TODO: complete
 
                                 },
-                                CardRoute::Settings => {
+                                CardRoute::Settings(ref card_settings) => {
 
-                                    tmpl << html! {
+                                    match *card_settings {
+                                        CardSettings::Main => {
 
-                                        script(type="text/javascript") {
-                                            |tmpl| {
-                                                pre_render_state(tmpl, context.clone(), &app_route);
+                                            tmpl << html! {
+
+                                                script(type="text/javascript") {
+                                                    |tmpl| {
+                                                        pre_render_state(tmpl, context.clone(), &app_route);
+                                                    }
+                                                }
+
+                                                script(type="text/javascript", src="/assets/deck_card_settings.js") {}
                                             }
+
+                                        },
+                                        CardSettings::Move => {
+                                            // TODO: complete
                                         }
-
-                                        script(type="text/javascript", src="/assets/deck_card_settings.js") {}
                                     }
-
                                 }
                             }
 
@@ -1127,89 +1157,88 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                     },
                     DeckRoute::CardProfile(card_id, ref card_route) => {
 
-                        match *card_route {
-                            CardRoute::Contents => {
+                        tmpl << html!{
 
-                                tmpl << html!{
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                : raw!(" / ");
+                            }
 
-                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                        : raw!(" / ");
-                                    }
+                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                : raw!(format!("Card #{}", card_id))
+                            }
 
-                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                        : raw!(format!("Card #{}", card_id))
+                            |tmpl| {
+
+                                match *card_route {
+                                    CardRoute::Contents => {
+                                        // no-op
+                                    },
+                                    CardRoute::Review => {
+
+                                        tmpl << html!{
+
+                                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                                : raw!(" / ");
+                                            }
+
+                                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                                : raw!("Review")
+                                            }
+
+                                        }
+                                    },
+                                    CardRoute::Stats => {
+
+                                        tmpl << html!{
+
+                                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                                : raw!(" / ");
+                                            }
+
+                                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                                : raw!("Statistics")
+                                            }
+
+                                        }
+                                    },
+                                    CardRoute::Settings(ref card_settings) => {
+
+                                        tmpl << html!{
+
+                                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                                : raw!(" / ");
+                                            }
+
+                                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                                : raw!("Settings")
+                                            }
+
+                                            |tmpl| {
+
+                                                match *card_settings {
+                                                    CardSettings::Main => {
+                                                        // no-op
+                                                    },
+                                                    CardSettings::Move => {
+
+                                                        tmpl << html!{
+                                                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                                                : raw!(" / ");
+                                                            }
+
+                                                            span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                                                : raw!("Move")
+                                                            }
+                                                        }
+
+
+                                                    },
+                                                }
+
+                                            }
+                                        }
                                     }
                                 }
-
-                            },
-
-                            CardRoute::Review => {
-
-                                tmpl << html!{
-
-                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                        : raw!(" / ");
-                                    }
-
-                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                        : raw!(format!("Card #{}", card_id))
-                                    }
-
-                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                        : raw!(" / ");
-                                    }
-
-                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                        : raw!("Review")
-                                    }
-                                }
-
-                            },
-
-                            CardRoute::Stats => {
-
-                                tmpl << html!{
-
-                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                        : raw!(" / ");
-                                    }
-
-                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                        : raw!(format!("Card #{}", card_id))
-                                    }
-
-                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                        : raw!(" / ");
-                                    }
-
-                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                        : raw!("Statistics")
-                                    }
-                                }
-
-                            },
-
-                            CardRoute::Settings => {
-
-                                tmpl << html!{
-
-                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                        : raw!(" / ");
-                                    }
-
-                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                        : raw!(format!("Card #{}", card_id))
-                                    }
-
-                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                        : raw!(" / ");
-                                    }
-
-                                    span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                        : raw!("Settings")
-                                    }
-                                }
-
                             }
                         }
 
@@ -1473,12 +1502,13 @@ fn CardDetailNav(
                                 li(style = raw!("padding-top:2px;")) {
                                     a(href = view_route_to_link(context.clone(),
                                         AppRoute::Deck(deck_id,
-                                            DeckRoute::CardProfile(card_id, CardRoute::Settings))),
+                                            DeckRoute::CardProfile(card_id, CardRoute::Settings(CardSettings::Main)))),
                                         class? = classnames!(
                                             "is-bold",
                                             "is-active" => {
                                                 matches!(*deck_route,
-                                                    DeckRoute::CardProfile(_, CardRoute::Settings))
+                                                    DeckRoute::CardProfile(_,
+                                                        CardRoute::Settings(_)))
                                             })
                                     ) {
                                         : "Settings"
@@ -2721,7 +2751,7 @@ fn CardDetail(
         CardRoute::Contents => CardDetailContents(tmpl, context, deck_id, card_id),
         CardRoute::Review => CardDetailReview(tmpl, context, deck_id, card_id),
         CardRoute::Stats => CardDetailStats(tmpl, context, deck_id, card_id),
-        CardRoute::Settings => CardDetailSettings(tmpl, context, deck_id, card_id),
+        CardRoute::Settings(ref card_settings) => CardDetailSettings(tmpl, context, deck_id, card_id, card_settings),
     }
 
 
@@ -2792,7 +2822,8 @@ fn CardDetailSettings(
     tmpl: &mut TemplateBuffer,
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
-    card_id: CardID) {
+    card_id: CardID,
+    card_settings: &CardSettings) {
 
     tmpl << html!{
 
