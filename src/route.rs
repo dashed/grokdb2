@@ -97,7 +97,7 @@ pub enum CardRoute {
 #[derive(Debug, Clone)]
 pub enum CardSettings {
     Main,
-    Move
+    Move(DecksPageQuery, Search)
 }
 
 impl Default for CardRoute {
@@ -1891,7 +1891,7 @@ fn parse_route_card_settings<'a>(
 
         string_ignore_case(b"settings");
 
-        let response = parse_route_card_settings_move(request.clone(), deck_id, card_id) <|>
+        let response = parse_route_card_settings_move(context, request.clone(), deck_id, card_id) <|>
             parse_route_card_settings_main(request.clone(), deck_id, card_id);
 
         ret response
@@ -1936,8 +1936,7 @@ fn parse_route_card_settings_main<'a>(
 #[inline]
 fn parse_route_card_settings_move<'a>(
     input: Input<'a, u8>,
-    // NOTE: not needed
-    // context: Rc<RefCell<Context>>,
+    context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
     deck_id: DeckID,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
@@ -1963,8 +1962,19 @@ fn parse_route_card_settings_move<'a>(
                 RenderResponse::MethodNotAllowed
             } else {
 
+                let card_settings_move = match query_string {
+                    None => CardSettings::Move(Default::default(), Default::default()),
+                    Some(ref query_string) => {
+
+                        let page_query = DecksPageQuery::parse(query_string, context.clone(), deck_id);
+                        let search = Search::parse(query_string);
+
+                        CardSettings::Move(page_query, search)
+                    }
+                };
+
                 let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id,
-                    CardRoute::Settings(CardSettings::Move)));
+                    CardRoute::Settings(card_settings_move)));
 
                 RenderResponse::Component(route)
             }

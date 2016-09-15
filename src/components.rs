@@ -53,7 +53,16 @@ fn card_route_string(card_route: CardRoute) -> String {
         CardRoute::Settings(ref card_settings) => {
             match *card_settings {
                 CardSettings::Main => "settings".to_string(),
-                CardSettings::Move => "settings/move".to_string(),
+                CardSettings::Move(ref page_query, ref search) => {
+
+                    let mut query = page_query.generate_query_string();
+
+                    if let Some(search_query) = search.generate_query_string() {
+                        query = query + &format!("&{search_query}", search_query = search_query);
+                    }
+
+                    format!("settings/move?{query_string}", query_string = query)
+                }
             }
         }
     }
@@ -99,8 +108,8 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
 
                 },
                 DeckRoute::CardProfile(card_id, card_route) => {
-                    format!("/deck/{deck_id}/card/{card_id}/{foo}",
-                        deck_id = deck_id, card_id = card_id, foo = card_route_string(card_route))
+                    format!("/deck/{deck_id}/card/{card_id}/{card_route}",
+                        deck_id = deck_id, card_id = card_id, card_route = card_route_string(card_route))
                 }
             }
         }
@@ -524,7 +533,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     }
 
                                 },
-                                CardSettings::Move => {
+                                CardSettings::Move(_, _) => {
                                     // TODO: complete
                                 }
                             }
@@ -930,7 +939,20 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                             }
 
                                         },
-                                        CardSettings::Move => {
+                                        CardSettings::Move(_, _) => {
+
+                                            tmpl << html! {
+
+                                                script(type="text/javascript") {
+                                                    |tmpl| {
+                                                        pre_render_state(tmpl, context.clone(), &app_route);
+                                                    }
+                                                }
+
+                                                script(type="text/javascript", src="/assets/card_move_settings.js") {}
+                                            }
+
+
                                             // TODO: complete
                                         }
                                     }
@@ -1219,7 +1241,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                                     CardSettings::Main => {
                                                         // no-op
                                                     },
-                                                    CardSettings::Move => {
+                                                    CardSettings::Move(_, _) => {
 
                                                         tmpl << html!{
                                                             span(class="title is-5 is-marginless", style="font-weight:normal;") {
@@ -2865,13 +2887,13 @@ fn CardDetailSettings(
                         li(
                             class? = classnames!(
                                 "is-active is-bold" => {
-                                    matches!(*card_settings, CardSettings::Move)
+                                    matches!(*card_settings, CardSettings::Move(_, _))
                                 })
                             ) {
                             a(href = view_route_to_link(
                                 context.clone(),
                                 AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id,
-                                    CardRoute::Settings(CardSettings::Move)))
+                                    CardRoute::Settings(CardSettings::Move(Default::default(), Default::default()))))
                                 )) {
                                 span {
                                     : "Move"
@@ -2886,7 +2908,9 @@ fn CardDetailSettings(
         |tmpl| {
             match *card_settings {
                 CardSettings::Main => CardSettingsMain(tmpl, context.clone(), deck_id, card_id),
-                CardSettings::Move => CardSettingsMove(tmpl, context.clone(), deck_id, card_id),
+                CardSettings::Move(ref page_query, ref search) => {
+                    CardSettingsMove(tmpl, context.clone(), deck_id, card_id, page_query, search)
+                }
             }
         }
 
@@ -2928,7 +2952,9 @@ fn CardSettingsMove(
     tmpl: &mut TemplateBuffer,
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
-    card_id: CardID) {
+    card_id: CardID,
+    deck_page_query: &DecksPageQuery,
+    search: &Search) {
 
     tmpl << html!{
 
@@ -2936,11 +2962,13 @@ fn CardSettingsMove(
             div(class="column") {
 
                 h4(class="title is-4") {
-                    : raw!("Move Card")
+                    : raw!("Move card to a new deck")
                 }
 
             }
         }
+
+
 
 
     }
