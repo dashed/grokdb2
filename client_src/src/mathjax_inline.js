@@ -16,7 +16,7 @@ const MathJaxRenderInline = require('components/dumb/mathjax_inline');
 
 forEach(document.getElementsByClassName('mathjax_inline_pre'), function(elem) {
 
-    const textContent = elem.childNodes[0].nodeValue;
+    const textContent = (elem && elem.childNodes && elem.childNodes[0] && elem.childNodes[0].nodeValue) || '';
 
     setTimeout(function(){
         ReactDOM.render(
