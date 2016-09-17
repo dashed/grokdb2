@@ -5,7 +5,7 @@ webpackJsonp([3],{
 
 	'use strict';
 	
-	var client = __webpack_require__(735);
+	var client = __webpack_require__(737);
 	
 	if (true) {
 	    var invariant = __webpack_require__(680);
@@ -15,7 +15,7 @@ webpackJsonp([3],{
 	
 	/* delete component */
 	
-	var cardSettingsDeleteMaker = __webpack_require__(912);
+	var cardSettingsDeleteMaker = __webpack_require__(913);
 	
 	var preRenderStateDelete = window.__PRE_RENDER_STATE__;
 	var postRenderStateDelete = cardSettingsDeleteMaker.initialState;
@@ -73,7 +73,7 @@ webpackJsonp([3],{
 /***/ },
 
 /***/ 415:
-[954, 416, 426, 422],
+[955, 416, 426, 422],
 
 /***/ 416:
 /***/ function(module, exports, __webpack_require__) {
@@ -149,37 +149,37 @@ webpackJsonp([3],{
 10,
 
 /***/ 419:
-[929, 420],
+[930, 420],
 
 /***/ 420:
 22,
 
 /***/ 421:
-[923, 422, 430, 426],
+[924, 422, 430, 426],
 
 /***/ 422:
-[924, 423, 425, 429, 426],
+[925, 423, 425, 429, 426],
 
 /***/ 423:
-[925, 424],
+[926, 424],
 
 /***/ 424:
 14,
 
 /***/ 425:
-[926, 426, 427, 428],
+[927, 426, 427, 428],
 
 /***/ 426:
-[922, 427],
+[923, 427],
 
 /***/ 427:
 8,
 
 /***/ 428:
-[927, 424, 417],
+[928, 424, 417],
 
 /***/ 429:
-[928, 424],
+[929, 424],
 
 /***/ 430:
 18,
@@ -277,7 +277,7 @@ webpackJsonp([3],{
 /***/ },
 
 /***/ 435:
-[972, 436, 437, 438, 439, 443],
+[973, 436, 437, 438, 439, 443],
 
 /***/ 436:
 /***/ function(module, exports) {
@@ -293,10 +293,10 @@ webpackJsonp([3],{
 130,
 
 /***/ 439:
-[939, 440, 442],
+[940, 440, 442],
 
 /***/ 440:
-[940, 441],
+[941, 441],
 
 /***/ 441:
 35,
@@ -305,7 +305,7 @@ webpackJsonp([3],{
 36,
 
 /***/ 443:
-[966, 444, 416, 445, 421, 446, 438, 447, 461, 463, 462],
+[967, 444, 416, 445, 421, 446, 438, 447, 461, 463, 462],
 
 /***/ 444:
 /***/ function(module, exports) {
@@ -325,37 +325,37 @@ webpackJsonp([3],{
 6,
 
 /***/ 447:
-[967, 448, 430, 461, 421, 462],
+[968, 448, 430, 461, 421, 462],
 
 /***/ 448:
-[947, 423, 449, 459, 456, 428, 460],
+[948, 423, 449, 459, 456, 428, 460],
 
 /***/ 449:
-[948, 422, 423, 450, 426],
+[949, 422, 423, 450, 426],
 
 /***/ 450:
-[937, 451, 459],
+[938, 451, 459],
 
 /***/ 451:
-[938, 446, 439, 452, 456],
+[939, 446, 439, 452, 456],
 
 /***/ 452:
-[941, 439, 453, 455],
+[942, 439, 453, 455],
 
 /***/ 453:
-[942, 454],
+[943, 454],
 
 /***/ 454:
 39,
 
 /***/ 455:
-[943, 454],
+[944, 454],
 
 /***/ 456:
-[944, 457, 458],
+[945, 457, 458],
 
 /***/ 457:
-[931, 417],
+[932, 417],
 
 /***/ 458:
 20,
@@ -364,25 +364,25 @@ webpackJsonp([3],{
 42,
 
 /***/ 460:
-[949, 417],
+[950, 417],
 
 /***/ 461:
-[932, 422, 446, 462],
+[933, 422, 446, 462],
 
 /***/ 462:
-[933, 457, 458, 417],
+[934, 457, 458, 417],
 
 /***/ 463:
-[958, 446, 464, 456],
+[959, 446, 464, 456],
 
 /***/ 464:
-[957, 442],
+[958, 442],
 
 /***/ 465:
-[964, 466, 443],
+[965, 466, 443],
 
 /***/ 466:
-[965, 454, 442],
+[966, 454, 442],
 
 /***/ 467:
 /***/ function(module, exports, __webpack_require__) {
@@ -400,7 +400,7 @@ webpackJsonp([3],{
 /***/ },
 
 /***/ 468:
-[963, 441, 462],
+[964, 441, 462],
 
 /***/ 469:
 /***/ function(module, exports, __webpack_require__) {
@@ -432,7 +432,7 @@ webpackJsonp([3],{
 /***/ },
 
 /***/ 472:
-[970, 468, 462, 438, 418],
+[971, 468, 462, 438, 418],
 
 /***/ 473:
 /***/ function(module, exports, __webpack_require__) {
@@ -460,31 +460,31 @@ webpackJsonp([3],{
 /***/ },
 
 /***/ 476:
-[973, 444, 417, 419, 468, 416, 424, 420, 477, 478, 481, 482, 484, 462, 485, 461, 486, 418, 487],
+[974, 444, 417, 419, 468, 416, 424, 420, 477, 478, 481, 482, 484, 462, 485, 461, 486, 418, 487],
 
 /***/ 477:
 206,
 
 /***/ 478:
-[974, 419, 479, 480, 423, 453, 472],
+[975, 419, 479, 480, 423, 453, 472],
 
 /***/ 479:
-[968, 423],
+[969, 423],
 
 /***/ 480:
-[969, 438, 462],
+[970, 438, 462],
 
 /***/ 481:
-[975, 423, 420, 462],
+[976, 423, 420, 462],
 
 /***/ 482:
-[976, 419, 483, 460, 428, 417, 441],
+[977, 419, 483, 460, 428, 417, 441],
 
 /***/ 483:
 79,
 
 /***/ 484:
-[977, 417, 482, 441],
+[978, 417, 482, 441],
 
 /***/ 485:
 /***/ function(module, exports, __webpack_require__) {
@@ -520,7 +520,7 @@ webpackJsonp([3],{
 /***/ },
 
 /***/ 487:
-[971, 462],
+[972, 462],
 
 /***/ 660:
 /***/ function(module, exports, __webpack_require__) {
@@ -4562,6 +4562,64 @@ webpackJsonp([3],{
 /***/ },
 
 /***/ 730:
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var React = __webpack_require__(490);
+	var isFunction = __webpack_require__(313);
+	
+	var ErrorComponent = function ErrorComponent(props) {
+	
+	    if (!props.error || String(props.error).trim().length <= 0) {
+	        return null;
+	    }
+	
+	    if (isFunction(props.onConfirm)) {
+	
+	        return React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement(
+	                    'div',
+	                    { className: 'notification is-danger' },
+	                    React.createElement('button', { className: 'delete', onClick: props.onConfirm }),
+	                    props.error
+	                )
+	            )
+	        );
+	    }
+	
+	    return React.createElement(
+	        'div',
+	        { className: 'columns' },
+	        React.createElement(
+	            'div',
+	            { className: 'column' },
+	            React.createElement(
+	                'div',
+	                { className: 'notification is-danger' },
+	                props.error
+	            )
+	        )
+	    );
+	};
+	
+	if (true) {
+	    ErrorComponent.propTypes = {
+	        error: React.PropTypes.string,
+	        onConfirm: React.PropTypes.func
+	    };
+	}
+	
+	module.exports = ErrorComponent;
+
+/***/ },
+
+/***/ 731:
 /***/ function(module, exports) {
 
 	"use strict";
@@ -4586,7 +4644,7 @@ webpackJsonp([3],{
 
 /***/ },
 
-/***/ 731:
+/***/ 732:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4626,7 +4684,7 @@ webpackJsonp([3],{
 
 /***/ },
 
-/***/ 732:
+/***/ 733:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4641,7 +4699,7 @@ webpackJsonp([3],{
 	var applyMiddleware = _require2.applyMiddleware;
 	
 	
-	var rehydrateFactory = __webpack_require__(733);
+	var rehydrateFactory = __webpack_require__(734);
 	
 	var IDENTITY = function IDENTITY(x) {
 	    return x;
@@ -4663,7 +4721,7 @@ webpackJsonp([3],{
 	
 	        if (true) {
 	
-	            var createLogger = __webpack_require__(734);
+	            var createLogger = __webpack_require__(735);
 	            var logger = createLogger();
 	
 	            return applyMiddleware(logger);
@@ -4681,7 +4739,7 @@ webpackJsonp([3],{
 
 /***/ },
 
-/***/ 733:
+/***/ 734:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4758,7 +4816,7 @@ webpackJsonp([3],{
 
 /***/ },
 
-/***/ 734:
+/***/ 735:
 /***/ function(module, exports) {
 
 	"use strict";
@@ -4992,7 +5050,7 @@ webpackJsonp([3],{
 
 /***/ },
 
-/***/ 735:
+/***/ 737:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5004,7 +5062,7 @@ webpackJsonp([3],{
 	
 	var ReactDOM = __webpack_require__(522);
 	
-	var rehydrate = __webpack_require__(733);
+	var rehydrate = __webpack_require__(734);
 	
 	module.exports = function (maker, preRenderState, postRenderState, mountTarget) {
 	
@@ -5058,24 +5116,24 @@ webpackJsonp([3],{
 
 /***/ },
 
-/***/ 744:
+/***/ 746:
 44,
 
-/***/ 745:
+/***/ 747:
 45,
 
-/***/ 819:
+/***/ 821:
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
 	exports.__esModule = true;
 	
-	var _iterator = __webpack_require__(820);
+	var _iterator = __webpack_require__(822);
 	
 	var _iterator2 = _interopRequireDefault(_iterator);
 	
-	var _symbol = __webpack_require__(823);
+	var _symbol = __webpack_require__(825);
 	
 	var _symbol2 = _interopRequireDefault(_symbol);
 	
@@ -5091,142 +5149,84 @@ webpackJsonp([3],{
 
 /***/ },
 
-/***/ 820:
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(821), __esModule: true };
-
-/***/ },
-
-/***/ 821:
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(465);
-	__webpack_require__(434);
-	module.exports = __webpack_require__(822).f('iterator');
-
-/***/ },
-
 /***/ 822:
-[934, 462],
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = { "default": __webpack_require__(823), __esModule: true };
+
+/***/ },
 
 /***/ 823:
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(824), __esModule: true };
+	__webpack_require__(465);
+	__webpack_require__(434);
+	module.exports = __webpack_require__(824).f('iterator');
 
 /***/ },
 
 /***/ 824:
+[935, 462],
+
+/***/ 825:
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(825);
+	module.exports = { "default": __webpack_require__(826), __esModule: true };
+
+/***/ },
+
+/***/ 826:
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(827);
 	__webpack_require__(475);
-	__webpack_require__(834);
-	__webpack_require__(835);
+	__webpack_require__(836);
+	__webpack_require__(837);
 	module.exports = __webpack_require__(418).Symbol;
 
 /***/ },
 
-/***/ 825:
-[921, 417, 446, 426, 416, 445, 826, 427, 457, 461, 458, 462, 822, 827, 828, 829, 830, 423, 439, 429, 430, 448, 831, 833, 422, 450, 832, 745, 744, 444, 421],
-
-/***/ 826:
-[930, 458, 424, 446, 422, 427],
-
 /***/ 827:
-[935, 417, 418, 444, 822, 422],
+[922, 417, 446, 426, 416, 445, 828, 427, 457, 461, 458, 462, 824, 829, 830, 831, 832, 423, 439, 429, 430, 448, 833, 835, 422, 450, 834, 747, 746, 444, 421],
 
 /***/ 828:
-[936, 450, 439],
+[931, 458, 424, 446, 422, 427],
 
 /***/ 829:
-[945, 450, 744, 745],
+[936, 417, 418, 444, 824, 422],
 
 /***/ 830:
-[946, 441],
+[937, 450, 439],
 
 /***/ 831:
-[950, 439, 832],
+[946, 450, 746, 747],
 
 /***/ 832:
-[951, 451, 459],
+[947, 441],
 
 /***/ 833:
-[952, 745, 430, 439, 429, 446, 425, 426],
+[951, 439, 834],
 
 /***/ 834:
-[978, 827],
+[952, 451, 459],
 
 /***/ 835:
-[979, 827],
+[953, 747, 430, 439, 429, 446, 425, 426],
 
-/***/ 855:
-/***/ function(module, exports, __webpack_require__) {
+/***/ 836:
+[979, 829],
 
-	'use strict';
-	
-	var React = __webpack_require__(490);
-	var isFunction = __webpack_require__(313);
-	
-	var ErrorComponent = function ErrorComponent(props) {
-	
-	    if (!props.error || String(props.error).trim().length <= 0) {
-	        return null;
-	    }
-	
-	    if (isFunction(props.onConfirm)) {
-	
-	        return React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement(
-	                    'div',
-	                    { className: 'notification is-danger' },
-	                    React.createElement('button', { className: 'delete', onClick: props.onConfirm }),
-	                    props.error
-	                )
-	            )
-	        );
-	    }
-	
-	    return React.createElement(
-	        'div',
-	        { className: 'columns' },
-	        React.createElement(
-	            'div',
-	            { className: 'column' },
-	            React.createElement(
-	                'div',
-	                { className: 'notification is-danger' },
-	                props.error
-	            )
-	        )
-	    );
-	};
-	
-	if (true) {
-	    ErrorComponent.propTypes = {
-	        error: React.PropTypes.string,
-	        onConfirm: React.PropTypes.func
-	    };
-	}
-	
-	module.exports = ErrorComponent;
+/***/ 837:
+[980, 829],
 
-/***/ },
-
-/***/ 859:
+/***/ 860:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	var merge = __webpack_require__(686);
 	
-	var createStore = __webpack_require__(732);
+	var createStore = __webpack_require__(733);
 	
 	var IDENTITY = function IDENTITY(x) {
 	    return x;
@@ -5259,7 +5259,7 @@ webpackJsonp([3],{
 
 /***/ },
 
-/***/ 912:
+/***/ 913:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5276,7 +5276,7 @@ webpackJsonp([3],{
 	
 	var _promise2 = _interopRequireDefault(_promise);
 	
-	var _typeof2 = __webpack_require__(819);
+	var _typeof2 = __webpack_require__(821);
 	
 	var _typeof3 = _interopRequireDefault(_typeof2);
 	
@@ -5320,7 +5320,7 @@ webpackJsonp([3],{
 	
 	/* react components */
 	
-	var ErrorComponent = __webpack_require__(855);
+	var ErrorComponent = __webpack_require__(730);
 	
 	var __DeleteCard = function __DeleteCard(props) {
 	    var submitting = props.submitting;
@@ -5630,8 +5630,8 @@ webpackJsonp([3],{
 	
 	/* redux reducers */
 	
-	var boolReducer = __webpack_require__(730);
-	var errorReducer = __webpack_require__(731);
+	var boolReducer = __webpack_require__(731);
+	var errorReducer = __webpack_require__(732);
 	
 	/* default state */
 	
@@ -5639,7 +5639,7 @@ webpackJsonp([3],{
 	
 	/* exports */
 	
-	var componentCreator = __webpack_require__(859);
+	var componentCreator = __webpack_require__(860);
 	
 	module.exports = componentCreator(initialState, function (store) {
 	

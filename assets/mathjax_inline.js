@@ -18,7 +18,7 @@ webpackJsonp([7],{
 	
 	var forEach = __webpack_require__(301);
 	
-	var MathJaxRenderInline = __webpack_require__(917);
+	var MathJaxRenderInline = __webpack_require__(918);
 	
 	forEach(document.getElementsByClassName('mathjax_inline_pre'), function (elem) {
 	
@@ -1236,7 +1236,7 @@ webpackJsonp([7],{
 
 /***/ },
 
-/***/ 746:
+/***/ 748:
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(301);
@@ -1244,7 +1244,7 @@ webpackJsonp([7],{
 
 /***/ },
 
-/***/ 917:
+/***/ 918:
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1253,7 +1253,7 @@ webpackJsonp([7],{
 	
 	var React = __webpack_require__(490);
 	var ReactDOM = __webpack_require__(522);
-	var each = __webpack_require__(746);
+	var each = __webpack_require__(748);
 	
 	var MathJaxRenderInline = React.createClass({
 	    displayName: 'MathJaxRenderInline',

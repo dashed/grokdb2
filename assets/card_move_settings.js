@@ -1,6 +1,5 @@
-webpackJsonp([0],{
-
-/***/ 0:
+webpackJsonp([0],[
+/* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -28,8 +27,307 @@ webpackJsonp([0],{
 	});
 
 /***/ },
-
-/***/ 301:
+/* 1 */,
+/* 2 */,
+/* 3 */,
+/* 4 */,
+/* 5 */,
+/* 6 */,
+/* 7 */,
+/* 8 */,
+/* 9 */,
+/* 10 */,
+/* 11 */,
+/* 12 */,
+/* 13 */,
+/* 14 */,
+/* 15 */,
+/* 16 */,
+/* 17 */,
+/* 18 */,
+/* 19 */,
+/* 20 */,
+/* 21 */,
+/* 22 */,
+/* 23 */,
+/* 24 */,
+/* 25 */,
+/* 26 */,
+/* 27 */,
+/* 28 */,
+/* 29 */,
+/* 30 */,
+/* 31 */,
+/* 32 */,
+/* 33 */,
+/* 34 */,
+/* 35 */,
+/* 36 */,
+/* 37 */,
+/* 38 */,
+/* 39 */,
+/* 40 */,
+/* 41 */,
+/* 42 */,
+/* 43 */,
+/* 44 */,
+/* 45 */,
+/* 46 */,
+/* 47 */,
+/* 48 */,
+/* 49 */,
+/* 50 */,
+/* 51 */,
+/* 52 */,
+/* 53 */,
+/* 54 */,
+/* 55 */,
+/* 56 */,
+/* 57 */,
+/* 58 */,
+/* 59 */,
+/* 60 */,
+/* 61 */,
+/* 62 */,
+/* 63 */,
+/* 64 */,
+/* 65 */,
+/* 66 */,
+/* 67 */,
+/* 68 */,
+/* 69 */,
+/* 70 */,
+/* 71 */,
+/* 72 */,
+/* 73 */,
+/* 74 */,
+/* 75 */,
+/* 76 */,
+/* 77 */,
+/* 78 */,
+/* 79 */,
+/* 80 */,
+/* 81 */,
+/* 82 */,
+/* 83 */,
+/* 84 */,
+/* 85 */,
+/* 86 */,
+/* 87 */,
+/* 88 */,
+/* 89 */,
+/* 90 */,
+/* 91 */,
+/* 92 */,
+/* 93 */,
+/* 94 */,
+/* 95 */,
+/* 96 */,
+/* 97 */,
+/* 98 */,
+/* 99 */,
+/* 100 */,
+/* 101 */,
+/* 102 */,
+/* 103 */,
+/* 104 */,
+/* 105 */,
+/* 106 */,
+/* 107 */,
+/* 108 */,
+/* 109 */,
+/* 110 */,
+/* 111 */,
+/* 112 */,
+/* 113 */,
+/* 114 */,
+/* 115 */,
+/* 116 */,
+/* 117 */,
+/* 118 */,
+/* 119 */,
+/* 120 */,
+/* 121 */,
+/* 122 */,
+/* 123 */,
+/* 124 */,
+/* 125 */,
+/* 126 */,
+/* 127 */,
+/* 128 */,
+/* 129 */,
+/* 130 */,
+/* 131 */,
+/* 132 */,
+/* 133 */,
+/* 134 */,
+/* 135 */,
+/* 136 */,
+/* 137 */,
+/* 138 */,
+/* 139 */,
+/* 140 */,
+/* 141 */,
+/* 142 */,
+/* 143 */,
+/* 144 */,
+/* 145 */,
+/* 146 */,
+/* 147 */,
+/* 148 */,
+/* 149 */,
+/* 150 */,
+/* 151 */,
+/* 152 */,
+/* 153 */,
+/* 154 */,
+/* 155 */,
+/* 156 */,
+/* 157 */,
+/* 158 */,
+/* 159 */,
+/* 160 */,
+/* 161 */,
+/* 162 */,
+/* 163 */,
+/* 164 */,
+/* 165 */,
+/* 166 */,
+/* 167 */,
+/* 168 */,
+/* 169 */,
+/* 170 */,
+/* 171 */,
+/* 172 */,
+/* 173 */,
+/* 174 */,
+/* 175 */,
+/* 176 */,
+/* 177 */,
+/* 178 */,
+/* 179 */,
+/* 180 */,
+/* 181 */,
+/* 182 */,
+/* 183 */,
+/* 184 */,
+/* 185 */,
+/* 186 */,
+/* 187 */,
+/* 188 */,
+/* 189 */,
+/* 190 */,
+/* 191 */,
+/* 192 */,
+/* 193 */,
+/* 194 */,
+/* 195 */,
+/* 196 */,
+/* 197 */,
+/* 198 */,
+/* 199 */,
+/* 200 */,
+/* 201 */,
+/* 202 */,
+/* 203 */,
+/* 204 */,
+/* 205 */,
+/* 206 */,
+/* 207 */,
+/* 208 */,
+/* 209 */,
+/* 210 */,
+/* 211 */,
+/* 212 */,
+/* 213 */,
+/* 214 */,
+/* 215 */,
+/* 216 */,
+/* 217 */,
+/* 218 */,
+/* 219 */,
+/* 220 */,
+/* 221 */,
+/* 222 */,
+/* 223 */,
+/* 224 */,
+/* 225 */,
+/* 226 */,
+/* 227 */,
+/* 228 */,
+/* 229 */,
+/* 230 */,
+/* 231 */,
+/* 232 */,
+/* 233 */,
+/* 234 */,
+/* 235 */,
+/* 236 */,
+/* 237 */,
+/* 238 */,
+/* 239 */,
+/* 240 */,
+/* 241 */,
+/* 242 */,
+/* 243 */,
+/* 244 */,
+/* 245 */,
+/* 246 */,
+/* 247 */,
+/* 248 */,
+/* 249 */,
+/* 250 */,
+/* 251 */,
+/* 252 */,
+/* 253 */,
+/* 254 */,
+/* 255 */,
+/* 256 */,
+/* 257 */,
+/* 258 */,
+/* 259 */,
+/* 260 */,
+/* 261 */,
+/* 262 */,
+/* 263 */,
+/* 264 */,
+/* 265 */,
+/* 266 */,
+/* 267 */,
+/* 268 */,
+/* 269 */,
+/* 270 */,
+/* 271 */,
+/* 272 */,
+/* 273 */,
+/* 274 */,
+/* 275 */,
+/* 276 */,
+/* 277 */,
+/* 278 */,
+/* 279 */,
+/* 280 */,
+/* 281 */,
+/* 282 */,
+/* 283 */,
+/* 284 */,
+/* 285 */,
+/* 286 */,
+/* 287 */,
+/* 288 */,
+/* 289 */,
+/* 290 */,
+/* 291 */,
+/* 292 */,
+/* 293 */,
+/* 294 */,
+/* 295 */,
+/* 296 */,
+/* 297 */,
+/* 298 */,
+/* 299 */,
+/* 300 */,
+/* 301 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var arrayEach = __webpack_require__(302),
@@ -76,8 +374,8 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 303:
+/* 302 */,
+/* 303 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseForOwn = __webpack_require__(304),
@@ -97,8 +395,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 304:
+/* 304 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseFor = __webpack_require__(305),
@@ -120,8 +417,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 305:
+/* 305 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var createBaseFor = __webpack_require__(306);
@@ -143,8 +439,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 306:
+/* 306 */
 /***/ function(module, exports) {
 
 	/**
@@ -175,8 +470,23 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 323:
+/* 307 */,
+/* 308 */,
+/* 309 */,
+/* 310 */,
+/* 311 */,
+/* 312 */,
+/* 313 */,
+/* 314 */,
+/* 315 */,
+/* 316 */,
+/* 317 */,
+/* 318 */,
+/* 319 */,
+/* 320 */,
+/* 321 */,
+/* 322 */,
+/* 323 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isArrayLike = __webpack_require__(312);
@@ -214,8 +524,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 324:
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseMatches = __webpack_require__(325),
@@ -252,8 +561,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 325:
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseIsMatch = __webpack_require__(326),
@@ -281,8 +589,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 326:
+/* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Stack = __webpack_require__(327),
@@ -350,8 +657,46 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 366:
+/* 327 */,
+/* 328 */,
+/* 329 */,
+/* 330 */,
+/* 331 */,
+/* 332 */,
+/* 333 */,
+/* 334 */,
+/* 335 */,
+/* 336 */,
+/* 337 */,
+/* 338 */,
+/* 339 */,
+/* 340 */,
+/* 341 */,
+/* 342 */,
+/* 343 */,
+/* 344 */,
+/* 345 */,
+/* 346 */,
+/* 347 */,
+/* 348 */,
+/* 349 */,
+/* 350 */,
+/* 351 */,
+/* 352 */,
+/* 353 */,
+/* 354 */,
+/* 355 */,
+/* 356 */,
+/* 357 */,
+/* 358 */,
+/* 359 */,
+/* 360 */,
+/* 361 */,
+/* 362 */,
+/* 363 */,
+/* 364 */,
+/* 365 */,
+/* 366 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseIsEqualDeep = __webpack_require__(367),
@@ -387,8 +732,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 367:
+/* 367 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Stack = __webpack_require__(327),
@@ -476,8 +820,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 368:
+/* 368 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var SetCache = __webpack_require__(369),
@@ -566,8 +909,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 369:
+/* 369 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var MapCache = __webpack_require__(351),
@@ -600,8 +942,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 370:
+/* 370 */
 /***/ function(module, exports) {
 
 	/** Used to stand-in for `undefined` hash values. */
@@ -626,8 +967,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 371:
+/* 371 */
 /***/ function(module, exports) {
 
 	/**
@@ -647,8 +987,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 372:
+/* 372 */
 /***/ function(module, exports) {
 
 	/**
@@ -677,8 +1016,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 373:
+/* 373 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Symbol = __webpack_require__(374),
@@ -797,8 +1135,11 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 378:
+/* 374 */,
+/* 375 */,
+/* 376 */,
+/* 377 */,
+/* 378 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var keys = __webpack_require__(307);
@@ -894,8 +1235,18 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 390:
+/* 379 */,
+/* 380 */,
+/* 381 */,
+/* 382 */,
+/* 383 */,
+/* 384 */,
+/* 385 */,
+/* 386 */,
+/* 387 */,
+/* 388 */,
+/* 389 */,
+/* 390 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isStrictComparable = __webpack_require__(391),
@@ -925,8 +1276,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 391:
+/* 391 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isObject = __webpack_require__(314);
@@ -947,8 +1297,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 392:
+/* 392 */
 /***/ function(module, exports) {
 
 	/**
@@ -974,8 +1323,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 393:
+/* 393 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseIsEqual = __webpack_require__(366),
@@ -1014,8 +1362,17 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 404:
+/* 394 */,
+/* 395 */,
+/* 396 */,
+/* 397 */,
+/* 398 */,
+/* 399 */,
+/* 400 */,
+/* 401 */,
+/* 402 */,
+/* 403 */,
+/* 404 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseHasIn = __webpack_require__(405),
@@ -1055,8 +1412,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 405:
+/* 405 */
 /***/ function(module, exports) {
 
 	/**
@@ -1075,8 +1431,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 406:
+/* 406 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var castPath = __webpack_require__(396),
@@ -1122,8 +1477,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 407:
+/* 407 */
 /***/ function(module, exports) {
 
 	/**
@@ -1150,8 +1504,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 408:
+/* 408 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseProperty = __webpack_require__(409),
@@ -1189,8 +1542,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 409:
+/* 409 */
 /***/ function(module, exports) {
 
 	/**
@@ -1210,8 +1562,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 410:
+/* 410 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseGet = __webpack_require__(395);
@@ -1233,8 +1584,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 411:
+/* 411 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1296,7 +1646,7 @@ webpackJsonp([0],{
 	
 	/* react components */
 	
-	var ErrorComponent = __webpack_require__(855);
+	var ErrorComponent = __webpack_require__(730);
 	
 	var __MoveButton = function __MoveButton(props) {
 	    var dispatch = props.dispatch;
@@ -1572,8 +1922,8 @@ webpackJsonp([0],{
 	
 	/* redux reducers */
 	
-	var boolReducer = __webpack_require__(730);
-	var errorReducer = __webpack_require__(731);
+	var boolReducer = __webpack_require__(731);
+	var errorReducer = __webpack_require__(732);
 	
 	/* default state */
 	
@@ -1581,11 +1931,11 @@ webpackJsonp([0],{
 	
 	/* exports */
 	
-	var createStore = __webpack_require__(732);
+	var createStore = __webpack_require__(733);
 	
 	module.exports = function (elem, deckID, moveTo) {
 	
-	    var cloneDeep = __webpack_require__(1275);
+	    var cloneDeep = __webpack_require__(736);
 	
 	    var __initialState = cloneDeep(initialState);
 	
@@ -1614,8 +1964,7 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 412:
+/* 412 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1644,15 +1993,13 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 413:
+/* 413 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(414), __esModule: true };
 
 /***/ },
-
-/***/ 414:
+/* 414 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(415);
@@ -1662,11 +2009,9 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 415:
-[1545, 416, 426, 422],
-
-/***/ 416:
+/* 415 */
+[955, 416, 426, 422],
+/* 416 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var global    = __webpack_require__(417)
@@ -1732,50 +2077,35 @@ webpackJsonp([0],{
 	module.exports = $export;
 
 /***/ },
-
-/***/ 417:
+/* 417 */
 5,
-
-/***/ 418:
+/* 418 */
 10,
-
-/***/ 419:
-[1520, 420],
-
-/***/ 420:
+/* 419 */
+[930, 420],
+/* 420 */
 22,
-
-/***/ 421:
-[1514, 422, 430, 426],
-
-/***/ 422:
-[1515, 423, 425, 429, 426],
-
-/***/ 423:
-[1516, 424],
-
-/***/ 424:
+/* 421 */
+[924, 422, 430, 426],
+/* 422 */
+[925, 423, 425, 429, 426],
+/* 423 */
+[926, 424],
+/* 424 */
 14,
-
-/***/ 425:
-[1517, 426, 427, 428],
-
-/***/ 426:
-[1513, 427],
-
-/***/ 427:
+/* 425 */
+[927, 426, 427, 428],
+/* 426 */
+[923, 427],
+/* 427 */
 8,
-
-/***/ 428:
-[1518, 424, 417],
-
-/***/ 429:
-[1519, 424],
-
-/***/ 430:
+/* 428 */
+[928, 424, 417],
+/* 429 */
+[929, 424],
+/* 430 */
 18,
-
-/***/ 431:
+/* 431 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1831,15 +2161,13 @@ webpackJsonp([0],{
 	}();
 
 /***/ },
-
-/***/ 432:
+/* 432 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(433), __esModule: true };
 
 /***/ },
-
-/***/ 433:
+/* 433 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(434);
@@ -1847,8 +2175,7 @@ webpackJsonp([0],{
 	module.exports = __webpack_require__(467);
 
 /***/ },
-
-/***/ 434:
+/* 434 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(435);
@@ -1866,116 +2193,83 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 435:
-[1563, 436, 437, 438, 439, 443],
-
-/***/ 436:
+/* 435 */
+[973, 436, 437, 438, 439, 443],
+/* 436 */
 /***/ function(module, exports) {
 
 	module.exports = function(){ /* empty */ };
 
 /***/ },
-
-/***/ 437:
+/* 437 */
 195,
-
-/***/ 438:
+/* 438 */
 130,
-
-/***/ 439:
-[1530, 440, 442],
-
-/***/ 440:
-[1531, 441],
-
-/***/ 441:
+/* 439 */
+[940, 440, 442],
+/* 440 */
+[941, 441],
+/* 441 */
 35,
-
-/***/ 442:
+/* 442 */
 36,
-
-/***/ 443:
-[1557, 444, 416, 445, 421, 446, 438, 447, 461, 463, 462],
-
-/***/ 444:
+/* 443 */
+[967, 444, 416, 445, 421, 446, 438, 447, 461, 463, 462],
+/* 444 */
 /***/ function(module, exports) {
 
 	module.exports = true;
 
 /***/ },
-
-/***/ 445:
+/* 445 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(421);
 
 /***/ },
-
-/***/ 446:
+/* 446 */
 6,
-
-/***/ 447:
-[1558, 448, 430, 461, 421, 462],
-
-/***/ 448:
-[1538, 423, 449, 459, 456, 428, 460],
-
-/***/ 449:
-[1539, 422, 423, 450, 426],
-
-/***/ 450:
-[1528, 451, 459],
-
-/***/ 451:
-[1529, 446, 439, 452, 456],
-
-/***/ 452:
-[1532, 439, 453, 455],
-
-/***/ 453:
-[1533, 454],
-
-/***/ 454:
+/* 447 */
+[968, 448, 430, 461, 421, 462],
+/* 448 */
+[948, 423, 449, 459, 456, 428, 460],
+/* 449 */
+[949, 422, 423, 450, 426],
+/* 450 */
+[938, 451, 459],
+/* 451 */
+[939, 446, 439, 452, 456],
+/* 452 */
+[942, 439, 453, 455],
+/* 453 */
+[943, 454],
+/* 454 */
 39,
-
-/***/ 455:
-[1534, 454],
-
-/***/ 456:
-[1535, 457, 458],
-
-/***/ 457:
-[1522, 417],
-
-/***/ 458:
+/* 455 */
+[944, 454],
+/* 456 */
+[945, 457, 458],
+/* 457 */
+[932, 417],
+/* 458 */
 20,
-
-/***/ 459:
+/* 459 */
 42,
-
-/***/ 460:
-[1540, 417],
-
-/***/ 461:
-[1523, 422, 446, 462],
-
-/***/ 462:
-[1524, 457, 458, 417],
-
-/***/ 463:
-[1549, 446, 464, 456],
-
-/***/ 464:
-[1548, 442],
-
-/***/ 465:
-[1555, 466, 443],
-
-/***/ 466:
-[1556, 454, 442],
-
-/***/ 467:
+/* 460 */
+[950, 417],
+/* 461 */
+[933, 422, 446, 462],
+/* 462 */
+[934, 457, 458, 417],
+/* 463 */
+[959, 446, 464, 456],
+/* 464 */
+[958, 442],
+/* 465 */
+[965, 466, 443],
+/* 466 */
+[966, 454, 442],
+/* 467 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var classof   = __webpack_require__(468)
@@ -1989,18 +2283,15 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 468:
-[1554, 441, 462],
-
-/***/ 469:
+/* 468 */
+[964, 441, 462],
+/* 469 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(470), __esModule: true };
 
 /***/ },
-
-/***/ 470:
+/* 470 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(434);
@@ -2008,8 +2299,7 @@ webpackJsonp([0],{
 	module.exports = __webpack_require__(471);
 
 /***/ },
-
-/***/ 471:
+/* 471 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var anObject = __webpack_require__(423)
@@ -2021,18 +2311,15 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 472:
-[1561, 468, 462, 438, 418],
-
-/***/ 473:
+/* 472 */
+[971, 468, 462, 438, 418],
+/* 473 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(474), __esModule: true };
 
 /***/ },
-
-/***/ 474:
+/* 474 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(475);
@@ -2042,42 +2329,31 @@ webpackJsonp([0],{
 	module.exports = __webpack_require__(418).Promise;
 
 /***/ },
-
-/***/ 475:
+/* 475 */
 /***/ function(module, exports) {
 
 
 
 /***/ },
-
-/***/ 476:
-[1564, 444, 417, 419, 468, 416, 424, 420, 477, 478, 481, 482, 484, 462, 485, 461, 486, 418, 487],
-
-/***/ 477:
+/* 476 */
+[974, 444, 417, 419, 468, 416, 424, 420, 477, 478, 481, 482, 484, 462, 485, 461, 486, 418, 487],
+/* 477 */
 206,
-
-/***/ 478:
-[1565, 419, 479, 480, 423, 453, 472],
-
-/***/ 479:
-[1559, 423],
-
-/***/ 480:
-[1560, 438, 462],
-
-/***/ 481:
-[1566, 423, 420, 462],
-
-/***/ 482:
-[1567, 419, 483, 460, 428, 417, 441],
-
-/***/ 483:
+/* 478 */
+[975, 419, 479, 480, 423, 453, 472],
+/* 479 */
+[969, 423],
+/* 480 */
+[970, 438, 462],
+/* 481 */
+[976, 423, 420, 462],
+/* 482 */
+[977, 419, 483, 460, 428, 417, 441],
+/* 483 */
 79,
-
-/***/ 484:
-[1568, 417, 482, 441],
-
-/***/ 485:
+/* 484 */
+[978, 417, 482, 441],
+/* 485 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var hide = __webpack_require__(421);
@@ -2089,8 +2365,7 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 486:
+/* 486 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2109,18 +2384,15 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 487:
-[1562, 462],
-
-/***/ 488:
+/* 487 */
+[972, 462],
+/* 488 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(489), __esModule: true };
 
 /***/ },
-
-/***/ 489:
+/* 489 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var core  = __webpack_require__(418)
@@ -2130,8 +2402,177 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 660:
+/* 490 */,
+/* 491 */,
+/* 492 */,
+/* 493 */,
+/* 494 */,
+/* 495 */,
+/* 496 */,
+/* 497 */,
+/* 498 */,
+/* 499 */,
+/* 500 */,
+/* 501 */,
+/* 502 */,
+/* 503 */,
+/* 504 */,
+/* 505 */,
+/* 506 */,
+/* 507 */,
+/* 508 */,
+/* 509 */,
+/* 510 */,
+/* 511 */,
+/* 512 */,
+/* 513 */,
+/* 514 */,
+/* 515 */,
+/* 516 */,
+/* 517 */,
+/* 518 */,
+/* 519 */,
+/* 520 */,
+/* 521 */,
+/* 522 */,
+/* 523 */,
+/* 524 */,
+/* 525 */,
+/* 526 */,
+/* 527 */,
+/* 528 */,
+/* 529 */,
+/* 530 */,
+/* 531 */,
+/* 532 */,
+/* 533 */,
+/* 534 */,
+/* 535 */,
+/* 536 */,
+/* 537 */,
+/* 538 */,
+/* 539 */,
+/* 540 */,
+/* 541 */,
+/* 542 */,
+/* 543 */,
+/* 544 */,
+/* 545 */,
+/* 546 */,
+/* 547 */,
+/* 548 */,
+/* 549 */,
+/* 550 */,
+/* 551 */,
+/* 552 */,
+/* 553 */,
+/* 554 */,
+/* 555 */,
+/* 556 */,
+/* 557 */,
+/* 558 */,
+/* 559 */,
+/* 560 */,
+/* 561 */,
+/* 562 */,
+/* 563 */,
+/* 564 */,
+/* 565 */,
+/* 566 */,
+/* 567 */,
+/* 568 */,
+/* 569 */,
+/* 570 */,
+/* 571 */,
+/* 572 */,
+/* 573 */,
+/* 574 */,
+/* 575 */,
+/* 576 */,
+/* 577 */,
+/* 578 */,
+/* 579 */,
+/* 580 */,
+/* 581 */,
+/* 582 */,
+/* 583 */,
+/* 584 */,
+/* 585 */,
+/* 586 */,
+/* 587 */,
+/* 588 */,
+/* 589 */,
+/* 590 */,
+/* 591 */,
+/* 592 */,
+/* 593 */,
+/* 594 */,
+/* 595 */,
+/* 596 */,
+/* 597 */,
+/* 598 */,
+/* 599 */,
+/* 600 */,
+/* 601 */,
+/* 602 */,
+/* 603 */,
+/* 604 */,
+/* 605 */,
+/* 606 */,
+/* 607 */,
+/* 608 */,
+/* 609 */,
+/* 610 */,
+/* 611 */,
+/* 612 */,
+/* 613 */,
+/* 614 */,
+/* 615 */,
+/* 616 */,
+/* 617 */,
+/* 618 */,
+/* 619 */,
+/* 620 */,
+/* 621 */,
+/* 622 */,
+/* 623 */,
+/* 624 */,
+/* 625 */,
+/* 626 */,
+/* 627 */,
+/* 628 */,
+/* 629 */,
+/* 630 */,
+/* 631 */,
+/* 632 */,
+/* 633 */,
+/* 634 */,
+/* 635 */,
+/* 636 */,
+/* 637 */,
+/* 638 */,
+/* 639 */,
+/* 640 */,
+/* 641 */,
+/* 642 */,
+/* 643 */,
+/* 644 */,
+/* 645 */,
+/* 646 */,
+/* 647 */,
+/* 648 */,
+/* 649 */,
+/* 650 */,
+/* 651 */,
+/* 652 */,
+/* 653 */,
+/* 654 */,
+/* 655 */,
+/* 656 */,
+/* 657 */,
+/* 658 */,
+/* 659 */,
+/* 660 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2153,8 +2594,7 @@ webpackJsonp([0],{
 	exports.connect = _connect2["default"];
 
 /***/ },
-
-/***/ 661:
+/* 661 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2237,8 +2677,7 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 662:
+/* 662 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2254,8 +2693,7 @@ webpackJsonp([0],{
 	});
 
 /***/ },
-
-/***/ 663:
+/* 663 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2284,8 +2722,7 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 664:
+/* 664 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2683,8 +3120,7 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 665:
+/* 665 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2715,8 +3151,7 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 666:
+/* 666 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2733,8 +3168,7 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 667:
+/* 667 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2785,8 +3219,7 @@ webpackJsonp([0],{
 	exports.compose = _compose2['default'];
 
 /***/ },
-
-/***/ 668:
+/* 668 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3052,8 +3485,7 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 669:
+/* 669 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var getPrototype = __webpack_require__(670),
@@ -3129,8 +3561,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 670:
+/* 670 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var overArg = __webpack_require__(322);
@@ -3142,16 +3573,14 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 671:
+/* 671 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(672);
 
 
 /***/ },
-
-/***/ 672:
+/* 672 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -3179,8 +3608,7 @@ webpackJsonp([0],{
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-
-/***/ 673:
+/* 673 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -3208,8 +3636,7 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 674:
+/* 674 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3356,8 +3783,7 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 675:
+/* 675 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -3387,8 +3813,7 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 676:
+/* 676 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -3444,8 +3869,7 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 677:
+/* 677 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3508,8 +3932,7 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 678:
+/* 678 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3552,8 +3975,7 @@ webpackJsonp([0],{
 	}
 
 /***/ },
-
-/***/ 679:
+/* 679 */
 /***/ function(module, exports) {
 
 	/**
@@ -3609,8 +4031,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 680:
+/* 680 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -3667,8 +4088,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 681:
+/* 681 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -3722,8 +4142,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 682:
+/* 682 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3938,8 +4357,7 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 683:
+/* 683 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseSet = __webpack_require__(684);
@@ -3980,8 +4398,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 684:
+/* 684 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var assignValue = __webpack_require__(685),
@@ -4035,8 +4452,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 685:
+/* 685 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var eq = __webpack_require__(332);
@@ -4069,8 +4485,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 686:
+/* 686 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseMerge = __webpack_require__(687),
@@ -4115,8 +4530,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 687:
+/* 687 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Stack = __webpack_require__(327),
@@ -4172,8 +4586,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 688:
+/* 688 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var eq = __webpack_require__(332);
@@ -4198,8 +4611,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 689:
+/* 689 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isObject = __webpack_require__(314),
@@ -4238,8 +4650,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 690:
+/* 690 */
 /***/ function(module, exports) {
 
 	/**
@@ -4265,8 +4676,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 691:
+/* 691 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var assignMergeValue = __webpack_require__(688),
@@ -4354,8 +4764,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 692:
+/* 692 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Stack = __webpack_require__(327),
@@ -4500,8 +4909,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 693:
+/* 693 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var copyObject = __webpack_require__(694),
@@ -4524,8 +4932,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 694:
+/* 694 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var assignValue = __webpack_require__(685);
@@ -4562,8 +4969,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 695:
+/* 695 */
 /***/ function(module, exports) {
 
 	/**
@@ -4587,8 +4993,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 696:
+/* 696 */
 /***/ function(module, exports) {
 
 	/**
@@ -4614,8 +5019,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 697:
+/* 697 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var copyObject = __webpack_require__(694),
@@ -4637,8 +5041,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 698:
+/* 698 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var overArg = __webpack_require__(322),
@@ -4660,8 +5063,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 699:
+/* 699 */
 /***/ function(module, exports) {
 
 	/**
@@ -4690,8 +5092,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 700:
+/* 700 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseGetAllKeys = __webpack_require__(701),
@@ -4713,8 +5114,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 701:
+/* 701 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var arrayPush = __webpack_require__(702),
@@ -4740,8 +5140,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 702:
+/* 702 */
 /***/ function(module, exports) {
 
 	/**
@@ -4767,8 +5166,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 703:
+/* 703 */
 /***/ function(module, exports) {
 
 	/** Used for built-in method references. */
@@ -4800,8 +5198,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 704:
+/* 704 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var cloneArrayBuffer = __webpack_require__(705),
@@ -4887,8 +5284,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 705:
+/* 705 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Uint8Array = __webpack_require__(375);
@@ -4910,8 +5306,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 706:
+/* 706 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var cloneArrayBuffer = __webpack_require__(705);
@@ -4933,8 +5328,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 707:
+/* 707 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var addMapEntry = __webpack_require__(708),
@@ -4959,8 +5353,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 708:
+/* 708 */
 /***/ function(module, exports) {
 
 	/**
@@ -4981,8 +5374,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 709:
+/* 709 */
 /***/ function(module, exports) {
 
 	/**
@@ -5014,8 +5406,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 710:
+/* 710 */
 /***/ function(module, exports) {
 
 	/** Used to match `RegExp` flags from their coerced string values. */
@@ -5038,8 +5429,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 711:
+/* 711 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var addSetEntry = __webpack_require__(712),
@@ -5064,8 +5454,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 712:
+/* 712 */
 /***/ function(module, exports) {
 
 	/**
@@ -5086,8 +5475,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 713:
+/* 713 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Symbol = __webpack_require__(374);
@@ -5111,8 +5499,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 714:
+/* 714 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var cloneArrayBuffer = __webpack_require__(705);
@@ -5134,8 +5521,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 715:
+/* 715 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseCreate = __webpack_require__(716),
@@ -5159,8 +5545,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 716:
+/* 716 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isObject = __webpack_require__(314);
@@ -5184,8 +5569,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 717:
+/* 717 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(module) {var root = __webpack_require__(347),
@@ -5230,8 +5614,7 @@ webpackJsonp([0],{
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(389)(module)))
 
 /***/ },
-
-/***/ 718:
+/* 718 */
 /***/ function(module, exports) {
 
 	/**
@@ -5255,8 +5638,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 719:
+/* 719 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var copyObject = __webpack_require__(694),
@@ -5294,8 +5676,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 720:
+/* 720 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var arrayLikeKeys = __webpack_require__(308),
@@ -5333,8 +5714,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 721:
+/* 721 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseRest = __webpack_require__(722),
@@ -5377,8 +5757,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 722:
+/* 722 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var apply = __webpack_require__(723);
@@ -5419,8 +5798,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 723:
+/* 723 */
 /***/ function(module, exports) {
 
 	/**
@@ -5447,8 +5825,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 724:
+/* 724 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var eq = __webpack_require__(332),
@@ -5484,8 +5861,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 725:
+/* 725 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseMerge = __webpack_require__(687),
@@ -5530,8 +5906,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 726:
+/* 726 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isArray = __webpack_require__(317),
@@ -5576,8 +5951,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 727:
+/* 727 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;(function () {
@@ -6043,8 +6417,7 @@ webpackJsonp([0],{
 
 
 /***/ },
-
-/***/ 728:
+/* 728 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6077,8 +6450,7 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 729:
+/* 729 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -6169,8 +6541,64 @@ webpackJsonp([0],{
 	};
 
 /***/ },
+/* 730 */
+/***/ function(module, exports, __webpack_require__) {
 
-/***/ 730:
+	'use strict';
+	
+	var React = __webpack_require__(490);
+	var isFunction = __webpack_require__(313);
+	
+	var ErrorComponent = function ErrorComponent(props) {
+	
+	    if (!props.error || String(props.error).trim().length <= 0) {
+	        return null;
+	    }
+	
+	    if (isFunction(props.onConfirm)) {
+	
+	        return React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement(
+	                    'div',
+	                    { className: 'notification is-danger' },
+	                    React.createElement('button', { className: 'delete', onClick: props.onConfirm }),
+	                    props.error
+	                )
+	            )
+	        );
+	    }
+	
+	    return React.createElement(
+	        'div',
+	        { className: 'columns' },
+	        React.createElement(
+	            'div',
+	            { className: 'column' },
+	            React.createElement(
+	                'div',
+	                { className: 'notification is-danger' },
+	                props.error
+	            )
+	        )
+	    );
+	};
+	
+	if (true) {
+	    ErrorComponent.propTypes = {
+	        error: React.PropTypes.string,
+	        onConfirm: React.PropTypes.func
+	    };
+	}
+	
+	module.exports = ErrorComponent;
+
+/***/ },
+/* 731 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -6194,8 +6622,7 @@ webpackJsonp([0],{
 	module.exports = boolReducer;
 
 /***/ },
-
-/***/ 731:
+/* 732 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6234,8 +6661,7 @@ webpackJsonp([0],{
 	module.exports = errorReducer;
 
 /***/ },
-
-/***/ 732:
+/* 733 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6250,7 +6676,7 @@ webpackJsonp([0],{
 	var applyMiddleware = _require2.applyMiddleware;
 	
 	
-	var rehydrateFactory = __webpack_require__(733);
+	var rehydrateFactory = __webpack_require__(734);
 	
 	var IDENTITY = function IDENTITY(x) {
 	    return x;
@@ -6272,7 +6698,7 @@ webpackJsonp([0],{
 	
 	        if (true) {
 	
-	            var createLogger = __webpack_require__(734);
+	            var createLogger = __webpack_require__(735);
 	            var logger = createLogger();
 	
 	            return applyMiddleware(logger);
@@ -6289,8 +6715,7 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 733:
+/* 734 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6366,8 +6791,7 @@ webpackJsonp([0],{
 	};
 
 /***/ },
-
-/***/ 734:
+/* 735 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -6600,66 +7024,7 @@ webpackJsonp([0],{
 	module.exports = createLogger;
 
 /***/ },
-
-/***/ 855:
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var React = __webpack_require__(490);
-	var isFunction = __webpack_require__(313);
-	
-	var ErrorComponent = function ErrorComponent(props) {
-	
-	    if (!props.error || String(props.error).trim().length <= 0) {
-	        return null;
-	    }
-	
-	    if (isFunction(props.onConfirm)) {
-	
-	        return React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement(
-	                    'div',
-	                    { className: 'notification is-danger' },
-	                    React.createElement('button', { className: 'delete', onClick: props.onConfirm }),
-	                    props.error
-	                )
-	            )
-	        );
-	    }
-	
-	    return React.createElement(
-	        'div',
-	        { className: 'columns' },
-	        React.createElement(
-	            'div',
-	            { className: 'column' },
-	            React.createElement(
-	                'div',
-	                { className: 'notification is-danger' },
-	                props.error
-	            )
-	        )
-	    );
-	};
-	
-	if (true) {
-	    ErrorComponent.propTypes = {
-	        error: React.PropTypes.string,
-	        onConfirm: React.PropTypes.func
-	    };
-	}
-	
-	module.exports = ErrorComponent;
-
-/***/ },
-
-/***/ 1275:
+/* 736 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseClone = __webpack_require__(692);
@@ -6690,6 +7055,5 @@ webpackJsonp([0],{
 
 
 /***/ }
-
-});
+]);
 //# sourceMappingURL=card_move_settings.js.map
