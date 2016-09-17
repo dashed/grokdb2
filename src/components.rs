@@ -3294,6 +3294,27 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
 
                     }
 
+                    |tmpl| {
+                        if !is_cards_parent {
+
+                            tmpl << html!{
+                                div(class="level-right") {
+                                    div(class="level-item") {
+                                        div(class="move_to_deck",
+                                            data-deck-id = raw!(format!("{}", deck_id))) {
+
+                                            // TODO: server rendered component
+                                            a(class="button is-primary is-bold is-outlined") {
+                                                : raw!("Move to this Deck")
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
                 }
 
             }
