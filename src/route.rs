@@ -850,7 +850,8 @@ fn __parse_route_api_deck<'a>(
                 parse_route_api_deck_settings(context.clone(), request.clone(), deck_id) <|>
                 parse_route_api_deck_new_deck(context.clone(), request.clone(), deck_id) <|>
                 parse_route_api_deck_new_card(context.clone(), request.clone(), deck_id) <|>
-                parse_route_api_deck_review(context.clone(), request.clone(), deck_id);
+                parse_route_api_deck_review(context.clone(), request.clone(), deck_id) <|>
+                parse_route_api_deck_move(context.clone(), request.clone(), deck_id);
 
             ret render_response
 
@@ -919,12 +920,107 @@ fn parse_route_api_deck_root(
 }
 
 #[inline]
+fn parse_route_api_deck_move<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+
+    parse!{input;
+
+        string_ignore_case(b"move");
+
+        eof();
+
+        ret {
+            __parse_route_api_deck_move(context, request, deck_id)
+        }
+
+    }
+
+}
+
+#[inline]
+fn __parse_route_api_deck_move(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    child_deck_id: DeckID) -> RenderResponse {
+
+    // invariant: deck exists
+
+    let mut request = request.borrow_mut();
+
+    if request.method != Method::Post {
+        return RenderResponse::MethodNotAllowed;
+    }
+
+    // POST /api/deck/:id/move
+
+    let mut buffer = String::new();
+
+    match request.read_to_string(&mut buffer) {
+        Err(err) => {
+            // internal reason: invalid utf8 input
+
+            // TODO: internal error logging
+            let err = "Unable to move this deck. Please try again.".to_string();
+            return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
+        },
+        Ok(_num_bytes_parsed) => {
+
+            let request: decks::MoveDeckRequest = match serde_json::from_str(&buffer) {
+                Ok(request) => request,
+                Err(err) => {
+
+                    // TODO: internal error logging
+                    let err = "Unable to move this deck. Please try again.".to_string();
+                    return respond_json_with_error!(APIStatus::BadRequest; err; None);
+                }
+            };
+
+            // ensure deck exists
+            match decks::deck_exists(context.clone(), request.deck_id) {
+                Ok(true) => {},
+                Ok(false) => {
+                    let err = "This deck does not exist.".to_string();
+                    return respond_json_with_error!(APIStatus::BadRequest; err; None);
+                },
+                Err(err) => {
+                    // TODO: internal error logging
+                    return respond_json_with_error!(APIStatus::ServerError;
+                        INTERNAL_SERVER_ERROR_STRING.clone(); None);
+                }
+            }
+
+            match decks::connect_decks(context.clone(), child_deck_id, request.deck_id) {
+                Err(err) => {
+                    // TODO: internal error logging
+                    return respond_json_with_error!(APIStatus::ServerError;
+                        INTERNAL_SERVER_ERROR_STRING.clone(); None);
+                },
+                Ok(()) => {
+
+                    let response = decks::MoveDeckResponse {
+                        redirect_to: view_route_to_link(context.clone(), AppRoute::Deck(child_deck_id,
+                            DeckRoute::Settings(DeckSettings::Move)))
+                    };
+
+                    return respond_json!(Some(response));
+
+                }
+            }
+
+        }
+    }
+}
+
+#[inline]
 fn parse_route_api_deck_review<'a>(
     input: Input<'a, u8>,
     context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
-    parent_deck_id: DeckID)
--> U8Result<'a, RenderResponse> {
+    parent_deck_id: DeckID) -> U8Result<'a, RenderResponse> {
 
     parse!{input;
 

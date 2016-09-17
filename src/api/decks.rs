@@ -63,6 +63,17 @@ pub struct DeleteDeckResponse {
     pub redirect_to: String
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MoveDeckRequest {
+    pub deck_id: DeckID
+}
+
+#[derive(Debug, Serialize)]
+pub struct MoveDeckResponse {
+    pub redirect_to: String
+}
+
 #[inline]
 pub fn get_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Deck, RawAPIError> {
 
@@ -308,6 +319,7 @@ pub fn update_deck_name(
     return Ok(());
 }
 
+// NOTE: This moves child deck to a new parent.
 #[inline]
 pub fn connect_decks(context: Rc<RefCell<Context>>, child: DeckID, parent: DeckID) -> Result<(), RawAPIError> {
 
