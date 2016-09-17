@@ -3254,8 +3254,10 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
 
                             tmpl << html!{
                                 div(class="level-left") {
-                                    span(class="tag is-dark") {
-                                        : raw!("Current Deck")
+                                    div(class="level-item") {
+                                        span(class="tag is-dark") {
+                                            : raw!("Current Deck")
+                                        }
                                     }
                                 }
                             }
@@ -3263,30 +3265,32 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
                     }
 
                     div(class="level-left") {
+                        div(class="level-item") {
 
-                        h5(class="title is-5 is-marginless is-bold") {
-                            a(href = view_route_to_link(context.clone(),
-                                        AppRoute::Deck(parent_deck,
-                                            DeckRoute::CardProfile(card_id,
-                                                CardRoute::Settings(CardSettings::Move(
-                                                    MoveDecksPageQuery::SourceOfDecks(deck_id, Default::default()),
-                                                    Default::default())))))
+                            h5(class="title is-5 is-marginless is-bold") {
+                                a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(parent_deck,
+                                                DeckRoute::CardProfile(card_id,
+                                                    CardRoute::Settings(CardSettings::Move(
+                                                        MoveDecksPageQuery::SourceOfDecks(deck_id, Default::default()),
+                                                        Default::default())))))
 
-                            ) {
-                                |tmpl| MathJaxInline(tmpl, deck.name.clone(), is_cards_parent);
+                                ) {
+                                    |tmpl| MathJaxInline(tmpl, deck.name.clone(), is_cards_parent);
+                                }
                             }
-                        }
 
-                        span(style="font-size:12px;") {
-                            : format!("Deck #{}", deck.id);
-                            : raw!(" ");
-                            a(href = view_route_to_link(context.clone(),
-                                            AppRoute::Deck(deck_id,
-                                                DeckRoute::Cards(Default::default(), Default::default())))) {
-                                : raw!("View Cards")
+                            span(style="font-size:12px;") {
+                                : format!("Deck #{}", deck.id);
+                                : raw!(" ");
+                                a(href = view_route_to_link(context.clone(),
+                                                AppRoute::Deck(deck_id,
+                                                    DeckRoute::Cards(Default::default(), Default::default())))) {
+                                    : raw!("View Cards")
+                                }
                             }
-                        }
 
+                        }
                     }
 
                 }
