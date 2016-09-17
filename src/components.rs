@@ -3231,32 +3231,66 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
         }
     };
 
+    let is_cards_parent = match cards::get_card(context.clone(), card_id) {
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        },
+        Ok(card) => {
+            card.deck_id == deck_id
+        }
+    };
+
     tmpl << html!{
         div(class="columns is-marginless",
             style=labels!(
                 "border-bottom:1px dotted #d3d6db;" => !is_bottom)) {
             div(class="column is-side-paddingless") {
-                h5(class="title is-5 is-marginless is-bold") {
-                    a(href = view_route_to_link(context.clone(),
-                                AppRoute::Deck(parent_deck,
-                                    DeckRoute::CardProfile(card_id,
-                                        CardRoute::Settings(CardSettings::Move(
-                                            MoveDecksPageQuery::SourceOfDecks(deck_id, Default::default()),
-                                            Default::default())))))
 
-                    ) {
-                        |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
+                div(class="level") {
+
+                    |tmpl| {
+                        if is_cards_parent {
+
+                            tmpl << html!{
+                                div(class="level-left") {
+                                    span(class="tag is-dark") {
+                                        : raw!("Current Deck")
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-                span(style="font-size:12px;") {
-                    : format!("Deck #{}", deck.id);
-                    : raw!(" ");
-                    a(href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(deck_id,
-                                        DeckRoute::Cards(Default::default(), Default::default())))) {
-                        : raw!("View Cards")
+
+                    div(class="level-left") {
+
+                        h5(class="title is-5 is-marginless is-bold") {
+                            a(href = view_route_to_link(context.clone(),
+                                        AppRoute::Deck(parent_deck,
+                                            DeckRoute::CardProfile(card_id,
+                                                CardRoute::Settings(CardSettings::Move(
+                                                    MoveDecksPageQuery::SourceOfDecks(deck_id, Default::default()),
+                                                    Default::default())))))
+
+                            ) {
+                                |tmpl| MathJaxInline(tmpl, deck.name.clone(), is_cards_parent);
+                            }
+                        }
+
+                        span(style="font-size:12px;") {
+                            : format!("Deck #{}", deck.id);
+                            : raw!(" ");
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(Default::default(), Default::default())))) {
+                                : raw!("View Cards")
+                            }
+                        }
+
                     }
+
                 }
+
             }
         }
     }
