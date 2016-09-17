@@ -3256,7 +3256,7 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
 
                                 tmpl << html!{
                                     div(class="level-item") {
-                                        span(class="tag is-dark") {
+                                        span(class="tag is-dark is-bold") {
                                             : raw!("Current Deck")
                                         }
                                     }
