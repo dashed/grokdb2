@@ -110,6 +110,17 @@ pub struct DeleteCardResponse {
     pub redirect_to: String
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MoveCardRequest {
+    pub deck_id: DeckID
+}
+
+#[derive(Debug, Serialize)]
+pub struct MoveCardResponse {
+    pub redirect_to: String
+}
+
 #[inline]
 pub fn get_card(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<Card, RawAPIError> {
 
@@ -297,6 +308,42 @@ pub fn delete_card(
 
 // TODO: needs test
 #[inline]
+pub fn move_card(
+    context: Rc<RefCell<Context>>,
+    card_id: CardID,
+    deck_id: DeckID
+    ) -> Result<Card, RawAPIError> {
+
+    assert!(context.borrow().is_write_locked());
+
+    let query = format!(indoc!("
+        UPDATE
+            Cards
+        SET
+            deck_id = {deck_id}
+        WHERE card_id = {card_id};
+    "), card_id = card_id, deck_id = deck_id);
+
+    {
+        let context = context.borrow();
+        db_write_lock!(db_conn; context.database());
+        let db_conn: &Connection = db_conn;
+
+        match db_conn.execute(&query, &[]) {
+            Err(sqlite_error) => {
+                return Err(RawAPIError::SQLError(sqlite_error, query));
+            }
+            _ => {
+                /* query sucessfully executed */
+            }
+        }
+    };
+
+    return get_card(context, card_id);
+}
+
+// TODO: needs test
+#[inline]
 pub fn update_card(
     context: Rc<RefCell<Context>>,
     card_id: CardID,
@@ -305,8 +352,9 @@ pub fn update_card(
 
     assert!(context.borrow().is_write_locked());
 
-    let query = format!("
-        UPDATE Cards
+    let query = format!(indoc!("
+        UPDATE
+            Cards
         SET
             title = :title,
             description = :description,
@@ -314,7 +362,7 @@ pub fn update_card(
             answer = :answer,
             is_active = :is_active
         WHERE card_id = {card_id};
-    ", card_id = card_id);
+    "), card_id = card_id);
 
     let params: &[(&str, &ToSql)] = &[
         (":title", &update_card_request.title.clone()),

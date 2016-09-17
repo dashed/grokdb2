@@ -44,7 +44,7 @@ use serde;
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
 use types::{APIStatus, DeckID, CardID, DecksPageQuery, CardsPageQuery, Search, JSONResponse, MoveDecksPageQuery};
 use context::{self, Context};
-use components::{AppComponent, view_route_to_link};
+use components::{AppComponent, view_route_to_link, generate_move_to};
 use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
 use api::cards;
 use api::user;
@@ -462,7 +462,8 @@ fn __parse_route_api_card<'a>(
 
             // TODO: reorder for micro optimization
             let render_response = parse_route_api_card_update(context.clone(), request.clone(), card_id) <|>
-                parse_route_api_card_review(context.clone(), request.clone(), card_id);
+                parse_route_api_card_review(context.clone(), request.clone(), card_id) <|>
+                parse_route_api_card_move(context.clone(), request.clone(), card_id);
 
             ret render_response
 
@@ -509,6 +510,99 @@ fn parse_route_api_card_root(
     };
 
     return respond_json!(Some(card_delete_response));
+}
+
+#[inline]
+fn parse_route_api_card_move<'a>(
+    input: Input<'a, u8>,
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    card_id: CardID) -> U8Result<'a, RenderResponse> {
+    parse!{input;
+
+        string_ignore_case(b"move");
+        eof();
+
+        ret {
+            __parse_route_api_card_move(context, request, card_id)
+        }
+    }
+}
+
+#[inline]
+fn __parse_route_api_card_move(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    card_id: CardID) -> RenderResponse {
+
+    // invariant: card exists
+
+    let mut request = request.borrow_mut();
+
+    if request.method != Method::Post {
+        return RenderResponse::MethodNotAllowed;
+    }
+
+    // POST /api/card/:id/move
+
+    let mut buffer = String::new();
+
+    match request.read_to_string(&mut buffer) {
+        Err(err) => {
+            // internal reason: invalid utf8 input
+
+            // TODO: internal error logging
+            let err = "Unable to move this card. Please try again.".to_string();
+            return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
+        },
+        Ok(_num_bytes_parsed) => {
+
+            let request: cards::MoveCardRequest = match serde_json::from_str(&buffer) {
+                Ok(request) => request,
+                Err(err) => {
+
+                    // TODO: internal error logging
+                    let err = "Unable to move this card. Please try again.".to_string();
+                    return respond_json_with_error!(APIStatus::BadRequest; err; None);
+                }
+            };
+
+            // ensure deck exists
+            match decks::deck_exists(context.clone(), request.deck_id) {
+                Ok(true) => {},
+                Ok(false) => {
+                    let err = "This deck does not exist.".to_string();
+                    return respond_json_with_error!(APIStatus::BadRequest; err; None);
+                },
+                Err(err) => {
+                    // TODO: internal error logging
+                    return respond_json_with_error!(APIStatus::ServerError;
+                        INTERNAL_SERVER_ERROR_STRING.clone(); None);
+                }
+            }
+
+            match cards::move_card(context.clone(), card_id, request.deck_id) {
+                Ok(_card) => {
+
+                    let response = cards::MoveCardResponse {
+                        redirect_to: view_route_to_link(context.clone(), AppRoute::Deck(request.deck_id,
+                            DeckRoute::CardProfile(card_id,
+                                CardRoute::Settings(CardSettings::Move(
+                                    MoveDecksPageQuery::default(context.clone(), card_id),
+                                    Default::default())))))
+                    };
+
+                    return respond_json!(Some(response));
+                },
+                Err(err) => {
+                    // TODO: internal error logging
+                    return respond_json_with_error!(APIStatus::ServerError;
+                        INTERNAL_SERVER_ERROR_STRING.clone(); None);
+                }
+            }
+        }
+    }
 }
 
 #[inline]

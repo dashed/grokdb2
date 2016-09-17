@@ -237,6 +237,32 @@ pub fn generate_post_to(app_route: &AppRoute) -> String {
     }
 }
 
+#[inline]
+pub fn generate_move_to(app_route: &AppRoute) -> String {
+    match *app_route {
+        AppRoute::Deck(_deck_id, ref deck_route) => {
+            match *deck_route {
+                DeckRoute::CardProfile(card_id, ref card_route) => {
+                    match *card_route {
+                        CardRoute::Settings(CardSettings::Move(_, _)) => {
+                            format!("/api/card/{card_id}/move", card_id = card_id)
+                        },
+                        _ => {
+                            panic!("invalid use of generate_move_to");
+                        }
+                    }
+                }
+                _ => {
+                    panic!("invalid use of generate_move_to");
+                }
+            }
+        },
+        _ => {
+            panic!("invalid use of generate_move_to");
+        }
+    }
+}
+
 /* javascript generator */
 
 #[derive(Serialize)]
@@ -3313,6 +3339,13 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
                                 div(class="level-right") {
                                     div(class="level-item") {
                                         div(class="move_to_deck",
+                                            data-move-to = raw!(generate_move_to(
+                                                &AppRoute::Deck(parent_deck,
+                                                    DeckRoute::CardProfile(card_id,
+                                                        CardRoute::Settings(CardSettings::Move(
+                                                            MoveDecksPageQuery::default(context.clone(), card_id),
+                                                            Default::default()))))
+                                            )),
                                             data-deck-id = raw!(format!("{}", deck_id))) {
 
                                             // TODO: server rendered component
