@@ -11,11 +11,12 @@ const forEach = require('lodash/forEach');
 
 const bootstrap = require('components/card_settings/move');
 
+const moveTo = window.__PRE_RENDER_STATE__.MOVE_TO;
+
 forEach(document.getElementsByClassName('move_to_deck'), function(elem) {
 
     setTimeout(function(){
         const deckID = elem.getAttribute('data-deck-id');
-        const moveTo = elem.getAttribute('data-move-to');
 
         bootstrap(elem, deckID, moveTo);
     }, 0);

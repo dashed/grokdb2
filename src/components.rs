@@ -598,7 +598,20 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                                 },
                                 CardSettings::Move(_, _) => {
-                                    // TODO: complete
+
+                                    tmpl << html! {
+                                        : raw!(
+                                            format!(
+                                                "window.__PRE_RENDER_STATE__ = \
+                                                    {{\
+                                                        MOVE_TO: '{move_to}'\
+                                                    }};\
+                                                ",
+                                                move_to = generate_move_to(app_route)
+                                            )
+                                        )
+                                    }
+
                                 }
                             }
 
@@ -3339,13 +3352,6 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
                                 div(class="level-right") {
                                     div(class="level-item") {
                                         div(class="move_to_deck",
-                                            data-move-to = raw!(generate_move_to(
-                                                &AppRoute::Deck(parent_deck,
-                                                    DeckRoute::CardProfile(card_id,
-                                                        CardRoute::Settings(CardSettings::Move(
-                                                            MoveDecksPageQuery::default(context.clone(), card_id),
-                                                            Default::default()))))
-                                            )),
                                             data-deck-id = raw!(format!("{}", deck_id))) {
 
                                             // TODO: server rendered component
