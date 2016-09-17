@@ -21,7 +21,7 @@ use serde_json;
 
 use route::{AppRoute, RenderResponse, DeckRoute, CardRoute, DeckSettings, CardSettings};
 use context::{self, Context};
-use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, SortOrderable};
+use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, SortOrderable, MoveDecksPageQuery};
 use api::{decks, cards, user};
 use api::review::{self, CachedReviewProcedure};
 use timestamp;
@@ -2893,7 +2893,9 @@ fn CardDetailSettings(
                             a(href = view_route_to_link(
                                 context.clone(),
                                 AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id,
-                                    CardRoute::Settings(CardSettings::Move(Default::default(), Default::default()))))
+                                    CardRoute::Settings(CardSettings::Move(
+                                        MoveDecksPageQuery::default(context.clone(), card_id),
+                                        Default::default()))))
                                 )) {
                                 span {
                                     : "Move"
@@ -2953,7 +2955,7 @@ fn CardSettingsMove(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
     card_id: CardID,
-    deck_page_query: &DecksPageQuery,
+    deck_page_query: &MoveDecksPageQuery,
     search: &Search) {
 
     tmpl << html!{
@@ -2969,9 +2971,132 @@ fn CardSettingsMove(
         }
 
 
+        // |tmpl| CardMovePaginationComponent(tmpl, context.clone(), card_id, &deck_page_query, &search);
+        |tmpl| CardMoveDecksList(tmpl, context.clone(), card_id, &deck_page_query, &search);
+        // |tmpl| CardMovePaginationComponent(tmpl, context.clone(), card_id, &deck_page_query, &search);
 
 
     }
+}
+
+#[inline]
+fn CardMoveDecksList(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    card_id: CardID,
+    deck_page_query: &MoveDecksPageQuery,
+    search: &Search) {
+
+    // get root deck
+    let root_deck_id = match user::get_root_deck(context.clone()) {
+        Ok(Some(root_deck_id)) => root_deck_id,
+        Ok(None) => {
+            // TODO: internal error logging
+            panic!();
+        },
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        }
+    };
+
+    match *deck_page_query {
+        MoveDecksPageQuery::Root(root_deck_id) => {
+            // case: card is inside root deck
+
+            // TODO: complete
+            tmpl << html!{
+                |tmpl| MoveToDeckListItemComponent(tmpl,
+                    context.clone(), card_id, root_deck_id, true);
+            };
+
+            return;
+
+        },
+        MoveDecksPageQuery::SourceOfDecks(deck_id, ref page_query) => {
+
+            // case: card is not inside root deck
+
+            let children = match decks::get_deck_children(context.clone(), deck_id, page_query, search) {
+                Ok(children) => children,
+                Err(_) => {
+                    // TODO: internal error logging
+                    panic!();
+                }
+            };
+
+            let number_of_items = children.len();
+
+            if number_of_items <= 0 {
+                tmpl << html!{
+                    div(class="columns") {
+                        div(class="column") {
+                            article(class="message") {
+                                div(class="message-body") {
+                                    : raw!("There are no decks to display..")
+                                }
+                            }
+                        }
+                    }
+                };
+
+                return;
+            }
+
+            tmpl << html!{
+                @ for (index, deck_id) in children.iter().enumerate() {
+                    |tmpl| MoveToDeckListItemComponent(tmpl,
+                        context.clone(), card_id, *deck_id, (index + 1) >= number_of_items);
+                }
+            };
+
+
+        }
+    }
+
+}
+
+#[inline]
+fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>,
+    card_id: CardID, deck_id: DeckID, is_bottom: bool) {
+
+    let deck = match decks::get_deck(context.clone(), deck_id) {
+        Ok(deck) => deck,
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        }
+    };
+
+    tmpl << html!{
+        div(class="columns is-marginless",
+            style=labels!(
+                "border-bottom:1px dotted #d3d6db;" => !is_bottom)) {
+            div(class="column is-side-paddingless") {
+                h5(class="title is-5 is-marginless is-bold") {
+                    a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::CardProfile(card_id,
+                                            CardRoute::Settings(CardSettings::Move(
+                                                MoveDecksPageQuery::SourceOfDecks(deck_id, Default::default()),
+                                                Default::default())))))
+                    ) {
+                        |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
+                    }
+                }
+                span(style="font-size:12px;") {
+                    : format!("Deck #{}", deck.id);
+                    : raw!(" ");
+                    a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::Cards(Default::default(), Default::default())))) {
+                        : raw!("View Cards")
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 #[inline]

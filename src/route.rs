@@ -42,7 +42,7 @@ use serde;
 /* local imports */
 
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
-use types::{APIStatus, DeckID, CardID, DecksPageQuery, CardsPageQuery, Search, JSONResponse};
+use types::{APIStatus, DeckID, CardID, DecksPageQuery, CardsPageQuery, Search, JSONResponse, MoveDecksPageQuery};
 use context::{self, Context};
 use components::{AppComponent, view_route_to_link};
 use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
@@ -97,7 +97,7 @@ pub enum CardRoute {
 #[derive(Debug, Clone)]
 pub enum CardSettings {
     Main,
-    Move(DecksPageQuery, Search)
+    Move(MoveDecksPageQuery, Search)
 }
 
 impl Default for CardRoute {
@@ -1963,10 +1963,11 @@ fn parse_route_card_settings_move<'a>(
             } else {
 
                 let card_settings_move = match query_string {
-                    None => CardSettings::Move(Default::default(), Default::default()),
+                    None => CardSettings::Move(MoveDecksPageQuery::default(context.clone(), card_id),
+                        Default::default()),
                     Some(ref query_string) => {
 
-                        let page_query = DecksPageQuery::parse(query_string, context.clone(), deck_id);
+                        let page_query = MoveDecksPageQuery::parse(query_string, context.clone(), card_id);
                         let search = Search::parse(query_string);
 
                         CardSettings::Move(page_query, search)

@@ -14,7 +14,7 @@ use hyper;
 use context::{self, Context};
 use route::QueryString;
 use constants;
-use api::{decks, cards};
+use api::{decks, cards, user};
 
 /* Types */
 
@@ -256,6 +256,222 @@ impl SortOrderable for DecksPageSort {
                 }
             }
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum MoveDecksPageQuery {
+    Root(DeckID),
+    SourceOfDecks(DeckID, DecksPageQuery)
+}
+
+// helper to reduce repetition
+#[inline]
+fn get_card_deck_id(context: Rc<RefCell<Context>>, card_id: CardID) -> DeckID {
+
+    let _guard = context::read_lock(context.clone());
+
+    let card = match cards::get_card(context.clone(), card_id) {
+        Ok(card) => card,
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        }
+    };
+
+    return card.deck_id;
+}
+
+enum ParentDeck {
+    Root(DeckID),
+    Parent(DeckID)
+}
+
+// TODO: remove
+// #[inline]
+fn get_parent_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> ParentDeck {
+
+    match decks::get_parent_id_of_deck(context.clone(), deck_id) {
+        Ok(Some(deck_id)) => {
+            return ParentDeck::Parent(deck_id);
+        },
+        Ok(None) => {
+            match user::get_root_deck(context) {
+                Ok(Some(root_deck_id)) => {
+
+                    if root_deck_id == deck_id {
+                        return ParentDeck::Root(root_deck_id);
+                    } else {
+
+                        // TODO: internal server error
+                        // TODO: this should never occur
+
+                        panic!();
+                    }
+
+                },
+                Ok(None) => {
+                    // TODO: internal server error
+                    panic!();
+                },
+                Err(_why) => {
+                    // TODO: internal server error
+                    panic!();
+                }
+            }
+        },
+        Err(_why) => {
+            // TODO: internal server error
+            panic!();
+        }
+    }
+}
+
+impl MoveDecksPageQuery {
+
+    pub fn default(context: Rc<RefCell<Context>>, card_id: CardID) -> Self {
+
+        let deck_id = get_card_deck_id(context.clone(), card_id);
+
+        match get_parent_of_deck(context, deck_id) {
+            ParentDeck::Parent(parent_id) => {
+                return MoveDecksPageQuery::SourceOfDecks(parent_id, Default::default());
+            },
+            ParentDeck::Root(root_deck_id) => {
+                return MoveDecksPageQuery::Root(root_deck_id);
+            }
+        }
+
+
+    }
+
+    pub fn parse(query_string: &QueryString, context: Rc<RefCell<Context>>, card_id: CardID) -> Self {
+
+        match query_string.get("deck") {
+            None => {
+
+                let deck_id = get_card_deck_id(context.clone(), card_id);
+
+                match get_parent_of_deck(context.clone(), deck_id) {
+                    ParentDeck::Parent(parent_id) => {
+                        return MoveDecksPageQuery::SourceOfDecks(parent_id,
+                            DecksPageQuery::parse(query_string, context, parent_id));
+                    },
+                    ParentDeck::Root(root_deck_id) => {
+                        return MoveDecksPageQuery::Root(root_deck_id);
+                    }
+                }
+
+            },
+            Some(maybe_deck_id) => {
+                match *maybe_deck_id {
+                    None => {
+
+                        let deck_id = get_card_deck_id(context.clone(), card_id);
+
+                        match get_parent_of_deck(context.clone(), deck_id) {
+                            ParentDeck::Parent(parent_id) => {
+                                return MoveDecksPageQuery::SourceOfDecks(parent_id,
+                                    DecksPageQuery::parse(query_string, context, parent_id));
+                            },
+                            ParentDeck::Root(root_deck_id) => {
+                                return MoveDecksPageQuery::Root(root_deck_id);
+                            }
+                        }
+
+                    },
+                    Some(ref deck_id_string) => {
+
+                        if deck_id_string == "top" {
+
+                            match user::get_root_deck(context) {
+                                Ok(Some(root_deck_id)) => {
+                                    return MoveDecksPageQuery::Root(root_deck_id);
+                                },
+                                Ok(None) => {
+                                    // TODO: internal server error
+                                    panic!();
+                                },
+                                Err(_why) => {
+                                    // TODO: internal server error
+                                    panic!();
+                                }
+                            }
+
+                        }
+
+                        match deck_id_string.parse::<DeckID>() {
+                            Err(_) => {
+
+                                let deck_id = get_card_deck_id(context.clone(), card_id);
+
+                                match get_parent_of_deck(context.clone(), deck_id) {
+                                    ParentDeck::Parent(parent_id) => {
+                                        return MoveDecksPageQuery::SourceOfDecks(parent_id,
+                                            DecksPageQuery::parse(query_string, context, parent_id));
+                                    },
+                                    ParentDeck::Root(root_deck_id) => {
+                                        return MoveDecksPageQuery::Root(root_deck_id);
+                                    }
+                                }
+
+                            },
+                            Ok(deck_id) => {
+
+                                match decks::deck_exists(context.clone(), deck_id) {
+                                    Ok(exists) => {
+
+                                        if exists {
+
+                                            return MoveDecksPageQuery::SourceOfDecks(deck_id,
+                                                DecksPageQuery::parse(query_string, context, deck_id));
+
+                                        } else {
+
+                                            let deck_id = get_card_deck_id(context.clone(), card_id);
+
+                                            match get_parent_of_deck(context.clone(), deck_id) {
+                                                ParentDeck::Parent(parent_id) => {
+                                                    return MoveDecksPageQuery::SourceOfDecks(parent_id,
+                                                        DecksPageQuery::parse(query_string, context, parent_id));
+                                                },
+                                                ParentDeck::Root(root_deck_id) => {
+                                                    return MoveDecksPageQuery::Root(root_deck_id);
+                                                }
+                                            }
+
+                                        }
+                                    },
+                                    Err(_) => {
+                                        // TODO: internal error logging
+                                        panic!();
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    // TODO: test
+    pub fn generate_query_string(&self) -> String {
+
+        match *self {
+            MoveDecksPageQuery::Root(_) => {
+                return format!("deck=top");
+            },
+            MoveDecksPageQuery::SourceOfDecks(deck_id,  ref page_query) => {
+
+                return format!("deck={deck_id}&{rest}",
+                    deck_id = deck_id, rest = page_query.generate_query_string());
+
+            }
+        }
+
     }
 }
 
