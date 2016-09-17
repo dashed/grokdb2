@@ -3249,11 +3249,12 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
 
                 div(class="level") {
 
-                    |tmpl| {
-                        if is_cards_parent {
+                    div(class="level-left") {
 
-                            tmpl << html!{
-                                div(class="level-left") {
+                        |tmpl| {
+                            if is_cards_parent {
+
+                                tmpl << html!{
                                     div(class="level-item") {
                                         span(class="tag is-dark") {
                                             : raw!("Current Deck")
@@ -3262,9 +3263,8 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
                                 }
                             }
                         }
-                    }
 
-                    div(class="level-left") {
+
                         div(class="level-item") {
 
                             h5(class="title is-5 is-marginless is-bold") {
@@ -3291,6 +3291,7 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
                             }
 
                         }
+
                     }
 
                 }
