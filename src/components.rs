@@ -62,7 +62,22 @@ fn go_back_up_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> MoveDecksP
                 return MoveDecksPageQuery::Root(root_deck_id);
             }
 
-            return MoveDecksPageQuery::SourceOfDecks(deck_id, Default::default());
+            match decks::get_parent_id_of_deck(context, deck_id) {
+                Ok(Some(parent_deck_id)) => {
+                    return MoveDecksPageQuery::SourceOfDecks(parent_deck_id, Default::default());
+                },
+                Ok(None) => {
+
+                    // NOTE: this should never occur
+                    // TODO: internal server error
+                    panic!();
+                },
+                Err(_why) => {
+                    // TODO: internal server error
+                    panic!();
+                }
+            }
+
         }
     }
 }
@@ -3062,7 +3077,7 @@ fn CardMoveDecksList(
                                                 CardRoute::Settings(
                                                     CardSettings::Move(go_back_up_deck(context.clone(), deck_id),
                                                         Default::default()))))),
-                                class= raw!("is-bold button is-primary is-fullwidth is-outlined")
+                                class=raw!("is-bold button is-primary is-fullwidth is-outlined")
                             ) {
                                 // TODO: phrasing?
                                 : raw!("Go up one deck")
@@ -3094,7 +3109,7 @@ fn CardMoveDecksList(
                                             CardRoute::Settings(
                                                 CardSettings::Move(go_back_up_deck(context.clone(), deck_id),
                                                     Default::default()))))),
-                            class="is-bold button is-primary is-fullwidth is-outlined"
+                            class=raw!("is-bold button is-primary is-fullwidth is-outlined")
                         ) {
                             // TODO: phrasing?
                             : raw!("Go up one deck")
