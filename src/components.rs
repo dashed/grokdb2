@@ -3247,7 +3247,8 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
                 "border-bottom:1px dotted #d3d6db;" => !is_bottom)) {
             div(class="column is-side-paddingless") {
 
-                div(class="level") {
+                div(class="level is-marginless",
+                    id = raw!(format!("{}-level", deck_id))) {
 
                     div(class="level-left") {
 
@@ -3264,6 +3265,17 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
                             }
                         }
 
+                        |tmpl| {
+
+                            if !is_cards_parent {
+                                tmpl << html!{
+                                    div(class="level-item", id = raw!(format!("{}-confirm", deck_id))) {
+                                        // NOTE: confirm move button here; will be populated by react component
+                                    }
+                                }
+                            }
+
+                        }
 
                         div(class="level-item") {
 
@@ -3305,7 +3317,7 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
 
                                             // TODO: server rendered component
                                             a(class="button is-primary is-bold is-outlined") {
-                                                : raw!("Move to this Deck")
+                                                : raw!("Move to this deck")
                                             }
                                         }
                                     }
@@ -3315,6 +3327,17 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
                     }
 
 
+                }
+
+                |tmpl| {
+                    if !is_cards_parent {
+
+                        tmpl << html!{
+                            div(id = raw!(format!("{}-error", deck_id))) {
+                                // NOTE: rendered by react component
+                            }
+                        }
+                    }
                 }
 
             }

@@ -25,6 +25,7 @@ module.exports = {
         deck_card_settings: "./src/deck_card_settings.js",
         deck_review: "./src/deck_review.js",
         card_review: "./src/card_review.js",
+        card_move_settings: "./src/card_move_settings.js",
     },
 
     output: {

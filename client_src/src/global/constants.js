@@ -13,6 +13,7 @@ const MARKDOWN_VIEW_SOURCE = 'MARKDOWN_VIEW_SOURCE';
 
 /* keys */
 // deck props
+const DECK_ID = 'DECK_ID';
 const DECK_NAME = 'DECK_NAME';
 const DECK_DESCRIPTION = 'DECK_DESCRIPTION';
 
@@ -51,6 +52,7 @@ module.exports = {
     MARKDOWN_VIEW_SOURCE,
 
     // keys
+    DECK_ID,
     DECK_NAME,
     DECK_DESCRIPTION,
 

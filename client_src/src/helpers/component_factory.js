@@ -1,6 +1,6 @@
 const merge = require('lodash/merge');
 
-const {makeReducer} = require('lib/redux-tree');
+const createStore = require('helpers/create_store');
 
 const IDENTITY = function(x) {
     return x;
@@ -16,26 +16,7 @@ const componentCreator = function(initialState, getComponent, fallbackReducer = 
             preRenderState = initialState;
         }
 
-        const rehydrateFactory = require('helpers/hydrate');
-        const {createStore, applyMiddleware} = require('redux');
-
-        // TODO: refactor to module
-        const middleware = () => {
-
-            if(process.env.NODE_ENV !== 'production') {
-
-                const createLogger = require('redux-logger');
-                const logger = createLogger();
-
-                return applyMiddleware(logger);
-            }
-
-            return applyMiddleware();
-        };
-
-        const store = createStore(makeReducer({
-            reducer: rehydrateFactory(fallbackReducer)
-        }), preRenderState, middleware());
+        const store = createStore(preRenderState, fallbackReducer);
 
         const component = getComponent(store);
 
