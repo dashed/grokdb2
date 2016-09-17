@@ -45,6 +45,29 @@ macro_rules! classnames {
 /* link generators */
 
 #[inline]
+fn go_back_up_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> MoveDecksPageQuery {
+
+    match user::get_root_deck(context.clone()) {
+        Err(_why) => {
+            // TODO: internal server error
+            panic!();
+        },
+        Ok(None) => {
+            // TODO: internal server error
+            panic!();
+        },
+        Ok(Some(root_deck_id)) => {
+
+            if deck_id == root_deck_id {
+                return MoveDecksPageQuery::Root(root_deck_id);
+            }
+
+            return MoveDecksPageQuery::SourceOfDecks(deck_id, Default::default());
+        }
+    }
+}
+
+#[inline]
 fn card_route_string(card_route: CardRoute) -> String {
     match card_route {
         CardRoute::Contents => "contents".to_string(),
@@ -2972,7 +2995,7 @@ fn CardSettingsMove(
 
 
         // |tmpl| CardMovePaginationComponent(tmpl, context.clone(), card_id, &deck_page_query, &search);
-        |tmpl| CardMoveDecksList(tmpl, context.clone(), card_id, &deck_page_query, &search);
+        |tmpl| CardMoveDecksList(tmpl, context.clone(), deck_id, card_id, &deck_page_query, &search);
         // |tmpl| CardMovePaginationComponent(tmpl, context.clone(), card_id, &deck_page_query, &search);
 
 
@@ -2983,6 +3006,7 @@ fn CardSettingsMove(
 fn CardMoveDecksList(
     tmpl: &mut TemplateBuffer,
     context: Rc<RefCell<Context>>,
+    parent_deck: DeckID,
     card_id: CardID,
     deck_page_query: &MoveDecksPageQuery,
     search: &Search) {
@@ -3007,7 +3031,7 @@ fn CardMoveDecksList(
             // TODO: complete
             tmpl << html!{
                 |tmpl| MoveToDeckListItemComponent(tmpl,
-                    context.clone(), card_id, root_deck_id, true);
+                    context.clone(), parent_deck, card_id, root_deck_id, true);
             };
 
             return;
@@ -3029,11 +3053,28 @@ fn CardMoveDecksList(
 
             if number_of_items <= 0 {
                 tmpl << html!{
+
+                    div(class="columns is-marginless") {
+                        div(class="column is-side-paddingless") {
+                            a(href = view_route_to_link(context.clone(),
+                                        AppRoute::Deck(parent_deck,
+                                            DeckRoute::CardProfile(card_id,
+                                                CardRoute::Settings(
+                                                    CardSettings::Move(go_back_up_deck(context.clone(), deck_id),
+                                                        Default::default()))))),
+                                class= raw!("is-bold button is-primary is-fullwidth is-outlined")
+                            ) {
+                                // TODO: phrasing?
+                                : raw!("Go up one deck")
+                            }
+                        }
+                    }
+
                     div(class="columns") {
                         div(class="column") {
                             article(class="message") {
                                 div(class="message-body") {
-                                    : raw!("There are no decks to display..")
+                                    : raw!("There are no decks to display.")
                                 }
                             }
                         }
@@ -3044,9 +3085,26 @@ fn CardMoveDecksList(
             }
 
             tmpl << html!{
+
+                div(class="columns is-marginless") {
+                    div(class="column is-side-paddingless") {
+                        a(href = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(parent_deck,
+                                        DeckRoute::CardProfile(card_id,
+                                            CardRoute::Settings(
+                                                CardSettings::Move(go_back_up_deck(context.clone(), deck_id),
+                                                    Default::default()))))),
+                            class="is-bold button is-primary is-fullwidth is-outlined"
+                        ) {
+                            // TODO: phrasing?
+                            : raw!("Go up one deck")
+                        }
+                    }
+                }
+
                 @ for (index, deck_id) in children.iter().enumerate() {
                     |tmpl| MoveToDeckListItemComponent(tmpl,
-                        context.clone(), card_id, *deck_id, (index + 1) >= number_of_items);
+                        context.clone(), parent_deck, card_id, *deck_id, (index + 1) >= number_of_items);
                 }
             };
 
@@ -3058,7 +3116,7 @@ fn CardMoveDecksList(
 
 #[inline]
 fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>,
-    card_id: CardID, deck_id: DeckID, is_bottom: bool) {
+    parent_deck: DeckID, card_id: CardID, deck_id: DeckID, is_bottom: bool) {
 
     let deck = match decks::get_deck(context.clone(), deck_id) {
         Ok(deck) => deck,
@@ -3075,11 +3133,12 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
             div(class="column is-side-paddingless") {
                 h5(class="title is-5 is-marginless is-bold") {
                     a(href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(deck_id,
-                                        DeckRoute::CardProfile(card_id,
-                                            CardRoute::Settings(CardSettings::Move(
-                                                MoveDecksPageQuery::SourceOfDecks(deck_id, Default::default()),
-                                                Default::default())))))
+                                AppRoute::Deck(parent_deck,
+                                    DeckRoute::CardProfile(card_id,
+                                        CardRoute::Settings(CardSettings::Move(
+                                            MoveDecksPageQuery::SourceOfDecks(deck_id, Default::default()),
+                                            Default::default())))))
+
                     ) {
                         |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
                     }

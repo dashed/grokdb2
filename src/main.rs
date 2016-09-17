@@ -195,6 +195,7 @@ fn main() {
 
         let context = Rc::new(RefCell::new(context));
 
+        // TODO: this needs to be removed!!!
         let _guard = context::write_lock(context.clone());
 
         // middleware/logging
