@@ -3008,12 +3008,102 @@ fn CardSettingsMove(
             }
         }
 
+        div(class="columns is-marginless") {
+            div(class="column is-side-paddingless") {
+
+                |tmpl| MovePathToDeck(tmpl, context.clone(), deck_id, card_id, &deck_page_query);
+
+            }
+        }
+
 
         // |tmpl| CardMovePaginationComponent(tmpl, context.clone(), card_id, &deck_page_query, &search);
         |tmpl| CardMoveDecksList(tmpl, context.clone(), deck_id, card_id, &deck_page_query, &search);
         // |tmpl| CardMovePaginationComponent(tmpl, context.clone(), card_id, &deck_page_query, &search);
 
 
+    }
+}
+
+#[inline]
+fn MovePathToDeck(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    this_deck: DeckID,
+    this_card: CardID,
+    deck_page_query: &MoveDecksPageQuery) {
+
+    match *deck_page_query {
+        MoveDecksPageQuery::Root(_) => {
+            tmpl << html!{
+                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                    : raw!("/");
+                }
+            };
+        },
+        MoveDecksPageQuery::SourceOfDecks(deck_id, _) => {
+
+            let deck_path = match decks::get_path_of_deck(context.clone(), deck_id) {
+                Ok(path) => path,
+                Err(_) => {
+                    // TODO: internal error logging
+                    panic!();
+                }
+            };
+
+            let num_of_items = deck_path.len();
+
+            tmpl << html!{
+
+                @ for (index, deck_id) in deck_path.iter().enumerate() {
+
+                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                        |tmpl| {
+                            if index == 0 {
+                                tmpl << html!{
+                                    : raw!("/ ");
+                                }
+                            } else {
+                                tmpl << html!{
+                                    : raw!(" / ");
+                                }
+                            }
+                        }
+                    }
+
+                    |tmpl| {
+
+                        match decks::get_deck(context.clone(), *deck_id) {
+                            Err(_) => {
+                                // TODO: internal error logging
+                                panic!();
+                            },
+                            Ok(deck) => {
+
+                                tmpl << html!{
+                                    span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                        a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(this_deck,
+                                                DeckRoute::CardProfile(this_card,
+                                                    CardRoute::Settings(CardSettings::Move(
+                                                        MoveDecksPageQuery::SourceOfDecks(deck.id, Default::default()),
+                                                        Default::default())))))
+                                        ) {
+                                            |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+
+                    }
+
+                }
+
+            };
+
+        }
     }
 }
 
