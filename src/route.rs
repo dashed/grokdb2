@@ -141,7 +141,7 @@ impl Default for DeckRoute {
 #[derive(Debug, Clone)]
 pub enum DeckSettings {
     Main,
-    Move
+    Move(MoveDecksPageQuery, Search)
 }
 
 #[derive(Debug)]
@@ -589,7 +589,7 @@ fn __parse_route_api_card_move(
                         redirect_to: view_route_to_link(context.clone(), AppRoute::Deck(request.deck_id,
                             DeckRoute::CardProfile(card_id,
                                 CardRoute::Settings(CardSettings::Move(
-                                    MoveDecksPageQuery::default(context.clone(), card_id),
+                                    MoveDecksPageQuery::default_with_card(context.clone(), card_id),
                                     Default::default())))))
                     };
 
@@ -1003,7 +1003,10 @@ fn __parse_route_api_deck_move(
 
                     let response = decks::MoveDeckResponse {
                         redirect_to: view_route_to_link(context.clone(), AppRoute::Deck(child_deck_id,
-                            DeckRoute::Settings(DeckSettings::Move)))
+                            DeckRoute::Settings(
+                                DeckSettings::Move(
+                                    MoveDecksPageQuery::default_with_deck(context.clone(), child_deck_id),
+                                    Default::default()))))
                     };
 
                     return respond_json!(Some(response));
@@ -1703,7 +1706,7 @@ fn __parse_route_deck<'a>(
                 // /stats
                 parse_route_deck_stats(request.clone(), deck_id) <|>
                 // /settings
-                parse_route_deck_settings(request.clone(), deck_id);
+                parse_route_deck_settings(context.clone(), request.clone(), deck_id);
 
 
             ret render_response
@@ -2153,11 +2156,11 @@ fn parse_route_card_settings_move<'a>(
             } else {
 
                 let card_settings_move = match query_string {
-                    None => CardSettings::Move(MoveDecksPageQuery::default(context.clone(), card_id),
+                    None => CardSettings::Move(MoveDecksPageQuery::default_with_card(context.clone(), card_id),
                         Default::default()),
                     Some(ref query_string) => {
 
-                        let page_query = MoveDecksPageQuery::parse(query_string, context.clone(), card_id);
+                        let page_query = MoveDecksPageQuery::parse_with_card(query_string, context.clone(), card_id);
                         let search = Search::parse(query_string);
 
                         CardSettings::Move(page_query, search)
@@ -2176,15 +2179,14 @@ fn parse_route_card_settings_move<'a>(
 #[inline]
 fn parse_route_deck_settings<'a>(
     input: Input<'a, u8>,
-    // NOTE: not needed
-    // context: Rc<RefCell<Context>>,
+    context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
         string_ignore_case(b"settings");
 
-        let response = parse_route_deck_settings_move(request.clone(), deck_id) <|>
+        let response = parse_route_deck_settings_move(context.clone(), request.clone(), deck_id) <|>
             parse_route_deck_settings_main(request.clone(), deck_id);
 
         ret response
@@ -2225,8 +2227,7 @@ fn parse_route_deck_settings_main<'a>(
 #[inline]
 fn parse_route_deck_settings_move<'a>(
     input: Input<'a, u8>,
-    // NOTE: not needed
-    // context: Rc<RefCell<Context>>,
+    context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
     parse!{input;
@@ -2250,7 +2251,20 @@ fn parse_route_deck_settings_move<'a>(
             if request.borrow().method != Method::Get {
                 RenderResponse::MethodNotAllowed
             } else {
-                let route = AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Move));
+
+                let deck_settings_move = match query_string {
+                    None => DeckSettings::Move(MoveDecksPageQuery::default_with_deck(context.clone(), deck_id),
+                        Default::default()),
+                    Some(ref query_string) => {
+
+                        let page_query = MoveDecksPageQuery::parse_with_deck(query_string, context.clone(), deck_id);
+                        let search = Search::parse(query_string);
+
+                        DeckSettings::Move(page_query, search)
+                    }
+                };
+
+                let route = AppRoute::Deck(deck_id, DeckRoute::Settings(deck_settings_move));
                 RenderResponse::Component(route)
             }
         }

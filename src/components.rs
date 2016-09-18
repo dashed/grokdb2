@@ -121,7 +121,17 @@ pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) ->
                 DeckRoute::Settings(ref setting_mode) => {
                     match *setting_mode {
                         DeckSettings::Main => format!("/deck/{}/settings", deck_id),
-                        DeckSettings::Move => format!("/deck/{}/settings/move", deck_id),
+                        DeckSettings::Move(ref page_query, ref search) => {
+
+                            let mut query = page_query.generate_query_string();
+
+                            if let Some(search_query) = search.generate_query_string() {
+                                query = query + &format!("&{search_query}", search_query = search_query);
+                            }
+
+                            format!("/deck/{deck_id}/settings/move?{query_string}",
+                                deck_id = deck_id, query_string = query)
+                        }
                     }
                 },
                 DeckRoute::Cards(page_query, search) => {
@@ -2253,7 +2263,9 @@ fn DeckSettings(
         |tmpl| {
             match *setting_mode {
                 DeckSettings::Main => DeckSettingsMain(tmpl, context.clone(), deck_id),
-                DeckSettings::Move => DeckSettingsMove(tmpl, context.clone(), deck_id),
+                DeckSettings::Move(ref page_query, ref search) => {
+                    DeckSettingsMove(tmpl, context.clone(), deck_id, page_query, search)
+                }
             }
         }
 
@@ -2291,12 +2303,14 @@ fn DeckSettingsNav(
                         li(
                             class? = classnames!(
                                 "is-active is-bold" => {
-                                    matches!(*setting_mode, DeckSettings::Move)
+                                    matches!(*setting_mode, DeckSettings::Move(_, _))
                                 })
                             ) {
                             a(href = view_route_to_link(
                                 context.clone(),
-                                AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Move))
+                                AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Move(
+                                    MoveDecksPageQuery::default_with_deck(context.clone(), deck_id),
+                                    Default::default())))
                                 )) {
                                 span {
                                     : "Move"
@@ -2431,12 +2445,193 @@ fn DeckSettingsMain(
 fn DeckSettingsMove(
     tmpl: &mut TemplateBuffer,
     context: Rc<RefCell<Context>>,
-    deck_id: DeckID
-    ) {
+    deck_id: DeckID,
+    deck_page_query: &MoveDecksPageQuery,
+    search: &Search) {
+
     tmpl << html!{
+
+        div(class="columns") {
+            div(class="column") {
+
+                h4(class="title is-4") {
+                    : raw!("Move deck to a new deck")
+                }
+
+            }
+        }
+
+        div(class="columns is-marginless") {
+            div(class="column is-side-paddingless") {
+
+                div(class="level") {
+                    div(class="level-left") {
+                        div(class="level-item") {
+                            strong(class="is-bold") {
+                                : raw!("This deck's actual deck parent: ")
+                            }
+                        }
+
+                        div(class="level-item") {
+                            |tmpl| VanillaRealDeckPath(tmpl, context.clone(), deck_id);
+                        }
+                    }
+
+                }
+
+            }
+        }
+
+        // div(class="columns is-marginless") {
+        //     div(class="column is-side-paddingless") {
+        //         |tmpl| DeckMovePathToDeck(tmpl, context.clone(), deck_id, card_id, &deck_page_query);
+        //     }
+        // }
+
+        /////
+
         div(id="settings_deck_name_container") {
             : "move"
             // : raw!(include_str!("react_components/deck_description"))
+        }
+    }
+}
+
+// #[inline]
+// fn DeckMovePathToDeck(
+//     tmpl: &mut TemplateBuffer,
+//     context: Rc<RefCell<Context>>,
+//     this_deck: DeckID,
+//     deck_page_query: &MoveDecksPageQuery) {
+
+//     match *deck_page_query {
+//         MoveDecksPageQuery::Root(_) => {
+//             tmpl << html!{
+//                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
+//                     : raw!("/");
+//                 }
+//             };
+//         },
+//         MoveDecksPageQuery::SourceOfDecks(deck_id, _) => {
+
+//             let deck_path = match decks::get_path_of_deck(context.clone(), deck_id) {
+//                 Ok(path) => path,
+//                 Err(_) => {
+//                     // TODO: internal error logging
+//                     panic!();
+//                 }
+//             };
+
+//             let num_of_items = deck_path.len();
+
+//             tmpl << html!{
+
+//                 @ for (index, deck_id) in deck_path.iter().enumerate() {
+
+//                     span(class="title is-5 is-marginless", style="font-weight:normal;") {
+//                         |tmpl| {
+//                             if index == 0 {
+//                                 tmpl << html!{
+//                                     : raw!("/ ");
+//                                 }
+//                             } else {
+//                                 tmpl << html!{
+//                                     : raw!(" / ");
+//                                 }
+//                             }
+//                         }
+//                     }
+
+//                     |tmpl| {
+
+//                         match decks::get_deck(context.clone(), *deck_id) {
+//                             Err(_) => {
+//                                 // TODO: internal error logging
+//                                 panic!();
+//                             },
+//                             Ok(deck) => {
+
+//                                 tmpl << html!{
+//                                     span(class="title is-5 is-marginless", style="font-weight:normal;") {
+//                                         a(href = view_route_to_link(context.clone(),
+//                                             AppRoute::Deck(this_deck,
+//                                                 DeckRoute::CardProfile(this_card,
+//                                                     CardRoute::Settings(CardSettings::Move(
+//                                                         MoveDecksPageQuery::SourceOfDecks(deck.id, Default::default()),
+//                                                         Default::default())))))
+//                                         ) {
+//                                             |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
+//                                         }
+//                                     }
+//                                 }
+
+//                             }
+//                         }
+
+//                     }
+
+//                 }
+
+//             };
+
+//         }
+//     }
+// }
+
+#[inline]
+fn VanillaRealDeckPath(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID) {
+
+    let deck_path = match decks::get_path_of_deck(context.clone(), deck_id) {
+        Ok(path) => path,
+        Err(_) => {
+            // TODO: internal error logging
+            panic!();
+        }
+    };
+
+    let num_of_items = deck_path.len();
+
+    tmpl << html!{
+
+        @ for (index, deck_id) in deck_path.iter().enumerate() {
+
+            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                |tmpl| {
+                    if index == 0 {
+                        tmpl << html!{
+                            : raw!("/ ");
+                        }
+                    } else {
+                        tmpl << html!{
+                            : raw!(" / ");
+                        }
+                    }
+                }
+            }
+
+            |tmpl| {
+
+                match decks::get_deck(context.clone(), *deck_id) {
+                    Err(_) => {
+                        // TODO: internal error logging
+                        panic!();
+                    },
+                    Ok(deck) => {
+
+                        tmpl << html!{
+                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
+                            }
+                        }
+
+                    }
+                }
+
+            }
+
         }
     }
 }
@@ -2971,7 +3166,7 @@ fn CardDetailSettings(
                                 context.clone(),
                                 AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id,
                                     CardRoute::Settings(CardSettings::Move(
-                                        MoveDecksPageQuery::default(context.clone(), card_id),
+                                        MoveDecksPageQuery::default_with_card(context.clone(), card_id),
                                         Default::default()))))
                                 )) {
                                 span {
@@ -3070,7 +3265,7 @@ fn CardSettingsMove(
 
         div(class="columns is-marginless") {
             div(class="column is-side-paddingless") {
-                |tmpl| MovePathToDeck(tmpl, context.clone(), deck_id, card_id, &deck_page_query);
+                |tmpl| CardMovePathToDeck(tmpl, context.clone(), deck_id, card_id, &deck_page_query);
             }
         }
 
@@ -3098,60 +3293,12 @@ fn CardRealDeckPath(
         }
     };
 
-    let deck_path = match decks::get_path_of_deck(context.clone(), deck_id) {
-        Ok(path) => path,
-        Err(_) => {
-            // TODO: internal error logging
-            panic!();
-        }
-    };
+    VanillaRealDeckPath(tmpl, context, deck_id);
 
-    let num_of_items = deck_path.len();
-
-    tmpl << html!{
-
-        @ for (index, deck_id) in deck_path.iter().enumerate() {
-
-            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                |tmpl| {
-                    if index == 0 {
-                        tmpl << html!{
-                            : raw!("/ ");
-                        }
-                    } else {
-                        tmpl << html!{
-                            : raw!(" / ");
-                        }
-                    }
-                }
-            }
-
-            |tmpl| {
-
-                match decks::get_deck(context.clone(), *deck_id) {
-                    Err(_) => {
-                        // TODO: internal error logging
-                        panic!();
-                    },
-                    Ok(deck) => {
-
-                        tmpl << html!{
-                            span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
-                            }
-                        }
-
-                    }
-                }
-
-            }
-
-        }
-    }
 }
 
 #[inline]
-fn MovePathToDeck(
+fn CardMovePathToDeck(
     tmpl: &mut TemplateBuffer,
     context: Rc<RefCell<Context>>,
     this_deck: DeckID,

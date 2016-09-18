@@ -329,9 +329,7 @@ fn get_parent_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> ParentD
 
 impl MoveDecksPageQuery {
 
-    pub fn default(context: Rc<RefCell<Context>>, card_id: CardID) -> Self {
-
-        let deck_id = get_card_deck_id(context.clone(), card_id);
+    pub fn default_with_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
 
         match get_parent_of_deck(context, deck_id) {
             ParentDeck::Parent(parent_id) => {
@@ -342,17 +340,28 @@ impl MoveDecksPageQuery {
             }
         }
 
-
     }
 
-    pub fn parse(query_string: &QueryString, context: Rc<RefCell<Context>>, card_id: CardID) -> Self {
+    pub fn default_with_card(context: Rc<RefCell<Context>>, card_id: CardID) -> Self {
+
+        let deck_id = get_card_deck_id(context.clone(), card_id);
+
+        MoveDecksPageQuery::default_with_deck(context, deck_id)
+    }
+
+    pub fn parse_with_card(query_string: &QueryString, context: Rc<RefCell<Context>>, card_id: CardID) -> Self {
+
+        let fallback_deck_id = get_card_deck_id(context.clone(), card_id);
+
+        return MoveDecksPageQuery::parse_with_deck(query_string, context, fallback_deck_id);
+    }
+
+    pub fn parse_with_deck(query_string: &QueryString, context: Rc<RefCell<Context>>, fallback_deck_id: DeckID) -> Self {
 
         match query_string.get("deck") {
             None => {
 
-                let deck_id = get_card_deck_id(context.clone(), card_id);
-
-                match get_parent_of_deck(context.clone(), deck_id) {
+                match get_parent_of_deck(context.clone(), fallback_deck_id) {
                     ParentDeck::Parent(parent_id) => {
                         return MoveDecksPageQuery::SourceOfDecks(parent_id,
                             DecksPageQuery::parse(query_string, context, parent_id));
@@ -367,9 +376,7 @@ impl MoveDecksPageQuery {
                 match *maybe_deck_id {
                     None => {
 
-                        let deck_id = get_card_deck_id(context.clone(), card_id);
-
-                        match get_parent_of_deck(context.clone(), deck_id) {
+                        match get_parent_of_deck(context.clone(), fallback_deck_id) {
                             ParentDeck::Parent(parent_id) => {
                                 return MoveDecksPageQuery::SourceOfDecks(parent_id,
                                     DecksPageQuery::parse(query_string, context, parent_id));
@@ -403,9 +410,7 @@ impl MoveDecksPageQuery {
                         match deck_id_string.parse::<DeckID>() {
                             Err(_) => {
 
-                                let deck_id = get_card_deck_id(context.clone(), card_id);
-
-                                match get_parent_of_deck(context.clone(), deck_id) {
+                                match get_parent_of_deck(context.clone(), fallback_deck_id) {
                                     ParentDeck::Parent(parent_id) => {
                                         return MoveDecksPageQuery::SourceOfDecks(parent_id,
                                             DecksPageQuery::parse(query_string, context, parent_id));
@@ -428,9 +433,7 @@ impl MoveDecksPageQuery {
 
                                         } else {
 
-                                            let deck_id = get_card_deck_id(context.clone(), card_id);
-
-                                            match get_parent_of_deck(context.clone(), deck_id) {
+                                            match get_parent_of_deck(context.clone(), fallback_deck_id) {
                                                 ParentDeck::Parent(parent_id) => {
                                                     return MoveDecksPageQuery::SourceOfDecks(parent_id,
                                                         DecksPageQuery::parse(query_string, context, parent_id));
