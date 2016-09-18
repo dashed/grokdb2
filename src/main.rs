@@ -64,6 +64,7 @@ mod context;
 mod api;
 mod log_entry;
 mod route;
+#[allow(non_snake_case)]
 mod components;
 mod timestamp;
 #[allow(non_snake_case)]

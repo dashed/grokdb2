@@ -48,7 +48,12 @@ quick_error! {
 
         BadInput(api: &'static str, reason: &'static str) {
             display("Bad inputs. API: {} Reason: {}", api, reason)
-            description("Bad input to raw api")
+            description("Bad input to raw API")
+        }
+
+        SQLiteError(api: &'static str, sqlite_error: SqliteError) {
+            display("SQLiteError. API: {} Reason: {}", api, sqlite_error)
+            description("Fatal error in raw API")
         }
 
         SQLError(sqlite_error: SqliteError, query: String) {

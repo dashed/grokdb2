@@ -50,6 +50,7 @@ use api::cards;
 use api::user;
 use api::review::{self,
     CachedReviewProcedure, RawDeckReviewRequest, RawCardReviewRequest, Reviewable, ReviewResponse};
+use api::backup;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -192,8 +193,8 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>
             // /stashes/*
             // parse_route_stashes() <|>
 
-            // /settings
-            // parse_route_settings() <|>
+            // /preferences
+            parse_route_preferences(context.clone(), request.clone()) <|>
 
             // /
             parse_route_root(context.clone(), request.clone());
@@ -312,6 +313,33 @@ fn parse_assets<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Re
 }
 
 #[inline]
+fn parse_route_preferences<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
+-> U8Result<'a, RenderResponse> {
+
+    parse!{input;
+
+        string_ignore_case(b"preferences");
+
+        option(|i| parse_byte_limit(i, b'/', 5), ());
+
+        // TODO: refactor if query string is not used
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
+
+            ret Some(query_string)
+        }, None);
+
+        eof();
+
+        ret {
+            let route = AppRoute::Preferences;
+            RenderResponse::Component(route)
+        }
+
+    }
+}
+
+#[inline]
 fn parse_route_root<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
 -> U8Result<'a, RenderResponse> {
     parse!{input;
@@ -383,6 +411,7 @@ fn parse_route_api<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, requ
 
         let render_response = parse_route_api_deck(context.clone(), request.clone()) <|>
             parse_route_api_card(context.clone(), request.clone()) <|>
+            parse_route_api_backup(context.clone(), request.clone()) <|>
             invalid_route_api(context.clone());
 
         ret render_response
@@ -404,6 +433,39 @@ fn invalid_route_api<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>)
             respond_json_with_error!(APIStatus::BadRequest; reason; None)
         }
     }
+}
+
+#[inline]
+fn parse_route_api_backup<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
+-> U8Result<'a, RenderResponse> {
+
+    parse!{input;
+
+        string_ignore_case(b"backup");
+
+        eof();
+
+        ret {
+            __parse_route_api_backup(context, request)
+        }
+    }
+}
+
+#[inline]
+fn __parse_route_api_backup(context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>) -> RenderResponse {
+
+    let method = {
+        let request = request.borrow();
+        request.method.clone()
+    };
+
+    if method != Method::Post {
+        return RenderResponse::MethodNotAllowed;
+    }
+
+    let response = handle_api_result_json!(backup::backup_database(context));
+
+    return respond_json!(Some(response));
 }
 
 #[inline]

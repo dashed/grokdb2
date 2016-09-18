@@ -865,7 +865,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                                 // TODO: re-review this
                                                 matches!(*app_route, AppRoute::Preferences)
                                             }),
-                                        href="#") {
+                                        href = view_route_to_link(context.clone(), AppRoute::Preferences)) {
                                         : raw!("Preferences")
                                     }
                                 }
@@ -881,6 +881,9 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 match *app_route {
                                     AppRoute::Deck(deck_id, ref deck_route) => {
                                         DeckDetail(tmpl, context.clone(), deck_id, deck_route)
+                                    },
+                                    AppRoute::Preferences => {
+                                        Preferences(tmpl, context.clone())
                                     },
                                     _ => {
                                         // TODO: complete this
@@ -930,6 +933,15 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         //     };
 
                         // },
+
+                        AppRoute::Preferences =>  {
+                            tmpl << html! {
+
+                                script(type="text/javascript", src="/assets/backup.js") {}
+                            };
+
+                        },
+
                         AppRoute::Deck(_, DeckRoute::NewCard) =>  {
                             tmpl << html! {
 
@@ -1099,6 +1111,43 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
         }
 
     };
+}
+
+#[inline]
+fn Preferences(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>) {
+
+    tmpl << html!{
+
+        div(class="column") {
+
+            div(class="columns") {
+                div(class="column") {
+                    h2(class="title is-2") {
+                        : raw!("Preferences")
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    h3(class="title is-3") {
+                        : raw!("Database backup")
+                    }
+                }
+            }
+
+            div(class="columns") {
+                div(class="column") {
+                    div(id="backup_container") {
+                        a(class="button is-primary") {
+                            : raw!("Backup database")
+                        }
+                    }
+                }
+            }
+
+        }
+    }
 }
 
 #[inline]
