@@ -480,71 +480,187 @@ impl MoveDecksPageQuery {
     }
 }
 
-// TODO: fix
-// impl Pagination for MoveDecksPageQuery {
+impl Pagination for MoveDecksPageQuery {
 
-//     fn first(&self) -> Self {
+    fn first(&self) -> Self {
 
-//         match *self {
-//             MoveDecksPageQuery::Root => {
-//                 self.clone()
-//             },
-//             MoveDecksPageQuery::SourceOfDecks(deck_id, ref page_query) => {
-//                 MoveDecksPageQuery::SourceOfDecks(deck_id, page_query.first())
-//             }
-//         }
+        match *self {
+            MoveDecksPageQuery::Root(_) => {
+                self.clone()
+            },
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+                MoveDecksPageQuery::SourceOfDecks(page_query.first())
+            }
+        }
 
-//     }
+    }
 
-//     fn previous(&self) -> Option<Self> {
-//         let page_num = self.current_page();
+    fn previous(&self) -> Option<Self> {
+        let page_num = self.current_page();
 
-//         if page_num <= 1 {
-//             return None;
-//         }
+        if page_num <= 1 {
+            return None;
+        }
 
-//         match *self {
-//             MoveDecksPageQuery::Root => {
-//                 return None;
-//             },
-//             MoveDecksPageQuery::SourceOfDecks(_deck_id, ref page_query) => {
-//                 return page_query.previous();
-//             }
-//         }
-//     }
+        match *self {
+            MoveDecksPageQuery::Root(_) => {
+                return None;
+            },
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+                match page_query.previous() {
+                    None => None,
+                    Some(foo) => {
+                        Some(MoveDecksPageQuery::SourceOfDecks(foo))
+                    }
+                }
+            }
+        }
+    }
 
-//     fn next(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Self> {
+    fn next(&self, context: Rc<RefCell<Context>>) -> Option<Self> {
 
-//         match *self {
-//             MoveDecksPageQuery::Root => {
-//                 return None;
-//             },
-//             MoveDecksPageQuery::SourceOfDecks(_deck_id, ref page_query) => {
-//                 return page_query.next();
-//             }
-//         }
+        match *self {
+            MoveDecksPageQuery::Root(_) => {
+                return None;
+            },
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+                match page_query.next(context) {
+                    None => None,
+                    Some(foo) => {
+                        Some(MoveDecksPageQuery::SourceOfDecks(foo))
+                    }
+                }
+            }
+        }
 
-//     }
+    }
 
-//     fn current_page(&self) -> Page {
+    fn current_page(&self) -> Page {
 
-//         match *self {
-//             MoveDecksPageQuery::Root => 1,
-//             MoveDecksPageQuery::SourceOfDecks(_deck_id, ref page_query) => {
-//                 page_query.current_page()
-//             }
-//         }
-//     }
+        match *self {
+            MoveDecksPageQuery::Root(_) => 1,
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+                page_query.current_page()
+            }
+        }
+    }
 
-//     fn num_of_pages(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Page {
+    fn num_of_pages(&self, context: Rc<RefCell<Context>>) -> Page {
 
-//         // TODO: complete
-//     }
+        match *self {
+            MoveDecksPageQuery::Root(_) => 1,
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+                page_query.num_of_pages(context)
+            }
+        }
 
-//     fn should_show_pagination(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool {
-//         return self.num_of_pages(context, deck_id) > 1;
-//     }
-// }
+    }
+
+    fn should_show_pagination(&self, context: Rc<RefCell<Context>>) -> bool {
+        return self.num_of_pages(context) > 1;
+    }
+
+    fn get_trailing_left_side(&self) -> Option<Vec<Self>> {
+
+        match *self {
+            MoveDecksPageQuery::Root(_) => None,
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+
+                match page_query.get_trailing_left_side() {
+                    None => None,
+                    Some(list) => {
+
+                        let collected = list
+                            .into_iter()
+                            .map(|elem| {
+                                MoveDecksPageQuery::SourceOfDecks(elem)
+                            })
+                            .collect();
+
+                        return Some(collected);
+                    }
+                }
+
+            }
+        }
+    }
+
+    fn has_trailing_left_side_delimeter(&self) -> bool {
+
+        match *self {
+            MoveDecksPageQuery::Root(_) => false,
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+                page_query.has_trailing_left_side_delimeter()
+            }
+        }
+    }
+
+    fn get_left_side(&self) -> Vec<Self> {
+
+        match *self {
+            MoveDecksPageQuery::Root(_) => vec![],
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+                page_query
+                    .get_left_side()
+                    .into_iter()
+                    .map(|elem| {
+                        MoveDecksPageQuery::SourceOfDecks(elem)
+                    })
+                    .collect()
+            }
+        }
+
+    }
+
+    fn get_right_side(&self, context: Rc<RefCell<Context>>) -> Vec<Self> {
+
+        match *self {
+            MoveDecksPageQuery::Root(_) => vec![],
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+                page_query
+                    .get_right_side(context)
+                    .into_iter()
+                    .map(|elem| {
+                        MoveDecksPageQuery::SourceOfDecks(elem)
+                    })
+                    .collect()
+            }
+        }
+
+    }
+
+    fn has_trailing_right_side_delimeter(&self, context: Rc<RefCell<Context>>) -> bool {
+
+        match *self {
+            MoveDecksPageQuery::Root(_) => false,
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+                page_query.has_trailing_right_side_delimeter(context)
+            }
+        }
+    }
+
+    fn get_trailing_right_side(&self, context: Rc<RefCell<Context>>) -> Option<Vec<Self>> {
+
+        match *self {
+            MoveDecksPageQuery::Root(_) => None,
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+                match page_query.get_trailing_right_side(context) {
+                    None => None,
+                    Some(list) => {
+                        let collected: Vec<Self> = list
+                            .into_iter()
+                            .map(|elem| {
+                                MoveDecksPageQuery::SourceOfDecks(elem)
+                            })
+                            .collect();
+
+                        return Some(collected);
+                    }
+                }
+            }
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct DecksPageQuery(pub DeckID, pub Page, pub DecksPageSort);
