@@ -132,9 +132,9 @@ pub enum DeckRoute {
     // Delete
 }
 
-impl Default for DeckRoute {
-    fn default() -> Self {
-        DeckRoute::Decks(Default::default(), Default::default())
+impl DeckRoute {
+    fn default_with_deck(deck_id: DeckID) -> Self {
+        return DeckRoute::Decks(DecksPageQuery::default_with_deck(deck_id), Default::default());
     }
 }
 
@@ -506,7 +506,8 @@ fn parse_route_api_card_root(
 
     let card_delete_response = cards::DeleteCardResponse {
         redirect_to: view_route_to_link(context, AppRoute::Deck(card.deck_id,
-            DeckRoute::Cards(Default::default(), Default::default())))
+            DeckRoute::Cards(CardsPageQuery::default_with_deck(card.deck_id),
+                Default::default())))
     };
 
     return respond_json!(Some(card_delete_response));
@@ -913,7 +914,8 @@ fn parse_route_api_deck_root(
     handle_api_result_json!(decks::delete_deck(context.clone(), deck_id));
 
     let deck_delete_response = decks::DeleteDeckResponse {
-        redirect_to: view_route_to_link(context, AppRoute::Deck(parent_deck_id, Default::default()))
+        redirect_to: view_route_to_link(context, AppRoute::Deck(parent_deck_id,
+            DeckRoute::default_with_deck(parent_deck_id)))
     };
 
     return respond_json!(Some(deck_delete_response));
@@ -1295,7 +1297,10 @@ fn __parse_route_api_deck_new_deck(
                     match decks::connect_decks(context.clone(), new_deck.id, parent_deck_id) {
                         Ok(_) => {
 
-                            let deck_route = DeckRoute::Decks(Default::default(), Default::default());
+                            let deck_route = DeckRoute::Decks(
+                                DecksPageQuery::default_with_deck(new_deck.id),
+                                Default::default());
+
                             let app_route = AppRoute::Deck(new_deck.id, deck_route);
 
                             let response = DeckCreateResponse {
@@ -1889,7 +1894,9 @@ fn route_deck_cards(
     }
 
     let cards_route = match query_string {
-        None => DeckRoute::Cards(Default::default(), Default::default()),
+        None => DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id),
+            Default::default()),
+
         Some(query_string) => {
 
             let page_query = CardsPageQuery::parse(&query_string, context.clone(), deck_id);
@@ -2304,7 +2311,8 @@ fn route_deck_decks(
     }
 
     let decks_route = match query_string {
-        None => DeckRoute::Decks(Default::default(), Default::default()),
+        None => DeckRoute::Decks(DecksPageQuery::default_with_deck(deck_id), Default::default()),
+
         Some(query_string) => {
 
             let page_query = DecksPageQuery::parse(&query_string, context.clone(), deck_id);

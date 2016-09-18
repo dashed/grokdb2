@@ -262,7 +262,7 @@ impl SortOrderable for DecksPageSort {
 #[derive(Debug, Clone)]
 pub enum MoveDecksPageQuery {
     Root(DeckID),
-    SourceOfDecks(DeckID, DecksPageQuery)
+    SourceOfDecks(DecksPageQuery)
 }
 
 // helper to reduce repetition
@@ -333,7 +333,7 @@ impl MoveDecksPageQuery {
 
         match get_parent_of_deck(context, deck_id) {
             ParentDeck::Parent(parent_id) => {
-                return MoveDecksPageQuery::SourceOfDecks(parent_id, Default::default());
+                return MoveDecksPageQuery::SourceOfDecks(DecksPageQuery::default_with_deck(parent_id));
             },
             ParentDeck::Root(root_deck_id) => {
                 return MoveDecksPageQuery::Root(root_deck_id);
@@ -363,7 +363,7 @@ impl MoveDecksPageQuery {
 
                 match get_parent_of_deck(context.clone(), fallback_deck_id) {
                     ParentDeck::Parent(parent_id) => {
-                        return MoveDecksPageQuery::SourceOfDecks(parent_id,
+                        return MoveDecksPageQuery::SourceOfDecks(
                             DecksPageQuery::parse(query_string, context, parent_id));
                     },
                     ParentDeck::Root(root_deck_id) => {
@@ -378,7 +378,7 @@ impl MoveDecksPageQuery {
 
                         match get_parent_of_deck(context.clone(), fallback_deck_id) {
                             ParentDeck::Parent(parent_id) => {
-                                return MoveDecksPageQuery::SourceOfDecks(parent_id,
+                                return MoveDecksPageQuery::SourceOfDecks(
                                     DecksPageQuery::parse(query_string, context, parent_id));
                             },
                             ParentDeck::Root(root_deck_id) => {
@@ -412,7 +412,7 @@ impl MoveDecksPageQuery {
 
                                 match get_parent_of_deck(context.clone(), fallback_deck_id) {
                                     ParentDeck::Parent(parent_id) => {
-                                        return MoveDecksPageQuery::SourceOfDecks(parent_id,
+                                        return MoveDecksPageQuery::SourceOfDecks(
                                             DecksPageQuery::parse(query_string, context, parent_id));
                                     },
                                     ParentDeck::Root(root_deck_id) => {
@@ -428,14 +428,14 @@ impl MoveDecksPageQuery {
 
                                         if exists {
 
-                                            return MoveDecksPageQuery::SourceOfDecks(deck_id,
+                                            return MoveDecksPageQuery::SourceOfDecks(
                                                 DecksPageQuery::parse(query_string, context, deck_id));
 
                                         } else {
 
                                             match get_parent_of_deck(context.clone(), fallback_deck_id) {
                                                 ParentDeck::Parent(parent_id) => {
-                                                    return MoveDecksPageQuery::SourceOfDecks(parent_id,
+                                                    return MoveDecksPageQuery::SourceOfDecks(
                                                         DecksPageQuery::parse(query_string, context, parent_id));
                                                 },
                                                 ParentDeck::Root(root_deck_id) => {
@@ -467,7 +467,9 @@ impl MoveDecksPageQuery {
             MoveDecksPageQuery::Root(_) => {
                 return format!("deck=top");
             },
-            MoveDecksPageQuery::SourceOfDecks(deck_id,  ref page_query) => {
+            MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+
+                let &DecksPageQuery(deck_id, _, _) = page_query;
 
                 return format!("deck={deck_id}&{rest}",
                     deck_id = deck_id, rest = page_query.generate_query_string());
@@ -478,16 +480,80 @@ impl MoveDecksPageQuery {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct DecksPageQuery(pub Page, pub DecksPageSort);
+// TODO: fix
+// impl Pagination for MoveDecksPageQuery {
 
-impl Default for DecksPageQuery {
-    fn default() -> Self {
-        DecksPageQuery(1, DecksPageSort::UpdatedAt(SortOrder::Descending))
-    }
-}
+//     fn first(&self) -> Self {
+
+//         match *self {
+//             MoveDecksPageQuery::Root => {
+//                 self.clone()
+//             },
+//             MoveDecksPageQuery::SourceOfDecks(deck_id, ref page_query) => {
+//                 MoveDecksPageQuery::SourceOfDecks(deck_id, page_query.first())
+//             }
+//         }
+
+//     }
+
+//     fn previous(&self) -> Option<Self> {
+//         let page_num = self.current_page();
+
+//         if page_num <= 1 {
+//             return None;
+//         }
+
+//         match *self {
+//             MoveDecksPageQuery::Root => {
+//                 return None;
+//             },
+//             MoveDecksPageQuery::SourceOfDecks(_deck_id, ref page_query) => {
+//                 return page_query.previous();
+//             }
+//         }
+//     }
+
+//     fn next(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Self> {
+
+//         match *self {
+//             MoveDecksPageQuery::Root => {
+//                 return None;
+//             },
+//             MoveDecksPageQuery::SourceOfDecks(_deck_id, ref page_query) => {
+//                 return page_query.next();
+//             }
+//         }
+
+//     }
+
+//     fn current_page(&self) -> Page {
+
+//         match *self {
+//             MoveDecksPageQuery::Root => 1,
+//             MoveDecksPageQuery::SourceOfDecks(_deck_id, ref page_query) => {
+//                 page_query.current_page()
+//             }
+//         }
+//     }
+
+//     fn num_of_pages(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Page {
+
+//         // TODO: complete
+//     }
+
+//     fn should_show_pagination(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool {
+//         return self.num_of_pages(context, deck_id) > 1;
+//     }
+// }
+
+#[derive(Debug, Clone)]
+pub struct DecksPageQuery(pub DeckID, pub Page, pub DecksPageSort);
 
 impl DecksPageQuery {
+
+    pub fn default_with_deck(deck_id: DeckID) -> Self {
+        return DecksPageQuery(deck_id, 1, DecksPageSort::UpdatedAt(SortOrder::Descending));
+    }
 
     pub fn parse(query_string: &QueryString, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
 
@@ -557,13 +623,13 @@ impl DecksPageQuery {
             }
         };
 
-        return DecksPageQuery(page_num, decks_page_sort);
+        return DecksPageQuery(deck_id, page_num, decks_page_sort);
     }
 
     // TODO: test
     // TODO: move to some trait
     pub fn get_offset(&self) -> Offset {
-        let page = self.0;
+        let page = self.1;
         let offset = (page - 1) * self.get_per_page();
         return offset;
     }
@@ -577,7 +643,7 @@ impl DecksPageQuery {
     // TODO: test
     pub fn generate_query_string(&self) -> String {
 
-        let &DecksPageQuery(page, ref page_sort) = self;
+        let &DecksPageQuery(_deck_id, page, ref page_sort) = self;
 
         let (order_by, sort_order) = match *page_sort {
             DecksPageSort::DeckName(ref sort_order) => ("deck_name", sort_order),
@@ -595,7 +661,7 @@ impl DecksPageQuery {
     }
 
     pub fn sort_by_string(&self) -> String {
-        match self.1 {
+        match self.2 {
             DecksPageSort::DeckName(_) => "Deck Name".to_owned(),
             DecksPageSort::CreatedAt(_) => "Created At".to_owned(),
             DecksPageSort::UpdatedAt(_) => "Updated At".to_owned()
@@ -603,41 +669,41 @@ impl DecksPageQuery {
     }
 
     pub fn updated_at(&self) -> Self {
-        return DecksPageQuery(self.0, DecksPageSort::UpdatedAt(self.1.order_by()))
+        return DecksPageQuery(self.0, self.1, DecksPageSort::UpdatedAt(self.2.order_by()))
     }
 
     pub fn created_at(&self) -> Self {
-        return DecksPageQuery(self.0, DecksPageSort::CreatedAt(self.1.order_by()))
+        return DecksPageQuery(self.0, self.1, DecksPageSort::CreatedAt(self.2.order_by()))
     }
 
     pub fn deck_name(&self) -> Self {
-        return DecksPageQuery(self.0, DecksPageSort::DeckName(self.1.order_by()))
+        return DecksPageQuery(self.0, self.1, DecksPageSort::DeckName(self.2.order_by()))
     }
 }
 
 impl SortOrderable for DecksPageQuery {
 
     fn order_by(&self) -> SortOrder {
-        self.1.order_by()
+        self.2.order_by()
     }
 
     fn ascending(&self) -> Self {
-        DecksPageQuery(self.0, self.1.ascending())
+        DecksPageQuery(self.0, self.1, self.2.ascending())
     }
 
     fn descending(&self) -> Self {
-        DecksPageQuery(self.0, self.1.descending())
+        DecksPageQuery(self.0, self.1, self.2.descending())
     }
 
     fn sort_order_string(&self) -> String {
-        self.1.sort_order_string()
+        self.2.sort_order_string()
     }
 }
 
 impl Pagination for DecksPageQuery {
 
     fn first(&self) -> Self {
-        DecksPageQuery(1, self.1.clone())
+        DecksPageQuery(self.0, 1, self.2.clone())
     }
 
     fn previous(&self) -> Option<Self> {
@@ -647,12 +713,16 @@ impl Pagination for DecksPageQuery {
             return None;
         }
 
-        return Some(DecksPageQuery(page_num - 1, self.1.clone()));
+        let prev_page = page_num - 1;
+
+        return Some(DecksPageQuery(self.0, prev_page, self.2.clone()));
     }
 
-    fn next(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Self> {
+    fn next(&self, context: Rc<RefCell<Context>>) -> Option<Self> {
 
         let _guard = context::read_lock(context.clone());
+
+        let deck_id = self.0;
 
         let children_count = match decks::get_deck_children_total_count(context, deck_id) {
             Ok(count) => count,
@@ -670,16 +740,18 @@ impl Pagination for DecksPageQuery {
             return None;
         }
 
-        return Some(DecksPageQuery(next_page, self.1.clone()));
+        return Some(DecksPageQuery(deck_id, next_page, self.2.clone()));
     }
 
     fn current_page(&self) -> Page {
-        self.0
+        self.1
     }
 
-    fn num_of_pages(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Page {
+    fn num_of_pages(&self, context: Rc<RefCell<Context>>) -> Page {
 
         let _guard = context::read_lock(context.clone());
+
+        let deck_id = self.0;
 
         let children_count = match decks::get_deck_children_total_count(context, deck_id) {
             Ok(count) => count,
@@ -694,8 +766,8 @@ impl Pagination for DecksPageQuery {
         return num_of_pages;
     }
 
-    fn should_show_pagination(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool {
-        return self.num_of_pages(context, deck_id) > 1;
+    fn should_show_pagination(&self, context: Rc<RefCell<Context>>) -> bool {
+        return self.num_of_pages(context) > 1;
     }
 
     fn get_trailing_left_side(&self) -> Option<Vec<Self>> {
@@ -716,7 +788,7 @@ impl Pagination for DecksPageQuery {
 
             // 1 to end
             for page in 1..(end + 1) {
-                let page_query = DecksPageQuery(page as Page, self.1.clone());
+                let page_query = DecksPageQuery(self.0, page as Page, self.2.clone());
                 trailing_left_side.push(page_query);
             }
 
@@ -724,10 +796,9 @@ impl Pagination for DecksPageQuery {
         }
 
 
-
         // 1 to __PAGINATION_TRAIL_SIZE
         for page in 1..(__PAGINATION_TRAIL_SIZE + 1) {
-            let page_query = DecksPageQuery(page as Page, self.1.clone());
+            let page_query = DecksPageQuery(self.0, page as Page, self.2.clone());
             trailing_left_side.push(page_query);
         }
 
@@ -736,7 +807,7 @@ impl Pagination for DecksPageQuery {
 
             let extra_page_num = 1 + __PAGINATION_TRAIL_SIZE;
 
-            let page_query = DecksPageQuery(extra_page_num as Page, self.1.clone());
+            let page_query = DecksPageQuery(self.0, extra_page_num as Page, self.2.clone());
             trailing_left_side.push(page_query);
 
         }
@@ -770,17 +841,19 @@ impl Pagination for DecksPageQuery {
 
         // start to end
         for page in start..(end + 1) {
-            let page_query = DecksPageQuery(page as Page, self.1.clone());
+            let page_query = DecksPageQuery(self.0, page as Page, self.2.clone());
             left_side.push(page_query);
         }
 
         return left_side;
     }
 
-    fn get_right_side(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Vec<Self> {
+    fn get_right_side(&self, context: Rc<RefCell<Context>>) -> Vec<Self> {
+
+        let deck_id = self.0;
 
         let current_page = self.current_page() as i64;
-        let num_of_pages = self.num_of_pages(context, deck_id) as i64;
+        let num_of_pages = self.num_of_pages(context) as i64;
 
         let beta = current_page + __PAGINATION__ALPHA;
 
@@ -794,7 +867,7 @@ impl Pagination for DecksPageQuery {
         };
 
         for page in start..(end + 1) {
-            let page_query = DecksPageQuery(page as Page, self.1.clone());
+            let page_query = DecksPageQuery(deck_id, page as Page, self.2.clone());
             right_side.push(page_query);
         }
 
@@ -802,20 +875,20 @@ impl Pagination for DecksPageQuery {
 
     }
 
-    fn has_trailing_right_side_delimeter(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool {
+    fn has_trailing_right_side_delimeter(&self, context: Rc<RefCell<Context>>) -> bool {
 
         let current_page = self.current_page() as i64;
-        let num_of_pages = self.num_of_pages(context, deck_id) as i64;
+        let num_of_pages = self.num_of_pages(context) as i64;
 
         let end = current_page + __PAGINATION__ALPHA + 1 + __PAGINATION_TRAIL_SIZE;
 
         return end < num_of_pages;
     }
 
-    fn get_trailing_right_side(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Vec<Self>> {
+    fn get_trailing_right_side(&self, context: Rc<RefCell<Context>>) -> Option<Vec<Self>> {
 
         let current_page = self.current_page() as i64;
-        let num_of_pages = self.num_of_pages(context, deck_id) as i64;
+        let num_of_pages = self.num_of_pages(context) as i64;
 
         let mut trailing_right_side: Vec<Self> = Vec::new();
 
@@ -831,7 +904,7 @@ impl Pagination for DecksPageQuery {
             }
 
             for page in start..(num_of_pages + 1) {
-                let page_query = DecksPageQuery(page as Page, self.1.clone());
+                let page_query = DecksPageQuery(self.0, page as Page, self.2.clone());
                 trailing_right_side.push(page_query);
             }
 
@@ -846,7 +919,7 @@ impl Pagination for DecksPageQuery {
             let extra_page_num = (num_of_pages - __PAGINATION_TRAIL_SIZE + 1) - 1;
 
 
-            let page_query = DecksPageQuery(extra_page_num as Page, self.1.clone());
+            let page_query = DecksPageQuery(self.0, extra_page_num as Page, self.2.clone());
             trailing_right_side.push(page_query);
 
         } else {
@@ -856,7 +929,7 @@ impl Pagination for DecksPageQuery {
         let start = num_of_pages - __PAGINATION_TRAIL_SIZE + 1;
 
         for page in start..(num_of_pages + 1) {
-            let page_query = DecksPageQuery(page as Page, self.1.clone());
+            let page_query = DecksPageQuery(self.0, page as Page, self.2.clone());
             trailing_right_side.push(page_query);
         }
 
@@ -866,15 +939,13 @@ impl Pagination for DecksPageQuery {
 }
 
 #[derive(Debug, Clone)]
-pub struct CardsPageQuery(pub Page, pub CardsPageSort);
-
-impl Default for CardsPageQuery {
-    fn default() -> Self {
-        CardsPageQuery(1, CardsPageSort::UpdatedAt(SortOrder::Descending))
-    }
-}
+pub struct CardsPageQuery(pub DeckID, pub Page, pub CardsPageSort);
 
 impl CardsPageQuery {
+
+    pub fn default_with_deck(deck_id: DeckID) -> Self {
+        CardsPageQuery(deck_id, 1, CardsPageSort::UpdatedAt(SortOrder::Descending))
+    }
 
     pub fn parse(query_string: &QueryString, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
 
@@ -903,7 +974,6 @@ impl CardsPageQuery {
                                 let num_of_pages = get_num_pages(children_count, default_per_page);
 
                                 get_page_num(num_of_pages, page_num)
-
                             }
                         }
                     }
@@ -944,13 +1014,13 @@ impl CardsPageQuery {
             }
         };
 
-        return CardsPageQuery(page_num, cards_page_sort);
+        return CardsPageQuery(deck_id, page_num, cards_page_sort);
     }
 
     // TODO: test
     // TODO: move to some trait
     pub fn get_offset(&self) -> Offset {
-        let page = self.0;
+        let page = self.1;
         let offset = (page - 1) * self.get_per_page();
         return offset;
     }
@@ -964,7 +1034,7 @@ impl CardsPageQuery {
     // TODO: test
     pub fn generate_query_string(&self) -> String {
 
-        let &CardsPageQuery(page, ref page_sort) = self;
+        let &CardsPageQuery(_deck_id, page, ref page_sort) = self;
 
         let (order_by, sort_order) = match *page_sort {
             CardsPageSort::CardTitle(ref sort_order) => ("card_title", sort_order),
@@ -982,7 +1052,7 @@ impl CardsPageQuery {
     }
 
     pub fn sort_by_string(&self) -> String {
-        match self.1 {
+        match self.2 {
             CardsPageSort::CardTitle(_) => "Card Title".to_owned(),
             CardsPageSort::CreatedAt(_) => "Created At".to_owned(),
             CardsPageSort::UpdatedAt(_) => "Updated At".to_owned()
@@ -990,41 +1060,41 @@ impl CardsPageQuery {
     }
 
     pub fn updated_at(&self) -> Self {
-        return CardsPageQuery(self.0, CardsPageSort::UpdatedAt(self.1.order_by()))
+        return CardsPageQuery(self.0, self.1, CardsPageSort::UpdatedAt(self.2.order_by()))
     }
 
     pub fn created_at(&self) -> Self {
-        return CardsPageQuery(self.0, CardsPageSort::CreatedAt(self.1.order_by()))
+        return CardsPageQuery(self.0, self.1, CardsPageSort::CreatedAt(self.2.order_by()))
     }
 
     pub fn card_title(&self) -> Self {
-        return CardsPageQuery(self.0, CardsPageSort::CardTitle(self.1.order_by()))
+        return CardsPageQuery(self.0, self.1, CardsPageSort::CardTitle(self.2.order_by()))
     }
 }
 
 impl SortOrderable for CardsPageQuery {
 
     fn order_by(&self) -> SortOrder {
-        self.1.order_by()
+        self.2.order_by()
     }
 
     fn ascending(&self) -> Self {
-        CardsPageQuery(self.0, self.1.ascending())
+        CardsPageQuery(self.0, self.1, self.2.ascending())
     }
 
     fn descending(&self) -> Self {
-        CardsPageQuery(self.0, self.1.descending())
+        CardsPageQuery(self.0, self.1, self.2.descending())
     }
 
     fn sort_order_string(&self) -> String {
-        self.1.sort_order_string()
+        self.2.sort_order_string()
     }
 }
 
 impl Pagination for CardsPageQuery {
 
     fn first(&self) -> Self {
-        CardsPageQuery(1, self.1.clone())
+        CardsPageQuery(self.0, 1, self.2.clone())
     }
 
     fn previous(&self) -> Option<Self> {
@@ -1034,10 +1104,14 @@ impl Pagination for CardsPageQuery {
             return None;
         }
 
-        return Some(CardsPageQuery(page_num - 1, self.1.clone()));
+        let prev_page = page_num - 1;
+
+        return Some(CardsPageQuery(self.0, prev_page, self.2.clone()));
     }
 
-    fn next(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Self> {
+    fn next(&self, context: Rc<RefCell<Context>>) -> Option<Self> {
+
+        let deck_id = self.0;
 
         let _guard = context::read_lock(context.clone());
 
@@ -1057,14 +1131,16 @@ impl Pagination for CardsPageQuery {
             return None;
         }
 
-        return Some(CardsPageQuery(next_page, self.1.clone()));
+        return Some(CardsPageQuery(deck_id, next_page, self.2.clone()));
     }
 
     fn current_page(&self) -> Page {
-        self.0
+        self.1
     }
 
-    fn num_of_pages(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Page {
+    fn num_of_pages(&self, context: Rc<RefCell<Context>>) -> Page {
+
+        let deck_id = self.0;
 
         let _guard = context::read_lock(context.clone());
 
@@ -1081,8 +1157,8 @@ impl Pagination for CardsPageQuery {
         return num_of_pages;
     }
 
-    fn should_show_pagination(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool {
-        return self.num_of_pages(context, deck_id) > 1;
+    fn should_show_pagination(&self, context: Rc<RefCell<Context>>) -> bool {
+        return self.num_of_pages(context) > 1;
     }
 
     fn get_trailing_left_side(&self) -> Option<Vec<Self>> {
@@ -1103,7 +1179,7 @@ impl Pagination for CardsPageQuery {
 
             // 1 to end
             for page in 1..(end + 1) {
-                let page_query = CardsPageQuery(page as Page, self.1.clone());
+                let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
                 trailing_left_side.push(page_query);
             }
 
@@ -1114,7 +1190,7 @@ impl Pagination for CardsPageQuery {
 
         // 1 to __PAGINATION_TRAIL_SIZE
         for page in 1..(__PAGINATION_TRAIL_SIZE + 1) {
-            let page_query = CardsPageQuery(page as Page, self.1.clone());
+            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
             trailing_left_side.push(page_query);
         }
 
@@ -1123,7 +1199,7 @@ impl Pagination for CardsPageQuery {
 
             let extra_page_num = 1 + __PAGINATION_TRAIL_SIZE;
 
-            let page_query = CardsPageQuery(extra_page_num as Page, self.1.clone());
+            let page_query = CardsPageQuery(self.0, extra_page_num as Page, self.2.clone());
             trailing_left_side.push(page_query);
 
         }
@@ -1157,17 +1233,19 @@ impl Pagination for CardsPageQuery {
 
         // start to end
         for page in start..(end + 1) {
-            let page_query = CardsPageQuery(page as Page, self.1.clone());
+            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
             left_side.push(page_query);
         }
 
         return left_side;
     }
 
-    fn get_right_side(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Vec<Self> {
+    fn get_right_side(&self, context: Rc<RefCell<Context>>) -> Vec<Self> {
+
+        let deck_id = self.0;
 
         let current_page = self.current_page() as i64;
-        let num_of_pages = self.num_of_pages(context, deck_id) as i64;
+        let num_of_pages = self.num_of_pages(context) as i64;
 
         let beta = current_page + __PAGINATION__ALPHA;
 
@@ -1181,7 +1259,7 @@ impl Pagination for CardsPageQuery {
         };
 
         for page in start..(end + 1) {
-            let page_query = CardsPageQuery(page as Page, self.1.clone());
+            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
             right_side.push(page_query);
         }
 
@@ -1189,20 +1267,20 @@ impl Pagination for CardsPageQuery {
 
     }
 
-    fn has_trailing_right_side_delimeter(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool {
+    fn has_trailing_right_side_delimeter(&self, context: Rc<RefCell<Context>>) -> bool {
 
         let current_page = self.current_page() as i64;
-        let num_of_pages = self.num_of_pages(context, deck_id) as i64;
+        let num_of_pages = self.num_of_pages(context) as i64;
 
         let end = current_page + __PAGINATION__ALPHA + 1 + __PAGINATION_TRAIL_SIZE;
 
         return end < num_of_pages;
     }
 
-    fn get_trailing_right_side(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Vec<Self>> {
+    fn get_trailing_right_side(&self, context: Rc<RefCell<Context>>) -> Option<Vec<Self>> {
 
         let current_page = self.current_page() as i64;
-        let num_of_pages = self.num_of_pages(context, deck_id) as i64;
+        let num_of_pages = self.num_of_pages(context) as i64;
 
         let mut trailing_right_side: Vec<Self> = Vec::new();
 
@@ -1218,7 +1296,7 @@ impl Pagination for CardsPageQuery {
             }
 
             for page in start..(num_of_pages + 1) {
-                let page_query = CardsPageQuery(page as Page, self.1.clone());
+                let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
                 trailing_right_side.push(page_query);
             }
 
@@ -1233,7 +1311,7 @@ impl Pagination for CardsPageQuery {
             let extra_page_num = (num_of_pages - __PAGINATION_TRAIL_SIZE + 1) - 1;
 
 
-            let page_query = CardsPageQuery(extra_page_num as Page, self.1.clone());
+            let page_query = CardsPageQuery(self.0, extra_page_num as Page, self.2.clone());
             trailing_right_side.push(page_query);
 
         } else {
@@ -1243,7 +1321,7 @@ impl Pagination for CardsPageQuery {
         let start = num_of_pages - __PAGINATION_TRAIL_SIZE + 1;
 
         for page in start..(num_of_pages + 1) {
-            let page_query = CardsPageQuery(page as Page, self.1.clone());
+            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
             trailing_right_side.push(page_query);
         }
 
@@ -1286,17 +1364,17 @@ pub trait Pagination where Self: Sized {
     fn first(&self) -> Self;
 
     fn previous(&self) -> Option<Self>;
-    fn next(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Self>;
+    fn next(&self, context: Rc<RefCell<Context>>) -> Option<Self>;
     fn current_page(&self) -> Page;
-    fn num_of_pages(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Page;
+    fn num_of_pages(&self, context: Rc<RefCell<Context>>) -> Page;
 
-    fn should_show_pagination(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool;
+    fn should_show_pagination(&self, context: Rc<RefCell<Context>>) -> bool;
 
     fn get_trailing_left_side(&self) -> Option<Vec<Self>>;
     fn has_trailing_left_side_delimeter(&self) -> bool;
     fn get_left_side(&self) -> Vec<Self>;
 
-    fn get_right_side(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Vec<Self>;
-    fn has_trailing_right_side_delimeter(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> bool;
-    fn get_trailing_right_side(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Option<Vec<Self>>;
+    fn get_right_side(&self, context: Rc<RefCell<Context>>) -> Vec<Self>;
+    fn has_trailing_right_side_delimeter(&self, context: Rc<RefCell<Context>>) -> bool;
+    fn get_trailing_right_side(&self, context: Rc<RefCell<Context>>) -> Option<Vec<Self>>;
 }

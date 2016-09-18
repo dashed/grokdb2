@@ -64,7 +64,7 @@ fn go_back_up_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> MoveDecksP
 
             match decks::get_parent_id_of_deck(context, deck_id) {
                 Ok(Some(parent_deck_id)) => {
-                    return MoveDecksPageQuery::SourceOfDecks(parent_deck_id, Default::default());
+                    return MoveDecksPageQuery::SourceOfDecks(DecksPageQuery::default_with_deck(parent_deck_id));
                 },
                 Ok(None) => {
 
@@ -1087,8 +1087,11 @@ fn generateDeckPathLink(context: Rc<RefCell<Context>>, deck_id: DeckID, deck_rou
 
             deck_route.clone()
         },
-        DeckRoute::Decks(ref _page_query, ref _search) => DeckRoute::Decks(Default::default(), Default::default()),
-        DeckRoute::Cards(ref _page_query, ref _search) => DeckRoute::Cards(Default::default(), Default::default())
+        DeckRoute::Decks(ref _page_query, ref _search) => DeckRoute::Decks(
+            DecksPageQuery::default_with_deck(deck_id), Default::default()),
+
+        DeckRoute::Cards(ref _page_query, ref _search) => DeckRoute::Cards(
+            CardsPageQuery::default_with_deck(deck_id), Default::default())
     };
 
     view_route_to_link(context, AppRoute::Deck(deck_id, __deck_route))
@@ -1396,7 +1399,8 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             li(style = raw!("padding-top:2px;padding-bottom:2px;")) {
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
-                                        DeckRoute::Decks(Default::default(), Default::default()))),
+                                        DeckRoute::Decks(DecksPageQuery::default_with_deck(deck_id),
+                                            Default::default()))),
                                     class? = classnames!(
                                         "is-bold",
                                         "is-active" => {
@@ -1411,7 +1415,8 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             li(style = raw!("padding-top:2px;padding-bottom:2px;")) {
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
-                                        DeckRoute::Cards(Default::default(), Default::default()))),
+                                        DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id),
+                                            Default::default()))),
                                     class? = classnames!(
                                         "is-bold",
                                         "is-active" => {
@@ -1950,7 +1955,7 @@ fn CardsPaginationComponent(tmpl: &mut TemplateBuffer,
     cards_page_query: &CardsPageQuery,
     search: &Search) {
 
-    if !cards_page_query.should_show_pagination(context.clone(), deck_id) {
+    if !cards_page_query.should_show_pagination(context.clone()) {
         return;
     }
 
@@ -2067,7 +2072,7 @@ fn CardsPaginationComponent(tmpl: &mut TemplateBuffer,
                         |tmpl| {
 
                             tmpl << html!{
-                                @ for page_query in cards_page_query.get_right_side(context.clone(), deck_id) {
+                                @ for page_query in cards_page_query.get_right_side(context.clone()) {
                                     |tmpl| {
 
                                         let current_page = page_query.current_page();
@@ -2092,7 +2097,7 @@ fn CardsPaginationComponent(tmpl: &mut TemplateBuffer,
                         // trailing right side delimeter
                         |tmpl| {
 
-                            if cards_page_query.has_trailing_right_side_delimeter(context.clone(), deck_id) {
+                            if cards_page_query.has_trailing_right_side_delimeter(context.clone()) {
                                 tmpl << html!{
                                     li {
                                         span(class="is-bold") {
@@ -2106,7 +2111,7 @@ fn CardsPaginationComponent(tmpl: &mut TemplateBuffer,
                         // trailing right side
                         |tmpl| {
 
-                            match cards_page_query.get_trailing_right_side(context.clone(), deck_id) {
+                            match cards_page_query.get_trailing_right_side(context.clone()) {
                                 None => {},
                                 Some(list) => {
                                     tmpl << html!{
@@ -2139,7 +2144,7 @@ fn CardsPaginationComponent(tmpl: &mut TemplateBuffer,
 
                     |tmpl| {
 
-                        match cards_page_query.next(context.clone(), deck_id) {
+                        match cards_page_query.next(context.clone()) {
                             None => {},
                             Some(page_query) => {
 
@@ -2795,7 +2800,8 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
                 h5(class="title is-5 is-marginless is-bold") {
                     a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
-                                        DeckRoute::Decks(Default::default(), Default::default())))
+                                        DeckRoute::Decks(DecksPageQuery::default_with_deck(deck_id),
+                                            Default::default())))
                     ) {
                         |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
                     }
@@ -2805,7 +2811,8 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
                     : raw!(" ");
                     a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
-                                        DeckRoute::Cards(Default::default(), Default::default())))) {
+                                        DeckRoute::Cards(CardsPageQuery::default_with_deck(deck.id),
+                                            Default::default())))) {
                         : raw!("View Cards")
                     }
                 }
@@ -2821,7 +2828,7 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
     deck_page_query: &DecksPageQuery,
     search: &Search) {
 
-    if !deck_page_query.should_show_pagination(context.clone(), deck_id) {
+    if !deck_page_query.should_show_pagination(context.clone()) {
         return;
     }
 
@@ -2937,7 +2944,7 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
                         |tmpl| {
 
                             tmpl << html!{
-                                @ for page_query in deck_page_query.get_right_side(context.clone(), deck_id) {
+                                @ for page_query in deck_page_query.get_right_side(context.clone()) {
                                     |tmpl| {
 
                                         let current_page = page_query.current_page();
@@ -2962,7 +2969,7 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
                         // trailing right side delimeter
                         |tmpl| {
 
-                            if deck_page_query.has_trailing_right_side_delimeter(context.clone(), deck_id) {
+                            if deck_page_query.has_trailing_right_side_delimeter(context.clone()) {
                                 tmpl << html!{
                                     li {
                                         span(class="is-bold") {
@@ -2976,7 +2983,7 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
                         // trailing right side
                         |tmpl| {
 
-                            match deck_page_query.get_trailing_right_side(context.clone(), deck_id) {
+                            match deck_page_query.get_trailing_right_side(context.clone()) {
                                 None => {},
                                 Some(list) => {
                                     tmpl << html!{
@@ -3009,7 +3016,7 @@ fn DeckChildrenPaginationComponent(tmpl: &mut TemplateBuffer,
 
                     |tmpl| {
 
-                        match deck_page_query.next(context.clone(), deck_id) {
+                        match deck_page_query.next(context.clone()) {
                             None => {},
                             Some(page_query) => {
 
@@ -3313,7 +3320,7 @@ fn CardMovePathToDeck(
                 }
             };
         },
-        MoveDecksPageQuery::SourceOfDecks(deck_id, _) => {
+        MoveDecksPageQuery::SourceOfDecks(DecksPageQuery(deck_id, _, _)) => {
 
             let deck_path = match decks::get_path_of_deck(context.clone(), deck_id) {
                 Ok(path) => path,
@@ -3358,7 +3365,8 @@ fn CardMovePathToDeck(
                                             AppRoute::Deck(this_deck,
                                                 DeckRoute::CardProfile(this_card,
                                                     CardRoute::Settings(CardSettings::Move(
-                                                        MoveDecksPageQuery::SourceOfDecks(deck.id, Default::default()),
+                                                        MoveDecksPageQuery::SourceOfDecks(
+                                                            DecksPageQuery::default_with_deck(*deck_id)),
                                                         Default::default())))))
                                         ) {
                                             |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
@@ -3378,6 +3386,17 @@ fn CardMovePathToDeck(
         }
     }
 }
+
+// #[inline]
+// fn CardMovePaginationComponent(
+//     tmpl: &mut TemplateBuffer,
+//     context: Rc<RefCell<Context>>,) {
+
+//     if !cards_page_query.should_show_pagination(context.clone(), deck_id) {
+//         return;
+//     }
+
+// }
 
 #[inline]
 fn CardMoveDecksList(
@@ -3414,7 +3433,9 @@ fn CardMoveDecksList(
             return;
 
         },
-        MoveDecksPageQuery::SourceOfDecks(deck_id, ref page_query) => {
+        MoveDecksPageQuery::SourceOfDecks(ref page_query) => {
+
+            let &DecksPageQuery(deck_id, _, _) = page_query;
 
             // case: card is not inside root deck
 
@@ -3556,7 +3577,8 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
                                             AppRoute::Deck(parent_deck,
                                                 DeckRoute::CardProfile(card_id,
                                                     CardRoute::Settings(CardSettings::Move(
-                                                        MoveDecksPageQuery::SourceOfDecks(deck_id, Default::default()),
+                                                        MoveDecksPageQuery::SourceOfDecks(
+                                                            DecksPageQuery::default_with_deck(deck_id)),
                                                         Default::default())))))
 
                                 ) {
@@ -3569,7 +3591,8 @@ fn MoveToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Co
                                 : raw!(" ");
                                 a(href = view_route_to_link(context.clone(),
                                                 AppRoute::Deck(deck_id,
-                                                    DeckRoute::Cards(Default::default(), Default::default())))) {
+                                                    DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id),
+                                                        Default::default())))) {
                                     : raw!("View Cards")
                                 }
                             }
