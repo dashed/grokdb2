@@ -958,6 +958,26 @@ fn __parse_route_api_deck_move(
 
     // POST /api/deck/:id/move
 
+    // attempting to move root deck is disallowed
+    match user::get_root_deck(context.clone()) {
+        Ok(Some(root_deck_id)) => {
+            if root_deck_id == child_deck_id {
+                let err = "Not allowed to move root deck.".to_string();
+                return respond_json_with_error!(APIStatus::BadRequest; err; None);
+            }
+        },
+        Ok(None) => {
+            // TODO: internal error logging
+            return respond_json_with_error!(APIStatus::ServerError;
+                INTERNAL_SERVER_ERROR_STRING.clone(); None);
+        },
+        Err(_why) => {
+            // TODO: internal error logging
+            return respond_json_with_error!(APIStatus::ServerError;
+                INTERNAL_SERVER_ERROR_STRING.clone(); None);
+        }
+    }
+
     let mut buffer = String::new();
 
     match request.read_to_string(&mut buffer) {
@@ -2255,27 +2275,55 @@ fn parse_route_deck_settings_move<'a>(
         eof();
 
         ret {
-            if request.borrow().method != Method::Get {
-                RenderResponse::MethodNotAllowed
-            } else {
-
-                let deck_settings_move = match query_string {
-                    None => DeckSettings::Move(MoveDecksPageQuery::default_with_deck(context.clone(), deck_id),
-                        Default::default()),
-                    Some(ref query_string) => {
-
-                        let page_query = MoveDecksPageQuery::parse_with_deck(query_string, context.clone(), deck_id);
-                        let search = Search::parse(query_string);
-
-                        DeckSettings::Move(page_query, search)
-                    }
-                };
-
-                let route = AppRoute::Deck(deck_id, DeckRoute::Settings(deck_settings_move));
-                RenderResponse::Component(route)
-            }
+            __parse_route_deck_settings_move(context, request, deck_id, query_string)
         }
     }
+}
+
+#[inline]
+fn __parse_route_deck_settings_move(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    query_string: Option<QueryString>) -> RenderResponse {
+
+    if request.borrow().method != Method::Get {
+        return RenderResponse::MethodNotAllowed;
+    }
+
+
+    // attempting to move root deck is disallowed
+    match user::get_root_deck(context.clone()) {
+        Ok(Some(root_deck_id)) => {
+            if root_deck_id == deck_id {
+                return RenderResponse::NotFound;
+            }
+        },
+        Ok(None) => {
+            // TODO: internal error logging
+            return RenderResponse::InternalServerError;
+        },
+        Err(_why) => {
+            // TODO: internal error logging
+            return RenderResponse::InternalServerError;
+        }
+    }
+
+    let deck_settings_move = match query_string {
+        None => DeckSettings::Move(MoveDecksPageQuery::default_with_deck(context.clone(), deck_id),
+            Default::default()),
+        Some(ref query_string) => {
+
+            let page_query = MoveDecksPageQuery::parse_with_deck(query_string, context.clone(), deck_id);
+            let search = Search::parse(query_string);
+
+            DeckSettings::Move(page_query, search)
+        }
+    };
+
+    let route = AppRoute::Deck(deck_id, DeckRoute::Settings(deck_settings_move));
+    RenderResponse::Component(route)
+
 }
 
 #[inline]

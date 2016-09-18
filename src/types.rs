@@ -330,6 +330,12 @@ fn get_parent_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> ParentD
 impl MoveDecksPageQuery {
 
     pub fn default_with_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
+        return MoveDecksPageQuery::SourceOfDecks(DecksPageQuery::default_with_deck(deck_id));
+    }
+
+    pub fn default_with_card(context: Rc<RefCell<Context>>, card_id: CardID) -> Self {
+
+        let deck_id = get_card_deck_id(context.clone(), card_id);
 
         match get_parent_of_deck(context, deck_id) {
             ParentDeck::Parent(parent_id) => {
@@ -340,13 +346,6 @@ impl MoveDecksPageQuery {
             }
         }
 
-    }
-
-    pub fn default_with_card(context: Rc<RefCell<Context>>, card_id: CardID) -> Self {
-
-        let deck_id = get_card_deck_id(context.clone(), card_id);
-
-        MoveDecksPageQuery::default_with_deck(context, deck_id)
     }
 
     pub fn parse_with_card(query_string: &QueryString, context: Rc<RefCell<Context>>, card_id: CardID) -> Self {
