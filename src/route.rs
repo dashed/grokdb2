@@ -1001,6 +1001,12 @@ fn __parse_route_api_deck_move(
                 }
             };
 
+            // attempting to move deck to itself is disallowed
+            if child_deck_id == request.deck_id {
+                let err = "Not allowed to move this deck to itself.".to_string();
+                return respond_json_with_error!(APIStatus::BadRequest; err; None);
+            }
+
             // ensure deck exists
             match decks::deck_exists(context.clone(), request.deck_id) {
                 Ok(true) => {},
@@ -1027,7 +1033,7 @@ fn __parse_route_api_deck_move(
                         redirect_to: view_route_to_link(context.clone(), AppRoute::Deck(child_deck_id,
                             DeckRoute::Settings(
                                 DeckSettings::Move(
-                                    MoveDecksPageQuery::default_with_deck(context.clone(), child_deck_id),
+                                    MoveDecksPageQuery::default_with_parent_of_deck(context.clone(), child_deck_id),
                                     Default::default()))))
                     };
 

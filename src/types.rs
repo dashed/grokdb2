@@ -329,6 +329,30 @@ fn get_parent_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> ParentD
 
 impl MoveDecksPageQuery {
 
+    pub fn default_with_parent_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
+
+        // TODO: refactor
+
+        match get_parent_of_deck(context.clone(), deck_id) {
+            ParentDeck::Parent(parent_id) => {
+
+                match get_parent_of_deck(context, parent_id) {
+                    ParentDeck::Parent(parent_id) => {
+
+                        return MoveDecksPageQuery::SourceOfDecks(DecksPageQuery::default_with_deck(parent_id));
+                    },
+                    ParentDeck::Root(root_deck_id) => {
+                        return MoveDecksPageQuery::Root(root_deck_id);
+                    }
+                }
+
+            },
+            ParentDeck::Root(root_deck_id) => {
+                return MoveDecksPageQuery::Root(root_deck_id);
+            }
+        }
+    }
+
     pub fn default_with_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
         return MoveDecksPageQuery::SourceOfDecks(DecksPageQuery::default_with_deck(deck_id));
     }

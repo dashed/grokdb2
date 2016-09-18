@@ -1112,9 +1112,30 @@ fn generateDeckPathLink(context: Rc<RefCell<Context>>, deck_id: DeckID, deck_rou
         DeckRoute::Stats |
         DeckRoute::Review(_) |
         DeckRoute::CardProfile(_, _) |
-        DeckRoute::Settings(_) => {
-
+        DeckRoute::Settings(DeckSettings::Main) => {
             deck_route.clone()
+        },
+        DeckRoute::Settings(DeckSettings::Move(_, _)) => {
+
+            match user::get_root_deck(context.clone()) {
+                Ok(Some(root_deck_id)) => {
+
+                    // NOTE: moving root deck is not possible.
+
+                    if deck_id == root_deck_id {
+                        DeckRoute::Settings(DeckSettings::Main)
+                    } else {
+                        deck_route.clone()
+                    }
+                },
+                Ok(None) => {
+                    panic!();
+                },
+                Err(_why) => {
+                    panic!();
+                }
+            }
+
         },
         DeckRoute::Decks(ref _page_query, ref _search) => DeckRoute::Decks(
             DecksPageQuery::default_with_deck(deck_id), Default::default()),
@@ -2361,19 +2382,8 @@ fn DeckSettingsNav(
                                         a(href = view_route_to_link(
                                             context.clone(),
                                             AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Move(
-                                                MoveDecksPageQuery::default_with_deck(context.clone(), {
-                                                    match decks::get_parent_id_of_deck(context.clone(), deck_id) {
-                                                        Ok(Some(parent_deck_id)) => parent_deck_id,
-                                                        Ok(None) => {
-                                                            // TODO: logging
-                                                            panic!();
-                                                        },
-                                                        Err(_why) => {
-                                                            // TODO: logging
-                                                            panic!();
-                                                        }
-                                                    }
-                                                }),
+                                                MoveDecksPageQuery::default_with_parent_of_deck(context.clone(),
+                                                    deck_id),
                                                 Default::default())))
                                             )) {
                                             span {
@@ -2700,6 +2710,8 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
         }
     };
 
+    let is_current_deck = child_deck == deck_id;
+
     tmpl << html!{
         div(class="columns is-marginless",
             style=labels!(
@@ -2726,10 +2738,16 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
 
                         |tmpl| {
 
-                            if !is_decks_parent {
+                            if !is_decks_parent && !is_current_deck {
                                 tmpl << html!{
                                     div(class="level-item", id = raw!(format!("{}-confirm", deck_id))) {
                                         // NOTE: confirm move button here; will be populated by react component
+                                    }
+                                }
+                            } else {
+                                tmpl << html!{
+                                    div(class="level-item") {
+                                        // NOTE: spacing fix
                                     }
                                 }
                             }
@@ -2742,7 +2760,9 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                                 a(href = view_route_to_link(context.clone(),
                                             AppRoute::Deck(child_deck,
                                                 DeckRoute::Settings(
-                                                    DeckSettings::Move(MoveDecksPageQuery::default_with_deck(context.clone(), deck_id),
+                                                    DeckSettings::Move(
+                                                        MoveDecksPageQuery::SourceOfDecks(
+                                                            DecksPageQuery::default_with_deck(deck_id)),
                                                         Default::default()))))
 
                                 ) {
@@ -2766,7 +2786,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                     }
 
                     |tmpl| {
-                        if !is_decks_parent {
+                        if !is_decks_parent && !is_current_deck {
 
                             tmpl << html!{
                                 div(class="level-right") {
@@ -2789,7 +2809,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                 }
 
                 |tmpl| {
-                    if !is_decks_parent {
+                    if !is_decks_parent && !is_current_deck {
 
                         tmpl << html!{
                             div(id = raw!(format!("{}-error", deck_id))) {
