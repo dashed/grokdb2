@@ -31,6 +31,7 @@ extern crate libc;
 extern crate pcg;
 extern crate phf;
 extern crate datetime;
+extern crate clap;
 
 
 /* rust lib imports */
@@ -45,7 +46,7 @@ use std::collections::HashMap;
 /* 3rd-party imports */
 
 use hyper::server::{Server, Request, Response};
-
+use clap::{Arg, App};
 use chomp::{parse_only};
 
 /* local imports */
@@ -82,10 +83,84 @@ use types::DeckID;
 
 fn main() {
 
+    /* parse command line args */
+
+    let cmd_matches = App::new("grokdb")
+        .version("0.1 (semver)") // semver semantics
+        .author("Alberto Leal <mailforalberto@gmail.com> (github.com/dashed)")
+        .about("flashcard app to help you grok better")
+        .arg(
+            Arg::with_name("port")
+            .short("p")
+            .long("port")
+            .help("Port number to serve")
+            .takes_value(true)
+            .required(false)
+            .validator(|port| {
+                let port = port.trim();
+                if port.len() <= 0 {
+                    return Err(String::from("invalid port number"));
+                }
+                match port.parse::<u16>() {
+                    Ok(_) => {
+                        return Ok(());
+                    },
+                    _ => {
+                        return Err(String::from("invalid port number"));
+                    }
+                };
+            })
+        )
+        .arg(
+            Arg::with_name("database_name")
+            .help("Database name to store your flashcards")
+            .required(true)
+            .index(1)
+            .validator(|database_name| {
+                let database_name = database_name.trim();
+                if database_name.len() <= 0 {
+                    return Err(String::from("invalid database name"));
+                } else {
+                    return Ok(());
+                }
+            })
+        ).get_matches();
+
+    // fetch database name
+
+    let mut database_name: String = cmd_matches.value_of("database_name")
+                                                .unwrap()
+                                                .trim()
+                                                .to_string();
+
+    if !database_name.to_lowercase().ends_with(".db") {
+        database_name = format!("{}.db", database_name);
+
+        println!("Using database: {}", database_name);
+    }
+
+    let database_name = database_name;
+
+    // fetch port number to serve at
+    let server_port: u16 = match cmd_matches.value_of("port") {
+        // Binding with a port number of 0 will request that the OS assigns
+        // a port to this listener.
+        None => 0u16,
+        Some(ref port_str) => {
+
+            let port_str = port_str.trim();
+
+            match port_str.parse::<u16>() {
+                Ok(port) => port,
+                _ => unreachable!() // should already be validated to be u16
+            }
+        }
+    };
+
     /* database */
 
     let global_lock = {
-        let db_connection = database::get_database("test.db".to_string());
+        let db_connection = database::get_database(database_name);
         let global_lock = Arc::new(RwLock::new(db_connection));
         global_lock
     };
@@ -102,61 +177,61 @@ fn main() {
     };
 
     // TODO: debug
-    {
+    // {
 
-        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+    //     let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
 
-        let _read_guard = context::write_lock(context.clone());
+    //     let _read_guard = context::write_lock(context.clone());
 
-        let root_deck_id = user::get_root_deck(context.clone()).unwrap().unwrap();
+    //     let root_deck_id = user::get_root_deck(context.clone()).unwrap().unwrap();
 
-        for deck_num in 1..245 {
+    //     for deck_num in 1..245 {
 
-            let request = decks::CreateDeck {
-                name: format!("deck {}", deck_num),
-                description: format!("description for deck {}", deck_num),
-            };
+    //         let request = decks::CreateDeck {
+    //             name: format!("deck {}", deck_num),
+    //             description: format!("description for deck {}", deck_num),
+    //         };
 
-            match decks::create_deck(context.clone(), request) {
-                Ok(deck) => {
+    //         match decks::create_deck(context.clone(), request) {
+    //             Ok(deck) => {
 
-                    match decks::connect_decks(context.clone(), deck.id, root_deck_id) {
-                        Ok(_) => assert!(true),
-                        Err(_) => assert!(false)
-                    }
-                },
-                Err(_) => assert!(false),
-            }
-        }
-    };
+    //                 match decks::connect_decks(context.clone(), deck.id, root_deck_id) {
+    //                     Ok(_) => assert!(true),
+    //                     Err(_) => assert!(false)
+    //                 }
+    //             },
+    //             Err(_) => assert!(false),
+    //         }
+    //     }
+    // };
 
-    {
+    // {
 
-        let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
+    //     let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
 
-        let _read_guard = context::write_lock(context.clone());
+    //     let _read_guard = context::write_lock(context.clone());
 
-        for card_num in 1..245 {
+    //     for card_num in 1..245 {
 
-            let request = cards::CreateCard {
-                title: format!("card num {}", card_num),
-                description: format!("card description {}", card_num),
-                question: format!("card question {}", card_num),
-                answer: format!("card answer {}", card_num),
-                is_active: card_num % 2 == 0
-            };
+    //         let request = cards::CreateCard {
+    //             title: format!("card num {}", card_num),
+    //             description: format!("card description {}", card_num),
+    //             question: format!("card question {}", card_num),
+    //             answer: format!("card answer {}", card_num),
+    //             is_active: card_num % 2 == 0
+    //         };
 
-            match cards::create_card(context.clone(), 1, request) {
-                Ok(_) => {
-                },
-                Err(_) => assert!(false),
-            }
-        }
-    };
+    //         match cards::create_card(context.clone(), 1, request) {
+    //             Ok(_) => {
+    //             },
+    //             Err(_) => assert!(false),
+    //         }
+    //     }
+    // };
 
     /* server */
 
-    let address = ("0.0.0.0", 3000);
+    let address = ("0.0.0.0", server_port);
 
     let mut server = Server::http(address).unwrap();
 

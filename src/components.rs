@@ -1139,7 +1139,7 @@ fn Preferences(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>) {
             div(class="columns") {
                 div(class="column") {
                     div(id="backup_container") {
-                        a(class="button is-primary") {
+                        a(class="button is-primary is-bold is-outlined") {
                             : raw!("Backup database")
                         }
                     }

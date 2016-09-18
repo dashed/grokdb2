@@ -37,6 +37,9 @@ features = ["functions", "backup"]
 git = "https://github.com/Stebalien/horrorshow-rs"
 rev = "c5caa64979866aa7a99d60de595b74c7d9d4ad01"
 
+[dependencies.clap]
+version = "1.4"
+
 [dependencies]
 clippy = {version = "0.0.87", optional = true}
 serde = "0.8.6"

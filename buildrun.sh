@@ -10,5 +10,5 @@ cargo build
 
 
 rm test.db
-RUST_BACKTRACE=1 target/debug/grokdb2
+RUST_BACKTRACE=1 target/debug/grokdb2 test.db
 # RUST_BACKTRACE=1 target/debug/gtdtxt test3.gtd
