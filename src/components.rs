@@ -250,7 +250,7 @@ pub fn generate_post_to(app_route: &AppRoute) -> String {
 #[inline]
 pub fn generate_move_to(app_route: &AppRoute) -> String {
     match *app_route {
-        AppRoute::Deck(_deck_id, ref deck_route) => {
+        AppRoute::Deck(deck_id, ref deck_route) => {
             match *deck_route {
                 DeckRoute::CardProfile(card_id, ref card_route) => {
                     match *card_route {
@@ -261,6 +261,9 @@ pub fn generate_move_to(app_route: &AppRoute) -> String {
                             panic!("invalid use of generate_move_to");
                         }
                     }
+                },
+                DeckRoute::Settings(DeckSettings::Move(_, _)) => {
+                    format!("/api/deck/{deck_id}/move", deck_id = deck_id)
                 }
                 _ => {
                     panic!("invalid use of generate_move_to");
@@ -387,6 +390,20 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 post_to_rename = generate_post_to(app_route),
                                 markdown_contents = markdown_contents,
                                 delete_to = generate_delete_to(app_route)
+                            )
+                        )
+                    }
+                },
+                DeckRoute::Settings(DeckSettings::Move(_, _)) => {
+                    tmpl << html! {
+                        : raw!(
+                            format!(
+                                "window.__PRE_RENDER_STATE__ = \
+                                    {{\
+                                        MOVE_TO: '{move_to}'\
+                                    }};\
+                                ",
+                                move_to = generate_move_to(app_route)
                             )
                         )
                     }
@@ -973,6 +990,20 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             }
 
                         },
+                        AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Move(_, _))) =>  {
+
+                            tmpl << html! {
+
+                                script(type="text/javascript") {
+                                    |tmpl| {
+                                        pre_render_state(tmpl, context.clone(), &app_route);
+                                    }
+                                }
+
+                                script(type="text/javascript", src="/assets/deck_move_settings.js") {}
+                            }
+
+                        },
                         AppRoute::Deck(_, DeckRoute::CardProfile(_card_id, ref card_route)) =>  {
 
                             match *card_route {
@@ -1039,8 +1070,6 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                                 script(type="text/javascript", src="/assets/card_move_settings.js") {}
                                             }
 
-
-                                            // TODO: complete
                                         }
                                     }
                                 }
@@ -2836,7 +2865,7 @@ fn DeckMovePathToDeck(
                                             AppRoute::Deck(this_deck,
                                                 DeckRoute::Settings(
                                                     DeckSettings::Move(
-                                                        MoveDecksPageQuery::default_with_deck(context.clone(), this_deck),
+                                                        MoveDecksPageQuery::default_with_deck(context.clone(), deck.id),
                                                         Default::default()))))
                                         ) {
                                             |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
