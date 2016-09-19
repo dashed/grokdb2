@@ -770,6 +770,9 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     : generate_title(context.clone(), app_route)
                 }
 
+                // NOTE: reference: https://github.com/joshbuchea/HEAD#favicons
+                link(rel="icon", href="/assets/favicon-16.png", sizes="16x16", type="image/png");
+
                 // TODO: necessary?
                 // style(type="text/css") {
                 //     : raw!(include_str!("../assets/bulma.css"))
