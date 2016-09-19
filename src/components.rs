@@ -1342,7 +1342,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                 }
                             }
                     },
-                    DeckRoute::Settings(_) => {
+                    DeckRoute::Settings(ref deck_settings) => {
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
@@ -1351,6 +1351,27 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
 
                                 span(class="title is-5 is-marginless", style="font-weight:bold;") {
                                     : raw!("Settings")
+                                }
+
+                                |tmpl| {
+
+                                    match *deck_settings {
+                                        DeckSettings::Move(_, _) => {
+
+                                            tmpl << html!{
+                                                span(class="title is-5 is-marginless", style="font-weight:normal;") {
+                                                    : raw!(" / ");
+                                                }
+
+                                                span(class="title is-5 is-marginless", style="font-weight:bold;") {
+                                                    : raw!("Move Deck")
+                                                }
+                                            }
+                                        },
+                                        _ => {
+                                            // nothing
+                                        }
+                                    }
                                 }
                             }
                     },
@@ -2759,7 +2780,13 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
         }
     };
 
-    let is_current_deck = child_deck == deck_id;
+    let is_deck_descendent = match decks::is_descendent_of_deck(context.clone(), deck_id, child_deck) {
+        Ok(is_deck_descendent) => is_deck_descendent,
+        Err(_why) => {
+            // TODO: logging
+            panic!();
+        }
+    };
 
     tmpl << html!{
         div(class="columns is-marginless",
@@ -2787,7 +2814,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
 
                         |tmpl| {
 
-                            if !is_decks_parent && !is_current_deck {
+                            if !is_decks_parent && !is_deck_descendent {
                                 tmpl << html!{
                                     div(class="level-item", id = raw!(format!("{}-confirm", deck_id))) {
                                         // NOTE: confirm move button here; will be populated by react component
@@ -2835,7 +2862,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                     }
 
                     |tmpl| {
-                        if !is_decks_parent && !is_current_deck {
+                        if !is_decks_parent && !is_deck_descendent {
 
                             tmpl << html!{
                                 div(class="level-right") {
@@ -2858,7 +2885,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                 }
 
                 |tmpl| {
-                    if !is_decks_parent && !is_current_deck {
+                    if !is_decks_parent && !is_deck_descendent {
 
                         tmpl << html!{
                             div(id = raw!(format!("{}-error", deck_id))) {

@@ -1063,10 +1063,13 @@ fn __parse_route_api_deck_move(
                 }
             };
 
-            // attempting to move deck to itself is disallowed
-            if child_deck_id == request.deck_id {
-                let err = "Not allowed to move this deck to itself.".to_string();
+            // attempting to move deck to itself (or descendents) is disallowed
+            if handle_api_result_json!(decks::is_descendent_of_deck(context.clone(),
+                request.deck_id, child_deck_id)) {
+
+                let err = "Not allowed to move into this deck..".to_string();
                 return respond_json_with_error!(APIStatus::BadRequest; err; None);
+
             }
 
             // ensure deck exists

@@ -424,6 +424,46 @@ pub fn get_parent_id_of_deck(context: Rc<RefCell<Context>>, child: DeckID) -> Re
 }
 
 #[inline]
+pub fn is_descendent_of_deck(
+    context: Rc<RefCell<Context>>,
+    maybe_descendent: DeckID,
+    ancestor: DeckID) -> Result<bool, RawAPIError> {
+
+    assert!(context.borrow().is_read_locked());
+
+    let query = format!("
+        SELECT
+            COUNT(1)
+        FROM
+            DecksClosure
+        WHERE
+            descendent = {maybe_descendent}
+        AND
+            ancestor = {ancestor}
+        AND
+            depth >= 0
+        LIMIT 1;
+    ", maybe_descendent = maybe_descendent, ancestor = ancestor);
+
+    let context = context.borrow();
+    db_read_lock!(db_conn; context.database());
+    let db_conn: &Connection = db_conn;
+
+    let path_exists = db_conn.query_row(&query, &[], |row| -> bool {
+        let count: i64 = row.get(0);
+        return count >= 1;
+    });
+
+    match path_exists {
+        Ok(path_exists) => return Ok(path_exists),
+        Err(sqlite_error) => {
+            return Err(RawAPIError::SQLError(sqlite_error, query));
+        }
+    }
+
+}
+
+#[inline]
 pub fn get_path_of_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Vec<DeckID>, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
