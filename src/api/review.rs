@@ -19,9 +19,9 @@ use chrono::naive::datetime::NaiveDateTime;
 
 use context::{self, Context};
 use errors::RawAPIError;
-use types::{ItemCount, CardID, DeckID, Offset, Minutes, ReviewCount, UnixTimestamp};
+use types::{ItemCount, CardID, Offset, Minutes, ReviewCount, UnixTimestamp};
 use api::cards::{self, Card};
-use api::decks::{self, Deck};
+use api::decks::{Deck};
 use api::user;
 use route::{AppRoute, DeckRoute};
 use components::{generate_post_to, view_route_to_link};
@@ -95,7 +95,7 @@ impl SubSelectionProbabilities {
         let s = pcg.gen_iter::<u64>().take(2).collect::<Vec<u64>>();
 
         // init pcg generator
-        let mut pcg = PcgRng::from_seed([s[0], s[1]]);
+        let pcg = PcgRng::from_seed([s[0], s[1]]);
 
         let mut rw: RandomWheel<Probability, SubSelection, PcgRng> = RandomWheel::new(pcg);
 
@@ -946,7 +946,8 @@ fn gen_card_select(upper_bound: ItemCount) -> Offset {
     let card_idx = (pin * (upper_bound as f64)).floor() as Offset;
 
     // TODO: dev mode
-    assert!(0 <= card_idx);
+
+    // assert!(0 <= card_idx); // TODO: useless invariant due to type
     assert!(card_idx < upper_bound);
 
     return card_idx;

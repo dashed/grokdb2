@@ -12,7 +12,7 @@ use chrono::offset::local::Local;
 
 /* local imports */
 
-use context::{self, Context};
+use context::{Context};
 use errors::RawAPIError;
 
 /* ////////////////////////////////////////////////////////////////////////// */

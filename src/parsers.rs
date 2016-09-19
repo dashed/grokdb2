@@ -6,13 +6,11 @@ use std::ascii::AsciiExt;
 
 use chomp::{SimpleResult, Error, ParseResult};
 use chomp::primitives::InputBuffer;
-use chomp::{Input, U8Result, parse_only};
-use chomp::buffer::{Source, Stream, StreamError};
+use chomp::{Input, U8Result};
 
 use chomp::token;
-use chomp::parsers::{string, eof, any, satisfy};
-use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look_ahead, option};
-use chomp::ascii::{is_whitespace, decimal, digit};
+use chomp::parsers::{any};
+use chomp::combinators::{many_till, look_ahead, option};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 

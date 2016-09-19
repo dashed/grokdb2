@@ -26,10 +26,11 @@ pub fn get_timespan(pin: UnixTimestamp, timezone_key: &str) -> Option<FixedTimes
 
         // invariant: list_of_tz is non-empty
         // invariant: list_of_tz is ordered from least recent to most recent
-        for (index, &(ref time_start, ref timezone_item)) in list_of_tz.iter().enumerate() {
+        for (index, &(ref time_start, ref _timezone_item)) in list_of_tz.iter().enumerate() {
 
             if pin < *time_start {
 
+                // pick previous item, otherwise the first item
                 let chosen_idx = if index > 0 {
                     index - 1
                 } else {
@@ -83,7 +84,6 @@ fn relative_time(from: i64, to: i64) -> String {
 
     let elapsed_num: u64 = (to - from).abs() as u64;
     let range = Timerange::new(elapsed_num).print(3);
-    let elapsed_num = elapsed_num as i64;
 
     if to > from {
         // past

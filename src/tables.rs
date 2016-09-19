@@ -1,7 +1,3 @@
-/* rust lib imports */
-
-use std::sync::{Arc, Mutex, RwLock};
-
 /* 3rd-party imports */
 
 use rusqlite::Connection;

@@ -7,24 +7,15 @@ use std::cell::RefCell;
 
 use horrorshow::{TemplateBuffer, Template};
 
-use hyper::method::Method;
-use hyper::server::{Server, Handler, Request, Response};
-use hyper::header::{Headers, ContentType, TransferEncoding};
-use hyper::mime::{Mime, TopLevel, SubLevel};
-use hyper::uri::RequestUri;
-use hyper::status::StatusCode;
-use hyper::header::{Header, HeaderFormat};
-use chrono::naive::datetime::NaiveDateTime;
 use serde_json;
 
 /* local imports */
 
-use route::{AppRoute, RenderResponse, DeckRoute, CardRoute, DeckSettings, CardSettings};
-use context::{self, Context};
+use route::{AppRoute, DeckRoute, CardRoute, DeckSettings, CardSettings};
+use context::{Context};
 use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, SortOrderable, MoveDecksPageQuery};
 use api::{decks, cards, user};
 use api::review::{self, CachedReviewProcedure};
-use timestamp;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -107,7 +98,10 @@ fn card_route_string(card_route: CardRoute) -> String {
 }
 
 #[inline]
-pub fn view_route_to_link(context: Rc<RefCell<Context>>, app_route: AppRoute) -> String {
+pub fn view_route_to_link(
+    _context: Rc<RefCell<Context>>,
+    app_route: AppRoute) -> String {
+
     match app_route {
         AppRoute::Preferences => "/preferences".to_string(),
         AppRoute::Stashes => "/stashes".to_string(),
@@ -720,7 +714,9 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
 /* title generator */
 
-fn generate_title(context: Rc<RefCell<Context>>, app_route: &AppRoute) -> String {
+fn generate_title(
+    _context: Rc<RefCell<Context>>,
+    app_route: &AppRoute) -> String {
 
     // NOTE: do not prefix with grokdb
 
@@ -1030,7 +1026,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 script(type="text/javascript", src="/assets/deck_description.js") {}
                             }
                         },
-                        AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Main)) =>  {
+                        AppRoute::Deck(_deck_id, DeckRoute::Settings(DeckSettings::Main)) =>  {
 
                             tmpl << html! {
 
@@ -1044,7 +1040,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             }
 
                         },
-                        AppRoute::Deck(deck_id, DeckRoute::Settings(DeckSettings::Move(_, _))) =>  {
+                        AppRoute::Deck(_deck_id, DeckRoute::Settings(DeckSettings::Move(_, _))) =>  {
 
                             tmpl << html! {
 
@@ -1130,7 +1126,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             }
 
                         },
-                        AppRoute::Deck(_, DeckRoute::Review(ref card_for_review)) =>  {
+                        AppRoute::Deck(_, DeckRoute::Review(ref _card_for_review)) =>  {
 
                             tmpl << html! {
 
@@ -1156,7 +1152,9 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 }
 
 #[inline]
-fn Preferences(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>) {
+fn Preferences(
+    tmpl: &mut TemplateBuffer,
+    _context: Rc<RefCell<Context>>) {
 
     tmpl << html!{
 
@@ -1312,7 +1310,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
             |tmpl| {
 
                 match *deck_route {
-                    DeckRoute::Review(ref card_for_review) => {
+                    DeckRoute::Review(ref _card_for_review) => {
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
@@ -1735,7 +1733,7 @@ fn CardDetailNav(
     deck_route: &DeckRoute) {
 
     match *deck_route {
-        DeckRoute::CardProfile(card_id, ref card_route) => {
+        DeckRoute::CardProfile(card_id, ref _card_route) => {
             tmpl << html!{
 
                 nav(class="panel") {
@@ -1824,7 +1822,11 @@ fn CardDetailNav(
 }
 
 #[inline]
-fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
+fn NewDeck(
+    tmpl: &mut TemplateBuffer,
+    _context: Rc<RefCell<Context>>,
+    _deck_id: DeckID) {
+
     tmpl << html!{
 
         // TODO: remove
@@ -1843,7 +1845,11 @@ fn NewDeck(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: De
 }
 
 #[inline]
-fn NewCard(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID) {
+fn NewCard(
+    tmpl: &mut TemplateBuffer,
+    _context: Rc<RefCell<Context>>,
+    _deck_id: DeckID) {
+
     tmpl << html!{
 
         // TODO: remove
@@ -2333,9 +2339,9 @@ fn CardsPaginationComponent(tmpl: &mut TemplateBuffer,
 #[inline]
 fn DeckReview(
     tmpl: &mut TemplateBuffer,
-    context: Rc<RefCell<Context>>,
-    deck_id: DeckID,
-    card_for_review: &Option<(CardID, Option<CachedReviewProcedure>)>) {
+    _context: Rc<RefCell<Context>>,
+    _deck_id: DeckID,
+    _card_for_review: &Option<(CardID, Option<CachedReviewProcedure>)>) {
 
 
     // TODO: remove
@@ -2389,22 +2395,13 @@ fn DeckReview(
 
 #[inline]
 fn DeckStats(
-    tmpl: &mut TemplateBuffer,
-    context: Rc<RefCell<Context>>,
-    deck_id: DeckID) {
+    _tmpl: &mut TemplateBuffer,
+    _context: Rc<RefCell<Context>>,
+    _deck_id: DeckID) {
 
-    tmpl << html!{
+    // _tmpl << html!{
 
-        // TODO: remove
-        // div(class="columns") {
-        //     div(class="column") {
-        //         h1(class="title") {
-        //             : raw!("Deck Statistics")
-        //         }
-        //     }
-        // }
-
-    }
+    // }
 }
 
 #[inline]
@@ -2477,7 +2474,7 @@ fn DeckSettingsNav(
                                 Ok(None) => {
                                     panic!();
                                 },
-                                Err(why) => {
+                                Err(_why) => {
                                     // TODO: logging
                                     panic!()
                                 }
@@ -2522,14 +2519,6 @@ fn DeckSettingsMain(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID
     ) {
-
-    let deck = match decks::get_deck(context.clone(), deck_id) {
-        Ok(deck) => deck,
-        Err(_) => {
-            // TODO: internal error logging
-            panic!();
-        }
-    };
 
     tmpl << html!{
 
@@ -2936,19 +2925,6 @@ fn DeckMoveDecksList(
     deck_page_query: &MoveDecksPageQuery,
     search: &Search) {
 
-    // get root deck
-    let root_deck_id = match user::get_root_deck(context.clone()) {
-        Ok(Some(root_deck_id)) => root_deck_id,
-        Ok(None) => {
-            // TODO: internal error logging
-            panic!();
-        },
-        Err(_) => {
-            // TODO: internal error logging
-            panic!();
-        }
-    };
-
     match *deck_page_query {
         MoveDecksPageQuery::Root(root_deck_id) => {
             // case: card is inside root deck
@@ -3211,8 +3187,6 @@ fn DeckMovePathToDeck(
                 }
             };
 
-            let num_of_items = deck_path.len();
-
             tmpl << html!{
 
                 @ for (index, deck_id) in deck_path.iter().enumerate() {
@@ -3280,8 +3254,6 @@ fn VanillaRealDeckPath(
             panic!();
         }
     };
-
-    let num_of_items = deck_path.len();
 
     tmpl << html!{
 
@@ -3745,9 +3717,9 @@ fn CardDetail(
 #[inline]
 fn CardDetailContents(
     tmpl: &mut TemplateBuffer,
-    context: Rc<RefCell<Context>>,
-    deck_id: DeckID,
-    card_id: CardID) {
+    _context: Rc<RefCell<Context>>,
+    _deck_id: DeckID,
+    _card_id: CardID) {
 
     tmpl << html!{
         div(id="card_profile_container") {
@@ -3758,9 +3730,9 @@ fn CardDetailContents(
 #[inline]
 fn CardDetailReview(
     tmpl: &mut TemplateBuffer,
-    context: Rc<RefCell<Context>>,
-    deck_id: DeckID,
-    card_id: CardID) {
+    _context: Rc<RefCell<Context>>,
+    _deck_id: DeckID,
+    _card_id: CardID) {
 
     tmpl << html!{
 
@@ -3782,9 +3754,9 @@ fn CardDetailReview(
 #[inline]
 fn CardDetailStats(
     tmpl: &mut TemplateBuffer,
-    context: Rc<RefCell<Context>>,
-    deck_id: DeckID,
-    card_id: CardID) {
+    _context: Rc<RefCell<Context>>,
+    _deck_id: DeckID,
+    _card_id: CardID) {
 
     tmpl << html!{
 
@@ -3886,9 +3858,9 @@ fn CardDetailSettings(
 #[inline]
 fn CardSettingsMain(
     tmpl: &mut TemplateBuffer,
-    context: Rc<RefCell<Context>>,
-    deck_id: DeckID,
-    card_id: CardID) {
+    _context: Rc<RefCell<Context>>,
+    _deck_id: DeckID,
+    _card_id: CardID) {
 
     tmpl << html!{
 
@@ -4013,8 +3985,6 @@ fn CardMovePathToDeck(
                     panic!();
                 }
             };
-
-            let num_of_items = deck_path.len();
 
             tmpl << html!{
 
@@ -4311,19 +4281,6 @@ fn CardMoveDecksList(
     card_id: CardID,
     deck_page_query: &MoveDecksPageQuery,
     search: &Search) {
-
-    // get root deck
-    let root_deck_id = match user::get_root_deck(context.clone()) {
-        Ok(Some(root_deck_id)) => root_deck_id,
-        Ok(None) => {
-            // TODO: internal error logging
-            panic!();
-        },
-        Err(_) => {
-            // TODO: internal error logging
-            panic!();
-        }
-    };
 
     match *deck_page_query {
         MoveDecksPageQuery::Root(root_deck_id) => {

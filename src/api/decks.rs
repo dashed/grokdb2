@@ -8,7 +8,6 @@ use std::rc::Rc;
 use rusqlite::Connection;
 use rusqlite::types::ToSql;
 use rusqlite::Error as SqliteError;
-use rand::{thread_rng, Rng};
 use serde_json;
 
 /* local imports */
@@ -16,7 +15,6 @@ use serde_json;
 use context::Context;
 use types::{UnixTimestamp, DeckID, CardID, DecksPageQuery, Search, ItemCount, Offset};
 use errors::RawAPIError;
-use constants;
 use api::review::{self, Reviewable, ActiveSelection, CachedReviewProcedure};
 use api::cards;
 
@@ -640,7 +638,7 @@ pub fn get_deck_children(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
     deck_page_query: &DecksPageQuery,
-    search: &Search) -> Result<Vec<DeckID>, RawAPIError> {
+    _search: &Search) -> Result<Vec<DeckID>, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
 

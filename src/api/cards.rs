@@ -16,7 +16,6 @@ use chrono::naive::datetime::NaiveDateTime;
 use context::Context;
 use types::{UnixTimestamp, CardID, DeckID, CardsPageQuery, Search, ItemCount, Offset};
 use errors::RawAPIError;
-use constants;
 use api::review::{self, ActiveSelection, CachedReviewProcedure, CardScore};
 use api::user;
 use timestamp;
@@ -457,8 +456,6 @@ pub fn total_num_of_cards_in_deck(
 
             let count = count as ItemCount;
 
-            let mut context = context.borrow_mut();
-
             return Ok(count)
         },
         Err(sqlite_error) => {
@@ -509,7 +506,7 @@ pub fn cards_in_deck(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
     cards_page_query: &CardsPageQuery,
-    search: &Search) -> Result<Vec<Card>, RawAPIError> {
+    _search: &Search) -> Result<Vec<Card>, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
 
@@ -635,41 +632,42 @@ pub fn cards_in_deck(
     }
 }
 
-#[inline]
-pub fn deck_have_cards(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<bool, RawAPIError> {
+// TODO: not used yet
+// #[inline]
+// pub fn deck_have_cards(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<bool, RawAPIError> {
 
-    assert!(context.borrow().is_read_locked());
+//     assert!(context.borrow().is_read_locked());
 
-    let query = format!("
-        SELECT
-            COUNT(1)
-        FROM DecksClosure AS dc
+//     let query = format!("
+//         SELECT
+//             COUNT(1)
+//         FROM DecksClosure AS dc
 
-        INNER JOIN Cards AS c
-        ON c.deck_id = dc.descendent
+//         INNER JOIN Cards AS c
+//         ON c.deck_id = dc.descendent
 
-        WHERE
-        dc.ancestor = {deck_id}
-        LIMIT 1;
-    ",
-    deck_id = deck_id);
+//         WHERE
+//         dc.ancestor = {deck_id}
+//         LIMIT 1;
+//     ",
+//     deck_id = deck_id);
 
-    let context = context.borrow();
-    db_read_lock!(db_conn; context.database());
-    let db_conn: &Connection = db_conn;
+//     let context = context.borrow();
+//     db_read_lock!(db_conn; context.database());
+//     let db_conn: &Connection = db_conn;
 
-    let have_cards = db_conn.query_row(&query, &[], |row| -> bool {
-        let count: i64 = row.get(0);
-        return count >= 1;
-    });
+//     let have_cards = db_conn.query_row(&query, &[], |row| -> bool {
+//         let count: i64 = row.get(0);
+//         return count >= 1;
+//     });
 
-    match have_cards {
-        Ok(have_cards) => return Ok(have_cards),
-        Err(sqlite_error) => {
-            return Err(RawAPIError::SQLError(sqlite_error, query));
-        }
-    }
-}
+//     match have_cards {
+//         Ok(have_cards) => return Ok(have_cards),
+//         Err(sqlite_error) => {
+//             return Err(RawAPIError::SQLError(sqlite_error, query));
+//         }
+//     }
+// }
 
 // TODO: needs test
 #[inline]
@@ -680,7 +678,7 @@ pub fn deck_have_cards_for_review(
 
     assert!(context.borrow().is_read_locked());
 
-    let mut is_active = true;
+    let is_active;
     let mut params: Vec<(&str, &ToSql)> = vec![];
 
     let active_query = match *active_selection {
@@ -750,7 +748,7 @@ pub fn deck_num_of_cards_for_review(
 
     assert!(context.borrow().is_read_locked());
 
-    let mut is_active = true;
+    let is_active;
     let mut params: Vec<(&str, &ToSql)> = vec![];
 
     let active_query = match *active_selection {
@@ -822,7 +820,7 @@ pub fn deck_have_new_cards_for_review(
 
     assert!(context.borrow().is_read_locked());
 
-    let mut is_active = true;
+    let is_active;
     let mut params: Vec<(&str, &ToSql)> = vec![];
 
     let active_query = match *active_selection {
@@ -897,7 +895,7 @@ pub fn deck_num_of_new_cards_for_review(
 
     assert!(context.borrow().is_read_locked());
 
-    let mut is_active = true;
+    let is_active;
     let mut params: Vec<(&str, &ToSql)> = vec![];
 
     let active_query = match *active_selection {
@@ -972,7 +970,7 @@ pub fn deck_get_new_card_for_review(
 
     assert!(context.borrow().is_read_locked());
 
-    let mut is_active = true;
+    let is_active;
     let mut params: Vec<(&str, &ToSql)> = vec![];
 
     let active_query = match *active_selection {
@@ -1064,7 +1062,7 @@ pub fn deck_have_cards_ready_for_review(
 
     assert!(context.borrow().is_read_locked());
 
-    let mut is_active = true;
+    let is_active;
     let mut params: Vec<(&str, &ToSql)> = vec![];
 
     let active_query = match *active_selection {
@@ -1148,7 +1146,7 @@ pub fn deck_num_of_cards_ready_for_review(
 
     assert!(context.borrow().is_read_locked());
 
-    let mut is_active = true;
+    let is_active;
     let mut params: Vec<(&str, &ToSql)> = vec![];
 
     let active_query = match *active_selection {
@@ -1237,7 +1235,7 @@ pub fn deck_get_card_ready_for_review(
         Some(review_count) => review_count
     };
 
-    let mut is_active = true;
+    let is_active;
     let mut params: Vec<(&str, &ToSql)> = vec![];
 
     let active_query = match *active_selection {
@@ -1333,14 +1331,15 @@ pub fn deck_get_least_recently_reviewed_card(
 ) -> Result<CardID, RawAPIError> {
 
     // TODO: dev mode
-    assert!(0 <= index);
+    // TODO: useless invariant due to type limits
+    // assert!(0 <= index);
     assert!(index < top_n);
 
     assert!(context.borrow().is_read_locked());
 
     // parse active
 
-    let mut is_active = true;
+    let is_active;
     let mut params: Vec<(&str, &ToSql)> = vec![];
 
     let active_query = match *active_selection {
@@ -1456,7 +1455,7 @@ pub fn ___deck_get_least_recently_reviewed_card(
 
     assert!(context.borrow().is_read_locked());
 
-    let mut is_active = true;
+    let is_active;
     let mut params: Vec<(&str, &ToSql)> = vec![];
 
     let active_query = match *active_selection {

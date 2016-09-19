@@ -74,10 +74,9 @@ mod timezones;
 
 use context::{Context};
 use log_entry::LogEntry;
-use api::{decks, cards, user};
+use api::{user};
 use route::parse_request_uri;
 use route::{RenderResponse, render_response};
-use types::DeckID;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -178,6 +177,7 @@ fn main() {
 
     // TODO: debug
     // {
+            // use api::{decks, cards, user};
 
     //     let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
 
@@ -206,6 +206,7 @@ fn main() {
     // };
 
     // {
+        // use api::{decks, cards, user};
 
     //     let context = Rc::new(RefCell::new(Context::new(global_lock.clone())));
 
@@ -325,8 +326,6 @@ fn main() {
                 return;
             }
         }
-
-        return;
 
     });
 

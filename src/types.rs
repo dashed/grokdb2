@@ -353,7 +353,7 @@ impl MoveDecksPageQuery {
         }
     }
 
-    pub fn default_with_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
+    pub fn default_with_deck(_context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
         return MoveDecksPageQuery::SourceOfDecks(DecksPageQuery::default_with_deck(deck_id));
     }
 
@@ -1380,8 +1380,6 @@ impl Pagination for CardsPageQuery {
     }
 
     fn get_right_side(&self, context: Rc<RefCell<Context>>) -> Vec<Self> {
-
-        let deck_id = self.0;
 
         let current_page = self.current_page() as i64;
         let num_of_pages = self.num_of_pages(context) as i64;

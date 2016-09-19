@@ -1,13 +1,13 @@
 /* rust lib imports */
 
-use std::io::{Write, Read};
+use std::io::{Write};
 use std::thread;
 
 /* 3rd-party imports */
 
 use time;
 use chrono;
-use hyper::server::{Server, Handler, Request, Response};
+use hyper::server::{Request};
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -67,7 +67,7 @@ impl<W> Drop for LogEntry<W>
 
         let utc: chrono::DateTime<chrono::UTC> = chrono::UTC::now();
         // TODO: needs ms and ns granularity
-        write!(self.output, " - {}", utc.to_rfc2822());
+        write!(self.output, " - {}", utc.to_rfc2822()).unwrap();
 
         writeln!(self.output, "").unwrap();
     }

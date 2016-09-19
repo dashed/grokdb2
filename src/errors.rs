@@ -1,7 +1,5 @@
 /* 3rd-party imports */
 
-use hyper;
-use serde::{Serialize, Serializer};
 use rusqlite::Error as SqliteError;
 
 /// /////////////////////////////////////////////////////////////////////////////

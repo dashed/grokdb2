@@ -66,7 +66,6 @@ macro_rules! respond_json {
     (None) => {{
 
         use route;
-        use serde_json;
 
         let response = JSONResponse {
             error: None,
@@ -108,7 +107,6 @@ macro_rules! respond_json_with_error {
     ($api_status:expr; $err:expr; None) => {{
 
         use route;
-        use serde_json;
 
         {
             use types::APIStatus;

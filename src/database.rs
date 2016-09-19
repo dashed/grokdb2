@@ -1,11 +1,11 @@
 /* rust lib imports */
 
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, Mutex};
 
 /* 3rd-party imports */
 
 use libc::{c_int, c_double};
-use rusqlite::{Connection, Error, Result as SqliteResult};
+use rusqlite::{Connection, Result as SqliteResult};
 use rusqlite::functions::{Context};
 
 /* local imports */
@@ -119,8 +119,8 @@ macro_rules! pagination(
             inner_where_sql = inner_where_sql,
             where_sql = where_sql,
             order_by_sql = order_by_sql,
-            offset = $offset,
-            per_page = $per_page
+            offset = offset,
+            per_page = per_page
         )
 
     }}

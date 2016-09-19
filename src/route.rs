@@ -13,38 +13,32 @@ use std::cell::RefCell;
 
 use url::percent_encoding::percent_decode;
 
-use horrorshow::{RenderOnce, TemplateBuffer, Template, FnRenderer};
+use horrorshow::{Template, FnRenderer};
 
 use hyper;
 use hyper::method::Method;
-use hyper::server::{Server, Handler, Request, Response};
-use hyper::header::{Headers, ContentType, TransferEncoding};
+use hyper::server::{Request, Response};
+use hyper::header::{ContentType};
 use hyper::mime::{Mime, TopLevel, SubLevel};
-use hyper::uri::RequestUri;
 use hyper::status::StatusCode;
-use hyper::header::{Header, HeaderFormat};
 
-use chomp::{SimpleResult, Error, ParseResult};
-use chomp::primitives::InputBuffer;
-use chomp::{Input, U8Result, parse_only};
-use chomp::buffer::{Source, Stream, StreamError};
+use chomp::{Input, U8Result};
 
 use chomp::token;
-use chomp::parsers::{string, eof, any, satisfy};
-use chomp::combinators::{or, many_till, many, many1, skip_many, skip_many1, look_ahead, option};
-use chomp::ascii::{is_whitespace, decimal, digit};
+use chomp::parsers::{eof};
+use chomp::combinators::{or, skip_many, option};
+use chomp::ascii::{decimal};
 
 use mime_types;
 
 use serde_json;
-use serde;
 
 /* local imports */
 
 use parsers::{parse_then_value, string_till, string_ignore_case, parse_byte_limit};
 use types::{APIStatus, DeckID, CardID, DecksPageQuery, CardsPageQuery, Search, JSONResponse, MoveDecksPageQuery};
 use context::{self, Context};
-use components::{AppComponent, view_route_to_link, generate_move_to};
+use components::{AppComponent, view_route_to_link};
 use api::decks::{self, CreateDeck, DeckCreateResponse, UpdateDeckDescription, UpdateDeckName};
 use api::cards;
 use api::user;
@@ -289,7 +283,7 @@ fn fetch_assets(request: Rc<RefCell<Request>>, path: String) -> RenderResponse {
             RenderResponse::Asset(content_type, content)
 
         },
-        Err(e) => {
+        Err(_err) => {
             return RenderResponse::NotFound;
         },
     }
@@ -313,8 +307,10 @@ fn parse_assets<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Re
 }
 
 #[inline]
-fn parse_route_preferences<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, request: Rc<RefCell<Request>>)
--> U8Result<'a, RenderResponse> {
+fn parse_route_preferences<'a>(
+    input: Input<'a, u8>,
+    _context: Rc<RefCell<Context>>,
+    _request: Rc<RefCell<Request>>) -> U8Result<'a, RenderResponse> {
 
     parse!{input;
 
@@ -323,7 +319,7 @@ fn parse_route_preferences<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context
         option(|i| parse_byte_limit(i, b'/', 5), ());
 
         // TODO: refactor if query string is not used
-        let query_string = option(|i| parse!{i;
+        let _query_string = option(|i| parse!{i;
             let query_string = parse_query_string();
 
             ret Some(query_string)
@@ -420,8 +416,10 @@ fn parse_route_api<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>, requ
 }
 
 #[inline]
-fn invalid_route_api<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>)
--> U8Result<'a, RenderResponse> {
+fn invalid_route_api<'a>(
+    input: Input<'a, u8>,
+    _context: Rc<RefCell<Context>>) -> U8Result<'a, RenderResponse> {
+
     parse!{input;
 
         ret {
@@ -611,7 +609,7 @@ fn __parse_route_api_card_move(
     let mut buffer = String::new();
 
     match request.read_to_string(&mut buffer) {
-        Err(err) => {
+        Err(_err) => {
             // internal reason: invalid utf8 input
 
             // TODO: internal error logging
@@ -623,7 +621,7 @@ fn __parse_route_api_card_move(
 
             let request: cards::MoveCardRequest = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
-                Err(err) => {
+                Err(_err) => {
 
                     // TODO: internal error logging
                     let err = "Unable to move this card. Please try again.".to_string();
@@ -638,7 +636,7 @@ fn __parse_route_api_card_move(
                     let err = "This deck does not exist.".to_string();
                     return respond_json_with_error!(APIStatus::BadRequest; err; None);
                 },
-                Err(err) => {
+                Err(_err) => {
                     // TODO: internal error logging
                     return respond_json_with_error!(APIStatus::ServerError;
                         INTERNAL_SERVER_ERROR_STRING.clone(); None);
@@ -658,7 +656,7 @@ fn __parse_route_api_card_move(
 
                     return respond_json!(Some(response));
                 },
-                Err(err) => {
+                Err(_err) => {
                     // TODO: internal error logging
                     return respond_json_with_error!(APIStatus::ServerError;
                         INTERNAL_SERVER_ERROR_STRING.clone(); None);
@@ -724,7 +722,7 @@ fn __parse_route_api_card_review(
 
             let request: RawCardReviewRequest = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
-                Err(err) => {
+                Err(_err) => {
 
                     // TODO: internal error logging
                     let err = "Unable to review this card. Please try again.".to_string();
@@ -750,7 +748,7 @@ fn __parse_route_api_card_review(
             return respond_json!(Some(response));
 
         },
-        Err(err) => {
+        Err(_err) => {
             // internal reason: invalid utf8 input
 
             // TODO: internal error logging
@@ -800,7 +798,7 @@ fn __parse_route_api_card_update(
 
             let request: cards::UpdateCard = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
-                Err(err) => {
+                Err(_err) => {
                     // TODO: error logging
                     // println!("{:?}", err);
                     return RenderResponse::BadRequest;
@@ -848,7 +846,7 @@ fn __parse_route_api_card_update(
             return respond_json!(Some(response));
 
         },
-        Err(err) => {
+        Err(_err) => {
             // invalid utf8 input
             // TODO: error logging
             return RenderResponse::BadRequest;
@@ -1043,7 +1041,7 @@ fn __parse_route_api_deck_move(
     let mut buffer = String::new();
 
     match request.read_to_string(&mut buffer) {
-        Err(err) => {
+        Err(_err) => {
             // internal reason: invalid utf8 input
 
             // TODO: internal error logging
@@ -1055,7 +1053,7 @@ fn __parse_route_api_deck_move(
 
             let request: decks::MoveDeckRequest = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
-                Err(err) => {
+                Err(_err) => {
 
                     // TODO: internal error logging
                     let err = "Unable to move this deck. Please try again.".to_string();
@@ -1079,7 +1077,7 @@ fn __parse_route_api_deck_move(
                     let err = "This deck does not exist.".to_string();
                     return respond_json_with_error!(APIStatus::BadRequest; err; None);
                 },
-                Err(err) => {
+                Err(_err) => {
                     // TODO: internal error logging
                     return respond_json_with_error!(APIStatus::ServerError;
                         INTERNAL_SERVER_ERROR_STRING.clone(); None);
@@ -1087,7 +1085,7 @@ fn __parse_route_api_deck_move(
             }
 
             match decks::connect_decks(context.clone(), child_deck_id, request.deck_id) {
-                Err(err) => {
+                Err(_err) => {
                     // TODO: internal error logging
                     return respond_json_with_error!(APIStatus::ServerError;
                         INTERNAL_SERVER_ERROR_STRING.clone(); None);
@@ -1165,7 +1163,7 @@ fn __parse_route_api_deck_review(
 #[inline]
 fn __parse_route_api_deck_review_get(
     context: Rc<RefCell<Context>>,
-    request: Rc<RefCell<Request>>,
+    _request: Rc<RefCell<Request>>,
     parent_deck_id: DeckID) -> RenderResponse {
 
     // invariant: deck exists
@@ -1212,7 +1210,7 @@ fn __parse_route_api_deck_review_post(
 
             let request: RawDeckReviewRequest = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
-                Err(err) => {
+                Err(_err) => {
 
                     // TODO: internal error logging
                     let err = "Unable to review the card in this deck. Please try again.".to_string();
@@ -1283,7 +1281,7 @@ fn __parse_route_api_deck_review_post(
                 handle_api_result_json!(request.commit(context.clone()));
 
                 // TODO: code repeat
-                let review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));
+                let _review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));
 
                 // TODO: internal error logging
                 let err = "This card does not appear to be chosen for review for this deck. \
@@ -1301,7 +1299,7 @@ fn __parse_route_api_deck_review_post(
             return respond_json!(Some(review_response));
 
         },
-        Err(err) => {
+        Err(_err) => {
             // internal reason: invalid utf8 input
 
             // TODO: internal error logging
@@ -1361,7 +1359,7 @@ fn __parse_route_api_deck_new_deck(
 
             let request: CreateDeck = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
-                Err(err) => {
+                Err(_err) => {
 
                     // TODO: internal error logging
                     let err = "Unable to interpret your request to create a deck. \
@@ -1427,7 +1425,7 @@ fn __parse_route_api_deck_new_deck(
             }
 
         },
-        Err(err) => {
+        Err(_err) => {
             // internal reason: invalid utf8 input
 
             // TODO: internal error logging
@@ -1487,7 +1485,7 @@ fn __parse_route_api_deck_new_card(
 
             let request: cards::CreateCard = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
-                Err(err) => {
+                Err(_err) => {
                     // TODO: internal error logging
                     return respond_json_with_error!(APIStatus::BadRequest;
                         "Unable to create a new card. Please try again.".to_string(); None);
@@ -1550,7 +1548,7 @@ fn __parse_route_api_deck_new_card(
             }
 
         },
-        Err(err) => {
+        Err(_err) => {
             // invalid utf8 input
 
             // TODO: internal error logging
@@ -1597,7 +1595,7 @@ fn __parse_route_api_deck_description(
     let mut buffer = String::new();
 
     match request.read_to_string(&mut buffer) {
-        Err(err) => {
+        Err(_err) => {
             // invalid utf8 input
 
             // TODO: internal error logging
@@ -1700,7 +1698,7 @@ fn __parse_route_api_deck_settings_name(
 
             let request: UpdateDeckName = match serde_json::from_str(&buffer) {
                 Ok(request) => request,
-                Err(err) => {
+                Err(_err) => {
                     // TODO: internal error logging
                     let err = "Unable to rename deck. Please try again.".to_string();
                     return respond_json_with_error!(APIStatus::BadRequest; err; None);
@@ -2070,7 +2068,7 @@ fn __parse_route_card<'a>(
             option(|i| parse_byte_limit(i, b'/', 5), ());
 
             // TODO: simplify if not used
-            let query_string = option(|i| parse!{i;
+            let _query_string = option(|i| parse!{i;
                 let query_string = parse_query_string();
 
                 ret Some(query_string)
@@ -2092,8 +2090,8 @@ fn __parse_route_card<'a>(
 #[inline]
 fn parse_route_card_contents<'a>(
     input: Input<'a, u8>,
-    context: Rc<RefCell<Context>>,
-    request: Rc<RefCell<Request>>,
+    _context: Rc<RefCell<Context>>,
+    _request: Rc<RefCell<Request>>,
     deck_id: DeckID,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
     parse!{input;
@@ -2103,7 +2101,7 @@ fn parse_route_card_contents<'a>(
         option(|i| parse_byte_limit(i, b'/', 5), ());
 
         // TODO: simplify is query string is not consumed
-        let query_string = option(|i| parse!{i;
+        let _query_string = option(|i| parse!{i;
             let query_string = parse_query_string();
 
             ret Some(query_string)
@@ -2120,8 +2118,8 @@ fn parse_route_card_contents<'a>(
 #[inline]
 fn parse_route_card_review<'a>(
     input: Input<'a, u8>,
-    context: Rc<RefCell<Context>>,
-    request: Rc<RefCell<Request>>,
+    _context: Rc<RefCell<Context>>,
+    _request: Rc<RefCell<Request>>,
     deck_id: DeckID,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
     parse!{input;
@@ -2131,7 +2129,7 @@ fn parse_route_card_review<'a>(
         option(|i| parse_byte_limit(i, b'/', 5), ());
 
         // TODO: simplify is query string is not consumed
-        let query_string = option(|i| parse!{i;
+        let _query_string = option(|i| parse!{i;
             let query_string = parse_query_string();
 
             ret Some(query_string)
@@ -2147,8 +2145,8 @@ fn parse_route_card_review<'a>(
 #[inline]
 fn parse_route_card_stats<'a>(
     input: Input<'a, u8>,
-    context: Rc<RefCell<Context>>,
-    request: Rc<RefCell<Request>>,
+    _context: Rc<RefCell<Context>>,
+    _request: Rc<RefCell<Request>>,
     deck_id: DeckID,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
     parse!{input;
@@ -2158,7 +2156,7 @@ fn parse_route_card_stats<'a>(
         option(|i| parse_byte_limit(i, b'/', 5), ());
 
         // TODO: simplify is query string is not consumed
-        let query_string = option(|i| parse!{i;
+        let _query_string = option(|i| parse!{i;
             let query_string = parse_query_string();
 
             ret Some(query_string)
