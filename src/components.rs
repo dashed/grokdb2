@@ -718,6 +718,48 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
     }
 }
 
+/* title generator */
+
+fn generate_title(context: Rc<RefCell<Context>>, app_route: &AppRoute) -> String {
+
+    // NOTE: do not prefix with grokdb
+
+    match *app_route {
+        AppRoute::Preferences => format!("Preferences"),
+        AppRoute::Stashes => format!("Stashes"),
+        AppRoute::Deck(_deck_id, ref deck_route) => {
+            match *deck_route {
+                DeckRoute::NewCard => format!("New Card"),
+                DeckRoute::NewDeck => format!("New Deck"),
+                DeckRoute::Description => format!("Deck Description"),
+                DeckRoute::Decks(ref _decks_page_query, ref _search) => format!("Decks"),
+                DeckRoute::Cards(ref _cards_page_query, ref _search) => format!("Cards"),
+                DeckRoute::Settings(ref deck_settings) => {
+                    match *deck_settings {
+                        DeckSettings::Main => format!("Deck Settings"),
+                        DeckSettings::Move(ref _page_query, ref _search) => format!("Move Deck"),
+                    }
+                },
+                DeckRoute::Stats => format!("Deck Statistics"),
+                DeckRoute::Review(_) => format!("Deck Review"),
+                DeckRoute::CardProfile(_card_id, ref card_route) => {
+                    match *card_route {
+                        CardRoute::Contents => format!("Card Contents"),
+                        CardRoute::Review => format!("Card Review"),
+                        CardRoute::Stats => format!("Card Statistics"),
+                        CardRoute::Settings(ref card_settings) => {
+                            match *card_settings {
+                                CardSettings::Main => format!("Card Settings"),
+                                CardSettings::Move(ref _page_query, ref _search) => format!("Move Card"),
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 /* components */
 
 #[inline]
@@ -729,7 +771,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
             head {
                 title {
                     // TODO: fix
-                    : "title"
+                    : generate_title(context.clone(), app_route)
                 }
 
                 // TODO: necessary?
