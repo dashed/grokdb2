@@ -3243,9 +3243,9 @@ fn CardDetailStats(
             div(class="column") {
                 progress(
                     class ?= classnames!("progress",
-                        "is-danger" => card_score.perf_score() < 0.5,
-                        "is-warning" =>  0.5 <= card_score.perf_score() && card_score.perf_score() < 0.75,
-                        "is-success" => 0.75 <= card_score.perf_score()
+                        "is-danger" => card_score.get_perf_score() < 0.5,
+                        "is-warning" =>  0.5 <= card_score.get_perf_score() && card_score.get_perf_score() < 0.75,
+                        "is-success" => 0.75 <= card_score.get_perf_score()
                     ),
                     value = card_score.get_perf_score_string(),
                     max = card_score.get_max_perf_score_string()
@@ -3269,7 +3269,7 @@ fn CardDetailStats(
                         }
 
                         p(class="title") {
-                            : raw!(card_score.get_raw_score_percent_string())
+                            : raw!(card_score.get_perf_score_percent_string())
                         }
                     }
 

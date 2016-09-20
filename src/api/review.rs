@@ -547,11 +547,11 @@ impl CardScore {
     }
 
     pub fn get_perf_score_string(&self) -> String {
-        format!("{:.*}", 4, self.perf_score())
+        format!("{:.*}", 4, self.get_perf_score())
     }
 
     pub fn get_perf_score_percent_string(&self) -> String {
-        format!("{:.*}", 2, self.perf_score() * 100.0)
+        format!("{:.*}", 2, self.get_perf_score() * 100.0)
     }
 
     pub fn get_max_perf_score_string(&self) -> String {
