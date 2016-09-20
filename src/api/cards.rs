@@ -6,6 +6,7 @@ use std::rc::Rc;
 /* 3rd-party imports */
 
 use rusqlite::Connection;
+use rusqlite::Row;
 use rusqlite::types::ToSql;
 use rusqlite::Error as SqliteError;
 use serde_json;
@@ -389,36 +390,82 @@ pub fn update_card(
     return get_card(context, card_id);
 }
 
+// TODO: remove if not used
+// // NOTE: test if deck has at least one card
+// #[inline]
+// pub fn deck_have_cards(
+//     context: Rc<RefCell<Context>>,
+//     deck_id: DeckID) -> Result<bool, RawAPIError> {
+
+//     assert!(context.borrow().is_read_locked());
+
+//     let query = format!("
+//         SELECT
+//             COUNT(1)
+//         FROM DecksClosure AS dc
+
+//         INNER JOIN Cards AS c
+//         ON c.deck_id = dc.descendent
+
+//         WHERE
+
+//             dc.ancestor = {deck_id}
+
+//         LIMIT 1;
+//     ",
+//     deck_id = deck_id);
+
+//     let context = context.borrow();
+//     db_read_lock!(db_conn; context.database());
+//     let db_conn: &Connection = db_conn;
+
+//     let have_cards = db_conn.query_row(&query, &[], |row| -> bool {
+//         let count: i64 = row.get(0);
+//         return count >= 1;
+//     });
+
+//     match have_cards {
+//         Ok(have_cards) => return Ok(have_cards),
+//         Err(sqlite_error) => {
+//             return Err(RawAPIError::SQLError(sqlite_error, query));
+//         }
+//     }
+
+// }
+
 #[inline]
 pub fn total_num_of_cards_in_deck(
     context: Rc<RefCell<Context>>,
-    deck_id: DeckID
-    ) -> Result<ItemCount, RawAPIError> {
+    deck_id: DeckID,
+    maybe_search_query: &Search) -> Result<ItemCount, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
 
-    // TODO: complete
-    let search_inner_join = "";
-    // let search_inner_join = match maybe_search_query {
-    //     None => "",
-    //     Some(_) => {
-    //         "
-    //         INNER JOIN CardsFTS
-    //         ON CardsFTS.docid = c.card_id
-    //         "
-    //     }
-    // };
+    let mut params: Vec<(&str, &ToSql)> = vec![];
 
-    // TODO: complete
-    let search_where_cond = "";
-    // let search_where_cond = match maybe_search_query {
-    //     None => "",
-    //     Some(_) => {
-    //         "AND CardsFTS MATCH :search_query"
-    //     }
-    // };
+    let search_inner_join = match *maybe_search_query {
+        Search::NoQuery => "",
+        Search::Query(ref search_query) => {
 
-    let query = format!("
+            params.push((":search_query", search_query));
+
+            indoc!("
+            INNER JOIN CardsFTS
+            ON CardsFTS.docid = c.card_id
+            ")
+        }
+    };
+
+    let search_where_cond = match *maybe_search_query {
+        Search::NoQuery => "",
+        Search::Query(ref _query) => {
+            "CardsFTS MATCH :search_query AND"
+        }
+    };
+
+
+
+    let query = format!(indoc!("
         SELECT
             COUNT(1)
         FROM DecksClosure AS dc
@@ -429,11 +476,11 @@ pub fn total_num_of_cards_in_deck(
         {search_inner_join}
 
         WHERE
-        dc.ancestor = {deck_id}
 
         {search_where_cond}
-        ;
-    ",
+
+        dc.ancestor = {deck_id};
+    "),
     deck_id = deck_id,
     search_inner_join = search_inner_join,
     search_where_cond = search_where_cond);
@@ -443,9 +490,12 @@ pub fn total_num_of_cards_in_deck(
         db_read_lock!(db_conn; context.database());
         let db_conn: &Connection = db_conn;
 
-        let result = db_conn.query_row(&query, &[], |row| -> i64 {
+        let params: &[(&str, &ToSql)] = params.as_slice();
+
+        let result = db_conn.query_row_named(&query, params, |row| -> i64 {
             return row.get(0);
         });
+
         result
     };
 
@@ -505,14 +555,28 @@ pub fn is_card_in_deck(
 pub fn cards_in_deck(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
-    cards_page_query: &CardsPageQuery,
-    _search: &Search) -> Result<Vec<Card>, RawAPIError> {
+    cards_page_query: &CardsPageQuery) -> Result<Vec<Card>, RawAPIError> {
 
     assert!(context.borrow().is_read_locked());
 
-    // TODO: complete
-    let search_inner_join = "";
-    let search_where_cond = "";
+    let ref maybe_search_query = cards_page_query.3;
+
+    let search_inner_join = match *maybe_search_query {
+        Search::NoQuery => "",
+        Search::Query(ref _query) => {
+            "
+            INNER JOIN CardsFTS
+            ON CardsFTS.docid = c.card_id
+            "
+        }
+    };
+
+    let search_where_cond = match *maybe_search_query {
+        Search::NoQuery => "",
+        Search::Query(ref _query) => {
+            "AND CardsFTS MATCH :search_query"
+        }
+    };
 
     let select_sql = format!(indoc!("
         SELECT
@@ -580,7 +644,7 @@ pub fn cards_in_deck(
         Ok(statement) => statement
     };
 
-    let maybe_iter = statement.query_map(&[], |row| -> Card {
+    let mapper = |row: &Row| -> Card {
 
         let created_at: UnixTimestamp = row.get(5);
         let updated_at: UnixTimestamp = row.get(6);
@@ -596,7 +660,20 @@ pub fn cards_in_deck(
             deck_id: row.get(7),
             is_active: row.get(8)
         };
-    });
+    };
+
+    let maybe_iter = match *maybe_search_query {
+        Search::NoQuery => {
+
+            statement.query_map_named(&[], mapper)
+
+        },
+        Search::Query(ref query) => {
+
+            statement.query_map_named(&[(":search_query", query)], mapper)
+
+        }
+    };
 
     match maybe_iter {
         Err(sqlite_error) => {

@@ -115,8 +115,10 @@ pub enum DeckRoute {
 
     Description,
 
-    Decks(DecksPageQuery, Search), // list
-    Cards(CardsPageQuery, Search), // list
+    Decks(DecksPageQuery, Search), // This is a list of decks
+    Cards(CardsPageQuery), // This is a list of cards
+    // TODO: implement
+    // DirectCards(CardsPageQuery), // This is a list of cards
 
     Settings(DeckSettings),
 
@@ -577,8 +579,7 @@ fn parse_route_api_card_root(
 
     let card_delete_response = cards::DeleteCardResponse {
         redirect_to: view_route_to_link(context, AppRoute::Deck(card.deck_id,
-            DeckRoute::Cards(CardsPageQuery::default_with_deck(card.deck_id),
-                Default::default())))
+            DeckRoute::Cards(CardsPageQuery::default_with_deck(card.deck_id))))
     };
 
     return respond_json!(Some(card_delete_response));
@@ -1996,15 +1997,13 @@ fn route_deck_cards(
     }
 
     let cards_route = match query_string {
-        None => DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id),
-            Default::default()),
+        None => DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id)),
 
         Some(query_string) => {
 
             let page_query = CardsPageQuery::parse(&query_string, context.clone(), deck_id);
-            let search = Search::parse(&query_string);
 
-            DeckRoute::Cards(page_query, search)
+            DeckRoute::Cards(page_query)
         }
     };
 
@@ -2654,6 +2653,10 @@ fn parse_query_string(input: Input<u8>) -> U8Result<QueryString> {
                         ret {
 
                             if key.len() > 0 {
+
+                                let value: String = value;
+                                let value = format!("{}", percent_decode(value.as_bytes()).decode_utf8_lossy());
+
                                 query_string.insert(key, Some(value));
                             }
 

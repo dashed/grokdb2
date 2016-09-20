@@ -1084,17 +1084,19 @@ impl Pagination for DecksPageQuery {
 }
 
 #[derive(Debug, Clone)]
-pub struct CardsPageQuery(pub DeckID, pub Page, pub CardsPageSort);
+pub struct CardsPageQuery(pub DeckID, pub Page, pub CardsPageSort, pub Search);
 
 impl CardsPageQuery {
 
     pub fn default_with_deck(deck_id: DeckID) -> Self {
-        CardsPageQuery(deck_id, 1, CardsPageSort::UpdatedAt(SortOrder::Descending))
+        CardsPageQuery(deck_id, 1, CardsPageSort::UpdatedAt(SortOrder::Descending), Search::NoQuery)
     }
 
     pub fn parse(query_string: &QueryString, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Self {
 
         let default_per_page = constants::CARDS_PER_PAGE;
+
+        let search = Search::parse(query_string);
 
         let page_num: Page = match query_string.get("page") {
             None => 1,
@@ -1115,11 +1117,11 @@ impl CardsPageQuery {
 
                                 let _guard = context::read_lock(context.clone());
 
-                                let children_count = match cards::total_num_of_cards_in_deck(context, deck_id) {
+                                let children_count = match cards::total_num_of_cards_in_deck(context, deck_id, &search) {
                                     Ok(count) => count,
-                                    Err(_) => {
+                                    Err(why) => {
                                         // TODO: internal error logging
-                                        panic!();
+                                        panic!("{:?}", why);
                                     }
                                 };
 
@@ -1166,7 +1168,7 @@ impl CardsPageQuery {
             }
         };
 
-        return CardsPageQuery(deck_id, page_num, cards_page_sort);
+        return CardsPageQuery(deck_id, page_num, cards_page_sort, search);
     }
 
     // TODO: test
@@ -1186,7 +1188,7 @@ impl CardsPageQuery {
     // TODO: test
     pub fn generate_query_string(&self) -> String {
 
-        let &CardsPageQuery(_deck_id, page, ref page_sort) = self;
+        let &CardsPageQuery(_deck_id, page, ref page_sort, ref _search) = self;
 
         let (order_by, sort_order) = match *page_sort {
             CardsPageSort::CardTitle(ref sort_order) => ("card_title", sort_order),
@@ -1199,8 +1201,16 @@ impl CardsPageQuery {
             SortOrder::Descending => "desc"
         };
 
-        format!("page={page}&order_by={order_by}&sort_by={sort_by}",
-            page = page, order_by = order_by, sort_by = sort_by)
+        let mut query = format!("page={page}&order_by={order_by}&sort_by={sort_by}",
+            page = page, order_by = order_by, sort_by = sort_by);
+
+        let ref search = self.3;
+
+        if let Some(search_query) = search.generate_query_string() {
+            query = query + &format!("&{}", search_query);
+        }
+
+        return query;
     }
 
     pub fn sort_by_string(&self) -> String {
@@ -1212,15 +1222,15 @@ impl CardsPageQuery {
     }
 
     pub fn updated_at(&self) -> Self {
-        return CardsPageQuery(self.0, self.1, CardsPageSort::UpdatedAt(self.2.order_by()))
+        return CardsPageQuery(self.0, self.1, CardsPageSort::UpdatedAt(self.2.order_by()), self.3.clone())
     }
 
     pub fn created_at(&self) -> Self {
-        return CardsPageQuery(self.0, self.1, CardsPageSort::CreatedAt(self.2.order_by()))
+        return CardsPageQuery(self.0, self.1, CardsPageSort::CreatedAt(self.2.order_by()), self.3.clone())
     }
 
     pub fn card_title(&self) -> Self {
-        return CardsPageQuery(self.0, self.1, CardsPageSort::CardTitle(self.2.order_by()))
+        return CardsPageQuery(self.0, self.1, CardsPageSort::CardTitle(self.2.order_by()), self.3.clone())
     }
 }
 
@@ -1231,11 +1241,11 @@ impl SortOrderable for CardsPageQuery {
     }
 
     fn ascending(&self) -> Self {
-        CardsPageQuery(self.0, self.1, self.2.ascending())
+        CardsPageQuery(self.0, self.1, self.2.ascending(), self.3.clone())
     }
 
     fn descending(&self) -> Self {
-        CardsPageQuery(self.0, self.1, self.2.descending())
+        CardsPageQuery(self.0, self.1, self.2.descending(), self.3.clone())
     }
 
     fn sort_order_string(&self) -> String {
@@ -1246,7 +1256,7 @@ impl SortOrderable for CardsPageQuery {
 impl Pagination for CardsPageQuery {
 
     fn first(&self) -> Self {
-        CardsPageQuery(self.0, 1, self.2.clone())
+        CardsPageQuery(self.0, 1, self.2.clone(), self.3.clone())
     }
 
     fn previous(&self) -> Option<Self> {
@@ -1258,7 +1268,7 @@ impl Pagination for CardsPageQuery {
 
         let prev_page = page_num - 1;
 
-        return Some(CardsPageQuery(self.0, prev_page, self.2.clone()));
+        return Some(CardsPageQuery(self.0, prev_page, self.2.clone(), self.3.clone()));
     }
 
     fn next(&self, context: Rc<RefCell<Context>>) -> Option<Self> {
@@ -1267,7 +1277,9 @@ impl Pagination for CardsPageQuery {
 
         let _guard = context::read_lock(context.clone());
 
-        let children_count = match cards::total_num_of_cards_in_deck(context, deck_id) {
+        let ref search = self.3;
+
+        let children_count = match cards::total_num_of_cards_in_deck(context, deck_id, search) {
             Ok(count) => count,
             Err(_) => {
                 // TODO: internal error logging
@@ -1283,7 +1295,7 @@ impl Pagination for CardsPageQuery {
             return None;
         }
 
-        return Some(CardsPageQuery(deck_id, next_page, self.2.clone()));
+        return Some(CardsPageQuery(deck_id, next_page, self.2.clone(), self.3.clone()));
     }
 
     fn current_page(&self) -> Page {
@@ -1293,10 +1305,11 @@ impl Pagination for CardsPageQuery {
     fn num_of_pages(&self, context: Rc<RefCell<Context>>) -> Page {
 
         let deck_id = self.0;
+        let ref search = self.3;
 
         let _guard = context::read_lock(context.clone());
 
-        let children_count = match cards::total_num_of_cards_in_deck(context, deck_id) {
+        let children_count = match cards::total_num_of_cards_in_deck(context, deck_id, search) {
             Ok(count) => count,
             Err(_) => {
                 // TODO: internal error logging
@@ -1331,7 +1344,7 @@ impl Pagination for CardsPageQuery {
 
             // 1 to end
             for page in 1..(end + 1) {
-                let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
+                let page_query = CardsPageQuery(self.0, page as Page, self.2.clone(), self.3.clone());
                 trailing_left_side.push(page_query);
             }
 
@@ -1342,7 +1355,7 @@ impl Pagination for CardsPageQuery {
 
         // 1 to __PAGINATION_TRAIL_SIZE
         for page in 1..(__PAGINATION_TRAIL_SIZE + 1) {
-            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
+            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone(), self.3.clone());
             trailing_left_side.push(page_query);
         }
 
@@ -1351,7 +1364,7 @@ impl Pagination for CardsPageQuery {
 
             let extra_page_num = 1 + __PAGINATION_TRAIL_SIZE;
 
-            let page_query = CardsPageQuery(self.0, extra_page_num as Page, self.2.clone());
+            let page_query = CardsPageQuery(self.0, extra_page_num as Page, self.2.clone(), self.3.clone());
             trailing_left_side.push(page_query);
 
         }
@@ -1385,7 +1398,7 @@ impl Pagination for CardsPageQuery {
 
         // start to end
         for page in start..(end + 1) {
-            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
+            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone(), self.3.clone());
             left_side.push(page_query);
         }
 
@@ -1409,7 +1422,7 @@ impl Pagination for CardsPageQuery {
         };
 
         for page in start..(end + 1) {
-            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
+            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone(), self.3.clone());
             right_side.push(page_query);
         }
 
@@ -1446,7 +1459,7 @@ impl Pagination for CardsPageQuery {
             }
 
             for page in start..(num_of_pages + 1) {
-                let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
+                let page_query = CardsPageQuery(self.0, page as Page, self.2.clone(), self.3.clone());
                 trailing_right_side.push(page_query);
             }
 
@@ -1461,7 +1474,7 @@ impl Pagination for CardsPageQuery {
             let extra_page_num = (num_of_pages - __PAGINATION_TRAIL_SIZE + 1) - 1;
 
 
-            let page_query = CardsPageQuery(self.0, extra_page_num as Page, self.2.clone());
+            let page_query = CardsPageQuery(self.0, extra_page_num as Page, self.2.clone(), self.3.clone());
             trailing_right_side.push(page_query);
 
         } else {
@@ -1471,7 +1484,7 @@ impl Pagination for CardsPageQuery {
         let start = num_of_pages - __PAGINATION_TRAIL_SIZE + 1;
 
         for page in start..(num_of_pages + 1) {
-            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone());
+            let page_query = CardsPageQuery(self.0, page as Page, self.2.clone(), self.3.clone());
             trailing_right_side.push(page_query);
         }
 

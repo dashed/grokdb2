@@ -128,13 +128,9 @@ pub fn view_route_to_link(
                         }
                     }
                 },
-                DeckRoute::Cards(page_query, search) => {
+                DeckRoute::Cards(page_query) => {
 
-                    let mut query = page_query.generate_query_string();
-
-                    if let Some(search_query) = search.generate_query_string() {
-                        query = query + &format!("&{}", search_query);
-                    }
+                    let query = page_query.generate_query_string();
 
                     format!("/deck/{deck_id}/cards?{query_string}", deck_id = deck_id, query_string = query)
                 },
@@ -729,7 +725,7 @@ fn generate_title(
                 DeckRoute::NewDeck => format!("New Deck"),
                 DeckRoute::Description => format!("Deck Description"),
                 DeckRoute::Decks(ref _decks_page_query, ref _search) => format!("Decks"),
-                DeckRoute::Cards(ref _cards_page_query, ref _search) => format!("Cards"),
+                DeckRoute::Cards(ref _cards_page_query) => format!("Cards"),
                 DeckRoute::Settings(ref deck_settings) => {
                     match *deck_settings {
                         DeckSettings::Main => format!("Deck Settings"),
@@ -1232,8 +1228,7 @@ fn generateDeckPathLink(context: Rc<RefCell<Context>>, deck_id: DeckID, deck_rou
         DeckRoute::Decks(ref _page_query, ref _search) => DeckRoute::Decks(
             DecksPageQuery::default_with_deck(deck_id), Default::default()),
 
-        DeckRoute::Cards(ref _page_query, ref _search) => DeckRoute::Cards(
-            CardsPageQuery::default_with_deck(deck_id), Default::default())
+        DeckRoute::Cards(ref _page_query) => DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id))
     };
 
     view_route_to_link(context, AppRoute::Deck(deck_id, __deck_route))
@@ -1349,7 +1344,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                 }
                             }
                     },
-                    DeckRoute::Cards(_, _) => {
+                    DeckRoute::Cards(_) => {
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
@@ -1578,13 +1573,12 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             li(style = raw!("padding-top:2px;padding-bottom:2px;")) {
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
-                                        DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id),
-                                            Default::default()))),
+                                        DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id)))),
                                     class? = classnames!(
                                         "is-bold",
                                         "is-active" => {
                                             matches!(*deck_route, DeckRoute::NewCard) ||
-                                            matches!(*deck_route, DeckRoute::Cards(_, _))
+                                            matches!(*deck_route, DeckRoute::Cards(_))
                                         })
                                 ) {
                                     : "Cards"
@@ -1679,13 +1673,12 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             deck_id
                         )
                     },
-                    DeckRoute::Cards(ref cards_page_query, ref search) => {
+                    DeckRoute::Cards(ref cards_page_query) => {
                         DeckCards(
                             tmpl,
                             context.clone(),
                             deck_id,
-                            cards_page_query,
-                            search
+                            cards_page_query
                         )
                     },
                     DeckRoute::Settings(ref setting_mode) => {
@@ -1948,11 +1941,10 @@ fn DeckCards(
     tmpl: &mut TemplateBuffer,
     context: Rc<RefCell<Context>>,
     deck_id: DeckID,
-    cards_page_query: &CardsPageQuery,
-    search: &Search) {
+    cards_page_query: &CardsPageQuery) {
 
     let make_link = |cards_page_query: CardsPageQuery| -> AppRoute {
-        AppRoute::Deck(deck_id, DeckRoute::Cards(cards_page_query, search.clone()))
+        AppRoute::Deck(deck_id, DeckRoute::Cards(cards_page_query))
     };
 
     tmpl << html!{
@@ -1980,14 +1972,14 @@ fn DeckCards(
                                     option(
                                         value = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id,
-                                                DeckRoute::Cards(cards_page_query.descending(), search.clone())))
+                                                DeckRoute::Cards(cards_page_query.descending())))
                                     ) {
                                         : cards_page_query.descending().sort_order_string()
                                     }
                                     option(
                                         value = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id,
-                                                DeckRoute::Cards(cards_page_query.ascending(), search.clone())))
+                                                DeckRoute::Cards(cards_page_query.ascending())))
                                     ) {
                                         : cards_page_query.ascending().sort_order_string()
                                     }
@@ -2004,8 +1996,7 @@ fn DeckCards(
                                     option(
                                         value = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id,
-                                                DeckRoute::Cards(cards_page_query.updated_at(),
-                                                    search.clone())))
+                                                DeckRoute::Cards(cards_page_query.updated_at())))
                                     ) {
                                         : cards_page_query.updated_at().sort_by_string()
                                     }
@@ -2013,8 +2004,7 @@ fn DeckCards(
                                     option(
                                         value = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id,
-                                                DeckRoute::Cards(cards_page_query.card_title(),
-                                                    search.clone())))
+                                                DeckRoute::Cards(cards_page_query.card_title())))
                                     ) {
                                         : cards_page_query.card_title().sort_by_string()
                                     }
@@ -2022,8 +2012,7 @@ fn DeckCards(
                                     option(
                                         value = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id,
-                                                DeckRoute::Cards(cards_page_query.created_at(),
-                                                    search.clone())))
+                                                DeckRoute::Cards(cards_page_query.created_at())))
                                     ) {
                                         : cards_page_query.created_at().sort_by_string()
                                     }
@@ -2048,8 +2037,7 @@ fn DeckCards(
                                 ",
                                     go_to = view_route_to_link(context.clone(),
                                         AppRoute::Deck(deck_id,
-                                            DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id),
-                                                Default::default()))),
+                                            DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id)))),
                                     get_value = "document.getElementById('search_card').value"
                                 )
                             ) {
@@ -2062,7 +2050,7 @@ fn DeckCards(
         }
 
         |tmpl| GenericPaginationComponent(tmpl, context.clone(), cards_page_query, &make_link);
-        |tmpl| CardsList(tmpl, context.clone(), deck_id, &cards_page_query, &search);
+        |tmpl| CardsList(tmpl, context.clone(), deck_id, &cards_page_query);
         |tmpl| GenericPaginationComponent(tmpl, context.clone(), cards_page_query, &make_link);
 
     }
@@ -2070,9 +2058,9 @@ fn DeckCards(
 
 #[inline]
 fn CardsList(tmpl: &mut TemplateBuffer,
-    context: Rc<RefCell<Context>>, deck_id: DeckID, cards_page_query: &CardsPageQuery, search: &Search) {
+    context: Rc<RefCell<Context>>, deck_id: DeckID, cards_page_query: &CardsPageQuery) {
 
-    let children = match cards::cards_in_deck(context.clone(), deck_id, cards_page_query, search) {
+    let children = match cards::cards_in_deck(context.clone(), deck_id, cards_page_query) {
         Ok(children) => children,
         Err(_) => {
             // TODO: internal error logging
@@ -2441,7 +2429,11 @@ fn DeckSettingsMain(
             };
 
             // get number of cards
-            let (count_of_cards, card_noun) = match cards::total_num_of_cards_in_deck(context.clone(), deck_id) {
+            let (count_of_cards, card_noun) = match cards::total_num_of_cards_in_deck(
+                context.clone(),
+                deck_id,
+                &Search::NoQuery) {
+
                 Ok(count_of_cards) => {
 
                     let card_noun = if count_of_cards == 1 {
@@ -3767,8 +3759,7 @@ fn DeckListItemDetailComponent(
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id,
-                                                DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id),
-                                                    Default::default()))),
+                                                DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id)))),
                                 class = raw!("button is-small")
                             ) {
                                 : raw!("View Cards")
