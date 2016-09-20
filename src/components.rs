@@ -3312,6 +3312,27 @@ fn CardDetailStats(
                         }
                     }
 
+                    div(class="level-item has-text-centered") {
+
+                        p(class="heading") {
+                            : raw!("Times picked for review")
+                        }
+
+                        p(class="title") {
+                            : card_score.times_seen
+                        }
+                    }
+
+                }
+            }
+        }
+
+        div(class="columns") {
+
+            div(class="column") {
+
+                div(class="level") {
+
                     |tmpl| {
 
                         if card_score.was_reviewed(context.clone()) {
@@ -3329,17 +3350,6 @@ fn CardDetailStats(
                                 }
 
                             }
-                        }
-                    }
-
-                    div(class="level-item has-text-centered") {
-
-                        p(class="heading") {
-                            : raw!("Times picked for review")
-                        }
-
-                        p(class="title") {
-                            : card_score.times_seen
                         }
                     }
 
