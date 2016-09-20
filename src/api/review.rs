@@ -515,8 +515,12 @@ pub trait Reviewable {
 
 #[derive(Debug, Serialize)]
 pub struct CardScore {
+
+    pub card_id: CardID,
+
     pub changelog: String,
 
+    pub raw_score: f64, // NOTE: not in database table
     pub success: u64,
     pub fail: u64,
 
@@ -524,11 +528,58 @@ pub struct CardScore {
     pub times_seen: u64,
 
     pub seen_at: String,
+    pub seen_at_actual: UnixTimestamp,
+
     pub reviewed_at: String,
+    pub reviewed_at_actual: UnixTimestamp,
+
     pub review_after: u64,
 
     pub reviewed_at_count: ReviewCount,
     pub cards_till_ready_for_review: ReviewCount
+}
+
+impl CardScore {
+
+    pub fn get_raw_score_string(&self) -> String {
+        format!("{:.*}", 4, self.raw_score)
+    }
+
+    pub fn get_raw_score_percent_string(&self) -> String {
+        format!("{:.*}", 2, self.raw_score * 100.0)
+    }
+
+    pub fn get_max_raw_score_string(&self) -> String {
+        format!("1")
+    }
+
+    pub fn was_reviewed(&self, context: Rc<RefCell<Context>>) -> bool {
+
+        assert!(context.borrow().is_read_locked());
+
+        let card = match cards::get_card(context, self.card_id) {
+            Ok(card) => card,
+            Err(_why) => {
+                panic!("{:?}", _why);
+            }
+        };
+
+        return card.created_at_actual != self.reviewed_at_actual;
+    }
+
+    pub fn was_picked_for_review(&self, context: Rc<RefCell<Context>>) -> bool {
+
+        assert!(context.borrow().is_read_locked());
+
+        let card = match cards::get_card(context, self.card_id) {
+            Ok(card) => card,
+            Err(_why) => {
+                panic!("{:?}", _why);
+            }
+        };
+
+        return card.created_at_actual != self.seen_at_actual;
+    }
 }
 
 #[inline]
@@ -568,7 +619,14 @@ pub fn get_card_score(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<
         let results = db_conn.query_row(&query, &[], |row| -> CardScore {
 
             let success: i64 =  row.get(1);
+            let success = success as u64;
+
             let fail: i64 =  row.get(2);
+            let fail = fail as u64;
+
+            let total: f64 = (success as f64) + (fail as f64);
+            let raw_score = ((fail as f64) + 0.5f64) / (total + 1.0f64);
+
             let times_reviewed: i64 =  row.get(3);
             let times_seen: i64 =  row.get(4);
             let review_after: i64 =  row.get(7);
@@ -579,16 +637,24 @@ pub fn get_card_score(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<
             let reviewed_at: UnixTimestamp = row.get(6);
 
             return CardScore {
+
+                card_id: card_id,
+
                 changelog: row.get(0),
 
-                success: success as u64,
-                fail: fail as u64,
+                raw_score: raw_score,
+                success: success,
+                fail: fail,
 
                 times_reviewed: times_reviewed as u64,
                 times_seen: times_seen as u64,
 
                 seen_at: timestamp::to_string(NaiveDateTime::from_timestamp(seen_at, 0)),
+                seen_at_actual: seen_at,
+
                 reviewed_at: timestamp::to_string(NaiveDateTime::from_timestamp(reviewed_at, 0)),
+                reviewed_at_actual: reviewed_at,
+
                 review_after: review_after as u64,
 
                 reviewed_at_count: reviewed_at_count as u64,

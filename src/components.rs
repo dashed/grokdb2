@@ -16,6 +16,7 @@ use context::{Context};
 use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, SortOrderable, MoveDecksPageQuery};
 use api::{decks, cards, user};
 use api::review::{self, CachedReviewProcedure};
+use timestamp;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -3216,23 +3217,132 @@ fn CardDetailReview(
 #[inline]
 fn CardDetailStats(
     tmpl: &mut TemplateBuffer,
-    _context: Rc<RefCell<Context>>,
+    context: Rc<RefCell<Context>>,
     _deck_id: DeckID,
-    _card_id: CardID) {
+    card_id: CardID) {
+
+    let card_score = match review::get_card_score(context.clone(), card_id) {
+        Ok(card_score) => card_score,
+        Err(_) => {
+            // TODO: logging
+            panic!();
+        }
+    };
 
     tmpl << html!{
 
-        // TODO: remove
-        // div(class="columns") {
-        //     div(class="column") {
-        //         h1(class="title") {
-        //             : raw!("Card Stats")
-        //         }
-        //     }
-        // }
-
-        div(id="card_stats_container") {
+        div(class="columns") {
+            div(class="column") {
+                h1(class="title") {
+                    : raw!("Card Performance")
+                }
+            }
         }
+
+        div(class="columns") {
+            div(class="column") {
+                progress(
+                    class ?= classnames!("progress",
+                        "is-danger" => card_score.raw_score < 0.5,
+                        "is-warning" =>  0.5 <= card_score.raw_score && card_score.raw_score < 0.75,
+                        "is-success" => 0.75 <= card_score.raw_score
+                    ),
+                    value = card_score.get_raw_score_string(),
+                    max = card_score.get_max_raw_score_string()
+                ) {
+                    : raw!(card_score.get_raw_score_percent_string())
+                }
+
+            }
+        }
+
+        div(class="columns") {
+
+            div(class="column") {
+
+                div(class="level") {
+
+                    div(class="level-item has-text-centered") {
+
+                        p(class="heading") {
+                            : raw!("Performance score")
+                        }
+
+                        p(class="title") {
+                            : raw!(card_score.get_raw_score_percent_string())
+                        }
+                    }
+
+                    div(class="level-item has-text-centered") {
+
+                        p(class="heading") {
+                            : raw!("Times reviewed")
+                        }
+
+                        p(class="title") {
+                            : card_score.times_reviewed
+                        }
+                    }
+
+                    |tmpl| {
+
+                        if card_score.was_reviewed(context.clone()) {
+                            tmpl << html!{
+
+                                div(class="level-item has-text-centered") {
+
+                                    p(class="heading") {
+                                        : raw!("Last reviewed")
+                                    }
+
+                                    p(class="title") {
+                                        : timestamp::relative_time_from_timestamp(card_score.reviewed_at_actual)
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+
+                    div(class="level-item has-text-centered") {
+
+                        p(class="heading") {
+                            : raw!("Times picked for review")
+                        }
+
+                        p(class="title") {
+                            : card_score.times_seen
+                        }
+                    }
+
+                    |tmpl| {
+
+                        if card_score.was_picked_for_review(context.clone()) {
+
+                            tmpl << html!{
+
+                                div(class="level-item has-text-centered") {
+
+                                    p(class="heading") {
+                                        : raw!("Last picked for review")
+                                    }
+
+                                    p(class="title") {
+                                        : timestamp::relative_time_from_timestamp(card_score.seen_at_actual)
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+
+        // TODO: remove
+        // div(id="card_stats_container") {
+        // }
     }
 }
 

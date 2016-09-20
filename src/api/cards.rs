@@ -33,6 +33,8 @@ pub struct Card {
     pub description: String,
 
     pub created_at: String,
+    pub created_at_actual: UnixTimestamp,
+
     pub updated_at: String,
 
     pub deck_id: DeckID,
@@ -170,7 +172,10 @@ pub fn get_card(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<Card, 
                 description: row.get(2),
                 question: row.get(3),
                 answer: row.get(4),
+
                 created_at: timestamp::to_string(NaiveDateTime::from_timestamp(created_at, 0)),
+                created_at_actual: created_at,
+
                 updated_at: timestamp::to_string(NaiveDateTime::from_timestamp(updated_at, 0)),
                 deck_id: row.get(7),
                 is_active: row.get(8)
@@ -655,7 +660,10 @@ pub fn cards_in_deck(
             description: row.get(2),
             question: row.get(3),
             answer: row.get(4),
+
             created_at: timestamp::to_string(NaiveDateTime::from_timestamp(created_at, 0)),
+            created_at_actual: created_at,
+
             updated_at: timestamp::to_string(NaiveDateTime::from_timestamp(updated_at, 0)),
             deck_id: row.get(7),
             is_active: row.get(8)

@@ -80,6 +80,16 @@ pub fn to_string(source: NaiveDateTime) -> String {
 }
 
 #[inline]
+pub fn relative_time_from_timestamp(source: UnixTimestamp) -> String {
+
+    /* generate relative times */
+
+    let rel_time = relative_time(source, UTC::now().timestamp());
+
+    return rel_time;
+}
+
+#[inline]
 fn relative_time(from: i64, to: i64) -> String {
 
     let elapsed_num: u64 = (to - from).abs() as u64;
