@@ -2111,12 +2111,93 @@ fn CardListItemComponent(
                         |tmpl| MathJaxInline(tmpl, card.title.clone(), false);
                     }
                 }
-                span(style="font-size:12px;") {
-                    : format!("Card #{}", card.id);
-                }
+
+                |tmpl| CardListItemDetailComponent(tmpl, context.clone(), deck_id, card_id);
+
             }
         }
     }
+}
+
+#[inline]
+fn CardListItemDetailComponent(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID,
+    card_id: CardID) {
+
+    let card = match cards::get_card(context.clone(), card_id) {
+        Err(_why) => {
+            // TODO: logging
+            panic!();
+        },
+        Ok(card) => card
+    };
+
+    tmpl << html!{
+
+        div(class="level") {
+
+            div(class="level-left") {
+                div(class="level-item") {
+                    span(style="font-size:12px;") {
+                        : raw!(format!("Card #{}", card.id));
+                    }
+                }
+            }
+
+            div(class="level-right") {
+                div(class="level-item") {
+
+                    div(class="control is-grouped") {
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::CardProfile(card_id, CardRoute::Contents))),
+                                class = raw!("button is-small")
+                            ) {
+                                : raw!("Contents")
+                            }
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::CardProfile(card_id, CardRoute::Stats))),
+                                class = raw!("button is-small")
+                            ) {
+                                : raw!("Stats")
+                            }
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::CardProfile(card_id,
+                                                    CardRoute::Settings(Default::default())))),
+                                class = raw!("button is-small")
+                            ) {
+                                : raw!("Settings")
+                            }
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::CardProfile(card_id, CardRoute::Review))),
+                                class = raw!("button is-small is-primary is-outlined")
+                            ) {
+                                : raw!("Review")
+                            }
+                        }
+
+                    }
+
+                }
+            }
+        }
+    };
 }
 
 #[inline]
@@ -3110,16 +3191,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                                 }
                             }
 
-                            span(style="font-size:12px;") {
-                                : format!("Deck #{}", deck.id);
-                                : raw!(" ");
-                                a(href = view_route_to_link(context.clone(),
-                                                AppRoute::Deck(deck_id,
-                                                    DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id),
-                                                        Default::default())))) {
-                                    : raw!("View Cards")
-                                }
-                            }
+                            |tmpl| DeckListItemDetailComponent(tmpl, context.clone(), deck.id);
 
                         }
 
@@ -3465,16 +3537,8 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
                         |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
                     }
                 }
-                span(style="font-size:12px;") {
-                    : format!("Deck #{}", deck.id);
-                    : raw!(" ");
-                    a(href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(deck_id,
-                                        DeckRoute::Cards(CardsPageQuery::default_with_deck(deck.id),
-                                            Default::default())))) {
-                        : raw!("View Cards")
-                    }
-                }
+
+                |tmpl| DeckListItemDetailComponent(tmpl, context.clone(), deck.id);
             }
         }
     }
@@ -4451,16 +4515,7 @@ fn MoveCardToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                                 }
                             }
 
-                            span(style="font-size:12px;") {
-                                : format!("Deck #{}", deck.id);
-                                : raw!(" ");
-                                a(href = view_route_to_link(context.clone(),
-                                                AppRoute::Deck(deck_id,
-                                                    DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id),
-                                                        Default::default())))) {
-                                    : raw!("View Cards")
-                                }
-                            }
+                            |tmpl| DeckListItemDetailComponent(tmpl, context.clone(), deck.id);
 
                         }
 
@@ -4530,4 +4585,118 @@ fn MathJaxInline(tmpl: &mut TemplateBuffer, content: String, should_bold: bool) 
         }
     };
 
+}
+
+#[inline]
+fn DeckListItemDetailComponent(
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID) {
+
+    let deck = match decks::get_deck(context.clone(), deck_id) {
+        Err(_why) => {
+            // TODO: logging
+            panic!();
+        },
+        Ok(deck) => deck
+    };
+
+    tmpl << html!{
+
+        div(class="level") {
+
+            div(class="level-left") {
+                div(class="level-item") {
+                    span(style="font-size:12px;") {
+                        : raw!(format!("Deck #{}", deck.id));
+                    }
+                }
+            }
+
+            div(class="level-right") {
+                div(class="level-item") {
+
+                    div(class="control is-grouped") {
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id, DeckRoute::Description)),
+                                class = raw!("button is-small")
+                            ) {
+                                : raw!("Description")
+                            }
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id),
+                                                    Default::default()))),
+                                class = raw!("button is-small")
+                            ) {
+                                : raw!("View Cards")
+                            }
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id, DeckRoute::NewDeck)),
+                                class = raw!("button is-small")
+                            ) {
+                                : raw!("New Card")
+                            }
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Decks(DecksPageQuery::default_with_deck(deck_id),
+                                                    Default::default()))),
+                                class = raw!("button is-small")
+                            ) {
+                                : raw!("View Decks")
+                            }
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id, DeckRoute::NewDeck)),
+                                class = raw!("button is-small")
+                            ) {
+                                : raw!("New Deck")
+                            }
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id, DeckRoute::Stats)),
+                                class = raw!("button is-small")
+                            ) {
+                                : raw!("Settings")
+                            }
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id, DeckRoute::Settings(Default::default()))),
+                                class = raw!("button is-small")
+                            ) {
+                                : raw!("Settings")
+                            }
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            a(href = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id, DeckRoute::Review(None))),
+                                class = raw!("button is-small is-primary is-outlined")
+                            ) {
+                                : raw!("Review")
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+    };
 }

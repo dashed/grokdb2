@@ -89,15 +89,21 @@ pub enum CardRoute {
     Settings(CardSettings)
 }
 
+impl Default for CardRoute {
+    fn default() -> Self {
+        CardRoute::Contents
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum CardSettings {
     Main,
     Move(MoveDecksPageQuery, Search)
 }
 
-impl Default for CardRoute {
+impl Default for CardSettings {
     fn default() -> Self {
-        CardRoute::Contents
+        CardSettings::Main
     }
 }
 
@@ -137,6 +143,12 @@ impl DeckRoute {
 pub enum DeckSettings {
     Main,
     Move(MoveDecksPageQuery, Search)
+}
+
+impl Default for DeckSettings {
+    fn default() -> Self {
+        DeckSettings::Main
+    }
 }
 
 #[derive(Debug)]
