@@ -541,15 +541,20 @@ pub struct CardScore {
 
 impl CardScore {
 
-    pub fn get_raw_score_string(&self) -> String {
-        format!("{:.*}", 4, self.raw_score)
+    pub fn get_perf_score(&self) -> f64 {
+        let perf_score = 1.0 - self.raw_score;
+        return perf_score;
     }
 
-    pub fn get_raw_score_percent_string(&self) -> String {
-        format!("{:.*}", 2, self.raw_score * 100.0)
+    pub fn get_perf_score_string(&self) -> String {
+        format!("{:.*}", 4, self.perf_score())
     }
 
-    pub fn get_max_raw_score_string(&self) -> String {
+    pub fn get_perf_score_percent_string(&self) -> String {
+        format!("{:.*}", 2, self.perf_score() * 100.0)
+    }
+
+    pub fn get_max_perf_score_string(&self) -> String {
         format!("1")
     }
 
