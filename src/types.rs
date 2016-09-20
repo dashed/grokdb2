@@ -708,6 +708,12 @@ impl DecksPageQuery {
                             Err(_) => 1,
                             Ok(page_num) => {
 
+                                let page_num = if page_num <= 0 {
+                                    1
+                                } else {
+                                    page_num
+                                };
+
                                 let _guard = context::read_lock(context.clone());
 
                                 let children_count = match decks::get_deck_children_total_count(context, deck_id) {
@@ -1099,6 +1105,13 @@ impl CardsPageQuery {
                         match page_num_string.parse::<Page>() {
                             Err(_) => 1,
                             Ok(page_num) => {
+
+                                // normalize
+                                let page_num = if page_num <= 0 {
+                                    1
+                                } else {
+                                    page_num
+                                };
 
                                 let _guard = context::read_lock(context.clone());
 
