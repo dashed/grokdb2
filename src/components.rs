@@ -1620,6 +1620,34 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
 
                     a(href = view_route_to_link(context.clone(),
                         AppRoute::Deck(deck_id,
+                            DeckRoute::NewCard)),
+                        class? = classnames!(
+                            "is-bold button is-primary is-fullwidth is-medium",
+                            "is-outlined" => {
+                                !matches!(*deck_route, DeckRoute::NewCard)
+                            })
+                    ) {
+                        : "New Card"
+                    }
+
+                    br;
+
+                    a(href = view_route_to_link(context.clone(),
+                        AppRoute::Deck(deck_id,
+                            DeckRoute::NewDeck)),
+                        class? = classnames!(
+                            "is-bold button is-primary is-fullwidth is-medium",
+                            "is-outlined" => {
+                                !matches!(*deck_route, DeckRoute::NewDeck)
+                            })
+                    ) {
+                        : "New Deck"
+                    }
+
+                    br;
+
+                    a(href = view_route_to_link(context.clone(),
+                        AppRoute::Deck(deck_id,
                             DeckRoute::Review(None))),
                         class? = classnames!(
                             "is-bold button is-primary is-fullwidth is-medium",
