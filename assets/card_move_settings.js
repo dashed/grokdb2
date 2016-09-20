@@ -1,4 +1,4 @@
-webpackJsonp([0],[
+webpackJsonp([1],[
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -12,15 +12,16 @@ webpackJsonp([0],[
 	*/
 	__webpack_require__(1);
 	
-	var forEach = __webpack_require__(301);
+	var forEach = __webpack_require__(706);
 	
-	var bootstrap = __webpack_require__(411);
+	var bootstrap = __webpack_require__(735);
+	
+	var moveTo = window.__PRE_RENDER_STATE__.MOVE_TO;
 	
 	forEach(document.getElementsByClassName('move_to_deck'), function (elem) {
 	
 	    setTimeout(function () {
 	        var deckID = elem.getAttribute('data-deck-id');
-	        var moveTo = elem.getAttribute('data-move-to');
 	
 	        bootstrap(elem, deckID, moveTo);
 	    }, 0);
@@ -327,1651 +328,15 @@ webpackJsonp([0],[
 /* 298 */,
 /* 299 */,
 /* 300 */,
-/* 301 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var arrayEach = __webpack_require__(302),
-	    baseEach = __webpack_require__(303),
-	    baseIteratee = __webpack_require__(324),
-	    isArray = __webpack_require__(317);
-	
-	/**
-	 * Iterates over elements of `collection` and invokes `iteratee` for each element.
-	 * The iteratee is invoked with three arguments: (value, index|key, collection).
-	 * Iteratee functions may exit iteration early by explicitly returning `false`.
-	 *
-	 * **Note:** As with other "Collections" methods, objects with a "length"
-	 * property are iterated like arrays. To avoid this behavior use `_.forIn`
-	 * or `_.forOwn` for object iteration.
-	 *
-	 * @static
-	 * @memberOf _
-	 * @since 0.1.0
-	 * @alias each
-	 * @category Collection
-	 * @param {Array|Object} collection The collection to iterate over.
-	 * @param {Function} [iteratee=_.identity] The function invoked per iteration.
-	 * @returns {Array|Object} Returns `collection`.
-	 * @see _.forEachRight
-	 * @example
-	 *
-	 * _([1, 2]).forEach(function(value) {
-	 *   console.log(value);
-	 * });
-	 * // => Logs `1` then `2`.
-	 *
-	 * _.forEach({ 'a': 1, 'b': 2 }, function(value, key) {
-	 *   console.log(key);
-	 * });
-	 * // => Logs 'a' then 'b' (iteration order is not guaranteed).
-	 */
-	function forEach(collection, iteratee) {
-	  var func = isArray(collection) ? arrayEach : baseEach;
-	  return func(collection, baseIteratee(iteratee, 3));
-	}
-	
-	module.exports = forEach;
-
-
-/***/ },
-/* 302 */,
-/* 303 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var baseForOwn = __webpack_require__(304),
-	    createBaseEach = __webpack_require__(323);
-	
-	/**
-	 * The base implementation of `_.forEach` without support for iteratee shorthands.
-	 *
-	 * @private
-	 * @param {Array|Object} collection The collection to iterate over.
-	 * @param {Function} iteratee The function invoked per iteration.
-	 * @returns {Array|Object} Returns `collection`.
-	 */
-	var baseEach = createBaseEach(baseForOwn);
-	
-	module.exports = baseEach;
-
-
-/***/ },
-/* 304 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var baseFor = __webpack_require__(305),
-	    keys = __webpack_require__(307);
-	
-	/**
-	 * The base implementation of `_.forOwn` without support for iteratee shorthands.
-	 *
-	 * @private
-	 * @param {Object} object The object to iterate over.
-	 * @param {Function} iteratee The function invoked per iteration.
-	 * @returns {Object} Returns `object`.
-	 */
-	function baseForOwn(object, iteratee) {
-	  return object && baseFor(object, iteratee, keys);
-	}
-	
-	module.exports = baseForOwn;
-
-
-/***/ },
-/* 305 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var createBaseFor = __webpack_require__(306);
-	
-	/**
-	 * The base implementation of `baseForOwn` which iterates over `object`
-	 * properties returned by `keysFunc` and invokes `iteratee` for each property.
-	 * Iteratee functions may exit iteration early by explicitly returning `false`.
-	 *
-	 * @private
-	 * @param {Object} object The object to iterate over.
-	 * @param {Function} iteratee The function invoked per iteration.
-	 * @param {Function} keysFunc The function to get the keys of `object`.
-	 * @returns {Object} Returns `object`.
-	 */
-	var baseFor = createBaseFor();
-	
-	module.exports = baseFor;
-
-
-/***/ },
-/* 306 */
-/***/ function(module, exports) {
-
-	/**
-	 * Creates a base function for methods like `_.forIn` and `_.forOwn`.
-	 *
-	 * @private
-	 * @param {boolean} [fromRight] Specify iterating from right to left.
-	 * @returns {Function} Returns the new base function.
-	 */
-	function createBaseFor(fromRight) {
-	  return function(object, iteratee, keysFunc) {
-	    var index = -1,
-	        iterable = Object(object),
-	        props = keysFunc(object),
-	        length = props.length;
-	
-	    while (length--) {
-	      var key = props[fromRight ? length : ++index];
-	      if (iteratee(iterable[key], key, iterable) === false) {
-	        break;
-	      }
-	    }
-	    return object;
-	  };
-	}
-	
-	module.exports = createBaseFor;
-
-
-/***/ },
-/* 307 */,
-/* 308 */,
-/* 309 */,
-/* 310 */,
-/* 311 */,
-/* 312 */,
-/* 313 */,
-/* 314 */,
-/* 315 */,
-/* 316 */,
-/* 317 */,
-/* 318 */,
-/* 319 */,
-/* 320 */,
-/* 321 */,
-/* 322 */,
-/* 323 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var isArrayLike = __webpack_require__(312);
-	
-	/**
-	 * Creates a `baseEach` or `baseEachRight` function.
-	 *
-	 * @private
-	 * @param {Function} eachFunc The function to iterate over a collection.
-	 * @param {boolean} [fromRight] Specify iterating from right to left.
-	 * @returns {Function} Returns the new base function.
-	 */
-	function createBaseEach(eachFunc, fromRight) {
-	  return function(collection, iteratee) {
-	    if (collection == null) {
-	      return collection;
-	    }
-	    if (!isArrayLike(collection)) {
-	      return eachFunc(collection, iteratee);
-	    }
-	    var length = collection.length,
-	        index = fromRight ? length : -1,
-	        iterable = Object(collection);
-	
-	    while ((fromRight ? index-- : ++index < length)) {
-	      if (iteratee(iterable[index], index, iterable) === false) {
-	        break;
-	      }
-	    }
-	    return collection;
-	  };
-	}
-	
-	module.exports = createBaseEach;
-
-
-/***/ },
-/* 324 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var baseMatches = __webpack_require__(325),
-	    baseMatchesProperty = __webpack_require__(393),
-	    identity = __webpack_require__(407),
-	    isArray = __webpack_require__(317),
-	    property = __webpack_require__(408);
-	
-	/**
-	 * The base implementation of `_.iteratee`.
-	 *
-	 * @private
-	 * @param {*} [value=_.identity] The value to convert to an iteratee.
-	 * @returns {Function} Returns the iteratee.
-	 */
-	function baseIteratee(value) {
-	  // Don't store the `typeof` result in a variable to avoid a JIT bug in Safari 9.
-	  // See https://bugs.webkit.org/show_bug.cgi?id=156034 for more details.
-	  if (typeof value == 'function') {
-	    return value;
-	  }
-	  if (value == null) {
-	    return identity;
-	  }
-	  if (typeof value == 'object') {
-	    return isArray(value)
-	      ? baseMatchesProperty(value[0], value[1])
-	      : baseMatches(value);
-	  }
-	  return property(value);
-	}
-	
-	module.exports = baseIteratee;
-
-
-/***/ },
-/* 325 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var baseIsMatch = __webpack_require__(326),
-	    getMatchData = __webpack_require__(390),
-	    matchesStrictComparable = __webpack_require__(392);
-	
-	/**
-	 * The base implementation of `_.matches` which doesn't clone `source`.
-	 *
-	 * @private
-	 * @param {Object} source The object of property values to match.
-	 * @returns {Function} Returns the new spec function.
-	 */
-	function baseMatches(source) {
-	  var matchData = getMatchData(source);
-	  if (matchData.length == 1 && matchData[0][2]) {
-	    return matchesStrictComparable(matchData[0][0], matchData[0][1]);
-	  }
-	  return function(object) {
-	    return object === source || baseIsMatch(object, source, matchData);
-	  };
-	}
-	
-	module.exports = baseMatches;
-
-
-/***/ },
-/* 326 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Stack = __webpack_require__(327),
-	    baseIsEqual = __webpack_require__(366);
-	
-	/** Used to compose bitmasks for comparison styles. */
-	var UNORDERED_COMPARE_FLAG = 1,
-	    PARTIAL_COMPARE_FLAG = 2;
-	
-	/**
-	 * The base implementation of `_.isMatch` without support for iteratee shorthands.
-	 *
-	 * @private
-	 * @param {Object} object The object to inspect.
-	 * @param {Object} source The object of property values to match.
-	 * @param {Array} matchData The property names, values, and compare flags to match.
-	 * @param {Function} [customizer] The function to customize comparisons.
-	 * @returns {boolean} Returns `true` if `object` is a match, else `false`.
-	 */
-	function baseIsMatch(object, source, matchData, customizer) {
-	  var index = matchData.length,
-	      length = index,
-	      noCustomizer = !customizer;
-	
-	  if (object == null) {
-	    return !length;
-	  }
-	  object = Object(object);
-	  while (index--) {
-	    var data = matchData[index];
-	    if ((noCustomizer && data[2])
-	          ? data[1] !== object[data[0]]
-	          : !(data[0] in object)
-	        ) {
-	      return false;
-	    }
-	  }
-	  while (++index < length) {
-	    data = matchData[index];
-	    var key = data[0],
-	        objValue = object[key],
-	        srcValue = data[1];
-	
-	    if (noCustomizer && data[2]) {
-	      if (objValue === undefined && !(key in object)) {
-	        return false;
-	      }
-	    } else {
-	      var stack = new Stack;
-	      if (customizer) {
-	        var result = customizer(objValue, srcValue, key, object, source, stack);
-	      }
-	      if (!(result === undefined
-	            ? baseIsEqual(srcValue, objValue, customizer, UNORDERED_COMPARE_FLAG | PARTIAL_COMPARE_FLAG, stack)
-	            : result
-	          )) {
-	        return false;
-	      }
-	    }
-	  }
-	  return true;
-	}
-	
-	module.exports = baseIsMatch;
-
-
-/***/ },
-/* 327 */,
-/* 328 */,
-/* 329 */,
-/* 330 */,
-/* 331 */,
-/* 332 */,
-/* 333 */,
-/* 334 */,
-/* 335 */,
-/* 336 */,
-/* 337 */,
-/* 338 */,
-/* 339 */,
-/* 340 */,
-/* 341 */,
-/* 342 */,
-/* 343 */,
-/* 344 */,
-/* 345 */,
-/* 346 */,
-/* 347 */,
-/* 348 */,
-/* 349 */,
-/* 350 */,
-/* 351 */,
-/* 352 */,
-/* 353 */,
-/* 354 */,
-/* 355 */,
-/* 356 */,
-/* 357 */,
-/* 358 */,
-/* 359 */,
-/* 360 */,
-/* 361 */,
-/* 362 */,
-/* 363 */,
-/* 364 */,
-/* 365 */,
-/* 366 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var baseIsEqualDeep = __webpack_require__(367),
-	    isObject = __webpack_require__(314),
-	    isObjectLike = __webpack_require__(316);
-	
-	/**
-	 * The base implementation of `_.isEqual` which supports partial comparisons
-	 * and tracks traversed objects.
-	 *
-	 * @private
-	 * @param {*} value The value to compare.
-	 * @param {*} other The other value to compare.
-	 * @param {Function} [customizer] The function to customize comparisons.
-	 * @param {boolean} [bitmask] The bitmask of comparison flags.
-	 *  The bitmask may be composed of the following flags:
-	 *     1 - Unordered comparison
-	 *     2 - Partial comparison
-	 * @param {Object} [stack] Tracks traversed `value` and `other` objects.
-	 * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
-	 */
-	function baseIsEqual(value, other, customizer, bitmask, stack) {
-	  if (value === other) {
-	    return true;
-	  }
-	  if (value == null || other == null || (!isObject(value) && !isObjectLike(other))) {
-	    return value !== value && other !== other;
-	  }
-	  return baseIsEqualDeep(value, other, baseIsEqual, customizer, bitmask, stack);
-	}
-	
-	module.exports = baseIsEqual;
-
-
-/***/ },
-/* 367 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Stack = __webpack_require__(327),
-	    equalArrays = __webpack_require__(368),
-	    equalByTag = __webpack_require__(373),
-	    equalObjects = __webpack_require__(378),
-	    getTag = __webpack_require__(379),
-	    isArray = __webpack_require__(317),
-	    isHostObject = __webpack_require__(344),
-	    isTypedArray = __webpack_require__(385);
-	
-	/** Used to compose bitmasks for comparison styles. */
-	var PARTIAL_COMPARE_FLAG = 2;
-	
-	/** `Object#toString` result references. */
-	var argsTag = '[object Arguments]',
-	    arrayTag = '[object Array]',
-	    objectTag = '[object Object]';
-	
-	/** Used for built-in method references. */
-	var objectProto = Object.prototype;
-	
-	/** Used to check objects for own properties. */
-	var hasOwnProperty = objectProto.hasOwnProperty;
-	
-	/**
-	 * A specialized version of `baseIsEqual` for arrays and objects which performs
-	 * deep comparisons and tracks traversed objects enabling objects with circular
-	 * references to be compared.
-	 *
-	 * @private
-	 * @param {Object} object The object to compare.
-	 * @param {Object} other The other object to compare.
-	 * @param {Function} equalFunc The function to determine equivalents of values.
-	 * @param {Function} [customizer] The function to customize comparisons.
-	 * @param {number} [bitmask] The bitmask of comparison flags. See `baseIsEqual`
-	 *  for more details.
-	 * @param {Object} [stack] Tracks traversed `object` and `other` objects.
-	 * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
-	 */
-	function baseIsEqualDeep(object, other, equalFunc, customizer, bitmask, stack) {
-	  var objIsArr = isArray(object),
-	      othIsArr = isArray(other),
-	      objTag = arrayTag,
-	      othTag = arrayTag;
-	
-	  if (!objIsArr) {
-	    objTag = getTag(object);
-	    objTag = objTag == argsTag ? objectTag : objTag;
-	  }
-	  if (!othIsArr) {
-	    othTag = getTag(other);
-	    othTag = othTag == argsTag ? objectTag : othTag;
-	  }
-	  var objIsObj = objTag == objectTag && !isHostObject(object),
-	      othIsObj = othTag == objectTag && !isHostObject(other),
-	      isSameTag = objTag == othTag;
-	
-	  if (isSameTag && !objIsObj) {
-	    stack || (stack = new Stack);
-	    return (objIsArr || isTypedArray(object))
-	      ? equalArrays(object, other, equalFunc, customizer, bitmask, stack)
-	      : equalByTag(object, other, objTag, equalFunc, customizer, bitmask, stack);
-	  }
-	  if (!(bitmask & PARTIAL_COMPARE_FLAG)) {
-	    var objIsWrapped = objIsObj && hasOwnProperty.call(object, '__wrapped__'),
-	        othIsWrapped = othIsObj && hasOwnProperty.call(other, '__wrapped__');
-	
-	    if (objIsWrapped || othIsWrapped) {
-	      var objUnwrapped = objIsWrapped ? object.value() : object,
-	          othUnwrapped = othIsWrapped ? other.value() : other;
-	
-	      stack || (stack = new Stack);
-	      return equalFunc(objUnwrapped, othUnwrapped, customizer, bitmask, stack);
-	    }
-	  }
-	  if (!isSameTag) {
-	    return false;
-	  }
-	  stack || (stack = new Stack);
-	  return equalObjects(object, other, equalFunc, customizer, bitmask, stack);
-	}
-	
-	module.exports = baseIsEqualDeep;
-
-
-/***/ },
-/* 368 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var SetCache = __webpack_require__(369),
-	    arraySome = __webpack_require__(372);
-	
-	/** Used to compose bitmasks for comparison styles. */
-	var UNORDERED_COMPARE_FLAG = 1,
-	    PARTIAL_COMPARE_FLAG = 2;
-	
-	/**
-	 * A specialized version of `baseIsEqualDeep` for arrays with support for
-	 * partial deep comparisons.
-	 *
-	 * @private
-	 * @param {Array} array The array to compare.
-	 * @param {Array} other The other array to compare.
-	 * @param {Function} equalFunc The function to determine equivalents of values.
-	 * @param {Function} customizer The function to customize comparisons.
-	 * @param {number} bitmask The bitmask of comparison flags. See `baseIsEqual`
-	 *  for more details.
-	 * @param {Object} stack Tracks traversed `array` and `other` objects.
-	 * @returns {boolean} Returns `true` if the arrays are equivalent, else `false`.
-	 */
-	function equalArrays(array, other, equalFunc, customizer, bitmask, stack) {
-	  var isPartial = bitmask & PARTIAL_COMPARE_FLAG,
-	      arrLength = array.length,
-	      othLength = other.length;
-	
-	  if (arrLength != othLength && !(isPartial && othLength > arrLength)) {
-	    return false;
-	  }
-	  // Assume cyclic values are equal.
-	  var stacked = stack.get(array);
-	  if (stacked && stack.get(other)) {
-	    return stacked == other;
-	  }
-	  var index = -1,
-	      result = true,
-	      seen = (bitmask & UNORDERED_COMPARE_FLAG) ? new SetCache : undefined;
-	
-	  stack.set(array, other);
-	  stack.set(other, array);
-	
-	  // Ignore non-index properties.
-	  while (++index < arrLength) {
-	    var arrValue = array[index],
-	        othValue = other[index];
-	
-	    if (customizer) {
-	      var compared = isPartial
-	        ? customizer(othValue, arrValue, index, other, array, stack)
-	        : customizer(arrValue, othValue, index, array, other, stack);
-	    }
-	    if (compared !== undefined) {
-	      if (compared) {
-	        continue;
-	      }
-	      result = false;
-	      break;
-	    }
-	    // Recursively compare arrays (susceptible to call stack limits).
-	    if (seen) {
-	      if (!arraySome(other, function(othValue, othIndex) {
-	            if (!seen.has(othIndex) &&
-	                (arrValue === othValue || equalFunc(arrValue, othValue, customizer, bitmask, stack))) {
-	              return seen.add(othIndex);
-	            }
-	          })) {
-	        result = false;
-	        break;
-	      }
-	    } else if (!(
-	          arrValue === othValue ||
-	            equalFunc(arrValue, othValue, customizer, bitmask, stack)
-	        )) {
-	      result = false;
-	      break;
-	    }
-	  }
-	  stack['delete'](array);
-	  stack['delete'](other);
-	  return result;
-	}
-	
-	module.exports = equalArrays;
-
-
-/***/ },
-/* 369 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var MapCache = __webpack_require__(351),
-	    setCacheAdd = __webpack_require__(370),
-	    setCacheHas = __webpack_require__(371);
-	
-	/**
-	 *
-	 * Creates an array cache object to store unique values.
-	 *
-	 * @private
-	 * @constructor
-	 * @param {Array} [values] The values to cache.
-	 */
-	function SetCache(values) {
-	  var index = -1,
-	      length = values ? values.length : 0;
-	
-	  this.__data__ = new MapCache;
-	  while (++index < length) {
-	    this.add(values[index]);
-	  }
-	}
-	
-	// Add methods to `SetCache`.
-	SetCache.prototype.add = SetCache.prototype.push = setCacheAdd;
-	SetCache.prototype.has = setCacheHas;
-	
-	module.exports = SetCache;
-
-
-/***/ },
-/* 370 */
-/***/ function(module, exports) {
-
-	/** Used to stand-in for `undefined` hash values. */
-	var HASH_UNDEFINED = '__lodash_hash_undefined__';
-	
-	/**
-	 * Adds `value` to the array cache.
-	 *
-	 * @private
-	 * @name add
-	 * @memberOf SetCache
-	 * @alias push
-	 * @param {*} value The value to cache.
-	 * @returns {Object} Returns the cache instance.
-	 */
-	function setCacheAdd(value) {
-	  this.__data__.set(value, HASH_UNDEFINED);
-	  return this;
-	}
-	
-	module.exports = setCacheAdd;
-
-
-/***/ },
-/* 371 */
-/***/ function(module, exports) {
-
-	/**
-	 * Checks if `value` is in the array cache.
-	 *
-	 * @private
-	 * @name has
-	 * @memberOf SetCache
-	 * @param {*} value The value to search for.
-	 * @returns {number} Returns `true` if `value` is found, else `false`.
-	 */
-	function setCacheHas(value) {
-	  return this.__data__.has(value);
-	}
-	
-	module.exports = setCacheHas;
-
-
-/***/ },
-/* 372 */
-/***/ function(module, exports) {
-
-	/**
-	 * A specialized version of `_.some` for arrays without support for iteratee
-	 * shorthands.
-	 *
-	 * @private
-	 * @param {Array} [array] The array to iterate over.
-	 * @param {Function} predicate The function invoked per iteration.
-	 * @returns {boolean} Returns `true` if any element passes the predicate check,
-	 *  else `false`.
-	 */
-	function arraySome(array, predicate) {
-	  var index = -1,
-	      length = array ? array.length : 0;
-	
-	  while (++index < length) {
-	    if (predicate(array[index], index, array)) {
-	      return true;
-	    }
-	  }
-	  return false;
-	}
-	
-	module.exports = arraySome;
-
-
-/***/ },
-/* 373 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Symbol = __webpack_require__(374),
-	    Uint8Array = __webpack_require__(375),
-	    eq = __webpack_require__(332),
-	    equalArrays = __webpack_require__(368),
-	    mapToArray = __webpack_require__(376),
-	    setToArray = __webpack_require__(377);
-	
-	/** Used to compose bitmasks for comparison styles. */
-	var UNORDERED_COMPARE_FLAG = 1,
-	    PARTIAL_COMPARE_FLAG = 2;
-	
-	/** `Object#toString` result references. */
-	var boolTag = '[object Boolean]',
-	    dateTag = '[object Date]',
-	    errorTag = '[object Error]',
-	    mapTag = '[object Map]',
-	    numberTag = '[object Number]',
-	    regexpTag = '[object RegExp]',
-	    setTag = '[object Set]',
-	    stringTag = '[object String]',
-	    symbolTag = '[object Symbol]';
-	
-	var arrayBufferTag = '[object ArrayBuffer]',
-	    dataViewTag = '[object DataView]';
-	
-	/** Used to convert symbols to primitives and strings. */
-	var symbolProto = Symbol ? Symbol.prototype : undefined,
-	    symbolValueOf = symbolProto ? symbolProto.valueOf : undefined;
-	
-	/**
-	 * A specialized version of `baseIsEqualDeep` for comparing objects of
-	 * the same `toStringTag`.
-	 *
-	 * **Note:** This function only supports comparing values with tags of
-	 * `Boolean`, `Date`, `Error`, `Number`, `RegExp`, or `String`.
-	 *
-	 * @private
-	 * @param {Object} object The object to compare.
-	 * @param {Object} other The other object to compare.
-	 * @param {string} tag The `toStringTag` of the objects to compare.
-	 * @param {Function} equalFunc The function to determine equivalents of values.
-	 * @param {Function} customizer The function to customize comparisons.
-	 * @param {number} bitmask The bitmask of comparison flags. See `baseIsEqual`
-	 *  for more details.
-	 * @param {Object} stack Tracks traversed `object` and `other` objects.
-	 * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
-	 */
-	function equalByTag(object, other, tag, equalFunc, customizer, bitmask, stack) {
-	  switch (tag) {
-	    case dataViewTag:
-	      if ((object.byteLength != other.byteLength) ||
-	          (object.byteOffset != other.byteOffset)) {
-	        return false;
-	      }
-	      object = object.buffer;
-	      other = other.buffer;
-	
-	    case arrayBufferTag:
-	      if ((object.byteLength != other.byteLength) ||
-	          !equalFunc(new Uint8Array(object), new Uint8Array(other))) {
-	        return false;
-	      }
-	      return true;
-	
-	    case boolTag:
-	    case dateTag:
-	    case numberTag:
-	      // Coerce booleans to `1` or `0` and dates to milliseconds.
-	      // Invalid dates are coerced to `NaN`.
-	      return eq(+object, +other);
-	
-	    case errorTag:
-	      return object.name == other.name && object.message == other.message;
-	
-	    case regexpTag:
-	    case stringTag:
-	      // Coerce regexes to strings and treat strings, primitives and objects,
-	      // as equal. See http://www.ecma-international.org/ecma-262/7.0/#sec-regexp.prototype.tostring
-	      // for more details.
-	      return object == (other + '');
-	
-	    case mapTag:
-	      var convert = mapToArray;
-	
-	    case setTag:
-	      var isPartial = bitmask & PARTIAL_COMPARE_FLAG;
-	      convert || (convert = setToArray);
-	
-	      if (object.size != other.size && !isPartial) {
-	        return false;
-	      }
-	      // Assume cyclic values are equal.
-	      var stacked = stack.get(object);
-	      if (stacked) {
-	        return stacked == other;
-	      }
-	      bitmask |= UNORDERED_COMPARE_FLAG;
-	
-	      // Recursively compare objects (susceptible to call stack limits).
-	      stack.set(object, other);
-	      var result = equalArrays(convert(object), convert(other), equalFunc, customizer, bitmask, stack);
-	      stack['delete'](object);
-	      return result;
-	
-	    case symbolTag:
-	      if (symbolValueOf) {
-	        return symbolValueOf.call(object) == symbolValueOf.call(other);
-	      }
-	  }
-	  return false;
-	}
-	
-	module.exports = equalByTag;
-
-
-/***/ },
-/* 374 */,
-/* 375 */,
-/* 376 */,
-/* 377 */,
-/* 378 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var keys = __webpack_require__(307);
-	
-	/** Used to compose bitmasks for comparison styles. */
-	var PARTIAL_COMPARE_FLAG = 2;
-	
-	/** Used for built-in method references. */
-	var objectProto = Object.prototype;
-	
-	/** Used to check objects for own properties. */
-	var hasOwnProperty = objectProto.hasOwnProperty;
-	
-	/**
-	 * A specialized version of `baseIsEqualDeep` for objects with support for
-	 * partial deep comparisons.
-	 *
-	 * @private
-	 * @param {Object} object The object to compare.
-	 * @param {Object} other The other object to compare.
-	 * @param {Function} equalFunc The function to determine equivalents of values.
-	 * @param {Function} customizer The function to customize comparisons.
-	 * @param {number} bitmask The bitmask of comparison flags. See `baseIsEqual`
-	 *  for more details.
-	 * @param {Object} stack Tracks traversed `object` and `other` objects.
-	 * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
-	 */
-	function equalObjects(object, other, equalFunc, customizer, bitmask, stack) {
-	  var isPartial = bitmask & PARTIAL_COMPARE_FLAG,
-	      objProps = keys(object),
-	      objLength = objProps.length,
-	      othProps = keys(other),
-	      othLength = othProps.length;
-	
-	  if (objLength != othLength && !isPartial) {
-	    return false;
-	  }
-	  var index = objLength;
-	  while (index--) {
-	    var key = objProps[index];
-	    if (!(isPartial ? key in other : hasOwnProperty.call(other, key))) {
-	      return false;
-	    }
-	  }
-	  // Assume cyclic values are equal.
-	  var stacked = stack.get(object);
-	  if (stacked && stack.get(other)) {
-	    return stacked == other;
-	  }
-	  var result = true;
-	  stack.set(object, other);
-	  stack.set(other, object);
-	
-	  var skipCtor = isPartial;
-	  while (++index < objLength) {
-	    key = objProps[index];
-	    var objValue = object[key],
-	        othValue = other[key];
-	
-	    if (customizer) {
-	      var compared = isPartial
-	        ? customizer(othValue, objValue, key, other, object, stack)
-	        : customizer(objValue, othValue, key, object, other, stack);
-	    }
-	    // Recursively compare objects (susceptible to call stack limits).
-	    if (!(compared === undefined
-	          ? (objValue === othValue || equalFunc(objValue, othValue, customizer, bitmask, stack))
-	          : compared
-	        )) {
-	      result = false;
-	      break;
-	    }
-	    skipCtor || (skipCtor = key == 'constructor');
-	  }
-	  if (result && !skipCtor) {
-	    var objCtor = object.constructor,
-	        othCtor = other.constructor;
-	
-	    // Non `Object` object instances with different constructors are not equal.
-	    if (objCtor != othCtor &&
-	        ('constructor' in object && 'constructor' in other) &&
-	        !(typeof objCtor == 'function' && objCtor instanceof objCtor &&
-	          typeof othCtor == 'function' && othCtor instanceof othCtor)) {
-	      result = false;
-	    }
-	  }
-	  stack['delete'](object);
-	  stack['delete'](other);
-	  return result;
-	}
-	
-	module.exports = equalObjects;
-
-
-/***/ },
-/* 379 */,
-/* 380 */,
-/* 381 */,
-/* 382 */,
-/* 383 */,
-/* 384 */,
-/* 385 */,
-/* 386 */,
-/* 387 */,
-/* 388 */,
-/* 389 */,
-/* 390 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var isStrictComparable = __webpack_require__(391),
-	    keys = __webpack_require__(307);
-	
-	/**
-	 * Gets the property names, values, and compare flags of `object`.
-	 *
-	 * @private
-	 * @param {Object} object The object to query.
-	 * @returns {Array} Returns the match data of `object`.
-	 */
-	function getMatchData(object) {
-	  var result = keys(object),
-	      length = result.length;
-	
-	  while (length--) {
-	    var key = result[length],
-	        value = object[key];
-	
-	    result[length] = [key, value, isStrictComparable(value)];
-	  }
-	  return result;
-	}
-	
-	module.exports = getMatchData;
-
-
-/***/ },
-/* 391 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var isObject = __webpack_require__(314);
-	
-	/**
-	 * Checks if `value` is suitable for strict equality comparisons, i.e. `===`.
-	 *
-	 * @private
-	 * @param {*} value The value to check.
-	 * @returns {boolean} Returns `true` if `value` if suitable for strict
-	 *  equality comparisons, else `false`.
-	 */
-	function isStrictComparable(value) {
-	  return value === value && !isObject(value);
-	}
-	
-	module.exports = isStrictComparable;
-
-
-/***/ },
-/* 392 */
-/***/ function(module, exports) {
-
-	/**
-	 * A specialized version of `matchesProperty` for source values suitable
-	 * for strict equality comparisons, i.e. `===`.
-	 *
-	 * @private
-	 * @param {string} key The key of the property to get.
-	 * @param {*} srcValue The value to match.
-	 * @returns {Function} Returns the new spec function.
-	 */
-	function matchesStrictComparable(key, srcValue) {
-	  return function(object) {
-	    if (object == null) {
-	      return false;
-	    }
-	    return object[key] === srcValue &&
-	      (srcValue !== undefined || (key in Object(object)));
-	  };
-	}
-	
-	module.exports = matchesStrictComparable;
-
-
-/***/ },
-/* 393 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var baseIsEqual = __webpack_require__(366),
-	    get = __webpack_require__(394),
-	    hasIn = __webpack_require__(404),
-	    isKey = __webpack_require__(402),
-	    isStrictComparable = __webpack_require__(391),
-	    matchesStrictComparable = __webpack_require__(392),
-	    toKey = __webpack_require__(403);
-	
-	/** Used to compose bitmasks for comparison styles. */
-	var UNORDERED_COMPARE_FLAG = 1,
-	    PARTIAL_COMPARE_FLAG = 2;
-	
-	/**
-	 * The base implementation of `_.matchesProperty` which doesn't clone `srcValue`.
-	 *
-	 * @private
-	 * @param {string} path The path of the property to get.
-	 * @param {*} srcValue The value to match.
-	 * @returns {Function} Returns the new spec function.
-	 */
-	function baseMatchesProperty(path, srcValue) {
-	  if (isKey(path) && isStrictComparable(srcValue)) {
-	    return matchesStrictComparable(toKey(path), srcValue);
-	  }
-	  return function(object) {
-	    var objValue = get(object, path);
-	    return (objValue === undefined && objValue === srcValue)
-	      ? hasIn(object, path)
-	      : baseIsEqual(srcValue, objValue, undefined, UNORDERED_COMPARE_FLAG | PARTIAL_COMPARE_FLAG);
-	  };
-	}
-	
-	module.exports = baseMatchesProperty;
-
-
-/***/ },
-/* 394 */,
-/* 395 */,
-/* 396 */,
-/* 397 */,
-/* 398 */,
-/* 399 */,
-/* 400 */,
-/* 401 */,
-/* 402 */,
-/* 403 */,
-/* 404 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var baseHasIn = __webpack_require__(405),
-	    hasPath = __webpack_require__(406);
-	
-	/**
-	 * Checks if `path` is a direct or inherited property of `object`.
-	 *
-	 * @static
-	 * @memberOf _
-	 * @since 4.0.0
-	 * @category Object
-	 * @param {Object} object The object to query.
-	 * @param {Array|string} path The path to check.
-	 * @returns {boolean} Returns `true` if `path` exists, else `false`.
-	 * @example
-	 *
-	 * var object = _.create({ 'a': _.create({ 'b': 2 }) });
-	 *
-	 * _.hasIn(object, 'a');
-	 * // => true
-	 *
-	 * _.hasIn(object, 'a.b');
-	 * // => true
-	 *
-	 * _.hasIn(object, ['a', 'b']);
-	 * // => true
-	 *
-	 * _.hasIn(object, 'b');
-	 * // => false
-	 */
-	function hasIn(object, path) {
-	  return object != null && hasPath(object, path, baseHasIn);
-	}
-	
-	module.exports = hasIn;
-
-
-/***/ },
-/* 405 */
-/***/ function(module, exports) {
-
-	/**
-	 * The base implementation of `_.hasIn` without support for deep paths.
-	 *
-	 * @private
-	 * @param {Object} [object] The object to query.
-	 * @param {Array|string} key The key to check.
-	 * @returns {boolean} Returns `true` if `key` exists, else `false`.
-	 */
-	function baseHasIn(object, key) {
-	  return object != null && key in Object(object);
-	}
-	
-	module.exports = baseHasIn;
-
-
-/***/ },
-/* 406 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var castPath = __webpack_require__(396),
-	    isArguments = __webpack_require__(310),
-	    isArray = __webpack_require__(317),
-	    isIndex = __webpack_require__(318),
-	    isKey = __webpack_require__(402),
-	    isLength = __webpack_require__(315),
-	    toKey = __webpack_require__(403);
-	
-	/**
-	 * Checks if `path` exists on `object`.
-	 *
-	 * @private
-	 * @param {Object} object The object to query.
-	 * @param {Array|string} path The path to check.
-	 * @param {Function} hasFunc The function to check properties.
-	 * @returns {boolean} Returns `true` if `path` exists, else `false`.
-	 */
-	function hasPath(object, path, hasFunc) {
-	  path = isKey(path, object) ? [path] : castPath(path);
-	
-	  var result,
-	      index = -1,
-	      length = path.length;
-	
-	  while (++index < length) {
-	    var key = toKey(path[index]);
-	    if (!(result = object != null && hasFunc(object, key))) {
-	      break;
-	    }
-	    object = object[key];
-	  }
-	  if (result) {
-	    return result;
-	  }
-	  var length = object ? object.length : 0;
-	  return !!length && isLength(length) && isIndex(key, length) &&
-	    (isArray(object) || isArguments(object));
-	}
-	
-	module.exports = hasPath;
-
-
-/***/ },
-/* 407 */
-/***/ function(module, exports) {
-
-	/**
-	 * This method returns the first argument it receives.
-	 *
-	 * @static
-	 * @since 0.1.0
-	 * @memberOf _
-	 * @category Util
-	 * @param {*} value Any value.
-	 * @returns {*} Returns `value`.
-	 * @example
-	 *
-	 * var object = { 'a': 1 };
-	 *
-	 * console.log(_.identity(object) === object);
-	 * // => true
-	 */
-	function identity(value) {
-	  return value;
-	}
-	
-	module.exports = identity;
-
-
-/***/ },
-/* 408 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var baseProperty = __webpack_require__(409),
-	    basePropertyDeep = __webpack_require__(410),
-	    isKey = __webpack_require__(402),
-	    toKey = __webpack_require__(403);
-	
-	/**
-	 * Creates a function that returns the value at `path` of a given object.
-	 *
-	 * @static
-	 * @memberOf _
-	 * @since 2.4.0
-	 * @category Util
-	 * @param {Array|string} path The path of the property to get.
-	 * @returns {Function} Returns the new accessor function.
-	 * @example
-	 *
-	 * var objects = [
-	 *   { 'a': { 'b': 2 } },
-	 *   { 'a': { 'b': 1 } }
-	 * ];
-	 *
-	 * _.map(objects, _.property('a.b'));
-	 * // => [2, 1]
-	 *
-	 * _.map(_.sortBy(objects, _.property(['a', 'b'])), 'a.b');
-	 * // => [1, 2]
-	 */
-	function property(path) {
-	  return isKey(path) ? baseProperty(toKey(path)) : basePropertyDeep(path);
-	}
-	
-	module.exports = property;
-
-
-/***/ },
-/* 409 */
-/***/ function(module, exports) {
-
-	/**
-	 * The base implementation of `_.property` without support for deep paths.
-	 *
-	 * @private
-	 * @param {string} key The key of the property to get.
-	 * @returns {Function} Returns the new accessor function.
-	 */
-	function baseProperty(key) {
-	  return function(object) {
-	    return object == null ? undefined : object[key];
-	  };
-	}
-	
-	module.exports = baseProperty;
-
-
-/***/ },
-/* 410 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var baseGet = __webpack_require__(395);
-	
-	/**
-	 * A specialized version of `baseProperty` which supports deep paths.
-	 *
-	 * @private
-	 * @param {Array|string} path The path of the property to get.
-	 * @returns {Function} Returns the new accessor function.
-	 */
-	function basePropertyDeep(path) {
-	  return function(object) {
-	    return baseGet(object, path);
-	  };
-	}
-	
-	module.exports = basePropertyDeep;
-
-
-/***/ },
-/* 411 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var _defineProperty2 = __webpack_require__(412);
-	
-	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
-	
-	var _slicedToArray2 = __webpack_require__(431);
-	
-	var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
-	
-	var _promise = __webpack_require__(473);
-	
-	var _promise2 = _interopRequireDefault(_promise);
-	
-	var _stringify = __webpack_require__(488);
-	
-	var _stringify2 = _interopRequireDefault(_stringify);
-	
-	var _initialState;
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	__webpack_require__(1);
-	
-	var React = __webpack_require__(490);
-	var ReactDOM = __webpack_require__(522);
-	
-	var _require = __webpack_require__(660);
-	
-	var Provider = _require.Provider;
-	var connect = _require.connect;
-	
-	var classnames = __webpack_require__(681);
-	var get = __webpack_require__(394);
-	
-	var _require2 = __webpack_require__(682);
-	
-	var reduceIn = _require2.reduceIn;
-	
-	
-	var fetch = __webpack_require__(727)({
-	    Promise: __webpack_require__(299)
-	});
-	
-	var jsonDecode = __webpack_require__(728);
-	
-	var _require3 = __webpack_require__(729);
-	
-	var DECK_ID = _require3.DECK_ID;
-	var ERROR = _require3.ERROR;
-	var ERROR_MESSAGE = _require3.ERROR_MESSAGE;
-	
-	
-	var CONFIRM_MOVE = 'CONFIRM_MOVE';
-	var MOVE_TO = 'MOVE_TO';
-	var SUBMITTING = 'SUBMITTING';
-	
-	/* react components */
-	
-	var ErrorComponent = __webpack_require__(730);
-	
-	var __MoveButton = function __MoveButton(props) {
-	    var dispatch = props.dispatch;
-	    var submitting = props.submitting;
-	
-	
-	    if (props.shouldConfirmMove) {
-	        return React.createElement(
-	            'a',
-	            {
-	                className: classnames('button is-bold is-outlined', {
-	                    'is-disabled': submitting,
-	                    'is-loading': submitting
-	                }),
-	                onClick: confirmMove(dispatch, false)
-	            },
-	            'Cancel'
-	        );
-	    }
-	
-	    return React.createElement(
-	        'a',
-	        {
-	            className: classnames('button is-primary is-bold is-outlined', {
-	                'is-disabled': submitting,
-	                'is-loading': submitting
-	            }),
-	            onClick: confirmMove(dispatch, true)
-	        },
-	        'Move to this deck'
-	    );
-	};
-	
-	if (true) {
-	    __MoveButton.propTypes = {
-	        shouldConfirmMove: React.PropTypes.bool.isRequired,
-	        submitting: React.PropTypes.bool.isRequired,
-	        dispatch: React.PropTypes.func.isRequired
-	    };
-	}
-	
-	var MoveButton = connect(
-	// mapStateToProps
-	function (state) {
-	    return {
-	        shouldConfirmMove: state[CONFIRM_MOVE],
-	        submitting: state[SUBMITTING]
-	    };
-	})(__MoveButton);
-	
-	var __LeftSideMoveButton = function __LeftSideMoveButton(props) {
-	
-	    if (!props.shouldConfirmMove) {
-	        return null;
-	    }
-	
-	    var submitting = props.submitting;
-	
-	
-	    var onClick = function onClick(event) {
-	        event.preventDefault();
-	        moveCard(props.dispatch, props.moveURL, props.deckID, submitting);
-	    };
-	
-	    return React.createElement(
-	        'a',
-	        {
-	            className: classnames('button is-bold is-danger', {
-	                'is-disabled': submitting,
-	                'is-loading': submitting
-	            }),
-	            onClick: onClick
-	        },
-	        'Move'
-	    );
-	};
-	
-	if (true) {
-	    __LeftSideMoveButton.propTypes = {
-	        shouldConfirmMove: React.PropTypes.bool.isRequired,
-	        submitting: React.PropTypes.bool.isRequired,
-	        dispatch: React.PropTypes.func.isRequired,
-	        moveURL: React.PropTypes.string.isRequired,
-	        deckID: React.PropTypes.number.isRequired
-	    };
-	}
-	
-	var LeftSideMoveButton = connect(
-	// mapStateToProps
-	function (state) {
-	    return {
-	        shouldConfirmMove: state[CONFIRM_MOVE],
-	        submitting: state[SUBMITTING],
-	        moveURL: state[MOVE_TO],
-	        deckID: state[DECK_ID]
-	    };
-	})(__LeftSideMoveButton);
-	
-	var __ErrorMoveButton = function __ErrorMoveButton(props) {
-	    var dispatch = props.dispatch;
-	    var error = props.error;
-	
-	
-	    return React.createElement(ErrorComponent, { error: error && error.message || '', onConfirm: confirmError(dispatch) });
-	};
-	
-	if (true) {
-	    __ErrorMoveButton.propTypes = {
-	        dispatch: React.PropTypes.func.isRequired,
-	        error: React.PropTypes.object.isRequired
-	    };
-	}
-	
-	var ErrorMoveButton = connect(
-	// mapStateToProps
-	function (state) {
-	    return {
-	        error: state[ERROR]
-	    };
-	})(__ErrorMoveButton);
-	
-	/* redux action dispatchers */
-	// NOTE: FSA compliant
-	
-	var confirmError = function confirmError(dispatch) {
-	    return function (event) {
-	        event.preventDefault();
-	        dispatch(reduceIn(
-	        // reducer
-	        errorReducer,
-	        // path
-	        [ERROR],
-	        // action
-	        {
-	            type: ERROR_MESSAGE,
-	            payload: ''
-	        }));
-	    };
-	};
-	
-	var defaultRESTError = 'Unable to move card. Please try again.';
-	var moveCard = function moveCard(dispatch, moveURL, deckID) {
-	    var submitting = arguments.length <= 3 || arguments[3] === undefined ? true : arguments[3];
-	
-	
-	    if (submitting) {
-	        return;
-	    }
-	
-	    dispatch(reduceIn(
-	    // reducer
-	    boolReducer,
-	    // path
-	    [SUBMITTING],
-	    // action
-	    {
-	        type: true
-	    }));
-	
-	    var moveRequest = {
-	        deck_id: deckID
-	    };
-	
-	    fetch(moveURL, {
-	        method: 'POST',
-	        headers: {
-	            'Accept': 'application/json',
-	            'Content-Type': 'application/json'
-	        },
-	        body: (0, _stringify2.default)(moveRequest)
-	    }).then(function (response) {
-	        return _promise2.default.all([response.status, jsonDecode(response)]);
-	    }).then(function (_ref) {
-	        var _ref2 = (0, _slicedToArray3.default)(_ref, 2);
-	
-	        var statusCode = _ref2[0];
-	        var jsonResponse = _ref2[1];
-	
-	
-	        dispatch(reduceIn(
-	        // reducer
-	        boolReducer,
-	        // path
-	        [SUBMITTING],
-	        // action
-	        {
-	            type: false
-	        }));
-	
-	        switch (statusCode) {
-	            case 500: // Internal Server Error
-	            case 400:
-	                // Bad Request
-	
-	                dispatch(reduceIn(
-	                // reducer
-	                errorReducer,
-	                // path
-	                [ERROR],
-	                // action
-	                {
-	                    type: ERROR_MESSAGE,
-	                    payload: get(jsonResponse, ['error'], defaultRESTError)
-	                }));
-	
-	                return;
-	                break;
-	            case 200:
-	                // Ok
-	
-	                window.location.href = jsonResponse.payload.redirect_to;
-	
-	                return;
-	                break;
-	
-	            default:
-	                // Unexpected http status code
-	                dispatch(reduceIn(
-	                // reducer
-	                errorReducer,
-	                // path
-	                [ERROR],
-	                // action
-	                {
-	                    type: ERROR_MESSAGE,
-	                    payload: get(jsonResponse, ['error'], defaultRESTError)
-	                }));
-	        }
-	    }).catch(function () /*err*/{
-	
-	        // any other errors
-	        // console.log('err:', err);
-	
-	        dispatch(reduceIn(
-	        // reducer
-	        boolReducer,
-	        // path
-	        [SUBMITTING],
-	        // action
-	        {
-	            type: false
-	        }));
-	
-	        dispatch(reduceIn(
-	        // reducer
-	        errorReducer,
-	        // path
-	        [ERROR],
-	        // action
-	        {
-	            type: ERROR_MESSAGE,
-	            payload: defaultRESTError
-	        }));
-	    });
-	};
-	
-	var confirmMove = function confirmMove(dispatch) {
-	    var confirm = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
-	
-	    return function (event) {
-	        event.preventDefault();
-	        dispatch(reduceIn(
-	        // reducer
-	        boolReducer,
-	        // path
-	        [CONFIRM_MOVE],
-	        // action
-	        {
-	            type: confirm
-	        }));
-	    };
-	};
-	
-	/* redux reducers */
-	
-	var boolReducer = __webpack_require__(731);
-	var errorReducer = __webpack_require__(732);
-	
-	/* default state */
-	
-	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, DECK_ID, 0), (0, _defineProperty3.default)(_initialState, MOVE_TO, ''), (0, _defineProperty3.default)(_initialState, CONFIRM_MOVE, false), (0, _defineProperty3.default)(_initialState, SUBMITTING, false), (0, _defineProperty3.default)(_initialState, ERROR, errorReducer()), _initialState);
-	
-	/* exports */
-	
-	var createStore = __webpack_require__(733);
-	
-	module.exports = function (elem, deckID, moveTo) {
-	
-	    var cloneDeep = __webpack_require__(736);
-	
-	    var __initialState = cloneDeep(initialState);
-	
-	    __initialState[DECK_ID] = Number(deckID);
-	    __initialState[MOVE_TO] = String(moveTo);
-	
-	    var store = createStore(__initialState);
-	
-	    ReactDOM.render(React.createElement(
-	        Provider,
-	        { store: store },
-	        React.createElement(MoveButton, null)
-	    ), elem);
-	
-	    ReactDOM.render(React.createElement(
-	        Provider,
-	        { store: store },
-	        React.createElement(LeftSideMoveButton, null)
-	    ), document.getElementById('' + deckID + '-confirm'));
-	
-	    ReactDOM.render(React.createElement(
-	        Provider,
-	        { store: store },
-	        React.createElement(ErrorMoveButton, null)
-	    ), document.getElementById('' + deckID + '-error'));
-	};
-
-/***/ },
-/* 412 */
+/* 301 */,
+/* 302 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
 	exports.__esModule = true;
 	
-	var _defineProperty = __webpack_require__(413);
+	var _defineProperty = __webpack_require__(303);
 	
 	var _defineProperty2 = _interopRequireDefault(_defineProperty);
 	
@@ -1993,31 +358,31 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 413 */
+/* 303 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(414), __esModule: true };
+	module.exports = { "default": __webpack_require__(304), __esModule: true };
 
 /***/ },
-/* 414 */
+/* 304 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(415);
-	var $Object = __webpack_require__(418).Object;
+	__webpack_require__(305);
+	var $Object = __webpack_require__(308).Object;
 	module.exports = function defineProperty(it, key, desc){
 	  return $Object.defineProperty(it, key, desc);
 	};
 
 /***/ },
-/* 415 */
-[955, 416, 426, 422],
-/* 416 */
+/* 305 */
+[957, 306, 316, 312],
+/* 306 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var global    = __webpack_require__(417)
-	  , core      = __webpack_require__(418)
-	  , ctx       = __webpack_require__(419)
-	  , hide      = __webpack_require__(421)
+	var global    = __webpack_require__(307)
+	  , core      = __webpack_require__(308)
+	  , ctx       = __webpack_require__(309)
+	  , hide      = __webpack_require__(311)
 	  , PROTOTYPE = 'prototype';
 	
 	var $export = function(type, name, source){
@@ -2077,46 +442,46 @@ webpackJsonp([0],[
 	module.exports = $export;
 
 /***/ },
-/* 417 */
+/* 307 */
 5,
-/* 418 */
+/* 308 */
 10,
-/* 419 */
-[930, 420],
-/* 420 */
+/* 309 */
+[932, 310],
+/* 310 */
 22,
-/* 421 */
-[924, 422, 430, 426],
-/* 422 */
-[925, 423, 425, 429, 426],
-/* 423 */
-[926, 424],
-/* 424 */
+/* 311 */
+[926, 312, 320, 316],
+/* 312 */
+[927, 313, 315, 319, 316],
+/* 313 */
+[928, 314],
+/* 314 */
 14,
-/* 425 */
-[927, 426, 427, 428],
-/* 426 */
-[923, 427],
-/* 427 */
+/* 315 */
+[929, 316, 317, 318],
+/* 316 */
+[925, 317],
+/* 317 */
 8,
-/* 428 */
-[928, 424, 417],
-/* 429 */
-[929, 424],
-/* 430 */
+/* 318 */
+[930, 314, 307],
+/* 319 */
+[931, 314],
+/* 320 */
 18,
-/* 431 */
+/* 321 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
 	exports.__esModule = true;
 	
-	var _isIterable2 = __webpack_require__(432);
+	var _isIterable2 = __webpack_require__(322);
 	
 	var _isIterable3 = _interopRequireDefault(_isIterable2);
 	
-	var _getIterator2 = __webpack_require__(469);
+	var _getIterator2 = __webpack_require__(359);
 	
 	var _getIterator3 = _interopRequireDefault(_getIterator2);
 	
@@ -2161,28 +526,28 @@ webpackJsonp([0],[
 	}();
 
 /***/ },
-/* 432 */
+/* 322 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(433), __esModule: true };
+	module.exports = { "default": __webpack_require__(323), __esModule: true };
 
 /***/ },
-/* 433 */
+/* 323 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(434);
-	__webpack_require__(465);
-	module.exports = __webpack_require__(467);
+	__webpack_require__(324);
+	__webpack_require__(355);
+	module.exports = __webpack_require__(357);
 
 /***/ },
-/* 434 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(435);
-	var global        = __webpack_require__(417)
-	  , hide          = __webpack_require__(421)
-	  , Iterators     = __webpack_require__(438)
-	  , TO_STRING_TAG = __webpack_require__(462)('toStringTag');
+	__webpack_require__(325);
+	var global        = __webpack_require__(307)
+	  , hide          = __webpack_require__(311)
+	  , Iterators     = __webpack_require__(328)
+	  , TO_STRING_TAG = __webpack_require__(352)('toStringTag');
 	
 	for(var collections = ['NodeList', 'DOMTokenList', 'MediaList', 'StyleSheetList', 'CSSRuleList'], i = 0; i < 5; i++){
 	  var NAME       = collections[i]
@@ -2193,89 +558,89 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 435 */
-[973, 436, 437, 438, 439, 443],
-/* 436 */
+/* 325 */
+[975, 326, 327, 328, 329, 333],
+/* 326 */
 /***/ function(module, exports) {
 
 	module.exports = function(){ /* empty */ };
 
 /***/ },
-/* 437 */
+/* 327 */
 195,
-/* 438 */
+/* 328 */
 130,
-/* 439 */
-[940, 440, 442],
-/* 440 */
-[941, 441],
-/* 441 */
+/* 329 */
+[942, 330, 332],
+/* 330 */
+[943, 331],
+/* 331 */
 35,
-/* 442 */
+/* 332 */
 36,
-/* 443 */
-[967, 444, 416, 445, 421, 446, 438, 447, 461, 463, 462],
-/* 444 */
+/* 333 */
+[969, 334, 306, 335, 311, 336, 328, 337, 351, 353, 352],
+/* 334 */
 /***/ function(module, exports) {
 
 	module.exports = true;
 
 /***/ },
-/* 445 */
+/* 335 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(421);
+	module.exports = __webpack_require__(311);
 
 /***/ },
-/* 446 */
+/* 336 */
 6,
-/* 447 */
-[968, 448, 430, 461, 421, 462],
-/* 448 */
-[948, 423, 449, 459, 456, 428, 460],
-/* 449 */
-[949, 422, 423, 450, 426],
-/* 450 */
-[938, 451, 459],
-/* 451 */
-[939, 446, 439, 452, 456],
-/* 452 */
-[942, 439, 453, 455],
-/* 453 */
-[943, 454],
-/* 454 */
+/* 337 */
+[970, 338, 320, 351, 311, 352],
+/* 338 */
+[950, 313, 339, 349, 346, 318, 350],
+/* 339 */
+[951, 312, 313, 340, 316],
+/* 340 */
+[940, 341, 349],
+/* 341 */
+[941, 336, 329, 342, 346],
+/* 342 */
+[944, 329, 343, 345],
+/* 343 */
+[945, 344],
+/* 344 */
 39,
-/* 455 */
-[944, 454],
-/* 456 */
-[945, 457, 458],
-/* 457 */
-[932, 417],
-/* 458 */
+/* 345 */
+[946, 344],
+/* 346 */
+[947, 347, 348],
+/* 347 */
+[934, 307],
+/* 348 */
 20,
-/* 459 */
+/* 349 */
 42,
-/* 460 */
-[950, 417],
-/* 461 */
-[933, 422, 446, 462],
-/* 462 */
-[934, 457, 458, 417],
-/* 463 */
-[959, 446, 464, 456],
-/* 464 */
-[958, 442],
-/* 465 */
-[965, 466, 443],
-/* 466 */
-[966, 454, 442],
-/* 467 */
+/* 350 */
+[952, 307],
+/* 351 */
+[935, 312, 336, 352],
+/* 352 */
+[936, 347, 348, 307],
+/* 353 */
+[961, 336, 354, 346],
+/* 354 */
+[960, 332],
+/* 355 */
+[967, 356, 333],
+/* 356 */
+[968, 344, 332],
+/* 357 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var classof   = __webpack_require__(468)
-	  , ITERATOR  = __webpack_require__(462)('iterator')
-	  , Iterators = __webpack_require__(438);
-	module.exports = __webpack_require__(418).isIterable = function(it){
+	var classof   = __webpack_require__(358)
+	  , ITERATOR  = __webpack_require__(352)('iterator')
+	  , Iterators = __webpack_require__(328);
+	module.exports = __webpack_require__(308).isIterable = function(it){
 	  var O = Object(it);
 	  return O[ITERATOR] !== undefined
 	    || '@@iterator' in O
@@ -2283,80 +648,80 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 468 */
-[964, 441, 462],
-/* 469 */
+/* 358 */
+[966, 331, 352],
+/* 359 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(470), __esModule: true };
+	module.exports = { "default": __webpack_require__(360), __esModule: true };
 
 /***/ },
-/* 470 */
+/* 360 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(434);
-	__webpack_require__(465);
-	module.exports = __webpack_require__(471);
+	__webpack_require__(324);
+	__webpack_require__(355);
+	module.exports = __webpack_require__(361);
 
 /***/ },
-/* 471 */
+/* 361 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var anObject = __webpack_require__(423)
-	  , get      = __webpack_require__(472);
-	module.exports = __webpack_require__(418).getIterator = function(it){
+	var anObject = __webpack_require__(313)
+	  , get      = __webpack_require__(362);
+	module.exports = __webpack_require__(308).getIterator = function(it){
 	  var iterFn = get(it);
 	  if(typeof iterFn != 'function')throw TypeError(it + ' is not iterable!');
 	  return anObject(iterFn.call(it));
 	};
 
 /***/ },
-/* 472 */
-[971, 468, 462, 438, 418],
-/* 473 */
+/* 362 */
+[973, 358, 352, 328, 308],
+/* 363 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = { "default": __webpack_require__(474), __esModule: true };
+	module.exports = { "default": __webpack_require__(364), __esModule: true };
 
 /***/ },
-/* 474 */
+/* 364 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(475);
-	__webpack_require__(465);
-	__webpack_require__(434);
-	__webpack_require__(476);
-	module.exports = __webpack_require__(418).Promise;
+	__webpack_require__(365);
+	__webpack_require__(355);
+	__webpack_require__(324);
+	__webpack_require__(366);
+	module.exports = __webpack_require__(308).Promise;
 
 /***/ },
-/* 475 */
+/* 365 */
 /***/ function(module, exports) {
 
 
 
 /***/ },
-/* 476 */
-[974, 444, 417, 419, 468, 416, 424, 420, 477, 478, 481, 482, 484, 462, 485, 461, 486, 418, 487],
-/* 477 */
+/* 366 */
+[976, 334, 307, 309, 358, 306, 314, 310, 367, 368, 371, 372, 374, 352, 375, 351, 376, 308, 377],
+/* 367 */
 206,
-/* 478 */
-[975, 419, 479, 480, 423, 453, 472],
-/* 479 */
-[969, 423],
-/* 480 */
-[970, 438, 462],
-/* 481 */
-[976, 423, 420, 462],
-/* 482 */
-[977, 419, 483, 460, 428, 417, 441],
-/* 483 */
+/* 368 */
+[977, 309, 369, 370, 313, 343, 362],
+/* 369 */
+[971, 313],
+/* 370 */
+[972, 328, 352],
+/* 371 */
+[978, 313, 310, 352],
+/* 372 */
+[979, 309, 373, 350, 318, 307, 331],
+/* 373 */
 79,
-/* 484 */
-[978, 417, 482, 441],
-/* 485 */
+/* 374 */
+[980, 307, 372, 331],
+/* 375 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var hide = __webpack_require__(421);
+	var hide = __webpack_require__(311);
 	module.exports = function(target, src, safe){
 	  for(var key in src){
 	    if(safe && target[key])target[key] = src[key];
@@ -2365,15 +730,15 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 486 */
+/* 376 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var global      = __webpack_require__(417)
-	  , core        = __webpack_require__(418)
-	  , dP          = __webpack_require__(422)
-	  , DESCRIPTORS = __webpack_require__(426)
-	  , SPECIES     = __webpack_require__(462)('species');
+	var global      = __webpack_require__(307)
+	  , core        = __webpack_require__(308)
+	  , dP          = __webpack_require__(312)
+	  , DESCRIPTORS = __webpack_require__(316)
+	  , SPECIES     = __webpack_require__(352)('species');
 	
 	module.exports = function(KEY){
 	  var C = typeof core[KEY] == 'function' ? core[KEY] : global[KEY];
@@ -2384,24 +749,120 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 487 */
-[972, 462],
-/* 488 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(489), __esModule: true };
-
-/***/ },
-/* 489 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var core  = __webpack_require__(418)
-	  , $JSON = core.JSON || (core.JSON = {stringify: JSON.stringify});
-	module.exports = function stringify(it){ // eslint-disable-line no-unused-vars
-	  return $JSON.stringify.apply($JSON, arguments);
-	};
-
-/***/ },
+/* 377 */
+[974, 352],
+/* 378 */,
+/* 379 */,
+/* 380 */,
+/* 381 */,
+/* 382 */,
+/* 383 */,
+/* 384 */,
+/* 385 */,
+/* 386 */,
+/* 387 */,
+/* 388 */,
+/* 389 */,
+/* 390 */,
+/* 391 */,
+/* 392 */,
+/* 393 */,
+/* 394 */,
+/* 395 */,
+/* 396 */,
+/* 397 */,
+/* 398 */,
+/* 399 */,
+/* 400 */,
+/* 401 */,
+/* 402 */,
+/* 403 */,
+/* 404 */,
+/* 405 */,
+/* 406 */,
+/* 407 */,
+/* 408 */,
+/* 409 */,
+/* 410 */,
+/* 411 */,
+/* 412 */,
+/* 413 */,
+/* 414 */,
+/* 415 */,
+/* 416 */,
+/* 417 */,
+/* 418 */,
+/* 419 */,
+/* 420 */,
+/* 421 */,
+/* 422 */,
+/* 423 */,
+/* 424 */,
+/* 425 */,
+/* 426 */,
+/* 427 */,
+/* 428 */,
+/* 429 */,
+/* 430 */,
+/* 431 */,
+/* 432 */,
+/* 433 */,
+/* 434 */,
+/* 435 */,
+/* 436 */,
+/* 437 */,
+/* 438 */,
+/* 439 */,
+/* 440 */,
+/* 441 */,
+/* 442 */,
+/* 443 */,
+/* 444 */,
+/* 445 */,
+/* 446 */,
+/* 447 */,
+/* 448 */,
+/* 449 */,
+/* 450 */,
+/* 451 */,
+/* 452 */,
+/* 453 */,
+/* 454 */,
+/* 455 */,
+/* 456 */,
+/* 457 */,
+/* 458 */,
+/* 459 */,
+/* 460 */,
+/* 461 */,
+/* 462 */,
+/* 463 */,
+/* 464 */,
+/* 465 */,
+/* 466 */,
+/* 467 */,
+/* 468 */,
+/* 469 */,
+/* 470 */,
+/* 471 */,
+/* 472 */,
+/* 473 */,
+/* 474 */,
+/* 475 */,
+/* 476 */,
+/* 477 */,
+/* 478 */,
+/* 479 */,
+/* 480 */,
+/* 481 */,
+/* 482 */,
+/* 483 */,
+/* 484 */,
+/* 485 */,
+/* 486 */,
+/* 487 */,
+/* 488 */,
+/* 489 */,
 /* 490 */,
 /* 491 */,
 /* 492 */,
@@ -2460,119 +921,7 @@ webpackJsonp([0],[
 /* 545 */,
 /* 546 */,
 /* 547 */,
-/* 548 */,
-/* 549 */,
-/* 550 */,
-/* 551 */,
-/* 552 */,
-/* 553 */,
-/* 554 */,
-/* 555 */,
-/* 556 */,
-/* 557 */,
-/* 558 */,
-/* 559 */,
-/* 560 */,
-/* 561 */,
-/* 562 */,
-/* 563 */,
-/* 564 */,
-/* 565 */,
-/* 566 */,
-/* 567 */,
-/* 568 */,
-/* 569 */,
-/* 570 */,
-/* 571 */,
-/* 572 */,
-/* 573 */,
-/* 574 */,
-/* 575 */,
-/* 576 */,
-/* 577 */,
-/* 578 */,
-/* 579 */,
-/* 580 */,
-/* 581 */,
-/* 582 */,
-/* 583 */,
-/* 584 */,
-/* 585 */,
-/* 586 */,
-/* 587 */,
-/* 588 */,
-/* 589 */,
-/* 590 */,
-/* 591 */,
-/* 592 */,
-/* 593 */,
-/* 594 */,
-/* 595 */,
-/* 596 */,
-/* 597 */,
-/* 598 */,
-/* 599 */,
-/* 600 */,
-/* 601 */,
-/* 602 */,
-/* 603 */,
-/* 604 */,
-/* 605 */,
-/* 606 */,
-/* 607 */,
-/* 608 */,
-/* 609 */,
-/* 610 */,
-/* 611 */,
-/* 612 */,
-/* 613 */,
-/* 614 */,
-/* 615 */,
-/* 616 */,
-/* 617 */,
-/* 618 */,
-/* 619 */,
-/* 620 */,
-/* 621 */,
-/* 622 */,
-/* 623 */,
-/* 624 */,
-/* 625 */,
-/* 626 */,
-/* 627 */,
-/* 628 */,
-/* 629 */,
-/* 630 */,
-/* 631 */,
-/* 632 */,
-/* 633 */,
-/* 634 */,
-/* 635 */,
-/* 636 */,
-/* 637 */,
-/* 638 */,
-/* 639 */,
-/* 640 */,
-/* 641 */,
-/* 642 */,
-/* 643 */,
-/* 644 */,
-/* 645 */,
-/* 646 */,
-/* 647 */,
-/* 648 */,
-/* 649 */,
-/* 650 */,
-/* 651 */,
-/* 652 */,
-/* 653 */,
-/* 654 */,
-/* 655 */,
-/* 656 */,
-/* 657 */,
-/* 658 */,
-/* 659 */,
-/* 660 */
+/* 548 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2580,11 +929,11 @@ webpackJsonp([0],[
 	exports.__esModule = true;
 	exports.connect = exports.Provider = undefined;
 	
-	var _Provider = __webpack_require__(661);
+	var _Provider = __webpack_require__(549);
 	
 	var _Provider2 = _interopRequireDefault(_Provider);
 	
-	var _connect = __webpack_require__(664);
+	var _connect = __webpack_require__(552);
 	
 	var _connect2 = _interopRequireDefault(_connect);
 	
@@ -2594,7 +943,7 @@ webpackJsonp([0],[
 	exports.connect = _connect2["default"];
 
 /***/ },
-/* 661 */
+/* 549 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2602,13 +951,13 @@ webpackJsonp([0],[
 	exports.__esModule = true;
 	exports["default"] = undefined;
 	
-	var _react = __webpack_require__(490);
+	var _react = __webpack_require__(378);
 	
-	var _storeShape = __webpack_require__(662);
+	var _storeShape = __webpack_require__(550);
 	
 	var _storeShape2 = _interopRequireDefault(_storeShape);
 	
-	var _warning = __webpack_require__(663);
+	var _warning = __webpack_require__(551);
 	
 	var _warning2 = _interopRequireDefault(_warning);
 	
@@ -2677,14 +1026,14 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 662 */
+/* 550 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
 	exports.__esModule = true;
 	
-	var _react = __webpack_require__(490);
+	var _react = __webpack_require__(378);
 	
 	exports["default"] = _react.PropTypes.shape({
 	  subscribe: _react.PropTypes.func.isRequired,
@@ -2693,7 +1042,7 @@ webpackJsonp([0],[
 	});
 
 /***/ },
-/* 663 */
+/* 551 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2722,7 +1071,7 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 664 */
+/* 552 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2732,33 +1081,33 @@ webpackJsonp([0],[
 	exports.__esModule = true;
 	exports["default"] = connect;
 	
-	var _react = __webpack_require__(490);
+	var _react = __webpack_require__(378);
 	
-	var _storeShape = __webpack_require__(662);
+	var _storeShape = __webpack_require__(550);
 	
 	var _storeShape2 = _interopRequireDefault(_storeShape);
 	
-	var _shallowEqual = __webpack_require__(665);
+	var _shallowEqual = __webpack_require__(553);
 	
 	var _shallowEqual2 = _interopRequireDefault(_shallowEqual);
 	
-	var _wrapActionCreators = __webpack_require__(666);
+	var _wrapActionCreators = __webpack_require__(554);
 	
 	var _wrapActionCreators2 = _interopRequireDefault(_wrapActionCreators);
 	
-	var _warning = __webpack_require__(663);
+	var _warning = __webpack_require__(551);
 	
 	var _warning2 = _interopRequireDefault(_warning);
 	
-	var _isPlainObject = __webpack_require__(669);
+	var _isPlainObject = __webpack_require__(557);
 	
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 	
-	var _hoistNonReactStatics = __webpack_require__(679);
+	var _hoistNonReactStatics = __webpack_require__(570);
 	
 	var _hoistNonReactStatics2 = _interopRequireDefault(_hoistNonReactStatics);
 	
-	var _invariant = __webpack_require__(680);
+	var _invariant = __webpack_require__(571);
 	
 	var _invariant2 = _interopRequireDefault(_invariant);
 	
@@ -3120,7 +1469,7 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 665 */
+/* 553 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3151,7 +1500,7 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 666 */
+/* 554 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3159,7 +1508,7 @@ webpackJsonp([0],[
 	exports.__esModule = true;
 	exports["default"] = wrapActionCreators;
 	
-	var _redux = __webpack_require__(667);
+	var _redux = __webpack_require__(555);
 	
 	function wrapActionCreators(actionCreators) {
 	  return function (dispatch) {
@@ -3168,7 +1517,7 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 667 */
+/* 555 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3176,27 +1525,27 @@ webpackJsonp([0],[
 	exports.__esModule = true;
 	exports.compose = exports.applyMiddleware = exports.bindActionCreators = exports.combineReducers = exports.createStore = undefined;
 	
-	var _createStore = __webpack_require__(668);
+	var _createStore = __webpack_require__(556);
 	
 	var _createStore2 = _interopRequireDefault(_createStore);
 	
-	var _combineReducers = __webpack_require__(674);
+	var _combineReducers = __webpack_require__(565);
 	
 	var _combineReducers2 = _interopRequireDefault(_combineReducers);
 	
-	var _bindActionCreators = __webpack_require__(676);
+	var _bindActionCreators = __webpack_require__(567);
 	
 	var _bindActionCreators2 = _interopRequireDefault(_bindActionCreators);
 	
-	var _applyMiddleware = __webpack_require__(677);
+	var _applyMiddleware = __webpack_require__(568);
 	
 	var _applyMiddleware2 = _interopRequireDefault(_applyMiddleware);
 	
-	var _compose = __webpack_require__(678);
+	var _compose = __webpack_require__(569);
 	
 	var _compose2 = _interopRequireDefault(_compose);
 	
-	var _warning = __webpack_require__(675);
+	var _warning = __webpack_require__(566);
 	
 	var _warning2 = _interopRequireDefault(_warning);
 	
@@ -3219,7 +1568,7 @@ webpackJsonp([0],[
 	exports.compose = _compose2['default'];
 
 /***/ },
-/* 668 */
+/* 556 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3228,11 +1577,11 @@ webpackJsonp([0],[
 	exports.ActionTypes = undefined;
 	exports['default'] = createStore;
 	
-	var _isPlainObject = __webpack_require__(669);
+	var _isPlainObject = __webpack_require__(557);
 	
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 	
-	var _symbolObservable = __webpack_require__(671);
+	var _symbolObservable = __webpack_require__(562);
 	
 	var _symbolObservable2 = _interopRequireDefault(_symbolObservable);
 	
@@ -3485,12 +1834,12 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 669 */
+/* 557 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var getPrototype = __webpack_require__(670),
-	    isHostObject = __webpack_require__(344),
-	    isObjectLike = __webpack_require__(316);
+	var getPrototype = __webpack_require__(558),
+	    isHostObject = __webpack_require__(560),
+	    isObjectLike = __webpack_require__(561);
 	
 	/** `Object#toString` result references. */
 	var objectTag = '[object Object]';
@@ -3561,10 +1910,10 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 670 */
+/* 558 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var overArg = __webpack_require__(322);
+	var overArg = __webpack_require__(559);
 	
 	/** Built-in value references. */
 	var getPrototype = overArg(Object.getPrototypeOf, Object);
@@ -3573,14 +1922,17 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 671 */
+/* 559 */,
+/* 560 */,
+/* 561 */,
+/* 562 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(672);
+	module.exports = __webpack_require__(563);
 
 
 /***/ },
-/* 672 */
+/* 563 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -3589,7 +1941,7 @@ webpackJsonp([0],[
 		value: true
 	});
 	
-	var _ponyfill = __webpack_require__(673);
+	var _ponyfill = __webpack_require__(564);
 	
 	var _ponyfill2 = _interopRequireDefault(_ponyfill);
 	
@@ -3608,7 +1960,7 @@ webpackJsonp([0],[
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 673 */
+/* 564 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -3636,7 +1988,7 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 674 */
+/* 565 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3644,13 +1996,13 @@ webpackJsonp([0],[
 	exports.__esModule = true;
 	exports['default'] = combineReducers;
 	
-	var _createStore = __webpack_require__(668);
+	var _createStore = __webpack_require__(556);
 	
-	var _isPlainObject = __webpack_require__(669);
+	var _isPlainObject = __webpack_require__(557);
 	
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 	
-	var _warning = __webpack_require__(675);
+	var _warning = __webpack_require__(566);
 	
 	var _warning2 = _interopRequireDefault(_warning);
 	
@@ -3783,7 +2135,7 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 675 */
+/* 566 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -3813,7 +2165,7 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 676 */
+/* 567 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -3869,7 +2221,7 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 677 */
+/* 568 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3880,7 +2232,7 @@ webpackJsonp([0],[
 	
 	exports['default'] = applyMiddleware;
 	
-	var _compose = __webpack_require__(678);
+	var _compose = __webpack_require__(569);
 	
 	var _compose2 = _interopRequireDefault(_compose);
 	
@@ -3932,7 +2284,7 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 678 */
+/* 569 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3975,7 +2327,7 @@ webpackJsonp([0],[
 	}
 
 /***/ },
-/* 679 */
+/* 570 */
 /***/ function(module, exports) {
 
 	/**
@@ -4031,7 +2383,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 680 */
+/* 571 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -4088,7 +2440,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 681 */
+/* 572 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -4142,7 +2494,53 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 682 */
+/* 573 */,
+/* 574 */,
+/* 575 */,
+/* 576 */,
+/* 577 */,
+/* 578 */,
+/* 579 */,
+/* 580 */,
+/* 581 */,
+/* 582 */,
+/* 583 */,
+/* 584 */,
+/* 585 */,
+/* 586 */,
+/* 587 */,
+/* 588 */,
+/* 589 */,
+/* 590 */,
+/* 591 */,
+/* 592 */,
+/* 593 */,
+/* 594 */,
+/* 595 */,
+/* 596 */,
+/* 597 */,
+/* 598 */,
+/* 599 */,
+/* 600 */,
+/* 601 */,
+/* 602 */,
+/* 603 */,
+/* 604 */,
+/* 605 */,
+/* 606 */,
+/* 607 */,
+/* 608 */,
+/* 609 */,
+/* 610 */,
+/* 611 */,
+/* 612 */,
+/* 613 */,
+/* 614 */,
+/* 615 */,
+/* 616 */,
+/* 617 */,
+/* 618 */,
+/* 619 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4151,13 +2549,13 @@ webpackJsonp([0],[
 	// Apply reducer & action on sub-state through a given path.
 	
 	// TODO: specific lodash dependencies
-	var isFunction = __webpack_require__(313);
-	var lodashGetIn = __webpack_require__(394);
-	var lodashSetIn = __webpack_require__(683);
-	var lodashMerge = __webpack_require__(686);
-	var lodashMergeWith = __webpack_require__(725);
-	var lodashIsArray = __webpack_require__(317);
-	var lodashIsString = __webpack_require__(726);
+	var isFunction = __webpack_require__(586);
+	var lodashGetIn = __webpack_require__(573);
+	var lodashSetIn = __webpack_require__(620);
+	var lodashMerge = __webpack_require__(624);
+	var lodashMergeWith = __webpack_require__(694);
+	var lodashIsArray = __webpack_require__(576);
+	var lodashIsString = __webpack_require__(695);
 	// TODO: npm install npm.im/warning
 	
 	// sentinel value
@@ -4357,10 +2755,10 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 683 */
+/* 620 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseSet = __webpack_require__(684);
+	var baseSet = __webpack_require__(621);
 	
 	/**
 	 * Sets the value at `path` of `object`. If a portion of `path` doesn't exist,
@@ -4398,15 +2796,15 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 684 */
+/* 621 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var assignValue = __webpack_require__(685),
-	    castPath = __webpack_require__(396),
-	    isIndex = __webpack_require__(318),
-	    isKey = __webpack_require__(402),
-	    isObject = __webpack_require__(314),
-	    toKey = __webpack_require__(403);
+	var assignValue = __webpack_require__(622),
+	    castPath = __webpack_require__(575),
+	    isIndex = __webpack_require__(623),
+	    isKey = __webpack_require__(617),
+	    isObject = __webpack_require__(587),
+	    toKey = __webpack_require__(618);
 	
 	/**
 	 * The base implementation of `_.set`.
@@ -4452,10 +2850,10 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 685 */
+/* 622 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var eq = __webpack_require__(332);
+	var eq = __webpack_require__(602);
 	
 	/** Used for built-in method references. */
 	var objectProto = Object.prototype;
@@ -4485,11 +2883,12 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 686 */
+/* 623 */,
+/* 624 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseMerge = __webpack_require__(687),
-	    createAssigner = __webpack_require__(721);
+	var baseMerge = __webpack_require__(625),
+	    createAssigner = __webpack_require__(690);
 	
 	/**
 	 * This method is like `_.assign` except that it recursively merges own and
@@ -4530,17 +2929,17 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 687 */
+/* 625 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Stack = __webpack_require__(327),
-	    arrayEach = __webpack_require__(302),
-	    assignMergeValue = __webpack_require__(688),
-	    baseKeysIn = __webpack_require__(689),
-	    baseMergeDeep = __webpack_require__(691),
-	    isArray = __webpack_require__(317),
-	    isObject = __webpack_require__(314),
-	    isTypedArray = __webpack_require__(385);
+	var Stack = __webpack_require__(626),
+	    arrayEach = __webpack_require__(632),
+	    assignMergeValue = __webpack_require__(633),
+	    baseKeysIn = __webpack_require__(634),
+	    baseMergeDeep = __webpack_require__(637),
+	    isArray = __webpack_require__(576),
+	    isObject = __webpack_require__(587),
+	    isTypedArray = __webpack_require__(684);
 	
 	/**
 	 * The base implementation of `_.merge` without support for multiple sources.
@@ -4586,10 +2985,17 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 688 */
+/* 626 */,
+/* 627 */,
+/* 628 */,
+/* 629 */,
+/* 630 */,
+/* 631 */,
+/* 632 */,
+/* 633 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var eq = __webpack_require__(332);
+	var eq = __webpack_require__(602);
 	
 	/**
 	 * This function is like `assignValue` except that it doesn't assign
@@ -4611,12 +3017,12 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 689 */
+/* 634 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isObject = __webpack_require__(314),
-	    isPrototype = __webpack_require__(320),
-	    nativeKeysIn = __webpack_require__(690);
+	var isObject = __webpack_require__(587),
+	    isPrototype = __webpack_require__(635),
+	    nativeKeysIn = __webpack_require__(636);
 	
 	/** Used for built-in method references. */
 	var objectProto = Object.prototype;
@@ -4650,7 +3056,8 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 690 */
+/* 635 */,
+/* 636 */
 /***/ function(module, exports) {
 
 	/**
@@ -4676,20 +3083,20 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 691 */
+/* 637 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var assignMergeValue = __webpack_require__(688),
-	    baseClone = __webpack_require__(692),
-	    copyArray = __webpack_require__(696),
-	    isArguments = __webpack_require__(310),
-	    isArray = __webpack_require__(317),
-	    isArrayLikeObject = __webpack_require__(311),
-	    isFunction = __webpack_require__(313),
-	    isObject = __webpack_require__(314),
-	    isPlainObject = __webpack_require__(669),
-	    isTypedArray = __webpack_require__(385),
-	    toPlainObject = __webpack_require__(719);
+	var assignMergeValue = __webpack_require__(633),
+	    baseClone = __webpack_require__(638),
+	    copyArray = __webpack_require__(651),
+	    isArguments = __webpack_require__(644),
+	    isArray = __webpack_require__(576),
+	    isArrayLikeObject = __webpack_require__(645),
+	    isFunction = __webpack_require__(586),
+	    isObject = __webpack_require__(587),
+	    isPlainObject = __webpack_require__(557),
+	    isTypedArray = __webpack_require__(684),
+	    toPlainObject = __webpack_require__(688);
 	
 	/**
 	 * A specialized version of `baseMerge` for arrays and objects which performs
@@ -4764,26 +3171,26 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 692 */
+/* 638 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Stack = __webpack_require__(327),
-	    arrayEach = __webpack_require__(302),
-	    assignValue = __webpack_require__(685),
-	    baseAssign = __webpack_require__(693),
-	    cloneBuffer = __webpack_require__(695),
-	    copyArray = __webpack_require__(696),
-	    copySymbols = __webpack_require__(697),
-	    getAllKeys = __webpack_require__(700),
-	    getTag = __webpack_require__(379),
-	    initCloneArray = __webpack_require__(703),
-	    initCloneByTag = __webpack_require__(704),
-	    initCloneObject = __webpack_require__(715),
-	    isArray = __webpack_require__(317),
-	    isBuffer = __webpack_require__(717),
-	    isHostObject = __webpack_require__(344),
-	    isObject = __webpack_require__(314),
-	    keys = __webpack_require__(307);
+	var Stack = __webpack_require__(626),
+	    arrayEach = __webpack_require__(632),
+	    assignValue = __webpack_require__(622),
+	    baseAssign = __webpack_require__(639),
+	    cloneBuffer = __webpack_require__(650),
+	    copyArray = __webpack_require__(651),
+	    copySymbols = __webpack_require__(652),
+	    getAllKeys = __webpack_require__(655),
+	    getTag = __webpack_require__(658),
+	    initCloneArray = __webpack_require__(664),
+	    initCloneByTag = __webpack_require__(665),
+	    initCloneObject = __webpack_require__(679),
+	    isArray = __webpack_require__(576),
+	    isBuffer = __webpack_require__(681),
+	    isHostObject = __webpack_require__(560),
+	    isObject = __webpack_require__(587),
+	    keys = __webpack_require__(641);
 	
 	/** `Object#toString` result references. */
 	var argsTag = '[object Arguments]',
@@ -4909,11 +3316,11 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 693 */
+/* 639 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var copyObject = __webpack_require__(694),
-	    keys = __webpack_require__(307);
+	var copyObject = __webpack_require__(640),
+	    keys = __webpack_require__(641);
 	
 	/**
 	 * The base implementation of `_.assign` without support for multiple sources
@@ -4932,10 +3339,10 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 694 */
+/* 640 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var assignValue = __webpack_require__(685);
+	var assignValue = __webpack_require__(622);
 	
 	/**
 	 * Copies properties of `source` to `object`.
@@ -4969,7 +3376,16 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 695 */
+/* 641 */,
+/* 642 */,
+/* 643 */,
+/* 644 */,
+/* 645 */,
+/* 646 */,
+/* 647 */,
+/* 648 */,
+/* 649 */,
+/* 650 */
 /***/ function(module, exports) {
 
 	/**
@@ -4993,7 +3409,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 696 */
+/* 651 */
 /***/ function(module, exports) {
 
 	/**
@@ -5019,11 +3435,11 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 697 */
+/* 652 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var copyObject = __webpack_require__(694),
-	    getSymbols = __webpack_require__(698);
+	var copyObject = __webpack_require__(640),
+	    getSymbols = __webpack_require__(653);
 	
 	/**
 	 * Copies own symbol properties of `source` to `object`.
@@ -5041,11 +3457,11 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 698 */
+/* 653 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var overArg = __webpack_require__(322),
-	    stubArray = __webpack_require__(699);
+	var overArg = __webpack_require__(559),
+	    stubArray = __webpack_require__(654);
 	
 	/* Built-in method references for those with the same name as other `lodash` methods. */
 	var nativeGetSymbols = Object.getOwnPropertySymbols;
@@ -5063,7 +3479,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 699 */
+/* 654 */
 /***/ function(module, exports) {
 
 	/**
@@ -5092,12 +3508,12 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 700 */
+/* 655 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseGetAllKeys = __webpack_require__(701),
-	    getSymbols = __webpack_require__(698),
-	    keys = __webpack_require__(307);
+	var baseGetAllKeys = __webpack_require__(656),
+	    getSymbols = __webpack_require__(653),
+	    keys = __webpack_require__(641);
 	
 	/**
 	 * Creates an array of own enumerable property names and symbols of `object`.
@@ -5114,11 +3530,11 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 701 */
+/* 656 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var arrayPush = __webpack_require__(702),
-	    isArray = __webpack_require__(317);
+	var arrayPush = __webpack_require__(657),
+	    isArray = __webpack_require__(576);
 	
 	/**
 	 * The base implementation of `getAllKeys` and `getAllKeysIn` which uses
@@ -5140,7 +3556,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 702 */
+/* 657 */
 /***/ function(module, exports) {
 
 	/**
@@ -5166,7 +3582,13 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 703 */
+/* 658 */,
+/* 659 */,
+/* 660 */,
+/* 661 */,
+/* 662 */,
+/* 663 */,
+/* 664 */
 /***/ function(module, exports) {
 
 	/** Used for built-in method references. */
@@ -5198,16 +3620,16 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 704 */
+/* 665 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var cloneArrayBuffer = __webpack_require__(705),
-	    cloneDataView = __webpack_require__(706),
-	    cloneMap = __webpack_require__(707),
-	    cloneRegExp = __webpack_require__(710),
-	    cloneSet = __webpack_require__(711),
-	    cloneSymbol = __webpack_require__(713),
-	    cloneTypedArray = __webpack_require__(714);
+	var cloneArrayBuffer = __webpack_require__(666),
+	    cloneDataView = __webpack_require__(668),
+	    cloneMap = __webpack_require__(669),
+	    cloneRegExp = __webpack_require__(673),
+	    cloneSet = __webpack_require__(674),
+	    cloneSymbol = __webpack_require__(677),
+	    cloneTypedArray = __webpack_require__(678);
 	
 	/** `Object#toString` result references. */
 	var boolTag = '[object Boolean]',
@@ -5284,10 +3706,10 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 705 */
+/* 666 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Uint8Array = __webpack_require__(375);
+	var Uint8Array = __webpack_require__(667);
 	
 	/**
 	 * Creates a clone of `arrayBuffer`.
@@ -5306,10 +3728,11 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 706 */
+/* 667 */,
+/* 668 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var cloneArrayBuffer = __webpack_require__(705);
+	var cloneArrayBuffer = __webpack_require__(666);
 	
 	/**
 	 * Creates a clone of `dataView`.
@@ -5328,12 +3751,12 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 707 */
+/* 669 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var addMapEntry = __webpack_require__(708),
-	    arrayReduce = __webpack_require__(709),
-	    mapToArray = __webpack_require__(376);
+	var addMapEntry = __webpack_require__(670),
+	    arrayReduce = __webpack_require__(671),
+	    mapToArray = __webpack_require__(672);
 	
 	/**
 	 * Creates a clone of `map`.
@@ -5353,7 +3776,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 708 */
+/* 670 */
 /***/ function(module, exports) {
 
 	/**
@@ -5374,7 +3797,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 709 */
+/* 671 */
 /***/ function(module, exports) {
 
 	/**
@@ -5406,7 +3829,8 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 710 */
+/* 672 */,
+/* 673 */
 /***/ function(module, exports) {
 
 	/** Used to match `RegExp` flags from their coerced string values. */
@@ -5429,12 +3853,12 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 711 */
+/* 674 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var addSetEntry = __webpack_require__(712),
-	    arrayReduce = __webpack_require__(709),
-	    setToArray = __webpack_require__(377);
+	var addSetEntry = __webpack_require__(675),
+	    arrayReduce = __webpack_require__(671),
+	    setToArray = __webpack_require__(676);
 	
 	/**
 	 * Creates a clone of `set`.
@@ -5454,7 +3878,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 712 */
+/* 675 */
 /***/ function(module, exports) {
 
 	/**
@@ -5475,10 +3899,11 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 713 */
+/* 676 */,
+/* 677 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Symbol = __webpack_require__(374);
+	var Symbol = __webpack_require__(615);
 	
 	/** Used to convert symbols to primitives and strings. */
 	var symbolProto = Symbol ? Symbol.prototype : undefined,
@@ -5499,10 +3924,10 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 714 */
+/* 678 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var cloneArrayBuffer = __webpack_require__(705);
+	var cloneArrayBuffer = __webpack_require__(666);
 	
 	/**
 	 * Creates a clone of `typedArray`.
@@ -5521,12 +3946,12 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 715 */
+/* 679 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseCreate = __webpack_require__(716),
-	    getPrototype = __webpack_require__(670),
-	    isPrototype = __webpack_require__(320);
+	var baseCreate = __webpack_require__(680),
+	    getPrototype = __webpack_require__(558),
+	    isPrototype = __webpack_require__(635);
 	
 	/**
 	 * Initializes an object clone.
@@ -5545,10 +3970,10 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 716 */
+/* 680 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isObject = __webpack_require__(314);
+	var isObject = __webpack_require__(587);
 	
 	/** Built-in value references. */
 	var objectCreate = Object.create;
@@ -5569,11 +3994,11 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 717 */
+/* 681 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(module) {var root = __webpack_require__(347),
-	    stubFalse = __webpack_require__(718);
+	/* WEBPACK VAR INJECTION */(function(module) {var root = __webpack_require__(590),
+	    stubFalse = __webpack_require__(683);
 	
 	/** Detect free variable `exports`. */
 	var freeExports = typeof exports == 'object' && exports && !exports.nodeType && exports;
@@ -5611,10 +4036,11 @@ webpackJsonp([0],[
 	
 	module.exports = isBuffer;
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(389)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(682)(module)))
 
 /***/ },
-/* 718 */
+/* 682 */,
+/* 683 */
 /***/ function(module, exports) {
 
 	/**
@@ -5638,11 +4064,15 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 719 */
+/* 684 */,
+/* 685 */,
+/* 686 */,
+/* 687 */,
+/* 688 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var copyObject = __webpack_require__(694),
-	    keysIn = __webpack_require__(720);
+	var copyObject = __webpack_require__(640),
+	    keysIn = __webpack_require__(689);
 	
 	/**
 	 * Converts `value` to a plain object flattening inherited enumerable string
@@ -5676,12 +4106,12 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 720 */
+/* 689 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var arrayLikeKeys = __webpack_require__(308),
-	    baseKeysIn = __webpack_require__(689),
-	    isArrayLike = __webpack_require__(312);
+	var arrayLikeKeys = __webpack_require__(642),
+	    baseKeysIn = __webpack_require__(634),
+	    isArrayLike = __webpack_require__(646);
 	
 	/**
 	 * Creates an array of the own and inherited enumerable property names of `object`.
@@ -5714,11 +4144,11 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 721 */
+/* 690 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseRest = __webpack_require__(722),
-	    isIterateeCall = __webpack_require__(724);
+	var baseRest = __webpack_require__(691),
+	    isIterateeCall = __webpack_require__(693);
 	
 	/**
 	 * Creates a function like `_.assign`.
@@ -5757,10 +4187,10 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 722 */
+/* 691 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var apply = __webpack_require__(723);
+	var apply = __webpack_require__(692);
 	
 	/* Built-in method references for those with the same name as other `lodash` methods. */
 	var nativeMax = Math.max;
@@ -5798,7 +4228,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 723 */
+/* 692 */
 /***/ function(module, exports) {
 
 	/**
@@ -5825,13 +4255,13 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 724 */
+/* 693 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var eq = __webpack_require__(332),
-	    isArrayLike = __webpack_require__(312),
-	    isIndex = __webpack_require__(318),
-	    isObject = __webpack_require__(314);
+	var eq = __webpack_require__(602),
+	    isArrayLike = __webpack_require__(646),
+	    isIndex = __webpack_require__(623),
+	    isObject = __webpack_require__(587);
 	
 	/**
 	 * Checks if the given arguments are from an iteratee call.
@@ -5861,11 +4291,11 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 725 */
+/* 694 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseMerge = __webpack_require__(687),
-	    createAssigner = __webpack_require__(721);
+	var baseMerge = __webpack_require__(625),
+	    createAssigner = __webpack_require__(690);
 	
 	/**
 	 * This method is like `_.merge` except that it accepts `customizer` which
@@ -5906,11 +4336,11 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 726 */
+/* 695 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isArray = __webpack_require__(317),
-	    isObjectLike = __webpack_require__(316);
+	var isArray = __webpack_require__(576),
+	    isObjectLike = __webpack_require__(561);
 	
 	/** `Object#toString` result references. */
 	var stringTag = '[object String]';
@@ -5951,7 +4381,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 727 */
+/* 696 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;(function () {
@@ -6417,7 +4847,7 @@ webpackJsonp([0],[
 
 
 /***/ },
-/* 728 */
+/* 697 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6450,7 +4880,7 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 729 */
+/* 698 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -6541,13 +4971,13 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 730 */
+/* 699 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var React = __webpack_require__(490);
-	var isFunction = __webpack_require__(313);
+	var React = __webpack_require__(378);
+	var isFunction = __webpack_require__(586);
 	
 	var ErrorComponent = function ErrorComponent(props) {
 	
@@ -6598,7 +5028,7 @@ webpackJsonp([0],[
 	module.exports = ErrorComponent;
 
 /***/ },
-/* 731 */
+/* 700 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -6622,12 +5052,12 @@ webpackJsonp([0],[
 	module.exports = boolReducer;
 
 /***/ },
-/* 732 */
+/* 701 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _require = __webpack_require__(729);
+	var _require = __webpack_require__(698);
 	
 	var ERROR_MESSAGE = _require.ERROR_MESSAGE;
 	
@@ -6661,22 +5091,22 @@ webpackJsonp([0],[
 	module.exports = errorReducer;
 
 /***/ },
-/* 733 */
+/* 702 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var _require = __webpack_require__(682);
+	var _require = __webpack_require__(619);
 	
 	var makeReducer = _require.makeReducer;
 	
-	var _require2 = __webpack_require__(667);
+	var _require2 = __webpack_require__(555);
 	
 	var createStore = _require2.createStore;
 	var applyMiddleware = _require2.applyMiddleware;
 	
 	
-	var rehydrateFactory = __webpack_require__(734);
+	var rehydrateFactory = __webpack_require__(703);
 	
 	var IDENTITY = function IDENTITY(x) {
 	    return x;
@@ -6698,7 +5128,7 @@ webpackJsonp([0],[
 	
 	        if (true) {
 	
-	            var createLogger = __webpack_require__(735);
+	            var createLogger = __webpack_require__(704);
 	            var logger = createLogger();
 	
 	            return applyMiddleware(logger);
@@ -6715,7 +5145,7 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 734 */
+/* 703 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6724,7 +5154,7 @@ webpackJsonp([0],[
 	//
 	// terminology: http://stackoverflow.com/questions/29824908/what-does-dehydrate-and-rehydrate-stand-for-in-fluxible
 	
-	var merge = __webpack_require__(686);
+	var merge = __webpack_require__(624);
 	
 	// const REHYDRATE = Symbol('REHYDRATE');
 	//
@@ -6791,7 +5221,7 @@ webpackJsonp([0],[
 	};
 
 /***/ },
-/* 735 */
+/* 704 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -7024,10 +5454,10 @@ webpackJsonp([0],[
 	module.exports = createLogger;
 
 /***/ },
-/* 736 */
+/* 705 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseClone = __webpack_require__(692);
+	var baseClone = __webpack_require__(638);
 	
 	/**
 	 * This method is like `_.clone` except that it recursively clones `value`.
@@ -7053,6 +5483,1578 @@ webpackJsonp([0],[
 	
 	module.exports = cloneDeep;
 
+
+/***/ },
+/* 706 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var arrayEach = __webpack_require__(632),
+	    baseEach = __webpack_require__(707),
+	    baseIteratee = __webpack_require__(712),
+	    isArray = __webpack_require__(576);
+	
+	/**
+	 * Iterates over elements of `collection` and invokes `iteratee` for each element.
+	 * The iteratee is invoked with three arguments: (value, index|key, collection).
+	 * Iteratee functions may exit iteration early by explicitly returning `false`.
+	 *
+	 * **Note:** As with other "Collections" methods, objects with a "length"
+	 * property are iterated like arrays. To avoid this behavior use `_.forIn`
+	 * or `_.forOwn` for object iteration.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 0.1.0
+	 * @alias each
+	 * @category Collection
+	 * @param {Array|Object} collection The collection to iterate over.
+	 * @param {Function} [iteratee=_.identity] The function invoked per iteration.
+	 * @returns {Array|Object} Returns `collection`.
+	 * @see _.forEachRight
+	 * @example
+	 *
+	 * _([1, 2]).forEach(function(value) {
+	 *   console.log(value);
+	 * });
+	 * // => Logs `1` then `2`.
+	 *
+	 * _.forEach({ 'a': 1, 'b': 2 }, function(value, key) {
+	 *   console.log(key);
+	 * });
+	 * // => Logs 'a' then 'b' (iteration order is not guaranteed).
+	 */
+	function forEach(collection, iteratee) {
+	  var func = isArray(collection) ? arrayEach : baseEach;
+	  return func(collection, baseIteratee(iteratee, 3));
+	}
+	
+	module.exports = forEach;
+
+
+/***/ },
+/* 707 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var baseForOwn = __webpack_require__(708),
+	    createBaseEach = __webpack_require__(711);
+	
+	/**
+	 * The base implementation of `_.forEach` without support for iteratee shorthands.
+	 *
+	 * @private
+	 * @param {Array|Object} collection The collection to iterate over.
+	 * @param {Function} iteratee The function invoked per iteration.
+	 * @returns {Array|Object} Returns `collection`.
+	 */
+	var baseEach = createBaseEach(baseForOwn);
+	
+	module.exports = baseEach;
+
+
+/***/ },
+/* 708 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var baseFor = __webpack_require__(709),
+	    keys = __webpack_require__(641);
+	
+	/**
+	 * The base implementation of `_.forOwn` without support for iteratee shorthands.
+	 *
+	 * @private
+	 * @param {Object} object The object to iterate over.
+	 * @param {Function} iteratee The function invoked per iteration.
+	 * @returns {Object} Returns `object`.
+	 */
+	function baseForOwn(object, iteratee) {
+	  return object && baseFor(object, iteratee, keys);
+	}
+	
+	module.exports = baseForOwn;
+
+
+/***/ },
+/* 709 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var createBaseFor = __webpack_require__(710);
+	
+	/**
+	 * The base implementation of `baseForOwn` which iterates over `object`
+	 * properties returned by `keysFunc` and invokes `iteratee` for each property.
+	 * Iteratee functions may exit iteration early by explicitly returning `false`.
+	 *
+	 * @private
+	 * @param {Object} object The object to iterate over.
+	 * @param {Function} iteratee The function invoked per iteration.
+	 * @param {Function} keysFunc The function to get the keys of `object`.
+	 * @returns {Object} Returns `object`.
+	 */
+	var baseFor = createBaseFor();
+	
+	module.exports = baseFor;
+
+
+/***/ },
+/* 710 */
+/***/ function(module, exports) {
+
+	/**
+	 * Creates a base function for methods like `_.forIn` and `_.forOwn`.
+	 *
+	 * @private
+	 * @param {boolean} [fromRight] Specify iterating from right to left.
+	 * @returns {Function} Returns the new base function.
+	 */
+	function createBaseFor(fromRight) {
+	  return function(object, iteratee, keysFunc) {
+	    var index = -1,
+	        iterable = Object(object),
+	        props = keysFunc(object),
+	        length = props.length;
+	
+	    while (length--) {
+	      var key = props[fromRight ? length : ++index];
+	      if (iteratee(iterable[key], key, iterable) === false) {
+	        break;
+	      }
+	    }
+	    return object;
+	  };
+	}
+	
+	module.exports = createBaseFor;
+
+
+/***/ },
+/* 711 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var isArrayLike = __webpack_require__(646);
+	
+	/**
+	 * Creates a `baseEach` or `baseEachRight` function.
+	 *
+	 * @private
+	 * @param {Function} eachFunc The function to iterate over a collection.
+	 * @param {boolean} [fromRight] Specify iterating from right to left.
+	 * @returns {Function} Returns the new base function.
+	 */
+	function createBaseEach(eachFunc, fromRight) {
+	  return function(collection, iteratee) {
+	    if (collection == null) {
+	      return collection;
+	    }
+	    if (!isArrayLike(collection)) {
+	      return eachFunc(collection, iteratee);
+	    }
+	    var length = collection.length,
+	        index = fromRight ? length : -1,
+	        iterable = Object(collection);
+	
+	    while ((fromRight ? index-- : ++index < length)) {
+	      if (iteratee(iterable[index], index, iterable) === false) {
+	        break;
+	      }
+	    }
+	    return collection;
+	  };
+	}
+	
+	module.exports = createBaseEach;
+
+
+/***/ },
+/* 712 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var baseMatches = __webpack_require__(713),
+	    baseMatchesProperty = __webpack_require__(727),
+	    identity = __webpack_require__(731),
+	    isArray = __webpack_require__(576),
+	    property = __webpack_require__(732);
+	
+	/**
+	 * The base implementation of `_.iteratee`.
+	 *
+	 * @private
+	 * @param {*} [value=_.identity] The value to convert to an iteratee.
+	 * @returns {Function} Returns the iteratee.
+	 */
+	function baseIteratee(value) {
+	  // Don't store the `typeof` result in a variable to avoid a JIT bug in Safari 9.
+	  // See https://bugs.webkit.org/show_bug.cgi?id=156034 for more details.
+	  if (typeof value == 'function') {
+	    return value;
+	  }
+	  if (value == null) {
+	    return identity;
+	  }
+	  if (typeof value == 'object') {
+	    return isArray(value)
+	      ? baseMatchesProperty(value[0], value[1])
+	      : baseMatches(value);
+	  }
+	  return property(value);
+	}
+	
+	module.exports = baseIteratee;
+
+
+/***/ },
+/* 713 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var baseIsMatch = __webpack_require__(714),
+	    getMatchData = __webpack_require__(724),
+	    matchesStrictComparable = __webpack_require__(726);
+	
+	/**
+	 * The base implementation of `_.matches` which doesn't clone `source`.
+	 *
+	 * @private
+	 * @param {Object} source The object of property values to match.
+	 * @returns {Function} Returns the new spec function.
+	 */
+	function baseMatches(source) {
+	  var matchData = getMatchData(source);
+	  if (matchData.length == 1 && matchData[0][2]) {
+	    return matchesStrictComparable(matchData[0][0], matchData[0][1]);
+	  }
+	  return function(object) {
+	    return object === source || baseIsMatch(object, source, matchData);
+	  };
+	}
+	
+	module.exports = baseMatches;
+
+
+/***/ },
+/* 714 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Stack = __webpack_require__(626),
+	    baseIsEqual = __webpack_require__(715);
+	
+	/** Used to compose bitmasks for comparison styles. */
+	var UNORDERED_COMPARE_FLAG = 1,
+	    PARTIAL_COMPARE_FLAG = 2;
+	
+	/**
+	 * The base implementation of `_.isMatch` without support for iteratee shorthands.
+	 *
+	 * @private
+	 * @param {Object} object The object to inspect.
+	 * @param {Object} source The object of property values to match.
+	 * @param {Array} matchData The property names, values, and compare flags to match.
+	 * @param {Function} [customizer] The function to customize comparisons.
+	 * @returns {boolean} Returns `true` if `object` is a match, else `false`.
+	 */
+	function baseIsMatch(object, source, matchData, customizer) {
+	  var index = matchData.length,
+	      length = index,
+	      noCustomizer = !customizer;
+	
+	  if (object == null) {
+	    return !length;
+	  }
+	  object = Object(object);
+	  while (index--) {
+	    var data = matchData[index];
+	    if ((noCustomizer && data[2])
+	          ? data[1] !== object[data[0]]
+	          : !(data[0] in object)
+	        ) {
+	      return false;
+	    }
+	  }
+	  while (++index < length) {
+	    data = matchData[index];
+	    var key = data[0],
+	        objValue = object[key],
+	        srcValue = data[1];
+	
+	    if (noCustomizer && data[2]) {
+	      if (objValue === undefined && !(key in object)) {
+	        return false;
+	      }
+	    } else {
+	      var stack = new Stack;
+	      if (customizer) {
+	        var result = customizer(objValue, srcValue, key, object, source, stack);
+	      }
+	      if (!(result === undefined
+	            ? baseIsEqual(srcValue, objValue, customizer, UNORDERED_COMPARE_FLAG | PARTIAL_COMPARE_FLAG, stack)
+	            : result
+	          )) {
+	        return false;
+	      }
+	    }
+	  }
+	  return true;
+	}
+	
+	module.exports = baseIsMatch;
+
+
+/***/ },
+/* 715 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var baseIsEqualDeep = __webpack_require__(716),
+	    isObject = __webpack_require__(587),
+	    isObjectLike = __webpack_require__(561);
+	
+	/**
+	 * The base implementation of `_.isEqual` which supports partial comparisons
+	 * and tracks traversed objects.
+	 *
+	 * @private
+	 * @param {*} value The value to compare.
+	 * @param {*} other The other value to compare.
+	 * @param {Function} [customizer] The function to customize comparisons.
+	 * @param {boolean} [bitmask] The bitmask of comparison flags.
+	 *  The bitmask may be composed of the following flags:
+	 *     1 - Unordered comparison
+	 *     2 - Partial comparison
+	 * @param {Object} [stack] Tracks traversed `value` and `other` objects.
+	 * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
+	 */
+	function baseIsEqual(value, other, customizer, bitmask, stack) {
+	  if (value === other) {
+	    return true;
+	  }
+	  if (value == null || other == null || (!isObject(value) && !isObjectLike(other))) {
+	    return value !== value && other !== other;
+	  }
+	  return baseIsEqualDeep(value, other, baseIsEqual, customizer, bitmask, stack);
+	}
+	
+	module.exports = baseIsEqual;
+
+
+/***/ },
+/* 716 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Stack = __webpack_require__(626),
+	    equalArrays = __webpack_require__(717),
+	    equalByTag = __webpack_require__(722),
+	    equalObjects = __webpack_require__(723),
+	    getTag = __webpack_require__(658),
+	    isArray = __webpack_require__(576),
+	    isHostObject = __webpack_require__(560),
+	    isTypedArray = __webpack_require__(684);
+	
+	/** Used to compose bitmasks for comparison styles. */
+	var PARTIAL_COMPARE_FLAG = 2;
+	
+	/** `Object#toString` result references. */
+	var argsTag = '[object Arguments]',
+	    arrayTag = '[object Array]',
+	    objectTag = '[object Object]';
+	
+	/** Used for built-in method references. */
+	var objectProto = Object.prototype;
+	
+	/** Used to check objects for own properties. */
+	var hasOwnProperty = objectProto.hasOwnProperty;
+	
+	/**
+	 * A specialized version of `baseIsEqual` for arrays and objects which performs
+	 * deep comparisons and tracks traversed objects enabling objects with circular
+	 * references to be compared.
+	 *
+	 * @private
+	 * @param {Object} object The object to compare.
+	 * @param {Object} other The other object to compare.
+	 * @param {Function} equalFunc The function to determine equivalents of values.
+	 * @param {Function} [customizer] The function to customize comparisons.
+	 * @param {number} [bitmask] The bitmask of comparison flags. See `baseIsEqual`
+	 *  for more details.
+	 * @param {Object} [stack] Tracks traversed `object` and `other` objects.
+	 * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+	 */
+	function baseIsEqualDeep(object, other, equalFunc, customizer, bitmask, stack) {
+	  var objIsArr = isArray(object),
+	      othIsArr = isArray(other),
+	      objTag = arrayTag,
+	      othTag = arrayTag;
+	
+	  if (!objIsArr) {
+	    objTag = getTag(object);
+	    objTag = objTag == argsTag ? objectTag : objTag;
+	  }
+	  if (!othIsArr) {
+	    othTag = getTag(other);
+	    othTag = othTag == argsTag ? objectTag : othTag;
+	  }
+	  var objIsObj = objTag == objectTag && !isHostObject(object),
+	      othIsObj = othTag == objectTag && !isHostObject(other),
+	      isSameTag = objTag == othTag;
+	
+	  if (isSameTag && !objIsObj) {
+	    stack || (stack = new Stack);
+	    return (objIsArr || isTypedArray(object))
+	      ? equalArrays(object, other, equalFunc, customizer, bitmask, stack)
+	      : equalByTag(object, other, objTag, equalFunc, customizer, bitmask, stack);
+	  }
+	  if (!(bitmask & PARTIAL_COMPARE_FLAG)) {
+	    var objIsWrapped = objIsObj && hasOwnProperty.call(object, '__wrapped__'),
+	        othIsWrapped = othIsObj && hasOwnProperty.call(other, '__wrapped__');
+	
+	    if (objIsWrapped || othIsWrapped) {
+	      var objUnwrapped = objIsWrapped ? object.value() : object,
+	          othUnwrapped = othIsWrapped ? other.value() : other;
+	
+	      stack || (stack = new Stack);
+	      return equalFunc(objUnwrapped, othUnwrapped, customizer, bitmask, stack);
+	    }
+	  }
+	  if (!isSameTag) {
+	    return false;
+	  }
+	  stack || (stack = new Stack);
+	  return equalObjects(object, other, equalFunc, customizer, bitmask, stack);
+	}
+	
+	module.exports = baseIsEqualDeep;
+
+
+/***/ },
+/* 717 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var SetCache = __webpack_require__(718),
+	    arraySome = __webpack_require__(721);
+	
+	/** Used to compose bitmasks for comparison styles. */
+	var UNORDERED_COMPARE_FLAG = 1,
+	    PARTIAL_COMPARE_FLAG = 2;
+	
+	/**
+	 * A specialized version of `baseIsEqualDeep` for arrays with support for
+	 * partial deep comparisons.
+	 *
+	 * @private
+	 * @param {Array} array The array to compare.
+	 * @param {Array} other The other array to compare.
+	 * @param {Function} equalFunc The function to determine equivalents of values.
+	 * @param {Function} customizer The function to customize comparisons.
+	 * @param {number} bitmask The bitmask of comparison flags. See `baseIsEqual`
+	 *  for more details.
+	 * @param {Object} stack Tracks traversed `array` and `other` objects.
+	 * @returns {boolean} Returns `true` if the arrays are equivalent, else `false`.
+	 */
+	function equalArrays(array, other, equalFunc, customizer, bitmask, stack) {
+	  var isPartial = bitmask & PARTIAL_COMPARE_FLAG,
+	      arrLength = array.length,
+	      othLength = other.length;
+	
+	  if (arrLength != othLength && !(isPartial && othLength > arrLength)) {
+	    return false;
+	  }
+	  // Assume cyclic values are equal.
+	  var stacked = stack.get(array);
+	  if (stacked && stack.get(other)) {
+	    return stacked == other;
+	  }
+	  var index = -1,
+	      result = true,
+	      seen = (bitmask & UNORDERED_COMPARE_FLAG) ? new SetCache : undefined;
+	
+	  stack.set(array, other);
+	  stack.set(other, array);
+	
+	  // Ignore non-index properties.
+	  while (++index < arrLength) {
+	    var arrValue = array[index],
+	        othValue = other[index];
+	
+	    if (customizer) {
+	      var compared = isPartial
+	        ? customizer(othValue, arrValue, index, other, array, stack)
+	        : customizer(arrValue, othValue, index, array, other, stack);
+	    }
+	    if (compared !== undefined) {
+	      if (compared) {
+	        continue;
+	      }
+	      result = false;
+	      break;
+	    }
+	    // Recursively compare arrays (susceptible to call stack limits).
+	    if (seen) {
+	      if (!arraySome(other, function(othValue, othIndex) {
+	            if (!seen.has(othIndex) &&
+	                (arrValue === othValue || equalFunc(arrValue, othValue, customizer, bitmask, stack))) {
+	              return seen.add(othIndex);
+	            }
+	          })) {
+	        result = false;
+	        break;
+	      }
+	    } else if (!(
+	          arrValue === othValue ||
+	            equalFunc(arrValue, othValue, customizer, bitmask, stack)
+	        )) {
+	      result = false;
+	      break;
+	    }
+	  }
+	  stack['delete'](array);
+	  stack['delete'](other);
+	  return result;
+	}
+	
+	module.exports = equalArrays;
+
+
+/***/ },
+/* 718 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var MapCache = __webpack_require__(579),
+	    setCacheAdd = __webpack_require__(719),
+	    setCacheHas = __webpack_require__(720);
+	
+	/**
+	 *
+	 * Creates an array cache object to store unique values.
+	 *
+	 * @private
+	 * @constructor
+	 * @param {Array} [values] The values to cache.
+	 */
+	function SetCache(values) {
+	  var index = -1,
+	      length = values ? values.length : 0;
+	
+	  this.__data__ = new MapCache;
+	  while (++index < length) {
+	    this.add(values[index]);
+	  }
+	}
+	
+	// Add methods to `SetCache`.
+	SetCache.prototype.add = SetCache.prototype.push = setCacheAdd;
+	SetCache.prototype.has = setCacheHas;
+	
+	module.exports = SetCache;
+
+
+/***/ },
+/* 719 */
+/***/ function(module, exports) {
+
+	/** Used to stand-in for `undefined` hash values. */
+	var HASH_UNDEFINED = '__lodash_hash_undefined__';
+	
+	/**
+	 * Adds `value` to the array cache.
+	 *
+	 * @private
+	 * @name add
+	 * @memberOf SetCache
+	 * @alias push
+	 * @param {*} value The value to cache.
+	 * @returns {Object} Returns the cache instance.
+	 */
+	function setCacheAdd(value) {
+	  this.__data__.set(value, HASH_UNDEFINED);
+	  return this;
+	}
+	
+	module.exports = setCacheAdd;
+
+
+/***/ },
+/* 720 */
+/***/ function(module, exports) {
+
+	/**
+	 * Checks if `value` is in the array cache.
+	 *
+	 * @private
+	 * @name has
+	 * @memberOf SetCache
+	 * @param {*} value The value to search for.
+	 * @returns {number} Returns `true` if `value` is found, else `false`.
+	 */
+	function setCacheHas(value) {
+	  return this.__data__.has(value);
+	}
+	
+	module.exports = setCacheHas;
+
+
+/***/ },
+/* 721 */
+/***/ function(module, exports) {
+
+	/**
+	 * A specialized version of `_.some` for arrays without support for iteratee
+	 * shorthands.
+	 *
+	 * @private
+	 * @param {Array} [array] The array to iterate over.
+	 * @param {Function} predicate The function invoked per iteration.
+	 * @returns {boolean} Returns `true` if any element passes the predicate check,
+	 *  else `false`.
+	 */
+	function arraySome(array, predicate) {
+	  var index = -1,
+	      length = array ? array.length : 0;
+	
+	  while (++index < length) {
+	    if (predicate(array[index], index, array)) {
+	      return true;
+	    }
+	  }
+	  return false;
+	}
+	
+	module.exports = arraySome;
+
+
+/***/ },
+/* 722 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Symbol = __webpack_require__(615),
+	    Uint8Array = __webpack_require__(667),
+	    eq = __webpack_require__(602),
+	    equalArrays = __webpack_require__(717),
+	    mapToArray = __webpack_require__(672),
+	    setToArray = __webpack_require__(676);
+	
+	/** Used to compose bitmasks for comparison styles. */
+	var UNORDERED_COMPARE_FLAG = 1,
+	    PARTIAL_COMPARE_FLAG = 2;
+	
+	/** `Object#toString` result references. */
+	var boolTag = '[object Boolean]',
+	    dateTag = '[object Date]',
+	    errorTag = '[object Error]',
+	    mapTag = '[object Map]',
+	    numberTag = '[object Number]',
+	    regexpTag = '[object RegExp]',
+	    setTag = '[object Set]',
+	    stringTag = '[object String]',
+	    symbolTag = '[object Symbol]';
+	
+	var arrayBufferTag = '[object ArrayBuffer]',
+	    dataViewTag = '[object DataView]';
+	
+	/** Used to convert symbols to primitives and strings. */
+	var symbolProto = Symbol ? Symbol.prototype : undefined,
+	    symbolValueOf = symbolProto ? symbolProto.valueOf : undefined;
+	
+	/**
+	 * A specialized version of `baseIsEqualDeep` for comparing objects of
+	 * the same `toStringTag`.
+	 *
+	 * **Note:** This function only supports comparing values with tags of
+	 * `Boolean`, `Date`, `Error`, `Number`, `RegExp`, or `String`.
+	 *
+	 * @private
+	 * @param {Object} object The object to compare.
+	 * @param {Object} other The other object to compare.
+	 * @param {string} tag The `toStringTag` of the objects to compare.
+	 * @param {Function} equalFunc The function to determine equivalents of values.
+	 * @param {Function} customizer The function to customize comparisons.
+	 * @param {number} bitmask The bitmask of comparison flags. See `baseIsEqual`
+	 *  for more details.
+	 * @param {Object} stack Tracks traversed `object` and `other` objects.
+	 * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+	 */
+	function equalByTag(object, other, tag, equalFunc, customizer, bitmask, stack) {
+	  switch (tag) {
+	    case dataViewTag:
+	      if ((object.byteLength != other.byteLength) ||
+	          (object.byteOffset != other.byteOffset)) {
+	        return false;
+	      }
+	      object = object.buffer;
+	      other = other.buffer;
+	
+	    case arrayBufferTag:
+	      if ((object.byteLength != other.byteLength) ||
+	          !equalFunc(new Uint8Array(object), new Uint8Array(other))) {
+	        return false;
+	      }
+	      return true;
+	
+	    case boolTag:
+	    case dateTag:
+	    case numberTag:
+	      // Coerce booleans to `1` or `0` and dates to milliseconds.
+	      // Invalid dates are coerced to `NaN`.
+	      return eq(+object, +other);
+	
+	    case errorTag:
+	      return object.name == other.name && object.message == other.message;
+	
+	    case regexpTag:
+	    case stringTag:
+	      // Coerce regexes to strings and treat strings, primitives and objects,
+	      // as equal. See http://www.ecma-international.org/ecma-262/7.0/#sec-regexp.prototype.tostring
+	      // for more details.
+	      return object == (other + '');
+	
+	    case mapTag:
+	      var convert = mapToArray;
+	
+	    case setTag:
+	      var isPartial = bitmask & PARTIAL_COMPARE_FLAG;
+	      convert || (convert = setToArray);
+	
+	      if (object.size != other.size && !isPartial) {
+	        return false;
+	      }
+	      // Assume cyclic values are equal.
+	      var stacked = stack.get(object);
+	      if (stacked) {
+	        return stacked == other;
+	      }
+	      bitmask |= UNORDERED_COMPARE_FLAG;
+	
+	      // Recursively compare objects (susceptible to call stack limits).
+	      stack.set(object, other);
+	      var result = equalArrays(convert(object), convert(other), equalFunc, customizer, bitmask, stack);
+	      stack['delete'](object);
+	      return result;
+	
+	    case symbolTag:
+	      if (symbolValueOf) {
+	        return symbolValueOf.call(object) == symbolValueOf.call(other);
+	      }
+	  }
+	  return false;
+	}
+	
+	module.exports = equalByTag;
+
+
+/***/ },
+/* 723 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var keys = __webpack_require__(641);
+	
+	/** Used to compose bitmasks for comparison styles. */
+	var PARTIAL_COMPARE_FLAG = 2;
+	
+	/** Used for built-in method references. */
+	var objectProto = Object.prototype;
+	
+	/** Used to check objects for own properties. */
+	var hasOwnProperty = objectProto.hasOwnProperty;
+	
+	/**
+	 * A specialized version of `baseIsEqualDeep` for objects with support for
+	 * partial deep comparisons.
+	 *
+	 * @private
+	 * @param {Object} object The object to compare.
+	 * @param {Object} other The other object to compare.
+	 * @param {Function} equalFunc The function to determine equivalents of values.
+	 * @param {Function} customizer The function to customize comparisons.
+	 * @param {number} bitmask The bitmask of comparison flags. See `baseIsEqual`
+	 *  for more details.
+	 * @param {Object} stack Tracks traversed `object` and `other` objects.
+	 * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+	 */
+	function equalObjects(object, other, equalFunc, customizer, bitmask, stack) {
+	  var isPartial = bitmask & PARTIAL_COMPARE_FLAG,
+	      objProps = keys(object),
+	      objLength = objProps.length,
+	      othProps = keys(other),
+	      othLength = othProps.length;
+	
+	  if (objLength != othLength && !isPartial) {
+	    return false;
+	  }
+	  var index = objLength;
+	  while (index--) {
+	    var key = objProps[index];
+	    if (!(isPartial ? key in other : hasOwnProperty.call(other, key))) {
+	      return false;
+	    }
+	  }
+	  // Assume cyclic values are equal.
+	  var stacked = stack.get(object);
+	  if (stacked && stack.get(other)) {
+	    return stacked == other;
+	  }
+	  var result = true;
+	  stack.set(object, other);
+	  stack.set(other, object);
+	
+	  var skipCtor = isPartial;
+	  while (++index < objLength) {
+	    key = objProps[index];
+	    var objValue = object[key],
+	        othValue = other[key];
+	
+	    if (customizer) {
+	      var compared = isPartial
+	        ? customizer(othValue, objValue, key, other, object, stack)
+	        : customizer(objValue, othValue, key, object, other, stack);
+	    }
+	    // Recursively compare objects (susceptible to call stack limits).
+	    if (!(compared === undefined
+	          ? (objValue === othValue || equalFunc(objValue, othValue, customizer, bitmask, stack))
+	          : compared
+	        )) {
+	      result = false;
+	      break;
+	    }
+	    skipCtor || (skipCtor = key == 'constructor');
+	  }
+	  if (result && !skipCtor) {
+	    var objCtor = object.constructor,
+	        othCtor = other.constructor;
+	
+	    // Non `Object` object instances with different constructors are not equal.
+	    if (objCtor != othCtor &&
+	        ('constructor' in object && 'constructor' in other) &&
+	        !(typeof objCtor == 'function' && objCtor instanceof objCtor &&
+	          typeof othCtor == 'function' && othCtor instanceof othCtor)) {
+	      result = false;
+	    }
+	  }
+	  stack['delete'](object);
+	  stack['delete'](other);
+	  return result;
+	}
+	
+	module.exports = equalObjects;
+
+
+/***/ },
+/* 724 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var isStrictComparable = __webpack_require__(725),
+	    keys = __webpack_require__(641);
+	
+	/**
+	 * Gets the property names, values, and compare flags of `object`.
+	 *
+	 * @private
+	 * @param {Object} object The object to query.
+	 * @returns {Array} Returns the match data of `object`.
+	 */
+	function getMatchData(object) {
+	  var result = keys(object),
+	      length = result.length;
+	
+	  while (length--) {
+	    var key = result[length],
+	        value = object[key];
+	
+	    result[length] = [key, value, isStrictComparable(value)];
+	  }
+	  return result;
+	}
+	
+	module.exports = getMatchData;
+
+
+/***/ },
+/* 725 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var isObject = __webpack_require__(587);
+	
+	/**
+	 * Checks if `value` is suitable for strict equality comparisons, i.e. `===`.
+	 *
+	 * @private
+	 * @param {*} value The value to check.
+	 * @returns {boolean} Returns `true` if `value` if suitable for strict
+	 *  equality comparisons, else `false`.
+	 */
+	function isStrictComparable(value) {
+	  return value === value && !isObject(value);
+	}
+	
+	module.exports = isStrictComparable;
+
+
+/***/ },
+/* 726 */
+/***/ function(module, exports) {
+
+	/**
+	 * A specialized version of `matchesProperty` for source values suitable
+	 * for strict equality comparisons, i.e. `===`.
+	 *
+	 * @private
+	 * @param {string} key The key of the property to get.
+	 * @param {*} srcValue The value to match.
+	 * @returns {Function} Returns the new spec function.
+	 */
+	function matchesStrictComparable(key, srcValue) {
+	  return function(object) {
+	    if (object == null) {
+	      return false;
+	    }
+	    return object[key] === srcValue &&
+	      (srcValue !== undefined || (key in Object(object)));
+	  };
+	}
+	
+	module.exports = matchesStrictComparable;
+
+
+/***/ },
+/* 727 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var baseIsEqual = __webpack_require__(715),
+	    get = __webpack_require__(573),
+	    hasIn = __webpack_require__(728),
+	    isKey = __webpack_require__(617),
+	    isStrictComparable = __webpack_require__(725),
+	    matchesStrictComparable = __webpack_require__(726),
+	    toKey = __webpack_require__(618);
+	
+	/** Used to compose bitmasks for comparison styles. */
+	var UNORDERED_COMPARE_FLAG = 1,
+	    PARTIAL_COMPARE_FLAG = 2;
+	
+	/**
+	 * The base implementation of `_.matchesProperty` which doesn't clone `srcValue`.
+	 *
+	 * @private
+	 * @param {string} path The path of the property to get.
+	 * @param {*} srcValue The value to match.
+	 * @returns {Function} Returns the new spec function.
+	 */
+	function baseMatchesProperty(path, srcValue) {
+	  if (isKey(path) && isStrictComparable(srcValue)) {
+	    return matchesStrictComparable(toKey(path), srcValue);
+	  }
+	  return function(object) {
+	    var objValue = get(object, path);
+	    return (objValue === undefined && objValue === srcValue)
+	      ? hasIn(object, path)
+	      : baseIsEqual(srcValue, objValue, undefined, UNORDERED_COMPARE_FLAG | PARTIAL_COMPARE_FLAG);
+	  };
+	}
+	
+	module.exports = baseMatchesProperty;
+
+
+/***/ },
+/* 728 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var baseHasIn = __webpack_require__(729),
+	    hasPath = __webpack_require__(730);
+	
+	/**
+	 * Checks if `path` is a direct or inherited property of `object`.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 4.0.0
+	 * @category Object
+	 * @param {Object} object The object to query.
+	 * @param {Array|string} path The path to check.
+	 * @returns {boolean} Returns `true` if `path` exists, else `false`.
+	 * @example
+	 *
+	 * var object = _.create({ 'a': _.create({ 'b': 2 }) });
+	 *
+	 * _.hasIn(object, 'a');
+	 * // => true
+	 *
+	 * _.hasIn(object, 'a.b');
+	 * // => true
+	 *
+	 * _.hasIn(object, ['a', 'b']);
+	 * // => true
+	 *
+	 * _.hasIn(object, 'b');
+	 * // => false
+	 */
+	function hasIn(object, path) {
+	  return object != null && hasPath(object, path, baseHasIn);
+	}
+	
+	module.exports = hasIn;
+
+
+/***/ },
+/* 729 */
+/***/ function(module, exports) {
+
+	/**
+	 * The base implementation of `_.hasIn` without support for deep paths.
+	 *
+	 * @private
+	 * @param {Object} [object] The object to query.
+	 * @param {Array|string} key The key to check.
+	 * @returns {boolean} Returns `true` if `key` exists, else `false`.
+	 */
+	function baseHasIn(object, key) {
+	  return object != null && key in Object(object);
+	}
+	
+	module.exports = baseHasIn;
+
+
+/***/ },
+/* 730 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var castPath = __webpack_require__(575),
+	    isArguments = __webpack_require__(644),
+	    isArray = __webpack_require__(576),
+	    isIndex = __webpack_require__(623),
+	    isKey = __webpack_require__(617),
+	    isLength = __webpack_require__(647),
+	    toKey = __webpack_require__(618);
+	
+	/**
+	 * Checks if `path` exists on `object`.
+	 *
+	 * @private
+	 * @param {Object} object The object to query.
+	 * @param {Array|string} path The path to check.
+	 * @param {Function} hasFunc The function to check properties.
+	 * @returns {boolean} Returns `true` if `path` exists, else `false`.
+	 */
+	function hasPath(object, path, hasFunc) {
+	  path = isKey(path, object) ? [path] : castPath(path);
+	
+	  var result,
+	      index = -1,
+	      length = path.length;
+	
+	  while (++index < length) {
+	    var key = toKey(path[index]);
+	    if (!(result = object != null && hasFunc(object, key))) {
+	      break;
+	    }
+	    object = object[key];
+	  }
+	  if (result) {
+	    return result;
+	  }
+	  var length = object ? object.length : 0;
+	  return !!length && isLength(length) && isIndex(key, length) &&
+	    (isArray(object) || isArguments(object));
+	}
+	
+	module.exports = hasPath;
+
+
+/***/ },
+/* 731 */
+/***/ function(module, exports) {
+
+	/**
+	 * This method returns the first argument it receives.
+	 *
+	 * @static
+	 * @since 0.1.0
+	 * @memberOf _
+	 * @category Util
+	 * @param {*} value Any value.
+	 * @returns {*} Returns `value`.
+	 * @example
+	 *
+	 * var object = { 'a': 1 };
+	 *
+	 * console.log(_.identity(object) === object);
+	 * // => true
+	 */
+	function identity(value) {
+	  return value;
+	}
+	
+	module.exports = identity;
+
+
+/***/ },
+/* 732 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var baseProperty = __webpack_require__(733),
+	    basePropertyDeep = __webpack_require__(734),
+	    isKey = __webpack_require__(617),
+	    toKey = __webpack_require__(618);
+	
+	/**
+	 * Creates a function that returns the value at `path` of a given object.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 2.4.0
+	 * @category Util
+	 * @param {Array|string} path The path of the property to get.
+	 * @returns {Function} Returns the new accessor function.
+	 * @example
+	 *
+	 * var objects = [
+	 *   { 'a': { 'b': 2 } },
+	 *   { 'a': { 'b': 1 } }
+	 * ];
+	 *
+	 * _.map(objects, _.property('a.b'));
+	 * // => [2, 1]
+	 *
+	 * _.map(_.sortBy(objects, _.property(['a', 'b'])), 'a.b');
+	 * // => [1, 2]
+	 */
+	function property(path) {
+	  return isKey(path) ? baseProperty(toKey(path)) : basePropertyDeep(path);
+	}
+	
+	module.exports = property;
+
+
+/***/ },
+/* 733 */
+/***/ function(module, exports) {
+
+	/**
+	 * The base implementation of `_.property` without support for deep paths.
+	 *
+	 * @private
+	 * @param {string} key The key of the property to get.
+	 * @returns {Function} Returns the new accessor function.
+	 */
+	function baseProperty(key) {
+	  return function(object) {
+	    return object == null ? undefined : object[key];
+	  };
+	}
+	
+	module.exports = baseProperty;
+
+
+/***/ },
+/* 734 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var baseGet = __webpack_require__(574);
+	
+	/**
+	 * A specialized version of `baseProperty` which supports deep paths.
+	 *
+	 * @private
+	 * @param {Array|string} path The path of the property to get.
+	 * @returns {Function} Returns the new accessor function.
+	 */
+	function basePropertyDeep(path) {
+	  return function(object) {
+	    return baseGet(object, path);
+	  };
+	}
+	
+	module.exports = basePropertyDeep;
+
+
+/***/ },
+/* 735 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _defineProperty2 = __webpack_require__(302);
+	
+	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
+	
+	var _slicedToArray2 = __webpack_require__(321);
+	
+	var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
+	
+	var _promise = __webpack_require__(363);
+	
+	var _promise2 = _interopRequireDefault(_promise);
+	
+	var _stringify = __webpack_require__(736);
+	
+	var _stringify2 = _interopRequireDefault(_stringify);
+	
+	var _initialState;
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	__webpack_require__(1);
+	
+	var React = __webpack_require__(378);
+	var ReactDOM = __webpack_require__(410);
+	
+	var _require = __webpack_require__(548);
+	
+	var Provider = _require.Provider;
+	var connect = _require.connect;
+	
+	var classnames = __webpack_require__(572);
+	var get = __webpack_require__(573);
+	
+	var _require2 = __webpack_require__(619);
+	
+	var reduceIn = _require2.reduceIn;
+	
+	
+	var fetch = __webpack_require__(696)({
+	    Promise: __webpack_require__(299)
+	});
+	
+	var jsonDecode = __webpack_require__(697);
+	
+	var _require3 = __webpack_require__(698);
+	
+	var DECK_ID = _require3.DECK_ID;
+	var ERROR = _require3.ERROR;
+	var ERROR_MESSAGE = _require3.ERROR_MESSAGE;
+	
+	
+	var CONFIRM_MOVE = 'CONFIRM_MOVE';
+	var MOVE_TO = 'MOVE_TO';
+	var SUBMITTING = 'SUBMITTING';
+	
+	/* react components */
+	
+	var ErrorComponent = __webpack_require__(699);
+	
+	var __MoveButton = function __MoveButton(props) {
+	    var dispatch = props.dispatch;
+	    var submitting = props.submitting;
+	
+	
+	    if (props.shouldConfirmMove) {
+	        return React.createElement(
+	            'a',
+	            {
+	                className: classnames('button is-bold is-outlined', {
+	                    'is-disabled': submitting,
+	                    'is-loading': submitting
+	                }),
+	                onClick: confirmMove(dispatch, false)
+	            },
+	            'Cancel'
+	        );
+	    }
+	
+	    return React.createElement(
+	        'a',
+	        {
+	            className: classnames('button is-primary is-bold is-outlined', {
+	                'is-disabled': submitting,
+	                'is-loading': submitting
+	            }),
+	            onClick: confirmMove(dispatch, true)
+	        },
+	        'Move to this deck'
+	    );
+	};
+	
+	if (true) {
+	    __MoveButton.propTypes = {
+	        shouldConfirmMove: React.PropTypes.bool.isRequired,
+	        submitting: React.PropTypes.bool.isRequired,
+	        dispatch: React.PropTypes.func.isRequired
+	    };
+	}
+	
+	var MoveButton = connect(
+	// mapStateToProps
+	function (state) {
+	    return {
+	        shouldConfirmMove: state[CONFIRM_MOVE],
+	        submitting: state[SUBMITTING]
+	    };
+	})(__MoveButton);
+	
+	var __LeftSideMoveButton = function __LeftSideMoveButton(props) {
+	
+	    if (!props.shouldConfirmMove) {
+	        return null;
+	    }
+	
+	    var submitting = props.submitting;
+	
+	
+	    var onClick = function onClick(event) {
+	        event.preventDefault();
+	        moveCard(props.dispatch, props.moveURL, props.deckID, submitting);
+	    };
+	
+	    return React.createElement(
+	        'a',
+	        {
+	            className: classnames('button is-bold is-danger', {
+	                'is-disabled': submitting,
+	                'is-loading': submitting
+	            }),
+	            onClick: onClick
+	        },
+	        'Move'
+	    );
+	};
+	
+	if (true) {
+	    __LeftSideMoveButton.propTypes = {
+	        shouldConfirmMove: React.PropTypes.bool.isRequired,
+	        submitting: React.PropTypes.bool.isRequired,
+	        dispatch: React.PropTypes.func.isRequired,
+	        moveURL: React.PropTypes.string.isRequired,
+	        deckID: React.PropTypes.number.isRequired
+	    };
+	}
+	
+	var LeftSideMoveButton = connect(
+	// mapStateToProps
+	function (state) {
+	    return {
+	        shouldConfirmMove: state[CONFIRM_MOVE],
+	        submitting: state[SUBMITTING],
+	        moveURL: state[MOVE_TO],
+	        deckID: state[DECK_ID]
+	    };
+	})(__LeftSideMoveButton);
+	
+	var __ErrorMoveButton = function __ErrorMoveButton(props) {
+	    var dispatch = props.dispatch;
+	    var error = props.error;
+	
+	
+	    return React.createElement(ErrorComponent, { error: error && error.message || '', onConfirm: confirmError(dispatch) });
+	};
+	
+	if (true) {
+	    __ErrorMoveButton.propTypes = {
+	        dispatch: React.PropTypes.func.isRequired,
+	        error: React.PropTypes.object.isRequired
+	    };
+	}
+	
+	var ErrorMoveButton = connect(
+	// mapStateToProps
+	function (state) {
+	    return {
+	        error: state[ERROR]
+	    };
+	})(__ErrorMoveButton);
+	
+	/* redux action dispatchers */
+	// NOTE: FSA compliant
+	
+	var confirmError = function confirmError(dispatch) {
+	    return function (event) {
+	        event.preventDefault();
+	        dispatch(reduceIn(
+	        // reducer
+	        errorReducer,
+	        // path
+	        [ERROR],
+	        // action
+	        {
+	            type: ERROR_MESSAGE,
+	            payload: ''
+	        }));
+	    };
+	};
+	
+	var defaultRESTError = 'Unable to move card. Please try again.';
+	var moveCard = function moveCard(dispatch, moveURL, deckID) {
+	    var submitting = arguments.length <= 3 || arguments[3] === undefined ? true : arguments[3];
+	
+	
+	    if (submitting) {
+	        return;
+	    }
+	
+	    dispatch(reduceIn(
+	    // reducer
+	    boolReducer,
+	    // path
+	    [SUBMITTING],
+	    // action
+	    {
+	        type: true
+	    }));
+	
+	    var moveRequest = {
+	        deck_id: deckID
+	    };
+	
+	    fetch(moveURL, {
+	        method: 'POST',
+	        headers: {
+	            'Accept': 'application/json',
+	            'Content-Type': 'application/json'
+	        },
+	        body: (0, _stringify2.default)(moveRequest)
+	    }).then(function (response) {
+	        return _promise2.default.all([response.status, jsonDecode(response)]);
+	    }).then(function (_ref) {
+	        var _ref2 = (0, _slicedToArray3.default)(_ref, 2);
+	
+	        var statusCode = _ref2[0];
+	        var jsonResponse = _ref2[1];
+	
+	
+	        dispatch(reduceIn(
+	        // reducer
+	        boolReducer,
+	        // path
+	        [SUBMITTING],
+	        // action
+	        {
+	            type: false
+	        }));
+	
+	        switch (statusCode) {
+	            case 500: // Internal Server Error
+	            case 400:
+	                // Bad Request
+	
+	                dispatch(reduceIn(
+	                // reducer
+	                errorReducer,
+	                // path
+	                [ERROR],
+	                // action
+	                {
+	                    type: ERROR_MESSAGE,
+	                    payload: get(jsonResponse, ['error'], defaultRESTError)
+	                }));
+	
+	                return;
+	                break;
+	            case 200:
+	                // Ok
+	
+	                window.location.href = jsonResponse.payload.redirect_to;
+	
+	                return;
+	                break;
+	
+	            default:
+	                // Unexpected http status code
+	                dispatch(reduceIn(
+	                // reducer
+	                errorReducer,
+	                // path
+	                [ERROR],
+	                // action
+	                {
+	                    type: ERROR_MESSAGE,
+	                    payload: get(jsonResponse, ['error'], defaultRESTError)
+	                }));
+	        }
+	    }).catch(function () /*err*/{
+	
+	        // any other errors
+	        // console.log('err:', err);
+	
+	        dispatch(reduceIn(
+	        // reducer
+	        boolReducer,
+	        // path
+	        [SUBMITTING],
+	        // action
+	        {
+	            type: false
+	        }));
+	
+	        dispatch(reduceIn(
+	        // reducer
+	        errorReducer,
+	        // path
+	        [ERROR],
+	        // action
+	        {
+	            type: ERROR_MESSAGE,
+	            payload: defaultRESTError
+	        }));
+	    });
+	};
+	
+	var confirmMove = function confirmMove(dispatch) {
+	    var confirm = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+	
+	    return function (event) {
+	        event.preventDefault();
+	        dispatch(reduceIn(
+	        // reducer
+	        boolReducer,
+	        // path
+	        [CONFIRM_MOVE],
+	        // action
+	        {
+	            type: confirm
+	        }));
+	    };
+	};
+	
+	/* redux reducers */
+	
+	var boolReducer = __webpack_require__(700);
+	var errorReducer = __webpack_require__(701);
+	
+	/* default state */
+	
+	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, DECK_ID, 0), (0, _defineProperty3.default)(_initialState, MOVE_TO, ''), (0, _defineProperty3.default)(_initialState, CONFIRM_MOVE, false), (0, _defineProperty3.default)(_initialState, SUBMITTING, false), (0, _defineProperty3.default)(_initialState, ERROR, errorReducer()), _initialState);
+	
+	/* exports */
+	
+	var createStore = __webpack_require__(702);
+	
+	module.exports = function (elem, deckID, moveTo) {
+	
+	    var cloneDeep = __webpack_require__(705);
+	
+	    var __initialState = cloneDeep(initialState);
+	
+	    __initialState[DECK_ID] = Number(deckID);
+	    __initialState[MOVE_TO] = String(moveTo);
+	
+	    var store = createStore(__initialState);
+	
+	    ReactDOM.render(React.createElement(
+	        Provider,
+	        { store: store },
+	        React.createElement(MoveButton, null)
+	    ), elem);
+	
+	    ReactDOM.render(React.createElement(
+	        Provider,
+	        { store: store },
+	        React.createElement(LeftSideMoveButton, null)
+	    ), document.getElementById('' + deckID + '-confirm'));
+	
+	    ReactDOM.render(React.createElement(
+	        Provider,
+	        { store: store },
+	        React.createElement(ErrorMoveButton, null)
+	    ), document.getElementById('' + deckID + '-error'));
+	};
+
+/***/ },
+/* 736 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = { "default": __webpack_require__(737), __esModule: true };
+
+/***/ },
+/* 737 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var core  = __webpack_require__(308)
+	  , $JSON = core.JSON || (core.JSON = {stringify: JSON.stringify});
+	module.exports = function stringify(it){ // eslint-disable-line no-unused-vars
+	  return $JSON.stringify.apply($JSON, arguments);
+	};
 
 /***/ }
 ]);

@@ -1,30 +1,634 @@
-webpackJsonp([4],{
-
-/***/ 0:
+webpackJsonp([0],[
+/* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var client = __webpack_require__(738);
+	__webpack_require__(1);
 	
-	if (true) {
-	    var invariant = __webpack_require__(571);
-	    invariant(window.__PRE_RENDER_STATE__, 'we expect to consume window.__PRE_RENDER_STATE__');
-	    invariant(!window.__POST_RENDER_STATE__, 'we do not expect to consume window.__POST_RENDER_STATE__');
-	}
+	var backup = __webpack_require__(301);
 	
-	/* delete component */
-	
-	var cardSettingsDeleteMaker = __webpack_require__(914);
-	
-	var preRenderStateDelete = window.__PRE_RENDER_STATE__;
-	var postRenderStateDelete = cardSettingsDeleteMaker.initialState;
-	
-	client(cardSettingsDeleteMaker, preRenderStateDelete, postRenderStateDelete, document.getElementById('card_settings_main_delete_container'));
+	backup(document.getElementById('backup_container'));
 
 /***/ },
+/* 1 */,
+/* 2 */,
+/* 3 */,
+/* 4 */,
+/* 5 */,
+/* 6 */,
+/* 7 */,
+/* 8 */,
+/* 9 */,
+/* 10 */,
+/* 11 */,
+/* 12 */,
+/* 13 */,
+/* 14 */,
+/* 15 */,
+/* 16 */,
+/* 17 */,
+/* 18 */,
+/* 19 */,
+/* 20 */,
+/* 21 */,
+/* 22 */,
+/* 23 */,
+/* 24 */,
+/* 25 */,
+/* 26 */,
+/* 27 */,
+/* 28 */,
+/* 29 */,
+/* 30 */,
+/* 31 */,
+/* 32 */,
+/* 33 */,
+/* 34 */,
+/* 35 */,
+/* 36 */,
+/* 37 */,
+/* 38 */,
+/* 39 */,
+/* 40 */,
+/* 41 */,
+/* 42 */,
+/* 43 */,
+/* 44 */,
+/* 45 */,
+/* 46 */,
+/* 47 */,
+/* 48 */,
+/* 49 */,
+/* 50 */,
+/* 51 */,
+/* 52 */,
+/* 53 */,
+/* 54 */,
+/* 55 */,
+/* 56 */,
+/* 57 */,
+/* 58 */,
+/* 59 */,
+/* 60 */,
+/* 61 */,
+/* 62 */,
+/* 63 */,
+/* 64 */,
+/* 65 */,
+/* 66 */,
+/* 67 */,
+/* 68 */,
+/* 69 */,
+/* 70 */,
+/* 71 */,
+/* 72 */,
+/* 73 */,
+/* 74 */,
+/* 75 */,
+/* 76 */,
+/* 77 */,
+/* 78 */,
+/* 79 */,
+/* 80 */,
+/* 81 */,
+/* 82 */,
+/* 83 */,
+/* 84 */,
+/* 85 */,
+/* 86 */,
+/* 87 */,
+/* 88 */,
+/* 89 */,
+/* 90 */,
+/* 91 */,
+/* 92 */,
+/* 93 */,
+/* 94 */,
+/* 95 */,
+/* 96 */,
+/* 97 */,
+/* 98 */,
+/* 99 */,
+/* 100 */,
+/* 101 */,
+/* 102 */,
+/* 103 */,
+/* 104 */,
+/* 105 */,
+/* 106 */,
+/* 107 */,
+/* 108 */,
+/* 109 */,
+/* 110 */,
+/* 111 */,
+/* 112 */,
+/* 113 */,
+/* 114 */,
+/* 115 */,
+/* 116 */,
+/* 117 */,
+/* 118 */,
+/* 119 */,
+/* 120 */,
+/* 121 */,
+/* 122 */,
+/* 123 */,
+/* 124 */,
+/* 125 */,
+/* 126 */,
+/* 127 */,
+/* 128 */,
+/* 129 */,
+/* 130 */,
+/* 131 */,
+/* 132 */,
+/* 133 */,
+/* 134 */,
+/* 135 */,
+/* 136 */,
+/* 137 */,
+/* 138 */,
+/* 139 */,
+/* 140 */,
+/* 141 */,
+/* 142 */,
+/* 143 */,
+/* 144 */,
+/* 145 */,
+/* 146 */,
+/* 147 */,
+/* 148 */,
+/* 149 */,
+/* 150 */,
+/* 151 */,
+/* 152 */,
+/* 153 */,
+/* 154 */,
+/* 155 */,
+/* 156 */,
+/* 157 */,
+/* 158 */,
+/* 159 */,
+/* 160 */,
+/* 161 */,
+/* 162 */,
+/* 163 */,
+/* 164 */,
+/* 165 */,
+/* 166 */,
+/* 167 */,
+/* 168 */,
+/* 169 */,
+/* 170 */,
+/* 171 */,
+/* 172 */,
+/* 173 */,
+/* 174 */,
+/* 175 */,
+/* 176 */,
+/* 177 */,
+/* 178 */,
+/* 179 */,
+/* 180 */,
+/* 181 */,
+/* 182 */,
+/* 183 */,
+/* 184 */,
+/* 185 */,
+/* 186 */,
+/* 187 */,
+/* 188 */,
+/* 189 */,
+/* 190 */,
+/* 191 */,
+/* 192 */,
+/* 193 */,
+/* 194 */,
+/* 195 */,
+/* 196 */,
+/* 197 */,
+/* 198 */,
+/* 199 */,
+/* 200 */,
+/* 201 */,
+/* 202 */,
+/* 203 */,
+/* 204 */,
+/* 205 */,
+/* 206 */,
+/* 207 */,
+/* 208 */,
+/* 209 */,
+/* 210 */,
+/* 211 */,
+/* 212 */,
+/* 213 */,
+/* 214 */,
+/* 215 */,
+/* 216 */,
+/* 217 */,
+/* 218 */,
+/* 219 */,
+/* 220 */,
+/* 221 */,
+/* 222 */,
+/* 223 */,
+/* 224 */,
+/* 225 */,
+/* 226 */,
+/* 227 */,
+/* 228 */,
+/* 229 */,
+/* 230 */,
+/* 231 */,
+/* 232 */,
+/* 233 */,
+/* 234 */,
+/* 235 */,
+/* 236 */,
+/* 237 */,
+/* 238 */,
+/* 239 */,
+/* 240 */,
+/* 241 */,
+/* 242 */,
+/* 243 */,
+/* 244 */,
+/* 245 */,
+/* 246 */,
+/* 247 */,
+/* 248 */,
+/* 249 */,
+/* 250 */,
+/* 251 */,
+/* 252 */,
+/* 253 */,
+/* 254 */,
+/* 255 */,
+/* 256 */,
+/* 257 */,
+/* 258 */,
+/* 259 */,
+/* 260 */,
+/* 261 */,
+/* 262 */,
+/* 263 */,
+/* 264 */,
+/* 265 */,
+/* 266 */,
+/* 267 */,
+/* 268 */,
+/* 269 */,
+/* 270 */,
+/* 271 */,
+/* 272 */,
+/* 273 */,
+/* 274 */,
+/* 275 */,
+/* 276 */,
+/* 277 */,
+/* 278 */,
+/* 279 */,
+/* 280 */,
+/* 281 */,
+/* 282 */,
+/* 283 */,
+/* 284 */,
+/* 285 */,
+/* 286 */,
+/* 287 */,
+/* 288 */,
+/* 289 */,
+/* 290 */,
+/* 291 */,
+/* 292 */,
+/* 293 */,
+/* 294 */,
+/* 295 */,
+/* 296 */,
+/* 297 */,
+/* 298 */,
+/* 299 */,
+/* 300 */,
+/* 301 */
+/***/ function(module, exports, __webpack_require__) {
 
-/***/ 302:
+	'use strict';
+	
+	var _defineProperty2 = __webpack_require__(302);
+	
+	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
+	
+	var _slicedToArray2 = __webpack_require__(321);
+	
+	var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
+	
+	var _promise = __webpack_require__(363);
+	
+	var _promise2 = _interopRequireDefault(_promise);
+	
+	var _initialState;
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	__webpack_require__(1);
+	
+	var React = __webpack_require__(378);
+	var ReactDOM = __webpack_require__(410);
+	
+	var _require = __webpack_require__(548);
+	
+	var Provider = _require.Provider;
+	var connect = _require.connect;
+	
+	var classnames = __webpack_require__(572);
+	var get = __webpack_require__(573);
+	
+	var _require2 = __webpack_require__(619);
+	
+	var reduceIn = _require2.reduceIn;
+	
+	
+	var fetch = __webpack_require__(696)({
+	    Promise: __webpack_require__(299)
+	});
+	
+	var jsonDecode = __webpack_require__(697);
+	
+	var _require3 = __webpack_require__(698);
+	
+	var ERROR = _require3.ERROR;
+	var ERROR_MESSAGE = _require3.ERROR_MESSAGE;
+	
+	// TODO: move
+	
+	var RESULT = 'RESULT';
+	var SUBMITTING = 'SUBMITTING';
+	
+	/* react components */
+	
+	var ErrorComponent = __webpack_require__(699);
+	
+	var Message = function Message(props) {
+	    var result = props.result;
+	
+	
+	    var msg = String(result).trim();
+	
+	    if (msg.length <= 0) {
+	        return null;
+	    }
+	
+	    return React.createElement(
+	        'p',
+	        null,
+	        msg
+	    );
+	};
+	
+	if (true) {
+	    Message.propTypes = {
+	        result: React.PropTypes.string.isRequired
+	    };
+	}
+	
+	var __BackupButton = function __BackupButton(props) {
+	    var dispatch = props.dispatch;
+	    var submitting = props.submitting;
+	    var error = props.error;
+	    var result = props.result;
+	
+	
+	    var onClick = function onClick(event) {
+	        event.preventDefault();
+	        backupDatabase(dispatch, submitting);
+	    };
+	
+	    return React.createElement(
+	        'div',
+	        null,
+	        React.createElement(
+	            'a',
+	            {
+	                className: classnames('button is-primary is-bold is-outlined', {
+	                    'is-disabled': submitting,
+	                    'is-loading': submitting
+	                }),
+	                onClick: onClick
+	            },
+	            'Backup database'
+	        ),
+	        React.createElement('br', null),
+	        React.createElement(Message, { result: result }),
+	        React.createElement('br', null),
+	        React.createElement(ErrorComponent, { error: error && error.message || '', onConfirm: confirmError(dispatch) })
+	    );
+	};
+	
+	if (true) {
+	    __BackupButton.propTypes = {
+	        submitting: React.PropTypes.bool.isRequired,
+	        dispatch: React.PropTypes.func.isRequired,
+	        error: React.PropTypes.object.isRequired,
+	        result: React.PropTypes.string.isRequired
+	    };
+	}
+	
+	var BackupButton = connect(
+	// mapStateToProps
+	function (state) {
+	    return {
+	        submitting: state[SUBMITTING],
+	        error: state[ERROR],
+	        result: state[RESULT]
+	    };
+	})(__BackupButton);
+	
+	/* redux action dispatchers */
+	// NOTE: FSA compliant
+	
+	var confirmError = function confirmError(dispatch) {
+	    return function (event) {
+	        event.preventDefault();
+	        dispatch(reduceIn(
+	        // reducer
+	        errorReducer,
+	        // path
+	        [ERROR],
+	        // action
+	        {
+	            type: ERROR_MESSAGE,
+	            payload: ''
+	        }));
+	    };
+	};
+	
+	var defaultRESTError = 'Unable to backup database. Please try again.';
+	var backupDatabase = function backupDatabase(dispatch) {
+	    var submitting = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+	
+	
+	    if (submitting) {
+	        return;
+	    }
+	
+	    dispatch(reduceIn(
+	    // reducer
+	    boolReducer,
+	    // path
+	    [SUBMITTING],
+	    // action
+	    {
+	        type: true
+	    }));
+	
+	    fetch('/api/backup', {
+	        method: 'POST'
+	    }).then(function (response) {
+	        return _promise2.default.all([response.status, jsonDecode(response)]);
+	    }).then(function (_ref) {
+	        var _ref2 = (0, _slicedToArray3.default)(_ref, 2);
+	
+	        var statusCode = _ref2[0];
+	        var jsonResponse = _ref2[1];
+	
+	
+	        dispatch(reduceIn(
+	        // reducer
+	        boolReducer,
+	        // path
+	        [SUBMITTING],
+	        // action
+	        {
+	            type: false
+	        }));
+	
+	        switch (statusCode) {
+	            case 500: // Internal Server Error
+	            case 400:
+	                // Bad Request
+	
+	                dispatch(reduceIn(
+	                // reducer
+	                errorReducer,
+	                // path
+	                [ERROR],
+	                // action
+	                {
+	                    type: ERROR_MESSAGE,
+	                    payload: get(jsonResponse, ['error'], defaultRESTError)
+	                }));
+	
+	                return;
+	                break;
+	            case 200:
+	                // Ok
+	
+	                dispatch(reduceIn(
+	                // reducer
+	                resultReducer,
+	                // path
+	                [RESULT],
+	                // action
+	                {
+	                    type: SET,
+	                    payload: jsonResponse.payload
+	                }));
+	
+	                return;
+	                break;
+	
+	            default:
+	                // Unexpected http status code
+	                dispatch(reduceIn(
+	                // reducer
+	                errorReducer,
+	                // path
+	                [ERROR],
+	                // action
+	                {
+	                    type: ERROR_MESSAGE,
+	                    payload: get(jsonResponse, ['error'], defaultRESTError)
+	                }));
+	        }
+	    }).catch(function () /*err*/{
+	
+	        // any other errors
+	        // console.log('err:', err);
+	
+	        dispatch(reduceIn(
+	        // reducer
+	        boolReducer,
+	        // path
+	        [SUBMITTING],
+	        // action
+	        {
+	            type: false
+	        }));
+	
+	        dispatch(reduceIn(
+	        // reducer
+	        errorReducer,
+	        // path
+	        [ERROR],
+	        // action
+	        {
+	            type: ERROR_MESSAGE,
+	            payload: defaultRESTError
+	        }));
+	    });
+	};
+	
+	/* redux reducers */
+	
+	var boolReducer = __webpack_require__(700);
+	var errorReducer = __webpack_require__(701);
+	
+	var SET = 'SET';
+	var resultReducer = function resultReducer() {
+	    var state = arguments.length <= 0 || arguments[0] === undefined ? '' : arguments[0];
+	    var action = arguments[1];
+	
+	
+	    switch (action.type) {
+	        case SET:
+	
+	            state = 'Database backed up to: ' + action.payload.dest_path;
+	
+	            break;
+	        default:
+	            state = '';
+	    }
+	
+	    return String(state);
+	};
+	
+	/* default state */
+	
+	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, RESULT, ''), (0, _defineProperty3.default)(_initialState, SUBMITTING, false), (0, _defineProperty3.default)(_initialState, ERROR, errorReducer()), _initialState);
+	
+	/* exports */
+	
+	var createStore = __webpack_require__(702);
+	
+	module.exports = function (elem) {
+	
+	    var cloneDeep = __webpack_require__(705);
+	
+	    var __initialState = cloneDeep(initialState);
+	
+	    var store = createStore(__initialState);
+	
+	    ReactDOM.render(React.createElement(
+	        Provider,
+	        { store: store },
+	        React.createElement(BackupButton, null)
+	    ), elem);
+	};
+
+/***/ },
+/* 302 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -53,15 +657,13 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 303:
+/* 303 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(304), __esModule: true };
 
 /***/ },
-
-/***/ 304:
+/* 304 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(305);
@@ -71,11 +673,9 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 305:
+/* 305 */
 [957, 306, 316, 312],
-
-/***/ 306:
+/* 306 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var global    = __webpack_require__(307)
@@ -141,50 +741,35 @@ webpackJsonp([4],{
 	module.exports = $export;
 
 /***/ },
-
-/***/ 307:
+/* 307 */
 5,
-
-/***/ 308:
+/* 308 */
 10,
-
-/***/ 309:
+/* 309 */
 [932, 310],
-
-/***/ 310:
+/* 310 */
 22,
-
-/***/ 311:
+/* 311 */
 [926, 312, 320, 316],
-
-/***/ 312:
+/* 312 */
 [927, 313, 315, 319, 316],
-
-/***/ 313:
+/* 313 */
 [928, 314],
-
-/***/ 314:
+/* 314 */
 14,
-
-/***/ 315:
+/* 315 */
 [929, 316, 317, 318],
-
-/***/ 316:
+/* 316 */
 [925, 317],
-
-/***/ 317:
+/* 317 */
 8,
-
-/***/ 318:
+/* 318 */
 [930, 314, 307],
-
-/***/ 319:
+/* 319 */
 [931, 314],
-
-/***/ 320:
+/* 320 */
 18,
-
-/***/ 321:
+/* 321 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -240,15 +825,13 @@ webpackJsonp([4],{
 	}();
 
 /***/ },
-
-/***/ 322:
+/* 322 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(323), __esModule: true };
 
 /***/ },
-
-/***/ 323:
+/* 323 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(324);
@@ -256,8 +839,7 @@ webpackJsonp([4],{
 	module.exports = __webpack_require__(357);
 
 /***/ },
-
-/***/ 324:
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(325);
@@ -275,116 +857,83 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 325:
+/* 325 */
 [975, 326, 327, 328, 329, 333],
-
-/***/ 326:
+/* 326 */
 /***/ function(module, exports) {
 
 	module.exports = function(){ /* empty */ };
 
 /***/ },
-
-/***/ 327:
+/* 327 */
 195,
-
-/***/ 328:
+/* 328 */
 130,
-
-/***/ 329:
+/* 329 */
 [942, 330, 332],
-
-/***/ 330:
+/* 330 */
 [943, 331],
-
-/***/ 331:
+/* 331 */
 35,
-
-/***/ 332:
+/* 332 */
 36,
-
-/***/ 333:
+/* 333 */
 [969, 334, 306, 335, 311, 336, 328, 337, 351, 353, 352],
-
-/***/ 334:
+/* 334 */
 /***/ function(module, exports) {
 
 	module.exports = true;
 
 /***/ },
-
-/***/ 335:
+/* 335 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(311);
 
 /***/ },
-
-/***/ 336:
+/* 336 */
 6,
-
-/***/ 337:
+/* 337 */
 [970, 338, 320, 351, 311, 352],
-
-/***/ 338:
+/* 338 */
 [950, 313, 339, 349, 346, 318, 350],
-
-/***/ 339:
+/* 339 */
 [951, 312, 313, 340, 316],
-
-/***/ 340:
+/* 340 */
 [940, 341, 349],
-
-/***/ 341:
+/* 341 */
 [941, 336, 329, 342, 346],
-
-/***/ 342:
+/* 342 */
 [944, 329, 343, 345],
-
-/***/ 343:
+/* 343 */
 [945, 344],
-
-/***/ 344:
+/* 344 */
 39,
-
-/***/ 345:
+/* 345 */
 [946, 344],
-
-/***/ 346:
+/* 346 */
 [947, 347, 348],
-
-/***/ 347:
+/* 347 */
 [934, 307],
-
-/***/ 348:
+/* 348 */
 20,
-
-/***/ 349:
+/* 349 */
 42,
-
-/***/ 350:
+/* 350 */
 [952, 307],
-
-/***/ 351:
+/* 351 */
 [935, 312, 336, 352],
-
-/***/ 352:
+/* 352 */
 [936, 347, 348, 307],
-
-/***/ 353:
+/* 353 */
 [961, 336, 354, 346],
-
-/***/ 354:
+/* 354 */
 [960, 332],
-
-/***/ 355:
+/* 355 */
 [967, 356, 333],
-
-/***/ 356:
+/* 356 */
 [968, 344, 332],
-
-/***/ 357:
+/* 357 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var classof   = __webpack_require__(358)
@@ -398,18 +947,15 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 358:
+/* 358 */
 [966, 331, 352],
-
-/***/ 359:
+/* 359 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(360), __esModule: true };
 
 /***/ },
-
-/***/ 360:
+/* 360 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(324);
@@ -417,8 +963,7 @@ webpackJsonp([4],{
 	module.exports = __webpack_require__(361);
 
 /***/ },
-
-/***/ 361:
+/* 361 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var anObject = __webpack_require__(313)
@@ -430,18 +975,15 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 362:
+/* 362 */
 [973, 358, 352, 328, 308],
-
-/***/ 363:
+/* 363 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = { "default": __webpack_require__(364), __esModule: true };
 
 /***/ },
-
-/***/ 364:
+/* 364 */
 /***/ function(module, exports, __webpack_require__) {
 
 	__webpack_require__(365);
@@ -451,42 +993,31 @@ webpackJsonp([4],{
 	module.exports = __webpack_require__(308).Promise;
 
 /***/ },
-
-/***/ 365:
+/* 365 */
 /***/ function(module, exports) {
 
 
 
 /***/ },
-
-/***/ 366:
+/* 366 */
 [976, 334, 307, 309, 358, 306, 314, 310, 367, 368, 371, 372, 374, 352, 375, 351, 376, 308, 377],
-
-/***/ 367:
+/* 367 */
 206,
-
-/***/ 368:
+/* 368 */
 [977, 309, 369, 370, 313, 343, 362],
-
-/***/ 369:
+/* 369 */
 [971, 313],
-
-/***/ 370:
+/* 370 */
 [972, 328, 352],
-
-/***/ 371:
+/* 371 */
 [978, 313, 310, 352],
-
-/***/ 372:
+/* 372 */
 [979, 309, 373, 350, 318, 307, 331],
-
-/***/ 373:
+/* 373 */
 79,
-
-/***/ 374:
+/* 374 */
 [980, 307, 372, 331],
-
-/***/ 375:
+/* 375 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var hide = __webpack_require__(311);
@@ -498,8 +1029,7 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 376:
+/* 376 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -518,11 +1048,179 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 377:
+/* 377 */
 [974, 352],
-
-/***/ 548:
+/* 378 */,
+/* 379 */,
+/* 380 */,
+/* 381 */,
+/* 382 */,
+/* 383 */,
+/* 384 */,
+/* 385 */,
+/* 386 */,
+/* 387 */,
+/* 388 */,
+/* 389 */,
+/* 390 */,
+/* 391 */,
+/* 392 */,
+/* 393 */,
+/* 394 */,
+/* 395 */,
+/* 396 */,
+/* 397 */,
+/* 398 */,
+/* 399 */,
+/* 400 */,
+/* 401 */,
+/* 402 */,
+/* 403 */,
+/* 404 */,
+/* 405 */,
+/* 406 */,
+/* 407 */,
+/* 408 */,
+/* 409 */,
+/* 410 */,
+/* 411 */,
+/* 412 */,
+/* 413 */,
+/* 414 */,
+/* 415 */,
+/* 416 */,
+/* 417 */,
+/* 418 */,
+/* 419 */,
+/* 420 */,
+/* 421 */,
+/* 422 */,
+/* 423 */,
+/* 424 */,
+/* 425 */,
+/* 426 */,
+/* 427 */,
+/* 428 */,
+/* 429 */,
+/* 430 */,
+/* 431 */,
+/* 432 */,
+/* 433 */,
+/* 434 */,
+/* 435 */,
+/* 436 */,
+/* 437 */,
+/* 438 */,
+/* 439 */,
+/* 440 */,
+/* 441 */,
+/* 442 */,
+/* 443 */,
+/* 444 */,
+/* 445 */,
+/* 446 */,
+/* 447 */,
+/* 448 */,
+/* 449 */,
+/* 450 */,
+/* 451 */,
+/* 452 */,
+/* 453 */,
+/* 454 */,
+/* 455 */,
+/* 456 */,
+/* 457 */,
+/* 458 */,
+/* 459 */,
+/* 460 */,
+/* 461 */,
+/* 462 */,
+/* 463 */,
+/* 464 */,
+/* 465 */,
+/* 466 */,
+/* 467 */,
+/* 468 */,
+/* 469 */,
+/* 470 */,
+/* 471 */,
+/* 472 */,
+/* 473 */,
+/* 474 */,
+/* 475 */,
+/* 476 */,
+/* 477 */,
+/* 478 */,
+/* 479 */,
+/* 480 */,
+/* 481 */,
+/* 482 */,
+/* 483 */,
+/* 484 */,
+/* 485 */,
+/* 486 */,
+/* 487 */,
+/* 488 */,
+/* 489 */,
+/* 490 */,
+/* 491 */,
+/* 492 */,
+/* 493 */,
+/* 494 */,
+/* 495 */,
+/* 496 */,
+/* 497 */,
+/* 498 */,
+/* 499 */,
+/* 500 */,
+/* 501 */,
+/* 502 */,
+/* 503 */,
+/* 504 */,
+/* 505 */,
+/* 506 */,
+/* 507 */,
+/* 508 */,
+/* 509 */,
+/* 510 */,
+/* 511 */,
+/* 512 */,
+/* 513 */,
+/* 514 */,
+/* 515 */,
+/* 516 */,
+/* 517 */,
+/* 518 */,
+/* 519 */,
+/* 520 */,
+/* 521 */,
+/* 522 */,
+/* 523 */,
+/* 524 */,
+/* 525 */,
+/* 526 */,
+/* 527 */,
+/* 528 */,
+/* 529 */,
+/* 530 */,
+/* 531 */,
+/* 532 */,
+/* 533 */,
+/* 534 */,
+/* 535 */,
+/* 536 */,
+/* 537 */,
+/* 538 */,
+/* 539 */,
+/* 540 */,
+/* 541 */,
+/* 542 */,
+/* 543 */,
+/* 544 */,
+/* 545 */,
+/* 546 */,
+/* 547 */,
+/* 548 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -544,8 +1242,7 @@ webpackJsonp([4],{
 	exports.connect = _connect2["default"];
 
 /***/ },
-
-/***/ 549:
+/* 549 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -628,8 +1325,7 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 550:
+/* 550 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -645,8 +1341,7 @@ webpackJsonp([4],{
 	});
 
 /***/ },
-
-/***/ 551:
+/* 551 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -675,8 +1370,7 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 552:
+/* 552 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1074,8 +1768,7 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 553:
+/* 553 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1106,8 +1799,7 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 554:
+/* 554 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1124,8 +1816,7 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 555:
+/* 555 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1176,8 +1867,7 @@ webpackJsonp([4],{
 	exports.compose = _compose2['default'];
 
 /***/ },
-
-/***/ 556:
+/* 556 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1443,8 +2133,7 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 557:
+/* 557 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var getPrototype = __webpack_require__(558),
@@ -1520,8 +2209,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 558:
+/* 558 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var overArg = __webpack_require__(559);
@@ -1533,16 +2221,17 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 562:
+/* 559 */,
+/* 560 */,
+/* 561 */,
+/* 562 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(563);
 
 
 /***/ },
-
-/***/ 563:
+/* 563 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -1570,8 +2259,7 @@ webpackJsonp([4],{
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-
-/***/ 564:
+/* 564 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1599,8 +2287,7 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 565:
+/* 565 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1747,8 +2434,7 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 566:
+/* 566 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1778,8 +2464,7 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 567:
+/* 567 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1835,8 +2520,7 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 568:
+/* 568 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1899,8 +2583,7 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 569:
+/* 569 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1943,8 +2626,7 @@ webpackJsonp([4],{
 	}
 
 /***/ },
-
-/***/ 570:
+/* 570 */
 /***/ function(module, exports) {
 
 	/**
@@ -2000,8 +2682,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 571:
+/* 571 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -2058,8 +2739,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 572:
+/* 572 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -2113,8 +2793,53 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 619:
+/* 573 */,
+/* 574 */,
+/* 575 */,
+/* 576 */,
+/* 577 */,
+/* 578 */,
+/* 579 */,
+/* 580 */,
+/* 581 */,
+/* 582 */,
+/* 583 */,
+/* 584 */,
+/* 585 */,
+/* 586 */,
+/* 587 */,
+/* 588 */,
+/* 589 */,
+/* 590 */,
+/* 591 */,
+/* 592 */,
+/* 593 */,
+/* 594 */,
+/* 595 */,
+/* 596 */,
+/* 597 */,
+/* 598 */,
+/* 599 */,
+/* 600 */,
+/* 601 */,
+/* 602 */,
+/* 603 */,
+/* 604 */,
+/* 605 */,
+/* 606 */,
+/* 607 */,
+/* 608 */,
+/* 609 */,
+/* 610 */,
+/* 611 */,
+/* 612 */,
+/* 613 */,
+/* 614 */,
+/* 615 */,
+/* 616 */,
+/* 617 */,
+/* 618 */,
+/* 619 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2329,8 +3054,7 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 620:
+/* 620 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseSet = __webpack_require__(621);
@@ -2371,8 +3095,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 621:
+/* 621 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var assignValue = __webpack_require__(622),
@@ -2426,8 +3149,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 622:
+/* 622 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var eq = __webpack_require__(602);
@@ -2460,8 +3182,8 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 624:
+/* 623 */,
+/* 624 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseMerge = __webpack_require__(625),
@@ -2506,8 +3228,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 625:
+/* 625 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Stack = __webpack_require__(626),
@@ -2563,8 +3284,14 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 633:
+/* 626 */,
+/* 627 */,
+/* 628 */,
+/* 629 */,
+/* 630 */,
+/* 631 */,
+/* 632 */,
+/* 633 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var eq = __webpack_require__(602);
@@ -2589,8 +3316,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 634:
+/* 634 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isObject = __webpack_require__(587),
@@ -2629,8 +3355,8 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 636:
+/* 635 */,
+/* 636 */
 /***/ function(module, exports) {
 
 	/**
@@ -2656,8 +3382,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 637:
+/* 637 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var assignMergeValue = __webpack_require__(633),
@@ -2745,8 +3470,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 638:
+/* 638 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Stack = __webpack_require__(626),
@@ -2891,8 +3615,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 639:
+/* 639 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var copyObject = __webpack_require__(640),
@@ -2915,8 +3638,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 640:
+/* 640 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var assignValue = __webpack_require__(622);
@@ -2953,8 +3675,16 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 650:
+/* 641 */,
+/* 642 */,
+/* 643 */,
+/* 644 */,
+/* 645 */,
+/* 646 */,
+/* 647 */,
+/* 648 */,
+/* 649 */,
+/* 650 */
 /***/ function(module, exports) {
 
 	/**
@@ -2978,8 +3708,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 651:
+/* 651 */
 /***/ function(module, exports) {
 
 	/**
@@ -3005,8 +3734,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 652:
+/* 652 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var copyObject = __webpack_require__(640),
@@ -3028,8 +3756,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 653:
+/* 653 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var overArg = __webpack_require__(559),
@@ -3051,8 +3778,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 654:
+/* 654 */
 /***/ function(module, exports) {
 
 	/**
@@ -3081,8 +3807,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 655:
+/* 655 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseGetAllKeys = __webpack_require__(656),
@@ -3104,8 +3829,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 656:
+/* 656 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var arrayPush = __webpack_require__(657),
@@ -3131,8 +3855,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 657:
+/* 657 */
 /***/ function(module, exports) {
 
 	/**
@@ -3158,8 +3881,13 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 664:
+/* 658 */,
+/* 659 */,
+/* 660 */,
+/* 661 */,
+/* 662 */,
+/* 663 */,
+/* 664 */
 /***/ function(module, exports) {
 
 	/** Used for built-in method references. */
@@ -3191,8 +3919,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 665:
+/* 665 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var cloneArrayBuffer = __webpack_require__(666),
@@ -3278,8 +4005,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 666:
+/* 666 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Uint8Array = __webpack_require__(667);
@@ -3301,8 +4027,8 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 668:
+/* 667 */,
+/* 668 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var cloneArrayBuffer = __webpack_require__(666);
@@ -3324,8 +4050,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 669:
+/* 669 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var addMapEntry = __webpack_require__(670),
@@ -3350,8 +4075,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 670:
+/* 670 */
 /***/ function(module, exports) {
 
 	/**
@@ -3372,8 +4096,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 671:
+/* 671 */
 /***/ function(module, exports) {
 
 	/**
@@ -3405,8 +4128,8 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 673:
+/* 672 */,
+/* 673 */
 /***/ function(module, exports) {
 
 	/** Used to match `RegExp` flags from their coerced string values. */
@@ -3429,8 +4152,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 674:
+/* 674 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var addSetEntry = __webpack_require__(675),
@@ -3455,8 +4177,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 675:
+/* 675 */
 /***/ function(module, exports) {
 
 	/**
@@ -3477,8 +4198,8 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 677:
+/* 676 */,
+/* 677 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Symbol = __webpack_require__(615);
@@ -3502,8 +4223,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 678:
+/* 678 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var cloneArrayBuffer = __webpack_require__(666);
@@ -3525,8 +4245,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 679:
+/* 679 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseCreate = __webpack_require__(680),
@@ -3550,8 +4269,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 680:
+/* 680 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isObject = __webpack_require__(587);
@@ -3575,8 +4293,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 681:
+/* 681 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(module) {var root = __webpack_require__(590),
@@ -3621,8 +4338,8 @@ webpackJsonp([4],{
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(682)(module)))
 
 /***/ },
-
-/***/ 683:
+/* 682 */,
+/* 683 */
 /***/ function(module, exports) {
 
 	/**
@@ -3646,8 +4363,11 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 688:
+/* 684 */,
+/* 685 */,
+/* 686 */,
+/* 687 */,
+/* 688 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var copyObject = __webpack_require__(640),
@@ -3685,8 +4405,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 689:
+/* 689 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var arrayLikeKeys = __webpack_require__(642),
@@ -3724,8 +4443,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 690:
+/* 690 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseRest = __webpack_require__(691),
@@ -3768,8 +4486,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 691:
+/* 691 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var apply = __webpack_require__(692);
@@ -3810,8 +4527,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 692:
+/* 692 */
 /***/ function(module, exports) {
 
 	/**
@@ -3838,8 +4554,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 693:
+/* 693 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var eq = __webpack_require__(602),
@@ -3875,8 +4590,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 694:
+/* 694 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var baseMerge = __webpack_require__(625),
@@ -3921,8 +4635,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 695:
+/* 695 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var isArray = __webpack_require__(576),
@@ -3967,8 +4680,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 696:
+/* 696 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;(function () {
@@ -4434,8 +5146,7 @@ webpackJsonp([4],{
 
 
 /***/ },
-
-/***/ 697:
+/* 697 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4468,8 +5179,7 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 698:
+/* 698 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -4560,8 +5270,7 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 699:
+/* 699 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4618,8 +5327,7 @@ webpackJsonp([4],{
 	module.exports = ErrorComponent;
 
 /***/ },
-
-/***/ 700:
+/* 700 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -4643,8 +5351,7 @@ webpackJsonp([4],{
 	module.exports = boolReducer;
 
 /***/ },
-
-/***/ 701:
+/* 701 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4683,8 +5390,7 @@ webpackJsonp([4],{
 	module.exports = errorReducer;
 
 /***/ },
-
-/***/ 702:
+/* 702 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4738,8 +5444,7 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 703:
+/* 703 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4815,8 +5520,7 @@ webpackJsonp([4],{
 	};
 
 /***/ },
-
-/***/ 704:
+/* 704 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -5049,612 +5753,36 @@ webpackJsonp([4],{
 	module.exports = createLogger;
 
 /***/ },
-
-/***/ 738:
+/* 705 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-	
-	// helper for client entry files
-	
-	// TODO: deferred to cdn: https://cdnjs.com/libraries/babel-polyfill
-	// require('babel-polyfill');
-	
-	var ReactDOM = __webpack_require__(410);
-	
-	var rehydrate = __webpack_require__(703);
-	
-	module.exports = function (maker, preRenderState, postRenderState, mountTarget) {
-	
-	    // NOTES:
-	    // - preRenderState := inject state before initial render.
-	    //                     useful for injecting state that doesn't cause UI change
-	    //
-	    // - postRenderState := inject state after initial render. this is used for statically compiled react components
-	
-	    var _maker = maker(preRenderState);
-	
-	    var component = _maker.component;
-	    var store = _maker.store;
-	
-	
-	    if (!postRenderState) {
-	        if (true) {
-	            var invariant = __webpack_require__(571);
-	            invariant(maker.initialState, 'maker.initialState not set');
-	        }
-	        postRenderState = maker.initialState;
-	    }
-	
-	    var firstRender = false;
-	    var afterRender = function afterRender() {
-	
-	        if (firstRender) {
-	            return;
-	        }
-	
-	        firstRender = true;
-	
-	        store.dispatch(rehydrate.hydrate(postRenderState));
-	        store.dispatch(rehydrate.hotpath());
-	
-	        if (true) {
-	            console.log('rehydration finished.');
-	        }
-	
-	        if (maker.afterRender) {
-	            maker.afterRender(store);
-	        }
-	    };
-	
-	    if (maker.preRender) {
-	        maker.preRender();
-	    }
-	
-	    ReactDOM.render(component, mountTarget, afterRender);
-	};
-
-/***/ },
-
-/***/ 747:
-44,
-
-/***/ 748:
-45,
-
-/***/ 822:
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	exports.__esModule = true;
-	
-	var _iterator = __webpack_require__(823);
-	
-	var _iterator2 = _interopRequireDefault(_iterator);
-	
-	var _symbol = __webpack_require__(826);
-	
-	var _symbol2 = _interopRequireDefault(_symbol);
-	
-	var _typeof = typeof _symbol2.default === "function" && typeof _iterator2.default === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default ? "symbol" : typeof obj; };
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	exports.default = typeof _symbol2.default === "function" && _typeof(_iterator2.default) === "symbol" ? function (obj) {
-	  return typeof obj === "undefined" ? "undefined" : _typeof(obj);
-	} : function (obj) {
-	  return obj && typeof _symbol2.default === "function" && obj.constructor === _symbol2.default ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof(obj);
-	};
-
-/***/ },
-
-/***/ 823:
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(824), __esModule: true };
-
-/***/ },
-
-/***/ 824:
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(355);
-	__webpack_require__(324);
-	module.exports = __webpack_require__(825).f('iterator');
-
-/***/ },
-
-/***/ 825:
-[937, 352],
-
-/***/ 826:
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = { "default": __webpack_require__(827), __esModule: true };
-
-/***/ },
-
-/***/ 827:
-/***/ function(module, exports, __webpack_require__) {
-
-	__webpack_require__(828);
-	__webpack_require__(365);
-	__webpack_require__(837);
-	__webpack_require__(838);
-	module.exports = __webpack_require__(308).Symbol;
-
-/***/ },
-
-/***/ 828:
-[924, 307, 336, 316, 306, 335, 829, 317, 347, 351, 348, 352, 825, 830, 831, 832, 833, 313, 329, 319, 320, 338, 834, 836, 312, 340, 835, 748, 747, 334, 311],
-
-/***/ 829:
-[933, 348, 314, 336, 312, 317],
-
-/***/ 830:
-[938, 307, 308, 334, 825, 312],
-
-/***/ 831:
-[939, 340, 329],
-
-/***/ 832:
-[948, 340, 747, 748],
-
-/***/ 833:
-[949, 331],
-
-/***/ 834:
-[953, 329, 835],
-
-/***/ 835:
-[954, 341, 349],
-
-/***/ 836:
-[955, 748, 320, 329, 319, 336, 315, 316],
-
-/***/ 837:
-[981, 830],
-
-/***/ 838:
-[982, 830],
-
-/***/ 861:
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var merge = __webpack_require__(624);
-	
-	var createStore = __webpack_require__(702);
-	
-	var IDENTITY = function IDENTITY(x) {
-	    return x;
-	};
-	
-	var componentCreator = function componentCreator(initialState, getComponent) {
-	    var fallbackReducer = arguments.length <= 2 || arguments[2] === undefined ? IDENTITY : arguments[2];
-	
-	
-	    return function (preRenderState) {
-	
-	        if (preRenderState) {
-	            preRenderState = merge({}, initialState, preRenderState);
-	        } else {
-	            preRenderState = initialState;
-	        }
-	
-	        var store = createStore(preRenderState, fallbackReducer);
-	
-	        var component = getComponent(store);
-	
-	        return {
-	            store: store,
-	            component: component
-	        };
-	    };
-	};
-	
-	module.exports = componentCreator;
-
-/***/ },
-
-/***/ 914:
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var _defineProperty2 = __webpack_require__(302);
-	
-	var _defineProperty3 = _interopRequireDefault(_defineProperty2);
-	
-	var _slicedToArray2 = __webpack_require__(321);
-	
-	var _slicedToArray3 = _interopRequireDefault(_slicedToArray2);
-	
-	var _promise = __webpack_require__(363);
-	
-	var _promise2 = _interopRequireDefault(_promise);
-	
-	var _typeof2 = __webpack_require__(822);
-	
-	var _typeof3 = _interopRequireDefault(_typeof2);
-	
-	var _initialState;
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	__webpack_require__(1);
-	
-	var React = __webpack_require__(378);
-	
-	var _require = __webpack_require__(548);
-	
-	var Provider = _require.Provider;
-	var connect = _require.connect;
-	
-	var classnames = __webpack_require__(572);
-	var get = __webpack_require__(573);
-	
-	var _require2 = __webpack_require__(619);
-	
-	var reduceIn = _require2.reduceIn;
-	
-	
-	var fetch = __webpack_require__(696)({
-	    Promise: __webpack_require__(299)
-	});
-	
-	var jsonDecode = __webpack_require__(697);
-	
-	var _require3 = __webpack_require__(698);
-	
-	var DELETE_TO = _require3.DELETE_TO;
-	var ERROR = _require3.ERROR;
-	var ERROR_MESSAGE = _require3.ERROR_MESSAGE;
-	
-	// TODO: move these constants
-	
-	var CONFIRM_DELETE = 'CONFIRM_DELETE';
-	var SUBMITTING = 'SUBMITTING';
-	
-	/* react components */
-	
-	var ErrorComponent = __webpack_require__(699);
-	
-	var __DeleteCard = function __DeleteCard(props) {
-	    var submitting = props.submitting;
-	    var confirmDelete = props.confirmDelete;
-	    var handleConfirm = props.handleConfirm;
-	    var error = props.error;
-	    var dispatch = props.dispatch;
-	
-	
-	    if (confirmDelete) {
-	        var _ret = function () {
-	            var deleteURL = props.deleteURL;
-	
-	
-	            var handleDelete = function handleDelete(event) {
-	                event.preventDefault();
-	                deleteCard(dispatch, deleteURL, submitting);
-	            };
-	
-	            return {
-	                v: React.createElement(
-	                    'div',
-	                    null,
-	                    React.createElement(ErrorComponent, { error: error && error.message || '', onConfirm: confirmError(dispatch) }),
-	                    React.createElement(
-	                        'div',
-	                        { className: 'columns' },
-	                        React.createElement(
-	                            'div',
-	                            { className: 'column' },
-	                            React.createElement(
-	                                'strong',
-	                                null,
-	                                'Are you sure you want to delete this card?'
-	                            )
-	                        )
-	                    ),
-	                    React.createElement(
-	                        'div',
-	                        { className: 'columns' },
-	                        React.createElement(
-	                            'div',
-	                            { className: 'column' },
-	                            React.createElement(
-	                                'div',
-	                                { className: 'level' },
-	                                React.createElement(
-	                                    'div',
-	                                    { className: 'level-left' },
-	                                    React.createElement(
-	                                        'a',
-	                                        {
-	                                            className: classnames('button is-bold', {
-	                                                'is-disabled': submitting,
-	                                                'is-loading': submitting
-	                                            }),
-	                                            onClick: handleConfirm(false)
-	                                        },
-	                                        'Cancel'
-	                                    )
-	                                ),
-	                                React.createElement(
-	                                    'div',
-	                                    { className: 'level-right' },
-	                                    React.createElement(
-	                                        'a',
-	                                        {
-	                                            className: classnames('button is-danger is-bold', {
-	                                                'is-disabled': submitting,
-	                                                'is-loading': submitting
-	                                            }),
-	                                            onClick: handleDelete
-	                                        },
-	                                        'Delete'
-	                                    )
-	                                )
-	                            )
-	                        )
-	                    )
-	                )
-	            };
-	        }();
-	
-	        if ((typeof _ret === 'undefined' ? 'undefined' : (0, _typeof3.default)(_ret)) === "object") return _ret.v;
-	    }
-	
-	    return React.createElement(
-	        'div',
-	        null,
-	        React.createElement(ErrorComponent, { error: error && error.message || '', onConfirm: confirmError(dispatch) }),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement(
-	                    'a',
-	                    {
-	                        className: classnames('button is-danger is-bold', {
-	                            'is-disabled': submitting,
-	                            'is-loading': submitting
-	                        }),
-	                        onClick: handleConfirm(true)
-	                    },
-	                    'Delete Card'
-	                )
-	            )
-	        )
-	    );
-	};
-	
-	if (true) {
-	    __DeleteCard.propTypes = {
-	        submitting: React.PropTypes.bool.isRequired,
-	        confirmDelete: React.PropTypes.bool.isRequired,
-	        handleConfirm: React.PropTypes.func.isRequired,
-	        dispatch: React.PropTypes.func.isRequired,
-	        deleteURL: React.PropTypes.string.isRequired,
-	        error: React.PropTypes.object
-	    };
+	var baseClone = __webpack_require__(638);
+	
+	/**
+	 * This method is like `_.clone` except that it recursively clones `value`.
+	 *
+	 * @static
+	 * @memberOf _
+	 * @since 1.0.0
+	 * @category Lang
+	 * @param {*} value The value to recursively clone.
+	 * @returns {*} Returns the deep cloned value.
+	 * @see _.clone
+	 * @example
+	 *
+	 * var objects = [{ 'a': 1 }, { 'b': 2 }];
+	 *
+	 * var deep = _.cloneDeep(objects);
+	 * console.log(deep[0] === objects[0]);
+	 * // => false
+	 */
+	function cloneDeep(value) {
+	  return baseClone(value, true, true);
 	}
 	
-	var DeleteCard = connect(
-	// mapStateToProps
-	function (state) {
-	    return {
-	        error: state[ERROR],
-	        submitting: state[SUBMITTING],
-	        confirmDelete: state[CONFIRM_DELETE],
-	        deleteURL: state[DELETE_TO]
-	    };
-	},
-	// mapDispatchToProps
-	function (dispatch) {
-	    return {
-	        dispatch: dispatch,
-	        handleConfirm: function handleConfirm(bool) {
-	            return function (event) {
-	                event.preventDefault();
-	                dispatch(reduceIn(
-	                // reducer
-	                boolReducer,
-	                // path
-	                [CONFIRM_DELETE],
-	                // action
-	                {
-	                    type: bool
-	                }));
-	            };
-	        }
-	    };
-	})(__DeleteCard);
-	
-	/* redux action dispatchers */
-	// NOTE: FSA compliant
-	
-	var defaultRESTError = 'Unable to delete card. Please try again.';
-	var deleteCard = function deleteCard(dispatch, deleteURL) {
-	    var submitting = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
-	
-	
-	    if (submitting) {
-	        return;
-	    }
-	
-	    dispatch(reduceIn(
-	    // reducer
-	    boolReducer,
-	    // path
-	    [SUBMITTING],
-	    // action
-	    {
-	        type: true
-	    }));
-	
-	    fetch(deleteURL, {
-	        method: 'DELETE'
-	    }).then(function (response) {
-	        return _promise2.default.all([response.status, jsonDecode(response)]);
-	    }).then(function (_ref) {
-	        var _ref2 = (0, _slicedToArray3.default)(_ref, 2);
-	
-	        var statusCode = _ref2[0];
-	        var jsonResponse = _ref2[1];
-	
-	
-	        dispatch(reduceIn(
-	        // reducer
-	        boolReducer,
-	        // path
-	        [SUBMITTING],
-	        // action
-	        {
-	            type: false
-	        }));
-	
-	        switch (statusCode) {
-	            case 500: // Internal Server Error
-	            case 400:
-	                // Bad Request
-	
-	                dispatch(reduceIn(
-	                // reducer
-	                errorReducer,
-	                // path
-	                [ERROR],
-	                // action
-	                {
-	                    type: ERROR_MESSAGE,
-	                    payload: get(jsonResponse, ['error'], defaultRESTError)
-	                }));
-	
-	                return;
-	                break;
-	
-	            case 200:
-	                // Ok
-	
-	                if (jsonResponse.payload) {
-	
-	                    dispatch(reduceIn(
-	                    // reducer
-	                    errorReducer,
-	                    // path
-	                    [ERROR],
-	                    // action
-	                    {
-	                        type: ERROR_MESSAGE,
-	                        payload: get(jsonResponse, ['error'], '')
-	                    }));
-	
-	                    window.location.href = jsonResponse.payload.redirect_to;
-	                } else {
-	
-	                    dispatch(reduceIn(
-	                    // reducer
-	                    errorReducer,
-	                    // path
-	                    [ERROR],
-	                    // action
-	                    {
-	                        type: ERROR_MESSAGE,
-	                        payload: get(jsonResponse, ['error'], 'Unable to delete this card.')
-	                    }));
-	                }
-	
-	                return;
-	                break;
-	
-	            default:
-	                // Unexpected http status code
-	                dispatch(reduceIn(
-	                // reducer
-	                errorReducer,
-	                // path
-	                [ERROR],
-	                // action
-	                {
-	                    type: ERROR_MESSAGE,
-	                    payload: get(jsonResponse, ['error'], defaultRESTError)
-	                }));
-	        }
-	    }).catch(function () /*err*/{
-	
-	        // any other errors
-	        // console.log('err:', err);
-	
-	        dispatch(reduceIn(
-	        // reducer
-	        boolReducer,
-	        // path
-	        [SUBMITTING],
-	        // action
-	        {
-	            type: false
-	        }));
-	
-	        dispatch(reduceIn(
-	        // reducer
-	        errorReducer,
-	        // path
-	        [ERROR],
-	        // action
-	        {
-	            type: ERROR_MESSAGE,
-	            payload: defaultRESTError
-	        }));
-	    });
-	};
-	
-	var confirmError = function confirmError(dispatch) {
-	    return function (event) {
-	        event.preventDefault();
-	        dispatch(reduceIn(
-	        // reducer
-	        errorReducer,
-	        // path
-	        [ERROR],
-	        // action
-	        {
-	            type: ERROR_MESSAGE,
-	            payload: ''
-	        }));
-	    };
-	};
-	
-	/* redux reducers */
-	
-	var boolReducer = __webpack_require__(700);
-	var errorReducer = __webpack_require__(701);
-	
-	/* default state */
-	
-	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, DELETE_TO, ''), (0, _defineProperty3.default)(_initialState, CONFIRM_DELETE, false), (0, _defineProperty3.default)(_initialState, SUBMITTING, false), (0, _defineProperty3.default)(_initialState, ERROR, errorReducer()), _initialState);
-	
-	/* exports */
-	
-	var componentCreator = __webpack_require__(861);
-	
-	module.exports = componentCreator(initialState, function (store) {
-	
-	    var component = React.createElement(
-	        Provider,
-	        { store: store },
-	        React.createElement(DeleteCard, null)
-	    );
-	
-	    return component;
-	});
-	
-	module.exports.initialState = initialState;
+	module.exports = cloneDeep;
+
 
 /***/ }
-
-});
-//# sourceMappingURL=deck_card_settings.js.map
+]);
+//# sourceMappingURL=backup.js.map
