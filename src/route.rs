@@ -452,7 +452,6 @@ fn parse_route_api_backup<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>
     parse!{input;
 
         string_ignore_case(b"backup");
-
         eof();
 
         ret {
@@ -1975,6 +1974,8 @@ fn parse_route_deck_cards<'a>(
             ret Some(query_string)
         }, None);
 
+        eof();
+
         ret {
             route_deck_cards(context.clone(), request.clone(), deck_id, query_string)
         }
@@ -2119,6 +2120,7 @@ fn parse_route_card_contents<'a>(
             ret Some(query_string)
         }, None);
 
+        eof();
 
         ret {
             let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Contents));
@@ -2147,6 +2149,8 @@ fn parse_route_card_review<'a>(
             ret Some(query_string)
         }, None);
 
+        eof();
+
         ret {
             let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Review));
             RenderResponse::Component(route)
@@ -2173,6 +2177,8 @@ fn parse_route_card_stats<'a>(
 
             ret Some(query_string)
         }, None);
+
+        eof();
 
         ret {
             let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Stats));
@@ -2421,6 +2427,8 @@ fn parse_route_deck_decks<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>
 
             ret Some(query_string)
         }, None);
+
+        eof();
 
         ret {
             route_deck_decks(context, request, deck_id, query_string)
