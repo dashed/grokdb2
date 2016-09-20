@@ -4672,7 +4672,7 @@ fn DeckListItemDetailComponent(
                                             AppRoute::Deck(deck_id, DeckRoute::Stats)),
                                 class = raw!("button is-small")
                             ) {
-                                : raw!("Settings")
+                                : raw!("Stats")
                             }
                         }
 
