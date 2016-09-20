@@ -2036,7 +2036,11 @@ fn DeckCards(
 
                         form(
                             onsubmit = format!("\
-                                window.location.href = '{go_to}&search=' + encodeURIComponent(String({get_value}).trim());\
+                                window.location.href = \
+                                encodeURIComponent(String({get_value}).trim()).length > 0 ?\
+                                '{go_to}&search=' + encodeURIComponent(String({get_value}).trim()) :\
+                                '{go_to}'\
+                                ;\
                                 return false;\
                             ",
                                 go_to = view_route_to_link(context.clone(),
