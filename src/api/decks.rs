@@ -737,8 +737,50 @@ impl Reviewable for Deck {
             },
             Ok(Some((card_id, cached_review_procedure))) => {
 
-                // check if the card is still within the deck
+                // ensure card exists
+                match cards::card_exists(context.clone(), card_id) {
+                    Ok(exists) => {
 
+                        if !exists {
+
+                            match review::remove_cache_in_all_sources(context, card_id) {
+                                Err(why) => {
+                                    return Err(why);
+                                },
+                                Ok(_) => {
+                                    return Ok(None);
+                                }
+                            }
+                        }
+                    },
+                    Err(why) => {
+                        return Err(why);
+                    }
+                }
+
+                // ensure card is active for review
+                match cards::get_card(context.clone(), card_id) {
+                    Ok(card) => {
+
+                        if !card.is_active {
+
+                            match review::remove_cache_in_all_sources(context, card_id) {
+                                Err(why) => {
+                                    return Err(why);
+                                },
+                                Ok(_) => {
+                                    return Ok(None);
+                                }
+                            }
+
+                        }
+                    },
+                    Err(why) => {
+                        return Err(why);
+                    }
+                }
+
+                // check if the card is still within the deck
                 match cards::is_card_in_deck(context.clone(), card_id, self.id) {
                     Err(why) => {
                         return Err(why);
