@@ -1947,6 +1947,11 @@ fn DeckCards(
         AppRoute::Deck(deck_id, DeckRoute::Cards(cards_page_query))
     };
 
+    let search_query = match cards_page_query.search_query() {
+        Search::NoQuery => None,
+        Search::Query(query) => Some(query)
+    };
+
     tmpl << html!{
 
         div(class="columns") {
@@ -2028,22 +2033,51 @@ fn DeckCards(
             div(class="column") {
                 div(class="level") {
                     div(class="level-item") {
-                        p(class="control has-addons") {
-                            input(id="search_card", class="input is-expanded", type="text", placeholder="Search");
 
-                            a(class="button is-primary is-outlined", onclick=format!("\
-                                if(String({get_value}).trim().length > 0) \
+                        form(
+                            onsubmit = format!("\
                                 window.location.href = '{go_to}&search=' + encodeURIComponent(String({get_value}).trim());\
-                                ",
-                                    go_to = view_route_to_link(context.clone(),
-                                        AppRoute::Deck(deck_id,
-                                            DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id)))),
-                                    get_value = "document.getElementById('search_card').value"
-                                )
-                            ) {
-                                : raw!("Search Card")
+                                return false;\
+                            ",
+                                go_to = view_route_to_link(context.clone(),
+                                    AppRoute::Deck(deck_id,
+                                        DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id)))),
+                                get_value = "document.getElementById('search_card').value"
+                            )
+                        ) {
+
+                            p(class="control has-addons") {
+
+                                |tmpl| {
+
+                                    if search_query.is_some() {
+
+                                        tmpl << html!{
+                                            a(class="button", href=view_route_to_link(context.clone(),
+                                                AppRoute::Deck(deck_id,
+                                                    DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id))))) {
+                                                : raw!("Clear")
+                                            }
+                                        }
+                                    }
+                                }
+
+                                input(
+                                    id="search_card",
+                                    class="input is-expanded",
+                                    type="text",
+                                    placeholder="Search",
+                                    value ?= search_query
+                                );
+
+                                button(class="button is-primary is-outlined", type="submit") {
+                                    : raw!("Search Cards")
+                                }
+
                             }
+
                         }
+
                     }
                 }
             }

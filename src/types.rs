@@ -90,7 +90,14 @@ impl Search {
             Some(maybe_query) => {
                 match *maybe_query {
                     None => Search::NoQuery,
-                    Some(ref query) => Search::Query(query.clone())
+                    Some(ref query) => {
+
+                        if query.trim().len() <= 0 {
+                            return Search::NoQuery;
+                        }
+
+                        Search::Query(query.clone())
+                    }
                 }
             }
         }
@@ -101,6 +108,10 @@ impl Search {
         match *self {
             Search::NoQuery => None,
             Search::Query(ref search_query) => {
+
+                if search_query.trim().len() <= 0 {
+                    return None;
+                }
 
                 let search_query = utf8_percent_encode(search_query, QUERY_ENCODE_SET)
                     .collect::<String>();
@@ -1177,6 +1188,10 @@ impl CardsPageQuery {
         let page = self.1;
         let offset = (page - 1) * self.get_per_page();
         return offset;
+    }
+
+    pub fn search_query(&self) -> Search {
+        self.3.clone()
     }
 
     // TODO: test
