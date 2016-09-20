@@ -9,7 +9,7 @@ use database::Database;
 
 /// /////////////////////////////////////////////////////////////////////////////
 
-const SETUP: [&'static str; 26] = [
+const SETUP: [&'static str; 34] = [
     // configs
     CONFIGS,
 
@@ -70,7 +70,17 @@ const SETUP: [&'static str; 26] = [
     CARD_SEARCH_INDEX,
     CARD_SEARCH_FIRST_INDEX_TRIGGER,
     CARD_SEARCH_DELETE_INDEX_TRIGGER,
-    CARD_SEARCH_UPDATE_INDEX_TRIGGER
+    CARD_SEARCH_UPDATE_INDEX_TRIGGER,
+
+    DECK_SEARCH_INDEX,
+    DECK_SEARCH_FIRST_INDEX_TRIGGER,
+    DECK_SEARCH_DELETE_INDEX_TRIGGER,
+    DECK_SEARCH_UPDATE_INDEX_TRIGGER,
+
+    STASH_SEARCH_INDEX,
+    STASH_SEARCH_FIRST_INDEX_TRIGGER,
+    STASH_SEARCH_DELETE_INDEX_TRIGGER,
+    STASH_SEARCH_UPDATE_INDEX_TRIGGER
 ];
 
 /**
@@ -427,11 +437,89 @@ END;
 const CARD_SEARCH_UPDATE_INDEX_TRIGGER: &'static str = "
 CREATE TRIGGER IF NOT EXISTS CARD_SEARCH_UPDATE_INDEX_TRIGGER
 AFTER UPDATE OF
-title, description, question, answer, deck
+title, description, question, answer
 ON Cards
 BEGIN
     INSERT OR REPLACE INTO CardsFTS(docid, title, description, question, answer)
     VALUES (NEW.card_id, NEW.title, NEW.description, NEW.question, NEW.answer);
+END;
+";
+
+const DECK_SEARCH_INDEX: &'static str = "
+CREATE VIRTUAL TABLE IF NOT EXISTS
+    DecksFTS
+USING fts4(
+    name TEXT,
+    description TEXT
+);
+";
+
+const DECK_SEARCH_FIRST_INDEX_TRIGGER: &'static str = "
+CREATE TRIGGER IF NOT EXISTS DECK_SEARCH_FIRST_INDEX_TRIGGER
+AFTER INSERT
+ON Decks
+BEGIN
+    INSERT OR REPLACE INTO DecksFTS(docid, name, description)
+    VALUES (NEW.deck_id, NEW.name, NEW.description);
+END;
+";
+
+const DECK_SEARCH_DELETE_INDEX_TRIGGER: &'static str = "
+CREATE TRIGGER IF NOT EXISTS DECK_SEARCH_DELETE_INDEX_TRIGGER
+AFTER DELETE
+ON Decks
+BEGIN
+    DELETE FROM DecksFTS WHERE docid = OLD.deck_id;
+END;
+";
+
+const DECK_SEARCH_UPDATE_INDEX_TRIGGER: &'static str = "
+CREATE TRIGGER IF NOT EXISTS DECK_SEARCH_UPDATE_INDEX_TRIGGER
+AFTER UPDATE OF
+name, description
+ON Decks
+BEGIN
+    INSERT OR REPLACE INTO DecksFTS(docid, name, description)
+    VALUES (NEW.deck_id, NEW.name, NEW.description);
+END;
+";
+
+const STASH_SEARCH_INDEX: &'static str = "
+CREATE VIRTUAL TABLE IF NOT EXISTS
+    StashesFTS
+USING fts4(
+    name TEXT,
+    description TEXT
+);
+";
+
+const STASH_SEARCH_FIRST_INDEX_TRIGGER: &'static str = "
+CREATE TRIGGER IF NOT EXISTS STASH_SEARCH_FIRST_INDEX_TRIGGER
+AFTER INSERT
+ON Stashes
+BEGIN
+    INSERT OR REPLACE INTO StashesFTS(docid, name, description)
+    VALUES (NEW.stash_id, NEW.name, NEW.description);
+END;
+";
+
+const STASH_SEARCH_DELETE_INDEX_TRIGGER: &'static str = "
+CREATE TRIGGER IF NOT EXISTS STASH_SEARCH_DELETE_INDEX_TRIGGER
+AFTER DELETE
+ON Stashes
+BEGIN
+    DELETE FROM StashesFTS WHERE docid = OLD.stash_id;
+END;
+";
+
+const STASH_SEARCH_UPDATE_INDEX_TRIGGER: &'static str = "
+CREATE TRIGGER IF NOT EXISTS STASH_SEARCH_UPDATE_INDEX_TRIGGER
+AFTER UPDATE OF
+name, description
+ON Stashes
+BEGIN
+    INSERT OR REPLACE INTO StashesFTS(docid, name, description)
+    VALUES (NEW.stash_id, NEW.name, NEW.description);
 END;
 ";
 
