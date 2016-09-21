@@ -135,6 +135,18 @@ pub enum SortOrder {
     Descending,
 }
 
+impl SortOrder {
+    pub fn gen_sql(&self) -> String {
+
+        let sql_phrase = match *self {
+            SortOrder::Ascending => "ASC",
+            SortOrder::Descending => "DESC"
+        };
+
+        sql_phrase.to_string()
+    }
+}
+
 pub trait SortOrderable {
     fn order_by(&self) -> SortOrder;
     fn ascending(&self) -> Self;
@@ -146,8 +158,12 @@ pub trait SortOrderable {
 pub enum CardsPageSort {
     CardTitle(SortOrder),
     CreatedAt(SortOrder),
-    UpdatedAt(SortOrder)
-    // TODO: more sort options
+    UpdatedAt(SortOrder),
+    CardScore(SortOrder),
+    LastReviewedAt(SortOrder),
+    LastPickedForReviewed(SortOrder),
+    TimesReviewed(SortOrder),
+    TimesPickedForReview(SortOrder)
 }
 
 impl Default for CardsPageSort {
@@ -162,7 +178,12 @@ impl SortOrderable for CardsPageSort {
         match *self {
             CardsPageSort::CardTitle(ref order_by) |
             CardsPageSort::CreatedAt(ref order_by) |
-            CardsPageSort::UpdatedAt(ref order_by) => {
+            CardsPageSort::UpdatedAt(ref order_by) |
+            CardsPageSort::CardScore(ref order_by) |
+            CardsPageSort::LastReviewedAt(ref order_by) |
+            CardsPageSort::LastPickedForReviewed(ref order_by) |
+            CardsPageSort::TimesReviewed(ref order_by) |
+            CardsPageSort::TimesPickedForReview(ref order_by) => {
                 order_by.clone()
             }
         }
@@ -173,7 +194,12 @@ impl SortOrderable for CardsPageSort {
         match *self {
             CardsPageSort::CardTitle(_) => CardsPageSort::CardTitle(new_value),
             CardsPageSort::CreatedAt(_) => CardsPageSort::CreatedAt(new_value),
-            CardsPageSort::UpdatedAt(_) => CardsPageSort::UpdatedAt(new_value)
+            CardsPageSort::UpdatedAt(_) => CardsPageSort::UpdatedAt(new_value),
+            CardsPageSort::CardScore(_) => CardsPageSort::CardScore(new_value),
+            CardsPageSort::LastReviewedAt(_) => CardsPageSort::LastReviewedAt(new_value),
+            CardsPageSort::LastPickedForReviewed(_) => CardsPageSort::LastPickedForReviewed(new_value),
+            CardsPageSort::TimesReviewed(_) => CardsPageSort::TimesReviewed(new_value),
+            CardsPageSort::TimesPickedForReview(_) => CardsPageSort::TimesPickedForReview(new_value)
         }
     }
 
@@ -182,19 +208,30 @@ impl SortOrderable for CardsPageSort {
         match *self {
             CardsPageSort::CardTitle(_) => CardsPageSort::CardTitle(new_value),
             CardsPageSort::CreatedAt(_) => CardsPageSort::CreatedAt(new_value),
-            CardsPageSort::UpdatedAt(_) => CardsPageSort::UpdatedAt(new_value)
+            CardsPageSort::UpdatedAt(_) => CardsPageSort::UpdatedAt(new_value),
+            CardsPageSort::CardScore(_) => CardsPageSort::CardScore(new_value),
+            CardsPageSort::LastReviewedAt(_) => CardsPageSort::LastReviewedAt(new_value),
+            CardsPageSort::LastPickedForReviewed(_) => CardsPageSort::LastPickedForReviewed(new_value),
+            CardsPageSort::TimesReviewed(_) => CardsPageSort::TimesReviewed(new_value),
+            CardsPageSort::TimesPickedForReview(_) => CardsPageSort::TimesPickedForReview(new_value)
         }
     }
 
     fn sort_order_string(&self) -> String {
         match *self {
-            CardsPageSort::CardTitle(ref order_by) => {
+            CardsPageSort::CardTitle(ref order_by) |
+            CardsPageSort::CardScore(ref order_by) |
+            CardsPageSort::TimesReviewed(ref order_by) |
+            CardsPageSort::TimesPickedForReview(ref order_by) => {
                 match *order_by {
                     SortOrder::Ascending => "Ascending".to_owned(),
                     SortOrder::Descending => "Descending".to_owned(),
                 }
             },
-            CardsPageSort::CreatedAt(ref order_by) | CardsPageSort::UpdatedAt(ref order_by) => {
+            CardsPageSort::CreatedAt(ref order_by) |
+            CardsPageSort::UpdatedAt(ref order_by) |
+            CardsPageSort::LastReviewedAt(ref order_by) |
+            CardsPageSort::LastPickedForReviewed(ref order_by) => {
                 match *order_by {
                     SortOrder::Ascending => "Least Recent".to_owned(),
                     SortOrder::Descending => "Most Recent".to_owned(),
@@ -1172,6 +1209,11 @@ impl CardsPageQuery {
                             "card_title" => CardsPageSort::CardTitle(sort_by),
                             "created_at" => CardsPageSort::CreatedAt(sort_by),
                             "updated_at" => CardsPageSort::UpdatedAt(sort_by),
+                            "card_score" => CardsPageSort::CardScore(sort_by),
+                            "last_reviewed_at" => CardsPageSort::LastReviewedAt(sort_by),
+                            "last_picked_for_review" => CardsPageSort::LastPickedForReviewed(sort_by),
+                            "times_reviewed" => CardsPageSort::TimesReviewed(sort_by),
+                            "times_picked_for_review" => CardsPageSort::TimesPickedForReview(sort_by),
                             _ => CardsPageSort::UpdatedAt(sort_by)
                         }
                     }
@@ -1208,7 +1250,12 @@ impl CardsPageQuery {
         let (order_by, sort_order) = match *page_sort {
             CardsPageSort::CardTitle(ref sort_order) => ("card_title", sort_order),
             CardsPageSort::CreatedAt(ref sort_order) => ("created_at", sort_order),
-            CardsPageSort::UpdatedAt(ref sort_order) => ("updated_at", sort_order)
+            CardsPageSort::UpdatedAt(ref sort_order) => ("updated_at", sort_order),
+            CardsPageSort::CardScore(ref sort_order) => ("card_score", sort_order),
+            CardsPageSort::LastReviewedAt(ref sort_order) => ("last_reviewed_at", sort_order),
+            CardsPageSort::LastPickedForReviewed(ref sort_order) => ("last_picked_for_review", sort_order),
+            CardsPageSort::TimesReviewed(ref sort_order) => ("times_reviewed", sort_order),
+            CardsPageSort::TimesPickedForReview(ref sort_order) => ("times_picked_for_review", sort_order)
         };
 
         let sort_by = match *sort_order {
@@ -1232,20 +1279,61 @@ impl CardsPageQuery {
         match self.2 {
             CardsPageSort::CardTitle(_) => "Card Title".to_owned(),
             CardsPageSort::CreatedAt(_) => "Created At".to_owned(),
-            CardsPageSort::UpdatedAt(_) => "Updated At".to_owned()
+            CardsPageSort::UpdatedAt(_) => "Updated At".to_owned(),
+            CardsPageSort::CardScore(_) => "Card Score".to_owned(),
+            CardsPageSort::LastReviewedAt(_) => "Last Reviewed At".to_owned(),
+            CardsPageSort::LastPickedForReviewed(_) => "Last Picked For Review".to_owned(),
+            CardsPageSort::TimesReviewed(_) => "Times Reviewed".to_owned(),
+            CardsPageSort::TimesPickedForReview(_) => "Times Picked For Review".to_owned(),
         }
     }
 
     pub fn updated_at(&self) -> Self {
-        return CardsPageQuery(self.0, self.1, CardsPageSort::UpdatedAt(self.2.order_by()), self.3.clone())
+        let mut cloned = self.clone();
+        cloned.2 = CardsPageSort::UpdatedAt(cloned.2.order_by());
+        return cloned;
     }
 
     pub fn created_at(&self) -> Self {
-        return CardsPageQuery(self.0, self.1, CardsPageSort::CreatedAt(self.2.order_by()), self.3.clone())
+        let mut cloned = self.clone();
+        cloned.2 = CardsPageSort::CreatedAt(cloned.2.order_by());
+        return cloned;
     }
 
     pub fn card_title(&self) -> Self {
-        return CardsPageQuery(self.0, self.1, CardsPageSort::CardTitle(self.2.order_by()), self.3.clone())
+        let mut cloned = self.clone();
+        cloned.2 = CardsPageSort::CardTitle(cloned.2.order_by());
+        return cloned;
+    }
+
+    pub fn card_score(&self) -> Self {
+        let mut cloned = self.clone();
+        cloned.2 = CardsPageSort::CardScore(cloned.2.order_by());
+        return cloned;
+    }
+
+    pub fn last_reviewed_at(&self) -> Self {
+        let mut cloned = self.clone();
+        cloned.2 = CardsPageSort::LastReviewedAt(cloned.2.order_by());
+        return cloned;
+    }
+
+    pub fn last_picked_for_review(&self) -> Self {
+        let mut cloned = self.clone();
+        cloned.2 = CardsPageSort::LastPickedForReviewed(cloned.2.order_by());
+        return cloned;
+    }
+
+    pub fn times_reviewed(&self) -> Self {
+        let mut cloned = self.clone();
+        cloned.2 = CardsPageSort::TimesReviewed(cloned.2.order_by());
+        return cloned;
+    }
+
+    pub fn times_picked_for_review(&self) -> Self {
+        let mut cloned = self.clone();
+        cloned.2 = CardsPageSort::TimesPickedForReview(cloned.2.order_by());
+        return cloned;
     }
 }
 

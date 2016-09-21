@@ -2050,6 +2050,46 @@ fn DeckCards(
                                     ) {
                                         : cards_page_query.created_at().sort_by_string()
                                     }
+
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(cards_page_query.card_score())))
+                                    ) {
+                                        : cards_page_query.card_score().sort_by_string()
+                                    }
+
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(cards_page_query.last_reviewed_at())))
+                                    ) {
+                                        : cards_page_query.last_reviewed_at().sort_by_string()
+                                    }
+
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(cards_page_query.last_picked_for_review())))
+                                    ) {
+                                        : cards_page_query.last_picked_for_review().sort_by_string()
+                                    }
+
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(cards_page_query.times_reviewed())))
+                                    ) {
+                                        : cards_page_query.times_reviewed().sort_by_string()
+                                    }
+
+                                    option(
+                                        value = view_route_to_link(context.clone(),
+                                            AppRoute::Deck(deck_id,
+                                                DeckRoute::Cards(cards_page_query.times_picked_for_review())))
+                                    ) {
+                                        : cards_page_query.times_picked_for_review().sort_by_string()
+                                    }
                                 }
                             }
                         }
@@ -3297,7 +3337,7 @@ fn CardDetailStats(
                         }
 
                         p(class="title") {
-                            : raw!(card_score.get_perf_score_percent_string())
+                            : raw!(format!("{} / 100", card_score.get_perf_score_percent_string()))
                         }
                     }
 

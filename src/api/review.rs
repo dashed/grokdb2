@@ -630,6 +630,8 @@ pub fn get_card_score(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<
             let fail = fail as u64;
 
             let total: f64 = (success as f64) + (fail as f64);
+
+            // TODO: centralize this lidstone formula
             let raw_score = ((fail as f64) + 0.5f64) / (total + 1.0f64);
 
             let times_reviewed: i64 =  row.get(3);

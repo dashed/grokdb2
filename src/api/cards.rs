@@ -15,7 +15,7 @@ use chrono::naive::datetime::NaiveDateTime;
 /* local imports */
 
 use context::Context;
-use types::{UnixTimestamp, CardID, DeckID, CardsPageQuery, Search, ItemCount, Offset};
+use types::{UnixTimestamp, CardID, DeckID, CardsPageQuery, Search, ItemCount, Offset, CardsPageSort};
 use errors::RawAPIError;
 use api::review::{self, ActiveSelection, CachedReviewProcedure, CardScore};
 use api::user;
@@ -599,6 +599,9 @@ pub fn cards_in_deck(
         INNER JOIN Cards AS c
         ON c.deck_id = dc.descendent
 
+        INNER JOIN CardsScore AS cs
+        ON c.card_id = cs.card_id
+
         {search_inner_join}
         "), search_inner_join = search_inner_join);
 
@@ -609,6 +612,9 @@ pub fn cards_in_deck(
 
         INNER JOIN Cards AS c
         ON c.deck_id = dc.descendent
+
+        INNER JOIN CardsScore AS cs
+        ON c.card_id = cs.card_id
 
         {search_inner_join}
         "), search_inner_join = search_inner_join);
@@ -621,10 +627,60 @@ pub fn cards_in_deck(
     deck_id = deck_id,
     search_where_cond = search_where_cond);
 
-    let order_by_sql = format!(indoc!("
-        c.created_at
-        DESC
-    "));
+    let order_by_sql = match cards_page_query.2 {
+        CardsPageSort::CardTitle(ref sort_order) => {
+            format!(indoc!("
+                c.title
+                {sql_phrase}
+            "), sql_phrase = sort_order.gen_sql())
+        },
+        CardsPageSort::CreatedAt(ref sort_order) => {
+            format!(indoc!("
+                c.created_at
+                {sql_phrase}
+            "), sql_phrase = sort_order.gen_sql())
+        },
+        CardsPageSort::UpdatedAt(ref sort_order) => {
+            format!(indoc!("
+                c.updated_at
+                {sql_phrase}
+            "), sql_phrase = sort_order.gen_sql())
+        },
+        CardsPageSort::CardScore(ref sort_order) => {
+            format!(indoc!("
+                1.0 - raw_score(cs.success, cs.fail)
+                {sql_phrase}
+            "), sql_phrase = sort_order.gen_sql())
+        },
+        CardsPageSort::LastReviewedAt(ref sort_order) => {
+            // convention: descending: newest to oldest
+            // thus, least negative numbers are bigger
+            format!(indoc!("
+                (cs.reviewed_at - strftime('%s','now'))
+                {sql_phrase}
+            "), sql_phrase = sort_order.gen_sql())
+        },
+        CardsPageSort::LastPickedForReviewed(ref sort_order) => {
+            // convention: descending: newest to oldest
+            // thus, least negative numbers are bigger
+            format!(indoc!("
+                (cs.seen_at - strftime('%s','now'))
+                {sql_phrase}
+            "), sql_phrase = sort_order.gen_sql())
+        },
+        CardsPageSort::TimesReviewed(ref sort_order) => {
+            format!(indoc!("
+                cs.times_reviewed
+                {sql_phrase}
+            "), sql_phrase = sort_order.gen_sql())
+        },
+        CardsPageSort::TimesPickedForReview(ref sort_order) => {
+            format!(indoc!("
+                cs.times_seen
+                {sql_phrase}
+            "), sql_phrase = sort_order.gen_sql())
+        }
+    };
 
     let offset = cards_page_query.get_offset();
     let per_page = cards_page_query.get_per_page();
