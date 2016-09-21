@@ -2248,15 +2248,43 @@ fn CardListItemDetailComponent(
         Ok(card) => card
     };
 
+    let card_score = match review::get_card_score(context.clone(), card_id) {
+        Ok(card_score) => card_score,
+        Err(_) => {
+            // TODO: logging
+            panic!();
+        }
+    };
+
     tmpl << html!{
 
         div(class="level") {
 
             div(class="level-left") {
                 div(class="level-item") {
-                    span(style="font-size:12px;") {
-                        : raw!(format!("Card #{}", card.id));
+
+                    div(class="control is-grouped") {
+
+                        p(class="control", style="font-size:12px;") {
+                            : raw!(format!("Card #{}", card.id));
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            b {
+                                : raw!("Score: ")
+                            }
+                            : raw!(format!("{} / 100", card_score.get_perf_score_percent_string()))
+                        }
+
+                        p(class="control", style="font-size:12px;") {
+                            b {
+                                : raw!("Times reviewed: ");
+                            }
+                            : card_score.times_reviewed
+                        }
+
                     }
+
                 }
             }
 
