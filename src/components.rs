@@ -1537,10 +1537,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                 }
                 div(class="panel-block") {
 
-                    aside(class="menu") {
-                        // p(class="menu-label is-bold") {
-                        //     : raw!("Deck #123")
-                        // }
+                    aside(class="menu has-text-right") {
                         ul(class="menu-list") {
                             li(style = raw!("padding-bottom:2px;")) {
                                 a(href = view_route_to_link(context.clone(),
@@ -1768,7 +1765,7 @@ fn CardDetailNav(
                     }
                     div(class="panel-block") {
 
-                        aside(class="menu") {
+                        aside(class="menu has-text-right") {
                             ul(class="menu-list") {
                                 li(style = raw!("padding-bottom:2px;")) {
                                     a(href = view_route_to_link(context.clone(),
