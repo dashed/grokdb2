@@ -2376,13 +2376,79 @@ fn DeckReview(
 
 #[inline]
 fn DeckStats(
-    _tmpl: &mut TemplateBuffer,
-    _context: Rc<RefCell<Context>>,
-    _deck_id: DeckID) {
+    tmpl: &mut TemplateBuffer,
+    context: Rc<RefCell<Context>>,
+    deck_id: DeckID) {
 
-    // _tmpl << html!{
+    let number_of_cards = match cards::total_num_of_cards_in_deck(
+        context.clone(),
+        deck_id,
+        &Default::default()) {
+        Ok(number_of_cards) => number_of_cards,
+        Err(_) => {
+            panic!();
+        }
+    };
 
-    // }
+    let number_of_decks = match decks::get_num_descendents(
+        context.clone(),
+        deck_id) {
+        Ok(number_of_decks) => number_of_decks,
+        Err(_) => {
+            panic!();
+        }
+    };
+
+    let number_of_child_decks = match decks::get_deck_children_total_count(
+        context.clone(),
+        deck_id) {
+        Ok(number_of_child_decks) => number_of_child_decks,
+        Err(_) => {
+            panic!();
+        }
+    };
+
+    tmpl << html!{
+
+        div(class="columns") {
+            div(class="column") {
+
+                div(class="level") {
+                    div(class="level-item has-text-centered") {
+                        p(class="heading") {
+                            : raw!("Number of cards")
+                        }
+
+                        p(class="title") {
+                            : number_of_cards
+                        }
+                    }
+
+                    div(class="level-item has-text-centered") {
+                        p(class="heading") {
+                            : raw!("Number of decks")
+                        }
+
+                        p(class="title") {
+                            : number_of_decks
+                        }
+                    }
+
+                    div(class="level-item has-text-centered") {
+                        p(class="heading") {
+                            : raw!("Direct deck children")
+                        }
+
+                        p(class="title") {
+                            : number_of_child_decks
+                        }
+                    }
+                }
+
+            }
+        }
+
+    };
 }
 
 #[inline]
@@ -3301,24 +3367,37 @@ fn CardDetailStats(
 
         div(class="columns") {
             div(class="column") {
-                h1(class="title") {
-                    : raw!("Card Performance")
-                }
-            }
-        }
 
-        div(class="columns") {
-            div(class="column") {
-                progress(
-                    class ?= classnames!("progress",
-                        "is-danger" => card_score.get_perf_score() < 0.5,
-                        "is-warning" =>  0.5 <= card_score.get_perf_score() && card_score.get_perf_score() < 0.75,
-                        "is-success" => 0.75 <= card_score.get_perf_score()
-                    ),
-                    value = card_score.get_perf_score_string(),
-                    max = card_score.get_max_perf_score_string()
-                ) {
-                    : raw!(card_score.get_perf_score_percent_string())
+                div(class="level") {
+                    div(class="level-left") {
+                        div(class="level-item has-text-centered",
+                            style="padding-right: 10px;") {
+
+                            p(class="heading") {
+                                : raw!("Performance score")
+                            }
+
+                            p(class="title") {
+                                : raw!(format!("{} / 100", card_score.get_perf_score_percent_string()))
+                            }
+                        }
+                    }
+
+                    div(class="level-item") {
+
+                        progress(
+                            class ?= classnames!("progress",
+                                "is-danger" => card_score.get_perf_score() < 0.5,
+                                "is-warning" =>  0.5 <= card_score.get_perf_score() && card_score.get_perf_score() < 0.75,
+                                "is-success" => 0.75 <= card_score.get_perf_score()
+                            ),
+                            value = card_score.get_perf_score_string(),
+                            max = card_score.get_max_perf_score_string()
+                        ) {
+                            : raw!(card_score.get_perf_score_percent_string())
+                        }
+
+                    }
                 }
 
             }
@@ -3329,17 +3408,6 @@ fn CardDetailStats(
             div(class="column") {
 
                 div(class="level") {
-
-                    div(class="level-item has-text-centered") {
-
-                        p(class="heading") {
-                            : raw!("Performance score")
-                        }
-
-                        p(class="title") {
-                            : raw!(format!("{} / 100", card_score.get_perf_score_percent_string()))
-                        }
-                    }
 
                     div(class="level-item has-text-centered") {
 
