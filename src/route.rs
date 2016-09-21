@@ -747,7 +747,7 @@ fn __parse_route_api_card_review(
             let _guard = context::write_lock(context.clone());
 
             // commit review request
-            handle_api_result_json!(request.commit(context.clone()));
+            handle_api_result_json!(request.commit_on_card(context.clone()));
 
             let card = handle_api_result_json!(cards::get_card(context.clone(), card_id));
             let card_score = handle_api_result_json!(review::get_card_score(context.clone(), card_id));
@@ -1255,7 +1255,7 @@ fn __parse_route_api_deck_review_post(
             if !in_deck {
 
                 // commit review request
-                handle_api_result_json!(request.commit(context.clone()));
+                handle_api_result_json!(request.commit_on_deck(context.clone(), parent_deck_id));
 
                 // TODO: code repeat
                 let review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));
@@ -1271,7 +1271,7 @@ fn __parse_route_api_deck_review_post(
                 None => {
 
                     // commit review request
-                    handle_api_result_json!(request.commit(context.clone()));
+                    handle_api_result_json!(request.commit_on_deck(context.clone(), parent_deck_id));
 
                     // TODO: code repeat
                     let review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));
@@ -1290,7 +1290,7 @@ fn __parse_route_api_deck_review_post(
             if card_id != request.card_id {
 
                 // commit review request
-                handle_api_result_json!(request.commit(context.clone()));
+                handle_api_result_json!(request.commit_on_deck(context.clone(), parent_deck_id));
 
                 // TODO: code repeat
                 let _review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));
@@ -1303,7 +1303,7 @@ fn __parse_route_api_deck_review_post(
             }
 
             // commit review request
-            handle_api_result_json!(request.commit(context.clone()));
+            handle_api_result_json!(request.commit_on_deck(context.clone(), parent_deck_id));
 
             // fetch next card for review
             let review_response = handle_api_result_json!(ReviewResponse::new(context.clone(), deck));

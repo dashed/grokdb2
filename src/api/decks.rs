@@ -9,6 +9,7 @@ use rusqlite::Connection;
 use rusqlite::types::ToSql;
 use rusqlite::Error as SqliteError;
 use serde_json;
+use chrono::naive::datetime::NaiveDateTime;
 
 /* local imports */
 
@@ -17,6 +18,7 @@ use types::{UnixTimestamp, DeckID, CardID, DecksPageQuery, Search, ItemCount, Of
 use errors::RawAPIError;
 use api::review::{self, Reviewable, ActiveSelection, CachedReviewProcedure};
 use api::cards;
+use timestamp;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -25,9 +27,16 @@ pub struct Deck {
     pub id: DeckID,
     pub name: String,
     pub description: String,
-    pub created_at: UnixTimestamp, // unix timestamp
-    pub updated_at: UnixTimestamp, // unix timestamp
-    pub reviewed_at: UnixTimestamp, // unix timestamp
+
+    pub created_at: String,
+    pub created_at_actual: UnixTimestamp, // unix timestamp
+
+    pub updated_at: String,
+    pub updated_at_actual: UnixTimestamp, // unix timestamp
+
+    pub reviewed_at: String,
+    pub reviewed_at_actual: UnixTimestamp, // unix timestamp
+
     pub has_reviewed: bool, // false if reviewed_at == created_at, otherwise true
 }
 
@@ -110,15 +119,23 @@ pub fn get_deck(context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<Deck, 
         let results = db_conn.query_row(&query, &[], |row| -> Deck {
 
             let created_at: UnixTimestamp = row.get(3);
+            let updated_at: UnixTimestamp = row.get(4);
             let reviewed_at: UnixTimestamp = row.get(5);
 
             return Deck {
                 id: row.get(0),
                 name: row.get(1),
                 description: row.get(2),
-                created_at: created_at,
-                updated_at: row.get(4),
-                reviewed_at: reviewed_at,
+
+                created_at: timestamp::to_string(NaiveDateTime::from_timestamp(created_at, 0)),
+                created_at_actual: created_at,
+
+                updated_at: timestamp::to_string(NaiveDateTime::from_timestamp(updated_at, 0)),
+                updated_at_actual: updated_at,
+
+                reviewed_at: timestamp::to_string(NaiveDateTime::from_timestamp(reviewed_at, 0)),
+                reviewed_at_actual: reviewed_at,
+
                 has_reviewed: created_at != reviewed_at,
             };
         });

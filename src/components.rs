@@ -2380,6 +2380,13 @@ fn DeckStats(
     context: Rc<RefCell<Context>>,
     deck_id: DeckID) {
 
+    let deck = match decks::get_deck(context.clone(), deck_id) {
+        Ok(deck) => deck,
+        Err(_) => {
+            panic!();
+        }
+    };
+
     let number_of_cards = match cards::total_num_of_cards_in_deck(
         context.clone(),
         deck_id,
@@ -2444,6 +2451,65 @@ fn DeckStats(
                         }
                     }
                 }
+
+            }
+        }
+
+
+        div(class="columns") {
+            div(class="column") {
+                hr(class="is-marginless");
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+
+                h1(class="title") {
+                    : raw!("Deck created at")
+                }
+
+                h2(class="subtitle") {
+                    : &deck.created_at
+                }
+
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+
+                h1(class="title") {
+                    : raw!("Deck updated at")
+                }
+
+                h2(class="subtitle") {
+                    : &deck.updated_at
+                }
+
+            }
+        }
+
+        |tmpl| {
+            if deck.has_reviewed {
+
+                tmpl << html!{
+
+                    div(class="columns") {
+                        div(class="column") {
+
+                            h1(class="title") {
+                                : raw!("Deck reviewed at")
+                            }
+
+                            h2(class="subtitle") {
+                                : &deck.reviewed_at
+                            }
+
+                        }
+                    }
+
+                };
 
             }
         }

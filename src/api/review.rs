@@ -19,7 +19,7 @@ use chrono::naive::datetime::NaiveDateTime;
 
 use context::{self, Context};
 use errors::RawAPIError;
-use types::{ItemCount, CardID, Offset, Minutes, ReviewCount, UnixTimestamp};
+use types::{ItemCount, CardID, DeckID, Offset, Minutes, ReviewCount, UnixTimestamp};
 use api::cards::{self, Card};
 use api::decks::{Deck};
 use api::user;
@@ -221,7 +221,48 @@ pub struct CardReviewRequest {
 
 impl CardReviewRequest {
 
-    pub fn commit(&self, context: Rc<RefCell<Context>>) -> Result<(), RawAPIError> {
+    pub fn commit_on_deck(&self, context: Rc<RefCell<Context>>, deck_id: DeckID) -> Result<(), RawAPIError> {
+
+        // a deck is only reviewed only on certain specific review actions
+        match self.review_action {
+            ReviewAction::Right |
+            ReviewAction::Wrong |
+            ReviewAction::Forgot => {
+
+                let _guard = context::write_lock(context.clone());
+
+                // TODO: group this into a transaction
+
+                let query = format!(indoc!("
+                    UPDATE Decks
+                    SET
+                    reviewed_at = strftime('%s', 'now')
+                    WHERE
+                        deck_id = {deck_id};
+                "), deck_id = deck_id);
+
+                let context = context.borrow();
+                db_write_lock!(db_conn; context.database());
+                let db_conn: &Connection = db_conn;
+
+                match db_conn.execute_named(&query, &[]) {
+                    Err(sqlite_error) => {
+                        return Err(RawAPIError::SQLError(sqlite_error, query));
+                    }
+                    _ => {
+                        /* query sucessfully executed */
+                    }
+                }
+
+            },
+            _ => {}
+        }
+
+        return self.commit_on_card(context.clone());
+
+    }
+
+    pub fn commit_on_card(&self, context: Rc<RefCell<Context>>) -> Result<(), RawAPIError> {
 
         let _guard = context::write_lock(context.clone());
 
@@ -240,6 +281,7 @@ impl CardReviewRequest {
         }
 
         return Ok(());
+
     }
 
     fn review_card(
