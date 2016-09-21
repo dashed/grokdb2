@@ -1523,8 +1523,27 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
 
 #[inline]
 fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: DeckID, deck_route: &DeckRoute) {
-    tmpl << html!{
 
+    let number_of_decks = match decks::get_num_descendents(
+        context.clone(),
+        deck_id) {
+        Ok(number_of_decks) => number_of_decks,
+        Err(_) => {
+            panic!();
+        }
+    };
+
+    let number_of_cards = match cards::total_num_of_cards_in_deck(
+        context.clone(),
+        deck_id,
+        &Default::default()) {
+        Ok(number_of_cards) => number_of_cards,
+        Err(_) => {
+            panic!();
+        }
+    };
+
+    tmpl << html!{
 
         div(class="column is-one-quarter") {
 
@@ -1560,12 +1579,32 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                     class? = classnames!(
                                         "is-bold",
                                         "is-active" => {
-                                            // TODO: re-review this
                                             matches!(*deck_route, DeckRoute::NewDeck) ||
                                             matches!(*deck_route, DeckRoute::Decks(_, _))
                                         })
                                 ) {
-                                    : "Decks"
+
+                                    span(class="level") {
+                                        span(class="level-left") {
+                                            span(class="level-item") {
+                                                span(class ?= classnames!("tag is-small",
+                                                    "is-primary" => {
+                                                        !(matches!(*deck_route, DeckRoute::NewDeck) ||
+                                                        matches!(*deck_route, DeckRoute::Decks(_, _)))
+                                                    })
+                                                ) {
+                                                    : number_of_decks
+                                                }
+                                            }
+                                        }
+
+                                        span(class="level-right") {
+                                            span(class="level-item") {
+                                                : raw!("Decks")
+                                            }
+                                        }
+                                    }
+
                                 }
                             }
                             li(style = raw!("padding-top:2px;padding-bottom:2px;")) {
@@ -1579,7 +1618,28 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                             matches!(*deck_route, DeckRoute::Cards(_))
                                         })
                                 ) {
-                                    : "Cards"
+
+                                    span(class="level") {
+                                        span(class="level-left") {
+                                            span(class="level-item") {
+                                                span(class ?= classnames!("tag is-small",
+                                                    "is-primary" => {
+                                                        !(matches!(*deck_route, DeckRoute::NewCard) ||
+                                                        matches!(*deck_route, DeckRoute::Cards(_)))
+                                                    })
+                                                ) {
+                                                    : number_of_cards
+                                                }
+                                            }
+                                        }
+
+                                        span(class="level-right") {
+                                            span(class="level-item") {
+                                                : raw!("Cards")
+                                            }
+                                        }
+                                    }
+
                                 }
                             }
                             li(style = raw!("padding-top:2px;padding-bottom:2px;")) {
@@ -3220,15 +3280,6 @@ fn DecksChildren(tmpl: &mut TemplateBuffer,
     };
 
     tmpl << html!{
-
-        // TODO: keep?
-        // div(class="columns") {
-        //     div(class="column") {
-        //         h1(class="title") {
-        //             : raw!("Decks")
-        //         }
-        //     }
-        // }
 
         div(class="columns") {
             div(class="column") {
