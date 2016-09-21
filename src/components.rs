@@ -2270,14 +2270,14 @@ fn CardListItemDetailComponent(
                         }
 
                         p(class="control", style="font-size:12px;") {
-                            b {
+                            strong {
                                 : raw!("Score: ")
                             }
                             : raw!(format!("{} / 100", card_score.get_perf_score_percent_string()))
                         }
 
                         p(class="control", style="font-size:12px;") {
-                            b {
+                            strong {
                                 : raw!("Times reviewed: ");
                             }
                             : card_score.times_reviewed
