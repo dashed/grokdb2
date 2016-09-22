@@ -2273,6 +2273,8 @@ fn CardListItemComponent(
         }
     };
 
+    let should_bold = true;
+
     tmpl << html!{
         div(class="columns is-marginless",
             style=labels!(
@@ -2282,7 +2284,7 @@ fn CardListItemComponent(
                     a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Contents)))
                     ) {
-                        |tmpl| MathJaxInline(tmpl, card.title.clone(), false);
+                        |tmpl| MathJaxInline(tmpl, card.title.clone(), should_bold);
                     }
                 }
 
@@ -3414,6 +3416,8 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
         }
     };
 
+    let should_bold = true;
+
     tmpl << html!{
         div(class="columns is-marginless",
             style=labels!(
@@ -3425,7 +3429,7 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
                                         DeckRoute::Decks(DecksPageQuery::default_with_deck(deck_id),
                                             Default::default())))
                     ) {
-                        |tmpl| MathJaxInline(tmpl, deck.name.clone(), false);
+                        |tmpl| MathJaxInline(tmpl, deck.name.clone(), should_bold);
                     }
                 }
 
