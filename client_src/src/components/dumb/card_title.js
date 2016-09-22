@@ -24,7 +24,12 @@ const Content = function(props) {
     }
 
     return (
-        <h1 className='title'>{content}</h1>
+        <h1
+            className='title'
+            style={{fontWeight: 'bold'}}
+        >
+            {content}
+        </h1>
     );
 };
 
