@@ -17,6 +17,7 @@ use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, 
 use api::{decks, cards, user};
 use api::review::{self, CachedReviewProcedure};
 use timestamp;
+use separator::Separatable;
 
 /* ////////////////////////////////////////////////////////////////////////// */
 
@@ -34,6 +35,11 @@ macro_rules! classnames {
     }};
 }
 
+macro_rules! number_format_sep {
+    ($num:expr) => {{
+        ($num).separated_string()
+    }};
+}
 /* link generators */
 
 #[inline]
@@ -1593,7 +1599,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                                         matches!(*deck_route, DeckRoute::Decks(_, _)))
                                                     })
                                                 ) {
-                                                    : number_of_decks
+                                                    : number_format_sep!(number_of_decks)
                                                 }
                                             }
                                         }
@@ -1628,7 +1634,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                                         matches!(*deck_route, DeckRoute::Cards(_)))
                                                     })
                                                 ) {
-                                                    : number_of_cards
+                                                    : number_format_sep!(number_of_cards)
                                                 }
                                             }
                                         }
@@ -2514,7 +2520,7 @@ fn DeckStats(
                         }
 
                         p(class="title") {
-                            : number_of_cards
+                            : number_format_sep!(number_of_cards)
                         }
                     }
 
@@ -2524,7 +2530,7 @@ fn DeckStats(
                         }
 
                         p(class="title") {
-                            : number_of_decks
+                            : number_format_sep!(number_of_decks)
                         }
                     }
 
@@ -2534,7 +2540,7 @@ fn DeckStats(
                         }
 
                         p(class="title") {
-                            : number_of_child_decks
+                            : number_format_sep!(number_of_child_decks)
                         }
                     }
                 }
@@ -3562,7 +3568,7 @@ fn CardDetailStats(
                         }
 
                         p(class="title") {
-                            : card_score.times_reviewed
+                            : number_format_sep!(card_score.times_reviewed)
                         }
                     }
 
@@ -3573,7 +3579,7 @@ fn CardDetailStats(
                         }
 
                         p(class="title") {
-                            : card_score.times_seen
+                            : number_format_sep!(card_score.times_seen)
                         }
                     }
 
@@ -3632,9 +3638,6 @@ fn CardDetailStats(
             }
         }
 
-        // TODO: remove
-        // div(id="card_stats_container") {
-        // }
     }
 }
 

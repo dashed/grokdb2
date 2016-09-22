@@ -61,6 +61,7 @@ random-wheel = { git = "https://github.com/dashed/random-wheel-rs", branch = "ma
 rand = "0.3"
 libc = "0.2.12"
 pcg = {git = "https://github.com/codahale/pcg"}
+separator = "0.3.1"
 
 # for timezones
 phf = "0.7.16"

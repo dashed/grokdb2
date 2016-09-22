@@ -32,6 +32,7 @@ extern crate pcg;
 extern crate phf;
 extern crate datetime;
 extern crate clap;
+extern crate separator;
 
 
 /* rust lib imports */
