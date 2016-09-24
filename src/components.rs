@@ -2320,24 +2320,55 @@ fn CardListItemDetailComponent(
             div(class="level-left") {
                 div(class="level-item") {
 
-                    div(class="control is-grouped") {
+                    div(class="level") {
 
-                        p(class="control", style="font-size:12px;") {
-                            : raw!(format!("Card #{}", card.id));
-                        }
-
-                        p(class="control", style="font-size:12px;") {
-                            strong {
-                                : raw!("Score: ")
+                        div(class="level-left") {
+                            div(class="level-item", style="font-size:12px; margin-right: 10px;") {
+                                : raw!(format!("Card #{}", card.id));
                             }
-                            : raw!(format!("{} / 100", card_score.get_perf_score_percent_string()))
-                        }
 
-                        p(class="control", style="font-size:12px;") {
-                            strong {
-                                : raw!("Times reviewed: ");
+                            div(class="level-item", style="font-size:12px; margin-right: 10px;") {
+                                strong {
+                                    : raw!("Score: ")
+                                }
+                                : raw!(format!("{} / 100", card_score.get_perf_score_percent_string()))
                             }
-                            : card_score.times_reviewed
+
+                            div(class="level-item", style="font-size:12px; margin-right: 10px;") {
+                                strong {
+                                    : raw!("Times reviewed: ");
+                                }
+                                : card_score.times_reviewed
+                            }
+
+                            div(class="level-item", style="font-size:12px; margin-right: 10px;") {
+
+                                |tmpl| {
+
+                                    if card.is_active {
+
+                                        tmpl << html!{
+
+                                            span(class="tag is-bold is-success is-small") {
+                                                : raw!("Active")
+                                            }
+
+                                        };
+
+                                    } else {
+
+                                        tmpl << html!{
+
+                                            span(class="tag is-bold is-danger is-small") {
+                                                : raw!("Not Active")
+                                            }
+
+                                        };
+
+                                    }
+                                }
+
+                            }
                         }
 
                     }
