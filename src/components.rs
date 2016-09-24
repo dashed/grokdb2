@@ -1939,19 +1939,8 @@ fn NewCard(
     _deck_id: DeckID) {
 
     tmpl << html!{
-
-        // TODO: remove
-        // div(class="columns") {
-        //     div(class="column") {
-        //         h1(class="title") {
-        //             : raw!("Add New Card")
-        //         }
-        //     }
-        // }
-
         div(id="new_card_container") {
-            // TODO: fix
-            // : raw!(include_str!("react_components/new_card"))
+            : raw!(include_str!("react_components/new_card"))
         }
     }
 }

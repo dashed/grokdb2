@@ -101,6 +101,7 @@ const __TabComponent = function(props) {
             <div>
                 <div style={sourceStyle}>
                     <MarkdownSource
+                        shouldFocus={props.isQuestion}
                         contents={contents}
                         placeholder={props.placeholder}
                         assignProps={props.reduxFormField}
@@ -117,7 +118,8 @@ if(process.env.NODE_ENV !== 'production') {
     __TabComponent.propTypes = {
         [MARKDOWN_VIEW]: React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE]),
         reduxFormField: React.PropTypes.object.isRequired,
-        placeholder: React.PropTypes.string.isRequired
+        placeholder: React.PropTypes.string.isRequired,
+        isQuestion: React.PropTypes.bool.isRequired,
     };
 }
 
@@ -138,7 +140,8 @@ const TabComponent = connect(
         }
 
         return {
-            [MARKDOWN_VIEW]: state[ownProps.tab][MARKDOWN_VIEW]
+            [MARKDOWN_VIEW]: state[ownProps.tab][MARKDOWN_VIEW],
+            isQuestion: state.CURRENT_TAB === CARD_QUESTION,
         };
     }
 )(__TabComponent);
@@ -221,6 +224,7 @@ const __NewCardContainer = function(props) {
                             notice={'No card title rendered.  Click on "Source" tab and enter a card title.'}
                             isEditing
                             assignField={title}
+                            shouldFocus={false}
                         />
                 </div>
             </div>

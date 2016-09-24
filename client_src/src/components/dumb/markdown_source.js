@@ -18,6 +18,7 @@ const MarkdownSource = function(props) {
 
     return (<TextareaAutosize
 
+        autoFocus={props.shouldFocus}
         style={props.style}
         useCacheForDOMMeasurements
         minRows={6}
@@ -42,11 +43,13 @@ MarkdownSource.defaultProps = {
     contents: '',
     editable: false,
     id: void 0,
-    style: {}
+    style: {},
+    shouldFocus: false,
 };
 
 if(process.env.NODE_ENV !== 'production') {
     MarkdownSource.propTypes = {
+        shouldFocus: React.PropTypes.bool.isRequired,
         style: React.PropTypes.object.isRequired,
         contents: React.PropTypes.string.isRequired,
         editable: React.PropTypes.bool.isRequired,

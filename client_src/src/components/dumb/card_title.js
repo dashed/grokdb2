@@ -48,11 +48,13 @@ const CardTitle = React.createClass({
         content: React.PropTypes.string.isRequired,
         notice: React.PropTypes.string.isRequired,
         isEditing: React.PropTypes.bool.isRequired,
-        assignField: React.PropTypes.object.isRequired
+        assignField: React.PropTypes.object.isRequired,
+        shouldFocus: React.PropTypes.bool.isRequired,
     },
 
     getDefaultProps() {
         return {
+            shouldFocus: true,
             mathjaxify: false,
             isEditing: false,
             assignField: {}
@@ -147,7 +149,7 @@ const CardTitle = React.createClass({
                             className='input'
                             type='text'
                             placeholder='Card Title'
-                            autoFocus
+                            autoFocus={this.props.shouldFocus}
                             readOnly={!this.props.isEditing}
                             {...assign({value: this.props.content}, this.props.assignField)}
                         />
