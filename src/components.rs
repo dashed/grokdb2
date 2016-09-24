@@ -479,6 +479,15 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         }
                     };
 
+                    let card_score = match review::get_card_score(
+                        context.clone(),
+                        card_id) {
+                        Ok(card_score) => card_score,
+                        Err(_) => {
+                            // TODO: internal error logging
+                            panic!();
+                        }
+                    };
 
                     tmpl << html! {
                         : raw!(
@@ -493,7 +502,10 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                         CARD_QUESTION: {card_question},\
                                         CARD_ANSWER: {card_answer},\
                                         CARD_IS_ACTIVE: {card_is_active},\
-                                        CARD_META: {card_meta}\
+                                        CARD_META: {card_meta},\
+                                        TIME_TILL_AVAILABLE_FOR_REVIEW: {time_till_available_for_review},\
+                                        CARDS_TILL_AVAILABLE_FOR_REVIEW: {cards_till_available_for_review},\
+                                        TIME_CONTROL: '{time_control}'\
                                     }};\
                                 ",
                                 post_to = generate_post_to(app_route),
@@ -505,7 +517,10 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 card_question = card_question,
                                 card_answer = card_answer,
                                 card_is_active = card_is_active,
-                                card_meta = card_meta
+                                card_meta = card_meta,
+                                time_till_available_for_review = card_score.review_after_normalized,
+                                cards_till_available_for_review = card_score.cards_till_ready_for_review,
+                                time_control = card_score.review_after_time_control
                             )
                         )
                     };
@@ -3655,6 +3670,26 @@ fn CardDetailStats(
                     }
 
                 }
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+                hr(class="is-marginless");
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+
+                h1(class="title") {
+                    : raw!("Ready for review at")
+                }
+
+                h2(class="subtitle") {
+                    : &card_score.ready_for_review_at
+                }
+
             }
         }
 

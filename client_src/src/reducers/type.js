@@ -1,7 +1,10 @@
+const has = require('lodash/has');
+
 const typeReducer = function(state, action) {
 
-    state = action && action.type || state;
-
+    if(action && has(action, 'type')) {
+        state = action.type;
+    }
     return state;
 };
 

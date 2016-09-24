@@ -58,6 +58,12 @@ const SUBMITTING = 'SUBMITTING';
 const SET_CARD = 'SET_CARD';
 const HAS_CARD_FOR_REVIEW = 'HAS_CARD_FOR_REVIEW';
 const PROFILE_URL = 'PROFILE_URL';
+const MINUTES = 'MINUTES';
+const HOURS = 'HOURS';
+const TIME_CONTROL = 'TIME_CONTROL';
+const TIME_TILL_AVAILABLE_FOR_REVIEW = 'TIME_TILL_AVAILABLE_FOR_REVIEW';
+const CARDS_TILL_AVAILABLE_FOR_REVIEW = 'CARDS_TILL_AVAILABLE_FOR_REVIEW';
+
 
 /* react components */
 
@@ -390,10 +396,30 @@ const MainControls = connect(
 
 )(__MainControls);
 
-const AdvancedControls = function() {
+const __AdvancedControls = function(props) {
+
+    const isConfirmSkip = props[IS_CONFIRM_SKIP];
+
+    if(isConfirmSkip) {
+        return null;
+    }
+
+    const showMainControls = props[SHOW_MAIN_CONTROLS];
+
+    if(!showMainControls) {
+        return null;
+    }
+
+    const timeControl = props[TIME_CONTROL];
+    const {dispatch} = props;
 
     return (
         <div>
+            <div className='columns'>
+                <div className='column'>
+                    <hr className='is-marginless'/>
+                </div>
+            </div>
             <div className='columns'>
                 <div className='column'>
                     <h4 className='title is-4'>{'Advanced Review Controls'}</h4>
@@ -408,18 +434,38 @@ const AdvancedControls = function() {
 
             <div className='columns'>
                 <div className='column is-two-thirds'>
-                    <input className='input' type='number' min='1' value='3' />
+                    <input
+                        className='input'
+                        type='number'
+                        min={0}
+                        value={props[TIME_TILL_AVAILABLE_FOR_REVIEW]}
+                        onChange={changeTimeTillReview(dispatch)}
+                    />
                 </div>
                 <div className='column is-one-third'>
                     <div className='tabs is-toggle is-fullwidth'>
                         <ul>
-                            <li>
-                                <a>
+                            <li
+                                className={classnames({
+                                    'is-active': timeControl === MINUTES
+                                })}
+                            >
+                                <a
+                                    className={'button is-bold'}
+                                    onClick={switchTime(dispatch, MINUTES, props[TIME_TILL_AVAILABLE_FOR_REVIEW])}
+                                >
                                     {'Minutes'}
                                 </a>
                             </li>
-                            <li>
-                                <a>
+                            <li
+                                className={classnames({
+                                    'is-active': timeControl === HOURS
+                                })}
+                            >
+                                <a
+                                    className={'button is-bold'}
+                                    onClick={switchTime(dispatch, HOURS, props[TIME_TILL_AVAILABLE_FOR_REVIEW])}
+                                >
                                     {'Hours'}
                                 </a>
                             </li>
@@ -436,12 +482,38 @@ const AdvancedControls = function() {
 
             <div className='columns'>
                 <div className='column'>
-                    <input className='input' type='number' min='0' value='1' />
+                    <input
+                        className='input'
+                        type='number'
+                        min={0}
+                        value={props[CARDS_TILL_AVAILABLE_FOR_REVIEW]}
+                        onChange={changeCardsTillReview(dispatch)}
+                    />
                 </div>
             </div>
         </div>
     );
 };
+
+if(process.env.NODE_ENV !== 'production') {
+    __AdvancedControls.propTypes = {
+        dispatch: React.PropTypes.func.isRequired
+    };
+}
+
+const AdvancedControls = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            [IS_CONFIRM_SKIP]: state[IS_CONFIRM_SKIP],
+            [SHOW_MAIN_CONTROLS]: state[SHOW_MAIN_CONTROLS],
+            [TIME_CONTROL]: state[TIME_CONTROL],
+            [TIME_TILL_AVAILABLE_FOR_REVIEW]: state[TIME_TILL_AVAILABLE_FOR_REVIEW],
+            [CARDS_TILL_AVAILABLE_FOR_REVIEW]: state[CARDS_TILL_AVAILABLE_FOR_REVIEW],
+        };
+    }
+
+)(__AdvancedControls);
 
 const __ReviewControls = function(props) {
 
@@ -456,6 +528,7 @@ const __ReviewControls = function(props) {
         <div>
             <MainControls />
             <PerformanceControls />
+            <AdvancedControls />
         </div>
     );
 
@@ -535,12 +608,6 @@ const __Settings = function(props) {
                     </label>
                 </div>
             </div>
-            <div className='columns'>
-                <div className='column'>
-                    <hr className='is-marginless'/>
-                </div>
-            </div>
-            <AdvancedControls />
         </div>
     );
 };
@@ -1575,12 +1642,87 @@ const confirmError = function(dispatch) {
     };
 };
 
+const switchTime = function(dispatch, timeType = HOURS, time = 0) {
+    return function(event) {
+        event.preventDefault();
+
+        time = Number(time);
+
+        if(timeType === MINUTES) {
+            time = time * 60;
+        } else {
+            time = time / 60;
+        }
+
+        dispatch(
+            reduceIn(
+                // reducer
+                typeReducer,
+                // path
+                [TIME_TILL_AVAILABLE_FOR_REVIEW],
+                // action
+                {
+                    type: time
+                }
+            )
+        );
+
+        dispatch(
+            reduceIn(
+                // reducer
+                timeReducer,
+                // path
+                [TIME_CONTROL],
+                // action
+                {
+                    type: timeType
+                }
+            )
+        );
+    };
+};
+
+const changeTimeTillReview = function(dispatch) {
+    return function(event) {
+        dispatch(
+            reduceIn(
+                // reducer
+                typeReducer,
+                // path
+                [TIME_TILL_AVAILABLE_FOR_REVIEW],
+                // action
+                {
+                    type: Number(event.target.value)
+                }
+            )
+        );
+    };
+};
+
+const changeCardsTillReview = function(dispatch) {
+    return function(event) {
+        dispatch(
+            reduceIn(
+                // reducer
+                typeReducer,
+                // path
+                [CARDS_TILL_AVAILABLE_FOR_REVIEW],
+                // action
+                {
+                    type: Number(event.target.value)
+                }
+            )
+        );
+    };
+};
+
 /* redux reducers */
 
 const markdownViewReducer = require('reducers/markdown_view');
 const boolReducer = require('reducers/bool');
 const tabReducer = require('reducers/card_tab');
 const errorReducer = require('reducers/error_message');
+const typeReducer = require('reducers/type');
 
 const performanceReducer = function(state = NOT_SELECTED, action) {
 
@@ -1632,6 +1774,9 @@ const cardReducer = function(state, action) {
     let cardMeta = {};
     let hasCardForReview = false;
     let profileURL = '';
+    let timeTillReview = 0;
+    let cardsTillReview = 0;
+    let timeControl = HOURS;
 
     switch(action.type) {
     case SET_CARD:
@@ -1655,6 +1800,10 @@ const cardReducer = function(state, action) {
                 answer: __card.answer,
                 is_active: __card.is_active
             };
+
+            timeTillReview = payload.card_for_review.card_score.review_after_normalized;
+            cardsTillReview = payload.card_for_review.card_score.cards_till_ready_for_review;
+            timeControl = payload.card_for_review.card_score.review_after_time_control;
 
         }
 
@@ -1702,21 +1851,54 @@ const cardReducer = function(state, action) {
 
         [CARD_META]: cardMeta,
 
+        [TIME_TILL_AVAILABLE_FOR_REVIEW]: timeTillReview,
+        [CARDS_TILL_AVAILABLE_FOR_REVIEW]: cardsTillReview,
+        [TIME_CONTROL]: timeControl,
+
     };
 
     return assign({}, state, newState);
 };
 
+const timeReducer = function(state, action) {
+
+    switch(action.type) {
+    case MINUTES:
+    case HOURS:
+        state = action.type;
+
+        break;
+
+    default:
+        state = HOURS;
+    }
+
+    return state;
+}
+
 // TODO: this is not a reducer; move this somewhere
 const generateReviewRequest = function(state) {
+
+    let timeTillReview = Number(state[TIME_TILL_AVAILABLE_FOR_REVIEW]);
+
+    if(state[TIME_CONTROL] === HOURS) {
+        timeTillReview = timeTillReview * 60;
+    }
+
+    timeTillReview = timeTillReview < 0 ? (3 * 60) : // 3 hours = 180 mins
+        timeTillReview;
+
+    let cardsTillReview = Number(state[CARDS_TILL_AVAILABLE_FOR_REVIEW]);
+
+    cardsTillReview = cardsTillReview < 0 ? 1 :
+        cardsTillReview;
 
     return {
         card_id: Number(state[CARD_ID]),
         review_action: generateReviewAction(!!state[IS_CONFIRM_SKIP] ? void 0 : state[CHOSEN_PERFORMANCE]),
 
-        // TODO: implement this
-        // time_till_available_for_review
-        // cards_till_available_for_review
+        time_till_available_for_review:  timeTillReview,
+        cards_till_available_for_review: cardsTillReview
     };
 };
 
@@ -1766,6 +1948,10 @@ const initialState = {
     [CARD_META]: {},
 
     [SUBMITTING]: false,
+
+    [TIME_TILL_AVAILABLE_FOR_REVIEW]: 3,
+    [CARDS_TILL_AVAILABLE_FOR_REVIEW]: 1,
+    [TIME_CONTROL]: HOURS,
 
     [ERROR]: errorReducer(),
 

@@ -432,7 +432,8 @@ pub struct CardForReview {
     post_to: String, // TODO: doesn't seem to be useful; remove
     profile_url: String,
     card: Card,
-    card_meta: Option<CachedReviewProcedure>
+    card_meta: Option<CachedReviewProcedure>,
+    card_score: CardScore
 }
 
 #[derive(Serialize)]
@@ -471,12 +472,21 @@ impl ReviewResponse {
         let has_card_for_review = card.is_some();
 
         let card_for_review = if let Some(card) = card {
+
+            let card_score = match get_card_score(context.clone(), card.id) {
+                Ok(card_score) => card_score,
+                Err(why) => {
+                    return Err(why);
+                }
+            };
+
             let card_for_review = CardForReview {
                 post_to: generate_post_to(&AppRoute::Deck(deck.id, DeckRoute::Review(None))),
                 profile_url: view_route_to_link(context,
                                     AppRoute::Deck(deck.id, DeckRoute::CardProfile(card.id, Default::default()))),
                 card: card,
-                card_meta: cached_review_procedure
+                card_meta: cached_review_procedure,
+                card_score: card_score
             };
 
             Some(card_for_review)
@@ -575,7 +585,10 @@ pub struct CardScore {
     pub reviewed_at: String,
     pub reviewed_at_actual: UnixTimestamp,
 
+    pub review_after_normalized: u64,
+    pub review_after_time_control: String,
     pub review_after: u64,
+    pub ready_for_review_at: String,
 
     pub reviewed_at_count: ReviewCount,
     pub cards_till_ready_for_review: ReviewCount
@@ -678,12 +691,29 @@ pub fn get_card_score(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<
 
             let times_reviewed: i64 =  row.get(3);
             let times_seen: i64 =  row.get(4);
+
             let review_after: i64 =  row.get(7);
+
             let reviewed_at_count: i64 =  row.get(8);
             let cards_till_ready_for_review: i64 =  row.get(9);
 
             let seen_at: UnixTimestamp = row.get(5);
             let reviewed_at: UnixTimestamp = row.get(6);
+
+
+            let (review_after_normalized, review_after_time_control) = if review_after >= 3600 {
+                // more than hour, convert to hours
+                let review_after_normalized = (review_after as f64) / 60.0 / 60.0;
+                let time_control = "HOURS".to_string();
+
+                (review_after_normalized, time_control)
+            } else {
+                // less than an hour, convert to minutes
+                let review_after_normalized = (review_after as f64) / 60.0;
+                let time_control = "MINUTES".to_string();
+
+                (review_after_normalized, time_control)
+            };
 
             return CardScore {
 
@@ -704,7 +734,11 @@ pub fn get_card_score(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<
                 reviewed_at: timestamp::to_string(NaiveDateTime::from_timestamp(reviewed_at, 0)),
                 reviewed_at_actual: reviewed_at,
 
+                review_after_normalized: review_after_normalized as u64,
+                review_after_time_control: review_after_time_control,
                 review_after: review_after as u64,
+                ready_for_review_at: timestamp::to_string(NaiveDateTime::from_timestamp(
+                    reviewed_at + review_after, 0)),
 
                 reviewed_at_count: reviewed_at_count as u64,
                 cards_till_ready_for_review: cards_till_ready_for_review as u64
