@@ -964,9 +964,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             : raw!("grokdb v");
                             : env!("CARGO_PKG_VERSION");
 
-                            : raw!(" ");
-
-                            : format!("- Total Reviews: {}", {
+                            : format!(" - Total Reviews: {}", {
 
                                 let result = match user::get_review_count(context.clone()) {
                                     Err(_why) => {
@@ -981,7 +979,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 }
                             });
 
-                            : format!("- Total Cards: {}", {
+                            : format!(" - Total Cards: {}", {
 
                                 let result = match user::get_root_deck(context.clone()) {
                                     Err(_why) => {
@@ -1005,7 +1003,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 }
                             });
 
-                            : format!("- Total Decks: {}", {
+                            : format!(" - Total Decks: {}", {
 
                                 let result = match user::get_root_deck(context.clone()) {
                                     Err(_why) => {
