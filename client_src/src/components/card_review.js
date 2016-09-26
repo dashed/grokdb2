@@ -249,7 +249,7 @@ const __CommitButton = function(props) {
                     'is-disabled is-loading': props.submitting
                 })}
                 onClick={reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting)}
-                style={{color: '#454552'}}
+                // style={{color: '#454552'}}
             >
                 {'Answer'}
             </a>
