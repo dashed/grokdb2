@@ -191,21 +191,11 @@ pub struct RawCardReviewRequest {
 impl RawCardReviewRequest {
     pub fn normalize(&self, card_id: CardID) -> CardReviewRequest {
 
-        let time_till_available_for_review = match self.time_till_available_for_review {
-            None => DEFAULT_TIME_TILL_AVAILABLE_FOR_REVIEW,
-            Some(val) => val
-        };
-
-        let cards_till_available_for_review = match self.cards_till_available_for_review {
-            None => DEFAULT_CARDS_TILL_AVAILABLE_FOR_REVIEW,
-            Some(val) => val
-        };
-
         CardReviewRequest {
             card_id: card_id,
             review_action: self.review_action.clone(),
-            time_till_available_for_review: time_till_available_for_review,
-            cards_till_available_for_review: cards_till_available_for_review
+            time_till_available_for_review: self.time_till_available_for_review.clone(),
+            cards_till_available_for_review: self.cards_till_available_for_review.clone()
         }
 
     }
@@ -215,8 +205,8 @@ pub struct CardReviewRequest {
     pub card_id: CardID,
     review_action: ReviewAction,
 
-    time_till_available_for_review: Minutes,
-    cards_till_available_for_review: ItemCount,
+    time_till_available_for_review: Option<Minutes>,
+    cards_till_available_for_review: Option<ItemCount>,
 }
 
 impl CardReviewRequest {
@@ -375,8 +365,27 @@ impl CardReviewRequest {
         try!(user::set_review_count(context.clone(), reviewed_at_count));
 
         // NOTE: convert from minutes to seconds
-        let review_after = self.time_till_available_for_review * 60;
-        let cards_till_ready_for_review = self.cards_till_available_for_review;
+        let review_after = match self.time_till_available_for_review {
+            Some(time_till_available_for_review) => {
+                // stringify numbers
+                format!("{}", time_till_available_for_review * 60)
+            },
+            None => {
+                // no-change
+                "review_after".to_string()
+            }
+        };
+
+        let cards_till_ready_for_review = match self.cards_till_available_for_review {
+            Some(cards_till_ready_for_review) => {
+                // stringify numbers
+                format!("{}", cards_till_ready_for_review)
+            },
+            None => {
+                // no-change
+                "cards_till_ready_for_review".to_string()
+            }
+        };
 
         let query = format!(indoc!("
             UPDATE
