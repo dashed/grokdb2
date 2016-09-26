@@ -997,7 +997,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                                 match cards::total_num_of_cards_in_deck(context.clone(),
                                     root_deck_id,
-                                    Default::default()) {
+                                    &Default::default()) {
                                     Err(_why) => {
                                         panic!();
                                     },
