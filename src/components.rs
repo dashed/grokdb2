@@ -960,8 +960,70 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                 footer(class="footer container", style="max-width:960px;padding-bottom:20px;") {
                     div(class="content has-text-centered") {
                         p {
+
                             : raw!("grokdb v");
                             : env!("CARGO_PKG_VERSION");
+
+                            : raw!(" ");
+
+                            : format!("- Total Reviews: {}", {
+
+                                let result = match user::get_review_count(context.clone()) {
+                                    Err(_why) => {
+                                        panic!();
+                                    },
+                                    Ok(result) => result
+                                };
+
+                                match result {
+                                    None => 0,
+                                    Some(review_count) => review_count
+                                }
+                            });
+
+                            : format!("- Total Cards: {}", {
+
+                                let result = match user::get_root_deck(context.clone()) {
+                                    Err(_why) => {
+                                        panic!();
+                                    },
+                                    Ok(result) => result
+                                };
+
+                                let root_deck_id = match result {
+                                    None => panic!(),
+                                    Some(root_deck_id) => root_deck_id
+                                };
+
+                                match cards::total_num_of_cards_in_deck(context.clone(), root_deck_id) {
+                                    Err(_why) => {
+                                        panic!();
+                                    },
+                                    Ok(result) => result
+                                }
+                            });
+
+                            : format!("- Total Decks: {}", {
+
+                                let result = match user::get_root_deck(context.clone()) {
+                                    Err(_why) => {
+                                        panic!();
+                                    },
+                                    Ok(result) => result
+                                };
+
+                                let root_deck_id = match result {
+                                    None => panic!(),
+                                    Some(root_deck_id) => root_deck_id
+                                };
+
+                                match decks::get_num_descendents(context.clone(), root_deck_id) {
+                                    Err(_why) => {
+                                        panic!();
+                                    },
+                                    Ok(result) => result + 1
+                                }
+                            });
 
                             // TODO: use build.rs to generate:
                             // - date/time of compiled binary
