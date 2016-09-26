@@ -42,9 +42,9 @@ version = "1.4"
 
 [dependencies]
 clippy = {version = "0.0.87", optional = true}
-serde = "0.8.6"
-serde_json = "0.8.1"
-serde_macros = "0.8.6"
+serde = "0.8"
+serde_json = "0.8"
+serde_macros = "0.8"
 # regex = "0.1.73" # not used
 # horrorshow = "0.5"
 url = "1.1"
