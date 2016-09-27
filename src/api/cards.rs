@@ -1250,7 +1250,7 @@ pub fn deck_have_cards_ready_for_review(
         WHERE
             dc.ancestor = {deck_id}
         AND
-            (cs.seen_at + cs.review_after) >= strftime('%s', 'now')
+            (cs.seen_at + cs.review_after) <= strftime('%s', 'now')
         AND
             (cs.reviewed_at_count + cs.cards_till_ready_for_review) <= {user_review_count}
         {active_query}
@@ -1334,7 +1334,7 @@ pub fn deck_num_of_cards_ready_for_review(
         WHERE
             dc.ancestor = {deck_id}
         AND
-                (cs.seen_at + cs.review_after) >= strftime('%s', 'now')
+                (cs.seen_at + cs.review_after) <= strftime('%s', 'now')
         AND
             (cs.reviewed_at_count + cs.cards_till_ready_for_review) <= {user_review_count}
         {active_query};
@@ -1419,7 +1419,7 @@ pub fn deck_get_card_ready_for_review(
     let where_sql = format!(indoc!("
             dc.ancestor = {deck_id}
         AND
-            (cs.seen_at + cs.review_after) >= strftime('%s', 'now')
+            (cs.seen_at + cs.review_after) <= strftime('%s', 'now')
         AND
             (cs.reviewed_at_count + cs.cards_till_ready_for_review) <= {user_review_count}
         {active_query}
