@@ -50,6 +50,7 @@ const SHOW_MAIN_CONTROLS = 'SHOW_MAIN_CONTROLS';
 
 const CHOSEN_PERFORMANCE = 'CHOSEN_PERFORMANCE';
 const NOT_SELECTED = 'NOT_SELECTED';
+const EASY = 'EASY';
 const RIGHT = 'RIGHT';
 const WRONG = 'WRONG';
 const FORGOT = 'FORGOT';
@@ -157,6 +158,7 @@ const __PerformanceControls = function(props) {
 
     const chosenPerformance = props[CHOSEN_PERFORMANCE];
 
+    const easyClassValue = chosenPerformance != EASY;
     const rightClassValue = chosenPerformance != RIGHT;
     const wrongClassValue = chosenPerformance != WRONG;
     const forgotClassValue = chosenPerformance != FORGOT;
@@ -165,7 +167,20 @@ const __PerformanceControls = function(props) {
 
     return (
         <div className='columns'>
-            <div className='column is-one-third'>
+            <div className='column is-one-quarter'>
+                <a
+                    href='#easy'
+                    className={classnames('button is-success is-fullwidth is-bold is-medium',
+                        {
+                            'is-outlined': easyClassValue,
+                            'is-disabled': submitting
+                        })}
+                    onClick={submitting ? noOp() : switchPerformance(props.dispatch, EASY)}
+                >
+                    {'Easy'}
+                </a>
+            </div>
+            <div className='column is-one-quarter'>
                 <a
                     href='#right'
                     className={classnames('button is-success is-fullwidth is-bold is-medium',
@@ -178,7 +193,7 @@ const __PerformanceControls = function(props) {
                     {'Right'}
                 </a>
             </div>
-            <div className='column is-one-third'>
+            <div className='column is-one-quarter'>
                 <a
                     href='#wrong'
                     className={classnames('button is-danger is-fullwidth is-bold is-medium',
@@ -191,7 +206,7 @@ const __PerformanceControls = function(props) {
                     {'Wrong'}
                 </a>
             </div>
-            <div className='column is-one-third'>
+            <div className='column is-one-quarter'>
                 <a
                     href='#forgot'
                     className={classnames('button is-warning is-fullwidth is-bold is-medium',
@@ -218,6 +233,7 @@ if(process.env.NODE_ENV !== 'production') {
         [CHOSEN_PERFORMANCE]: React.PropTypes.oneOf([
             NOT_SELECTED,
             FORGOT,
+            EASY,
             RIGHT,
             WRONG
         ]),
@@ -293,6 +309,7 @@ if(process.env.NODE_ENV !== 'production') {
         [CHOSEN_PERFORMANCE]: React.PropTypes.oneOf([
             NOT_SELECTED,
             FORGOT,
+            EASY,
             RIGHT,
             WRONG
         ]),
@@ -1731,6 +1748,7 @@ const performanceReducer = function(state = NOT_SELECTED, action) {
     case RIGHT:
     case WRONG:
     case FORGOT:
+    case EASY:
         if(state === action.type && state != NOT_SELECTED) {
             state = NOT_SELECTED;
         } else {
@@ -1748,6 +1766,8 @@ const performanceReducer = function(state = NOT_SELECTED, action) {
 const generateReviewAction = function(performance) {
 
     switch(performance) {
+    case EASY:
+        return 'Easy';
     case RIGHT:
         return 'Right';
     case WRONG:
