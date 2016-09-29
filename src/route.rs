@@ -110,7 +110,10 @@ impl Default for CardSettings {
 #[derive(Debug, Clone)]
 pub enum DeckRoute {
 
-    NewCard,
+    // Some(CardID) => Clone contents from CardID
+    // None => No clone
+    NewCard(Option<CardID>),
+
     NewDeck,
 
     Description,
@@ -1806,7 +1809,7 @@ fn __parse_route_deck<'a>(
                 // /new/deck
                 parse_route_deck_new_deck(request.clone(), deck_id) <|>
                 // /new/card
-                parse_route_deck_new_card(request.clone(), deck_id) <|>
+                parse_route_deck_new_card(context.clone(), request.clone(), deck_id) <|>
                 // /description
                 parse_route_deck_description(request.clone(), deck_id) <|>
                 // /stats
@@ -2502,8 +2505,7 @@ fn parse_route_deck_new_deck<'a>(
 #[inline]
 fn parse_route_deck_new_card<'a>(
     input: Input<'a, u8>,
-    // NOTE: not needed
-    // context: Rc<RefCell<Context>>,
+    context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
     deck_id: DeckID) -> U8Result<'a, RenderResponse> {
     parse!{input;
@@ -2514,25 +2516,70 @@ fn parse_route_deck_new_card<'a>(
 
         option(|i| parse_byte_limit(i, b'/', 5), ());
 
-        or(
-            |i| parse!{i;
-                token(b'?');
-                ret {()}
-            },
-            eof
-        );
+        let query_string = option(|i| parse!{i;
+            let query_string = parse_query_string();
+
+            ret Some(query_string)
+        }, None);
+
+        eof();
 
         ret {
             // Allow only GET requests
+            __parse_route_deck_new_card(context, request, deck_id, query_string)
 
-            if request.borrow().method != Method::Get {
-                RenderResponse::MethodNotAllowed
-            } else {
-                let route = AppRoute::Deck(deck_id, DeckRoute::NewCard);
-                RenderResponse::Component(route)
-            }
         }
     }
+}
+
+#[inline]
+fn __parse_route_deck_new_card(
+    context: Rc<RefCell<Context>>,
+    request: Rc<RefCell<Request>>,
+    deck_id: DeckID,
+    query_string: Option<QueryString>) -> RenderResponse {
+
+    if request.borrow().method != Method::Get {
+        return RenderResponse::MethodNotAllowed;
+    }
+
+    let clone_from_card: Option<CardID> = if let Some(query_string) = query_string {
+
+        match query_string.get("clone_from") {
+            None => None,
+            Some(maybe_card_id) => {
+
+                match *maybe_card_id {
+                    None => None,
+                    Some(ref card_id_string) => {
+                        match card_id_string.parse::<CardID>() {
+                            Err(_) => None,
+                            Ok(card_id) => {
+                                match cards::card_exists(context, card_id) {
+                                    Err(_) => None,
+                                    Ok(exists) => {
+                                        if exists {
+                                            Some(card_id)
+                                        } else {
+                                            None
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    } else {
+        None
+    };
+
+    let route = AppRoute::Deck(deck_id, DeckRoute::NewCard(clone_from_card));
+
+    return RenderResponse::Component(route);
+
 }
 
 /*

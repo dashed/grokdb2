@@ -21,6 +21,8 @@ const {
     MARKDOWN_VIEW_RENDER,
     MARKDOWN_VIEW_SOURCE,
 
+    MARKDOWN_CONTENTS,
+
     CARD_TITLE,
     CARD_DESCRIPTION,
     CARD_QUESTION,
@@ -339,31 +341,37 @@ if(process.env.NODE_ENV !== 'production') {
     };
 }
 
-const NewCardContainer = reduxForm(
+const newCardContainerFactory = function(preRenderState) {
 
-    // config
-    {
-        form: 'new_card',
-        fields: ['title', 'description', 'question', 'answer', 'is_active'],
-        initialValues: {
-            title: '',
-            description: '',
-            question: '',
-            answer: '',
-            is_active: true
+    const NewCardContainer = reduxForm(
+
+        // config
+        {
+            form: 'new_card',
+            fields: ['title', 'description', 'question', 'answer', 'is_active'],
+            initialValues: {
+                title: get(preRenderState, [CARD_TITLE, MARKDOWN_CONTENTS], ''),
+                description: get(preRenderState, [CARD_DESCRIPTION, MARKDOWN_CONTENTS], ''),
+                question: get(preRenderState, [CARD_QUESTION, MARKDOWN_CONTENTS], ''),
+                answer: get(preRenderState, [CARD_ANSWER, MARKDOWN_CONTENTS], ''),
+                is_active: true
+            }
+        },
+
+        // mapStateToProps
+        (state) => {
+            return {
+                mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
+                postURL: state[POST_TO],
+                currenTab: state.CURRENT_TAB
+            };
         }
-    },
 
-    // mapStateToProps
-    (state) => {
-        return {
-            mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
-            postURL: state[POST_TO],
-            currenTab: state.CURRENT_TAB
-        };
-    }
+    )(__NewCardContainer);
 
-)(__NewCardContainer);
+    return NewCardContainer;
+
+};
 
 /* redux action dispatchers */
 // NOTE: FSA compliant
@@ -516,9 +524,11 @@ const componentCreator = require('helpers/component_factory');
 
 module.exports = componentCreator(initialState, function(store) {
 
+    const __Component = newCardContainerFactory(store.getState());
+
     const component = (
         <Provider store={store}>
-            <NewCardContainer />
+            <__Component />
         </Provider>
     );
 

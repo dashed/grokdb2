@@ -115,7 +115,12 @@ pub fn view_route_to_link(
         AppRoute::Deck(deck_id, deck_route) => {
             match deck_route {
                 DeckRoute::NewDeck => format!("/deck/{}/new/deck", deck_id),
-                DeckRoute::NewCard => format!("/deck/{}/new/card", deck_id),
+                DeckRoute::NewCard(None) => format!("/deck/{}/new/card", deck_id),
+                DeckRoute::NewCard(Some(card_id)) => {
+                    format!("/deck/{deck_id}/new/card?clone_from={card_id}",
+                        deck_id = deck_id,
+                        card_id = card_id)
+                },
                 DeckRoute::Description => format!("/deck/{}/description", deck_id),
                 DeckRoute::Stats => format!("/deck/{}/stats", deck_id),
                 DeckRoute::Review(_) => format!("/deck/{}/review", deck_id),
@@ -208,7 +213,7 @@ pub fn generate_post_to(app_route: &AppRoute) -> String {
                 DeckRoute::NewDeck => {
                     format!("/api/deck/{deck_id}/new/deck", deck_id = deck_id)
                 },
-                DeckRoute::NewCard => {
+                DeckRoute::NewCard(_) => {
                     format!("/api/deck/{deck_id}/new/card", deck_id = deck_id)
                 },
                 DeckRoute::Review(_) => {
@@ -311,7 +316,63 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         )
                     }
                 },
-                DeckRoute::NewCard => {
+                DeckRoute::NewCard(Some(card_id)) => {
+
+                    let (title, question, answer, description):
+                        (String, String, String, String) =
+                        match cards::get_card(context.clone(), card_id) {
+                        Ok(card) => {
+
+                            let title = MarkdownContents {
+                                MARKDOWN_CONTENTS: card.title
+                            };
+                            let title = serde_json::to_string(&title).unwrap();
+
+                            let question = MarkdownContents {
+                                MARKDOWN_CONTENTS: card.question
+                            };
+                            let question = serde_json::to_string(&question).unwrap();
+
+                            let answer = MarkdownContents {
+                                MARKDOWN_CONTENTS: card.answer
+                            };
+                            let answer = serde_json::to_string(&answer).unwrap();
+
+                            let description = MarkdownContents {
+                                MARKDOWN_CONTENTS: card.description
+                            };
+                            let description = serde_json::to_string(&description).unwrap();
+
+                            (title, question, answer, description)
+                        },
+                        Err(_) => {
+                            // TODO: internal error logging
+                            panic!();
+                        }
+                    };
+
+                    tmpl << html! {
+                        : raw!(
+                            format!(
+                                "window.__PRE_RENDER_STATE__ = \
+                                    {{\
+                                        POST_TO: '{post_to}',\
+                                        CARD_TITLE: {title},\
+                                        CARD_DESCRIPTION: {description},\
+                                        CARD_QUESTION: {question},\
+                                        CARD_ANSWER: {answer}\
+                                    }};\
+                                ",
+                                post_to = generate_post_to(app_route),
+                                title = title,
+                                question = question,
+                                answer = answer,
+                                description = description
+                            )
+                        )
+                    }
+                },
+                DeckRoute::NewCard(None) => {
                     tmpl << html! {
                         : raw!(
                             format!(
@@ -743,7 +804,7 @@ fn generate_title(
         AppRoute::Stashes => format!("Stashes"),
         AppRoute::Deck(_deck_id, ref deck_route) => {
             match *deck_route {
-                DeckRoute::NewCard => format!("New Card"),
+                DeckRoute::NewCard(_) => format!("New Card"),
                 DeckRoute::NewDeck => format!("New Deck"),
                 DeckRoute::Description => format!("Deck Description"),
                 DeckRoute::Decks(ref _decks_page_query, ref _search) => format!("Decks"),
@@ -1063,7 +1124,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                         },
 
-                        AppRoute::Deck(_, DeckRoute::NewCard) =>  {
+                        AppRoute::Deck(_, DeckRoute::NewCard(_)) =>  {
                             tmpl << html! {
 
                                 script(type="text/javascript") {
@@ -1278,7 +1339,7 @@ fn generateDeckPathLink(context: Rc<RefCell<Context>>, deck_id: DeckID, deck_rou
 
     let __deck_route = match *deck_route {
 
-        DeckRoute::NewCard |
+        DeckRoute::NewCard(_) |
         DeckRoute::NewDeck |
         DeckRoute::Description |
         DeckRoute::Stats |
@@ -1440,7 +1501,7 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                 }
                             }
                     },
-                    DeckRoute::NewCard => {
+                    DeckRoute::NewCard(_) => {
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
@@ -1697,7 +1758,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                     class? = classnames!(
                                         "is-bold",
                                         "is-active" => {
-                                            matches!(*deck_route, DeckRoute::NewCard) ||
+                                            matches!(*deck_route, DeckRoute::NewCard(_)) ||
                                             matches!(*deck_route, DeckRoute::Cards(_))
                                         })
                                 ) {
@@ -1707,7 +1768,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                                             span(class="level-item") {
                                                 span(class ?= classnames!("tag is-small",
                                                     "is-primary" => {
-                                                        !(matches!(*deck_route, DeckRoute::NewCard) ||
+                                                        !(matches!(*deck_route, DeckRoute::NewCard(_)) ||
                                                         matches!(*deck_route, DeckRoute::Cards(_)))
                                                     })
                                                 ) {
@@ -1760,11 +1821,11 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
 
                     a(href = view_route_to_link(context.clone(),
                         AppRoute::Deck(deck_id,
-                            DeckRoute::NewCard)),
+                            DeckRoute::NewCard(None))),
                         class? = classnames!(
                             "is-bold button is-primary is-fullwidth is-medium",
                             "is-outlined" => {
-                                !matches!(*deck_route, DeckRoute::NewCard)
+                                !matches!(*deck_route, DeckRoute::NewCard(_))
                             })
                     ) {
                         : "New Card"
@@ -1828,7 +1889,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id:
                             deck_id
                         )
                     },
-                    DeckRoute::NewCard => {
+                    DeckRoute::NewCard(_) => {
                         NewCard(
                             tmpl,
                             context.clone(),
@@ -1959,6 +2020,20 @@ fn CardDetailNav(
                     }
 
                     div(class="panel-block") {
+
+                        a(href = view_route_to_link(context.clone(),
+                            AppRoute::Deck(deck_id,
+                                DeckRoute::NewCard(Some(card_id)))),
+                            class? = classnames!(
+                                "is-bold button is-primary is-fullwidth is-medium",
+                                "is-outlined" => {
+                                    !matches!(*deck_route, DeckRoute::NewCard(_))
+                                })
+                        ) {
+                            : "Clone Card"
+                        }
+
+                        br;
 
                         a(href = view_route_to_link(context.clone(),
                             AppRoute::Deck(deck_id,
@@ -2119,7 +2194,7 @@ fn DeckCards(
                         div(class="level-item") {
                             a(class="button is-bold is-success",
                                 href = view_route_to_link(context.clone(),
-                                    AppRoute::Deck(deck_id, DeckRoute::NewCard))) {
+                                    AppRoute::Deck(deck_id, DeckRoute::NewCard(None)))) {
                                 : raw!("New Card")
                             }
                         }
