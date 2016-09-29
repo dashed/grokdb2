@@ -170,7 +170,7 @@ const __PerformanceControls = function(props) {
             <div className='column is-one-quarter'>
                 <a
                     href='#easy'
-                    className={classnames('button is-success is-fullwidth is-bold is-medium',
+                    className={classnames('button is-purple is-fullwidth is-bold is-medium',
                         {
                             'is-outlined': easyClassValue,
                             'is-disabled': submitting

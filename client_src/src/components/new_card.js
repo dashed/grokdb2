@@ -315,7 +315,7 @@ const __NewCardContainer = function(props) {
             <div className='columns'>
                 <div className='column'>
                     <a
-                    className={classnames('button is-success', {
+                    className={classnames('button is-success is-bold', {
                         'is-disabled': submitting || !shouldAddCard(title.value, question.value),
                         'is-loading': submitting
                     })}
