@@ -2756,7 +2756,6 @@ fn DeckStats(
             }
         }
 
-
         div(class="columns") {
             div(class="column") {
                 hr(class="is-marginless");
@@ -2824,40 +2823,27 @@ fn DeckStats(
         div(class="columns") {
             div(class="column") {
 
-                h1(class="title") {
-                    : raw!("Cards active for review")
-                }
+                div(class="level") {
+                    div(class="level-item has-text-centered") {
+                        p(class="heading") {
+                            : raw!("Cards active for review")
+                        }
 
-                h2(class="subtitle") {
-                    : number_format_sep!(cards_active_for_review)
-                }
+                        p(class="title") {
+                            : number_format_sep!(cards_active_for_review)
+                        }
+                    }
 
-            }
-        }
+                    div(class="level-item has-text-centered") {
+                        p(class="heading") {
+                            : raw!("Cards not active for review")
+                        }
 
-        div(class="columns") {
-            div(class="column") {
+                        p(class="title") {
+                            : number_format_sep!(cards_inactive_for_review)
+                        }
+                    }
 
-                h1(class="title") {
-                    : raw!("Cards not active for review")
-                }
-
-                h2(class="subtitle") {
-                    : number_format_sep!(cards_inactive_for_review)
-                }
-
-            }
-        }
-
-        div(class="columns") {
-            div(class="column") {
-
-                h1(class="title") {
-                    : raw!("New cards for review")
-                }
-
-                h2(class="subtitle") {
-                    : number_format_sep!(new_cards_for_review)
                 }
 
             }
@@ -2866,12 +2852,27 @@ fn DeckStats(
         div(class="columns") {
             div(class="column") {
 
-                h1(class="title") {
-                    : raw!("Cards ready for review")
-                }
+                div(class="level") {
+                    div(class="level-item has-text-centered") {
+                        p(class="heading") {
+                            : raw!("New cards for review")
+                        }
 
-                h2(class="subtitle") {
-                    : number_format_sep!(cards_ready_for_review)
+                        p(class="title") {
+                            : number_format_sep!(new_cards_for_review)
+                        }
+                    }
+
+                    div(class="level-item has-text-centered") {
+                        p(class="heading") {
+                            : raw!("Cards ready for review")
+                        }
+
+                        p(class="title") {
+                            : number_format_sep!(cards_ready_for_review)
+                        }
+                    }
+
                 }
 
             }
