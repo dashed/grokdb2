@@ -199,9 +199,9 @@ const __PerformanceControls = function(props) {
                             'is-outlined': forgotClassValue,
                             'is-disabled': submitting
                         })}
-                    style={{
-                        color: '#454552'
-                    }}
+                    // style={{
+                    //     color: '#454552'
+                    // }}
                     onClick={submitting ? noOp() : switchPerformance(props.dispatch, FORGOT)}
                 >
                     {'Forgot'}

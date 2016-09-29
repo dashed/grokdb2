@@ -1,0 +1,14 @@
+{
+  "use": [
+    "autoprefixer",
+    "postcss-import",
+    "postcss-wcag-contrast"
+  ],
+  "input": "src/main.css",
+  "output": "dist/main.css",
+  "local-plugins": true,
+  "watch": true,
+  "autoprefixer": {
+    "browsers": "> 5%"
+  }
+}
