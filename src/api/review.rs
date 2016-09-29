@@ -147,6 +147,7 @@ pub struct CachedReviewProcedure {
 
 #[derive(Deserialize, Clone)]
 pub enum ReviewAction {
+    Easy,
     Right,
     Wrong,
     Forgot,
@@ -294,6 +295,19 @@ impl CardReviewRequest {
             seen_at,
             reviewed_at,
             reviewed_at_count) = match self.review_action {
+            ReviewAction::Easy => {
+
+                let changelog = "Answered card easily.";
+                let success = "success + 2";
+                let fail = "fail"; // no change
+                let times_reviewed = "times_reviewed + 1";
+                let times_seen = "times_seen + 1";
+                let seen_at = "strftime('%s', 'now')";
+                let reviewed_at = "strftime('%s', 'now')";
+                let reviewed_at_count = review_count + 1;
+
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at, reviewed_at_count)
+            },
             ReviewAction::Right => {
 
                 let changelog = "Answered card correctly.";
