@@ -293,7 +293,7 @@ impl CardReviewRequest {
             times_seen,
             seen_at,
             reviewed_at,
-            reviewed_at_count,) = match self.review_action {
+            reviewed_at_count) = match self.review_action {
             ReviewAction::Right => {
 
                 let changelog = "Answered card correctly.";

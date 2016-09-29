@@ -15,7 +15,7 @@ use route::{AppRoute, DeckRoute, CardRoute, DeckSettings, CardSettings};
 use context::{Context};
 use types::{DeckID, DecksPageQuery, CardID, CardsPageQuery, Search, Pagination, SortOrderable, MoveDecksPageQuery};
 use api::{decks, cards, user};
-use api::review::{self, CachedReviewProcedure};
+use api::review::{self, CachedReviewProcedure, Reviewable, ActiveSelection};
 use timestamp;
 use separator::Separatable;
 
@@ -2680,6 +2680,42 @@ fn DeckStats(
         }
     };
 
+    let cards_active_for_review = match deck.deck_num_of_cards_for_review(
+        context.clone(),
+        &ActiveSelection::Active) {
+        Ok(count) => count,
+        Err(_) => {
+            panic!();
+        }
+    };
+
+    let cards_inactive_for_review = match deck.deck_num_of_cards_for_review(
+        context.clone(),
+        &ActiveSelection::Inactive) {
+        Ok(count) => count,
+        Err(_) => {
+            panic!();
+        }
+    };
+
+    let new_cards_for_review = match deck.num_of_new_cards_for_review(
+        context.clone(),
+        &ActiveSelection::Active) {
+        Ok(count) => count,
+        Err(_) => {
+            panic!();
+        }
+    };
+
+    let cards_ready_for_review = match deck.num_of_cards_ready_for_review(
+        context.clone(),
+        &ActiveSelection::Active) {
+        Ok(count) => count,
+        Err(_) => {
+            panic!();
+        }
+    };
+
     tmpl << html!{
 
         div(class="columns") {
@@ -2775,6 +2811,68 @@ fn DeckStats(
                     }
 
                 };
+
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+                hr(class="is-marginless");
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+
+                h1(class="title") {
+                    : raw!("Cards active for review")
+                }
+
+                h2(class="subtitle") {
+                    : number_format_sep!(cards_active_for_review)
+                }
+
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+
+                h1(class="title") {
+                    : raw!("Cards not active for review")
+                }
+
+                h2(class="subtitle") {
+                    : number_format_sep!(cards_inactive_for_review)
+                }
+
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+
+                h1(class="title") {
+                    : raw!("New cards for review")
+                }
+
+                h2(class="subtitle") {
+                    : number_format_sep!(new_cards_for_review)
+                }
+
+            }
+        }
+
+        div(class="columns") {
+            div(class="column") {
+
+                h1(class="title") {
+                    : raw!("Cards ready for review")
+                }
+
+                h2(class="subtitle") {
+                    : number_format_sep!(cards_ready_for_review)
+                }
 
             }
         }
