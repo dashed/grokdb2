@@ -60,7 +60,7 @@ indoc = "0.1"
 random-wheel = { git = "https://github.com/dashed/random-wheel-rs", branch = "master" }
 rand = "0.3"
 libc = "0.2.12"
-pcg = {git = "https://github.com/codahale/pcg"}
+pcg = {git = "https://github.com/dashed/pcg"}
 separator = "0.3.1"
 
 # for timezones
