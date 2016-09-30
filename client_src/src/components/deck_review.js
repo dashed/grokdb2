@@ -416,14 +416,9 @@ const MainControls = connect(
 const __AdvancedControls = function(props) {
 
     const isConfirmSkip = props[IS_CONFIRM_SKIP];
-
-    if(isConfirmSkip) {
-        return null;
-    }
-
     const showMainControls = props[SHOW_MAIN_CONTROLS];
 
-    if(!showMainControls) {
+    if(!(isConfirmSkip || showMainControls)) {
         return null;
     }
 

@@ -325,10 +325,21 @@ const MainControls = function() {
     );
 };
 
-const AdvancedControls = function() {
+const __AdvancedControls = function(props) {
+
+    const showMainControls = props[SHOW_MAIN_CONTROLS];
+
+    if(!showMainControls) {
+        return null;
+    }
 
     return (
         <div>
+            <div className='columns'>
+                <div className='column'>
+                    <hr className='is-marginless'/>
+                </div>
+            </div>
             <div className='columns'>
                 <div className='column'>
                     <h4 className='title is-4'>{'Advanced Review Controls'}</h4>
@@ -378,6 +389,22 @@ const AdvancedControls = function() {
     );
 };
 
+if(process.env.NODE_ENV !== 'production') {
+    __AdvancedControls.propTypes = {
+        [SHOW_MAIN_CONTROLS]: React.PropTypes.bool.isRequired
+    };
+}
+
+const AdvancedControls = connect(
+    // mapStateToProps
+    (state) => {
+        return {
+            [SHOW_MAIN_CONTROLS]: state[SHOW_MAIN_CONTROLS],
+        };
+    }
+
+)(__AdvancedControls);
+
 const __ReviewControls = function(props) {
 
     const {currenTab} = props;
@@ -391,6 +418,7 @@ const __ReviewControls = function(props) {
         <div>
             <MainControls />
             <PerformanceControls />
+            <AdvancedControls />
         </div>
     );
 
@@ -470,12 +498,6 @@ const __Settings = function(props) {
                     </label>
                 </div>
             </div>
-            <div className='columns'>
-                <div className='column'>
-                    <hr className='is-marginless'/>
-                </div>
-            </div>
-            <AdvancedControls />
         </div>
     );
 };
@@ -1639,7 +1661,6 @@ const cardReducer = function(state, action) {
         [SHOW_PREVIEW_SOURCE_BUTTONS]: false,
 
         [CHOSEN_PERFORMANCE]: NOT_SELECTED,
-
 
     };
 
