@@ -1108,12 +1108,10 @@ fn gen_card_select(upper_bound: ItemCount) -> Offset {
         return upper_bound - 1;
     }
 
-    // normalize to [0, 100)
-    let pin = if pin >= 100.0 {
-        pin % 100.0
-    } else {
-        pin
-    };
+    // normalize to [0, 1.0)
+    let pin: f64 = pin % 1.0;
+
+    assert!(pin < 1.0);
 
     let card_idx = (pin * (upper_bound as f64)).floor() as Offset;
 
