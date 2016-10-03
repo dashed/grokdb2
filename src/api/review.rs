@@ -48,9 +48,9 @@ lazy_static! {
 
 }
 
-static TOP_N_PERCENT: f64 = 0.5;
-static DEFAULT_TIME_TILL_AVAILABLE_FOR_REVIEW: Minutes = 180; // 180 minutes = 3 hours
-static DEFAULT_CARDS_TILL_AVAILABLE_FOR_REVIEW: ItemCount = 1;
+static TOP_N_PERCENT: f64 = 0.375; // 0.25 + 0.25 / 2
+// static DEFAULT_TIME_TILL_AVAILABLE_FOR_REVIEW: Minutes = 180; // 180 minutes = 3 hours
+// static DEFAULT_CARDS_TILL_AVAILABLE_FOR_REVIEW: ItemCount = 1;
 
 
 type Percent = f64;
@@ -149,6 +149,7 @@ pub struct CachedReviewProcedure {
 pub enum ReviewAction {
     Easy,
     Right,
+    Hard,
     Wrong,
     Forgot,
     Skip,
@@ -312,6 +313,19 @@ impl CardReviewRequest {
 
                 let changelog = "Answered card correctly.";
                 let success = "success + 1";
+                let fail = "fail"; // no change
+                let times_reviewed = "times_reviewed + 1";
+                let times_seen = "times_seen + 1";
+                let seen_at = "strftime('%s', 'now')";
+                let reviewed_at = "strftime('%s', 'now')";
+                let reviewed_at_count = review_count + 1;
+
+                (changelog, success, fail, times_reviewed, times_seen, seen_at, reviewed_at, reviewed_at_count)
+            },
+            ReviewAction::Hard => {
+
+                let changelog = "Answered card, but found it hard.";
+                let success = "success + 0.5";
                 let fail = "fail"; // no change
                 let times_reviewed = "times_reviewed + 1";
                 let times_seen = "times_seen + 1";
