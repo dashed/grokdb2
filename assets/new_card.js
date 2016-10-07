@@ -11,7 +11,6 @@ webpackJsonp([10],[
 	if (true) {
 	    var invariant = __webpack_require__(571);
 	    invariant(window.__PRE_RENDER_STATE__, 'we expect to consume window.__PRE_RENDER_STATE__');
-	    invariant(!window.__POST_RENDER_STATE__, 'we do not expect to consume window.__POST_RENDER_STATE__');
 	}
 	
 	var preRenderState = window.__PRE_RENDER_STATE__;
@@ -6699,7 +6698,10 @@ webpackJsonp([10],[
 	
 	    return React.createElement(
 	        'h1',
-	        { className: 'title' },
+	        {
+	            className: 'title',
+	            style: { fontWeight: 'bold' }
+	        },
 	        content
 	    );
 	};
@@ -6720,11 +6722,13 @@ webpackJsonp([10],[
 	        content: React.PropTypes.string.isRequired,
 	        notice: React.PropTypes.string.isRequired,
 	        isEditing: React.PropTypes.bool.isRequired,
-	        assignField: React.PropTypes.object.isRequired
+	        assignField: React.PropTypes.object.isRequired,
+	        shouldFocus: React.PropTypes.bool.isRequired
 	    },
 	
 	    getDefaultProps: function getDefaultProps() {
 	        return {
+	            shouldFocus: true,
 	            mathjaxify: false,
 	            isEditing: false,
 	            assignField: {}
@@ -6822,7 +6826,7 @@ webpackJsonp([10],[
 	                        className: 'input',
 	                        type: 'text',
 	                        placeholder: 'Card Title',
-	                        autoFocus: true,
+	                        autoFocus: this.props.shouldFocus,
 	                        readOnly: !this.props.isEditing
 	                    }, assign({ value: this.props.content }, this.props.assignField)))
 	                )
@@ -17262,6 +17266,7 @@ webpackJsonp([10],[
 	
 	    return React.createElement(TextareaAutosize, (0, _extends3.default)({
 	
+	        autoFocus: props.shouldFocus,
 	        style: props.style,
 	        useCacheForDOMMeasurements: true,
 	        minRows: 6,
@@ -17285,11 +17290,13 @@ webpackJsonp([10],[
 	    contents: '',
 	    editable: false,
 	    id: void 0,
-	    style: {}
+	    style: {},
+	    shouldFocus: false
 	};
 	
 	if (true) {
 	    MarkdownSource.propTypes = {
+	        shouldFocus: React.PropTypes.bool.isRequired,
 	        style: React.PropTypes.object.isRequired,
 	        contents: React.PropTypes.string.isRequired,
 	        editable: React.PropTypes.bool.isRequired,
@@ -21569,6 +21576,7 @@ webpackJsonp([10],[
 	var MARKDOWN_VIEW = _require3.MARKDOWN_VIEW;
 	var MARKDOWN_VIEW_RENDER = _require3.MARKDOWN_VIEW_RENDER;
 	var MARKDOWN_VIEW_SOURCE = _require3.MARKDOWN_VIEW_SOURCE;
+	var MARKDOWN_CONTENTS = _require3.MARKDOWN_CONTENTS;
 	var CARD_TITLE = _require3.CARD_TITLE;
 	var CARD_DESCRIPTION = _require3.CARD_DESCRIPTION;
 	var CARD_QUESTION = _require3.CARD_QUESTION;
@@ -21649,6 +21657,7 @@ webpackJsonp([10],[
 	                'div',
 	                { style: sourceStyle },
 	                React.createElement(MarkdownSource, {
+	                    shouldFocus: props.isQuestion,
 	                    contents: contents,
 	                    placeholder: props.placeholder,
 	                    assignProps: props.reduxFormField,
@@ -21662,12 +21671,13 @@ webpackJsonp([10],[
 	if (true) {
 	    var _TabComponent$propTy;
 	
-	    __TabComponent.propTypes = (_TabComponent$propTy = {}, (0, _defineProperty3.default)(_TabComponent$propTy, MARKDOWN_VIEW, React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE])), (0, _defineProperty3.default)(_TabComponent$propTy, 'reduxFormField', React.PropTypes.object.isRequired), (0, _defineProperty3.default)(_TabComponent$propTy, 'placeholder', React.PropTypes.string.isRequired), _TabComponent$propTy);
+	    __TabComponent.propTypes = (_TabComponent$propTy = {}, (0, _defineProperty3.default)(_TabComponent$propTy, MARKDOWN_VIEW, React.PropTypes.oneOf([MARKDOWN_VIEW_RENDER, MARKDOWN_VIEW_SOURCE])), (0, _defineProperty3.default)(_TabComponent$propTy, 'reduxFormField', React.PropTypes.object.isRequired), (0, _defineProperty3.default)(_TabComponent$propTy, 'placeholder', React.PropTypes.string.isRequired), (0, _defineProperty3.default)(_TabComponent$propTy, 'isQuestion', React.PropTypes.bool.isRequired), _TabComponent$propTy);
 	}
 	
 	var TabComponent = connect(
 	// mapStateToProps
 	function (state, ownProps) {
+	    var _ref3;
 	
 	    // validate ownProps.tab
 	    if (true) {
@@ -21681,7 +21691,7 @@ webpackJsonp([10],[
 	        }
 	    }
 	
-	    return (0, _defineProperty3.default)({}, MARKDOWN_VIEW, state[ownProps.tab][MARKDOWN_VIEW]);
+	    return _ref3 = {}, (0, _defineProperty3.default)(_ref3, MARKDOWN_VIEW, state[ownProps.tab][MARKDOWN_VIEW]), (0, _defineProperty3.default)(_ref3, 'isQuestion', state.CURRENT_TAB === CARD_QUESTION), _ref3;
 	})(__TabComponent);
 	
 	var TabGroupComponent = function TabGroupComponent(props) {
@@ -21778,7 +21788,8 @@ webpackJsonp([10],[
 	                    mathjaxify: mathjaxifyCardTitle,
 	                    notice: 'No card title rendered.  Click on "Source" tab and enter a card title.',
 	                    isEditing: true,
-	                    assignField: title
+	                    assignField: title,
+	                    shouldFocus: false
 	                })
 	            )
 	        ),
@@ -21929,7 +21940,7 @@ webpackJsonp([10],[
 	                React.createElement(
 	                    'a',
 	                    {
-	                        className: classnames('button is-success', {
+	                        className: classnames('button is-success is-bold', {
 	                            'is-disabled': submitting || !shouldAddCard(title.value, question.value),
 	                            'is-loading': submitting
 	                        }),
@@ -21954,29 +21965,34 @@ webpackJsonp([10],[
 	    };
 	}
 	
-	var NewCardContainer = reduxForm(
+	var newCardContainerFactory = function newCardContainerFactory(preRenderState) {
 	
-	// config
-	{
-	    form: 'new_card',
-	    fields: ['title', 'description', 'question', 'answer', 'is_active'],
-	    initialValues: {
-	        title: '',
-	        description: '',
-	        question: '',
-	        answer: '',
-	        is_active: true
-	    }
-	},
+	    var NewCardContainer = reduxForm(
 	
-	// mapStateToProps
-	function (state) {
-	    return {
-	        mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
-	        postURL: state[POST_TO],
-	        currenTab: state.CURRENT_TAB
-	    };
-	})(__NewCardContainer);
+	    // config
+	    {
+	        form: 'new_card',
+	        fields: ['title', 'description', 'question', 'answer', 'is_active'],
+	        initialValues: {
+	            title: get(preRenderState, [CARD_TITLE, MARKDOWN_CONTENTS], ''),
+	            description: get(preRenderState, [CARD_DESCRIPTION, MARKDOWN_CONTENTS], ''),
+	            question: get(preRenderState, [CARD_QUESTION, MARKDOWN_CONTENTS], ''),
+	            answer: get(preRenderState, [CARD_ANSWER, MARKDOWN_CONTENTS], ''),
+	            is_active: true
+	        }
+	    },
+	
+	    // mapStateToProps
+	    function (state) {
+	        return {
+	            mathjaxifyCardTitle: state[CARD_TITLE][MARKDOWN_VIEW] === MARKDOWN_VIEW_RENDER,
+	            postURL: state[POST_TO],
+	            currenTab: state.CURRENT_TAB
+	        };
+	    })(__NewCardContainer);
+	
+	    return NewCardContainer;
+	};
 	
 	/* redux action dispatchers */
 	// NOTE: FSA compliant
@@ -22096,10 +22112,12 @@ webpackJsonp([10],[
 	
 	module.exports = componentCreator(initialState, function (store) {
 	
+	    var __Component = newCardContainerFactory(store.getState());
+	
 	    var component = React.createElement(
 	        Provider,
 	        { store: store },
-	        React.createElement(NewCardContainer, null)
+	        React.createElement(__Component, null)
 	    );
 	
 	    return component;

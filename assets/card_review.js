@@ -6779,6 +6779,7 @@ webpackJsonp([2],[
 	
 	var CHOSEN_PERFORMANCE = 'CHOSEN_PERFORMANCE';
 	var NOT_SELECTED = 'NOT_SELECTED';
+	var EASY = 'EASY';
 	var RIGHT = 'RIGHT';
 	var WRONG = 'WRONG';
 	var FORGOT = 'FORGOT';
@@ -6867,6 +6868,7 @@ webpackJsonp([2],[
 	
 	    var chosenPerformance = props[CHOSEN_PERFORMANCE];
 	
+	    var easyClassValue = chosenPerformance != EASY;
 	    var rightClassValue = chosenPerformance != RIGHT;
 	    var wrongClassValue = chosenPerformance != WRONG;
 	    var forgotClassValue = chosenPerformance != FORGOT;
@@ -6878,7 +6880,23 @@ webpackJsonp([2],[
 	        { className: 'columns' },
 	        React.createElement(
 	            'div',
-	            { className: 'column is-one-third' },
+	            { className: 'column is-one-quarter' },
+	            React.createElement(
+	                'a',
+	                {
+	                    href: '#easy',
+	                    className: classnames('button is-purple is-fullwidth is-bold is-medium', {
+	                        'is-outlined': easyClassValue,
+	                        'is-disabled': submitting
+	                    }),
+	                    onClick: submitting ? noOp() : switchPerformance(props.dispatch, EASY)
+	                },
+	                'Easy'
+	            )
+	        ),
+	        React.createElement(
+	            'div',
+	            { className: 'column is-one-quarter' },
 	            React.createElement(
 	                'a',
 	                {
@@ -6894,7 +6912,7 @@ webpackJsonp([2],[
 	        ),
 	        React.createElement(
 	            'div',
-	            { className: 'column is-one-third' },
+	            { className: 'column is-one-quarter' },
 	            React.createElement(
 	                'a',
 	                {
@@ -6910,7 +6928,7 @@ webpackJsonp([2],[
 	        ),
 	        React.createElement(
 	            'div',
-	            { className: 'column is-one-third' },
+	            { className: 'column is-one-quarter' },
 	            React.createElement(
 	                'a',
 	                {
@@ -6918,11 +6936,11 @@ webpackJsonp([2],[
 	                    className: classnames('button is-warning is-fullwidth is-bold is-medium', {
 	                        'is-outlined': forgotClassValue,
 	                        'is-disabled': submitting
-	                    }),
-	                    style: {
-	                        color: '#454552'
-	                    },
-	                    onClick: submitting ? noOp() : switchPerformance(props.dispatch, FORGOT)
+	                    })
+	                    // style={{
+	                    //     color: '#454552'
+	                    // }}
+	                    , onClick: submitting ? noOp() : switchPerformance(props.dispatch, FORGOT)
 	                },
 	                'Forgot'
 	            )
@@ -6933,7 +6951,7 @@ webpackJsonp([2],[
 	if (true) {
 	    var _PerformanceControls;
 	
-	    __PerformanceControls.propTypes = (_PerformanceControls = {}, (0, _defineProperty3.default)(_PerformanceControls, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, CHOSEN_PERFORMANCE, React.PropTypes.oneOf([NOT_SELECTED, FORGOT, RIGHT, WRONG])), (0, _defineProperty3.default)(_PerformanceControls, 'submitting', React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, 'dispatch', React.PropTypes.func.isRequired), _PerformanceControls);
+	    __PerformanceControls.propTypes = (_PerformanceControls = {}, (0, _defineProperty3.default)(_PerformanceControls, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, CHOSEN_PERFORMANCE, React.PropTypes.oneOf([NOT_SELECTED, FORGOT, EASY, RIGHT, WRONG])), (0, _defineProperty3.default)(_PerformanceControls, 'submitting', React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, 'dispatch', React.PropTypes.func.isRequired), _PerformanceControls);
 	}
 	
 	var PerformanceControls = connect(
@@ -6972,8 +6990,8 @@ webpackJsonp([2],[
 	                className: classnames('button is-success is-fullwidth is-bold is-medium', {
 	                    'is-disabled is-loading': props.submitting
 	                }),
-	                onClick: reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting),
-	                style: { color: '#454552' }
+	                onClick: reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting)
+	                // style={{color: '#454552'}}
 	            },
 	            'Answer'
 	        );
@@ -6993,7 +7011,7 @@ webpackJsonp([2],[
 	if (true) {
 	    var _CommitButton$propTy;
 	
-	    __CommitButton.propTypes = (_CommitButton$propTy = {}, (0, _defineProperty3.default)(_CommitButton$propTy, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'postURL', React.PropTypes.string.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'submitting', React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'dispatch', React.PropTypes.func.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, CHOSEN_PERFORMANCE, React.PropTypes.oneOf([NOT_SELECTED, FORGOT, RIGHT, WRONG])), (0, _defineProperty3.default)(_CommitButton$propTy, 'reviewRequest', React.PropTypes.object.isRequired), _CommitButton$propTy);
+	    __CommitButton.propTypes = (_CommitButton$propTy = {}, (0, _defineProperty3.default)(_CommitButton$propTy, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'postURL', React.PropTypes.string.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'submitting', React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'dispatch', React.PropTypes.func.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, CHOSEN_PERFORMANCE, React.PropTypes.oneOf([NOT_SELECTED, FORGOT, EASY, RIGHT, WRONG])), (0, _defineProperty3.default)(_CommitButton$propTy, 'reviewRequest', React.PropTypes.object.isRequired), _CommitButton$propTy);
 	}
 	
 	var CommitButton = connect(
@@ -7017,11 +7035,26 @@ webpackJsonp([2],[
 	    );
 	};
 	
-	var AdvancedControls = function AdvancedControls() {
+	var __AdvancedControls = function __AdvancedControls(props) {
+	
+	    var showMainControls = props[SHOW_MAIN_CONTROLS];
+	
+	    if (!showMainControls) {
+	        return null;
+	    }
 	
 	    return React.createElement(
 	        'div',
 	        null,
+	        React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement('hr', { className: 'is-marginless' })
+	            )
+	        ),
 	        React.createElement(
 	            'div',
 	            { className: 'columns' },
@@ -7112,6 +7145,16 @@ webpackJsonp([2],[
 	    );
 	};
 	
+	if (true) {
+	    __AdvancedControls.propTypes = (0, _defineProperty3.default)({}, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired);
+	}
+	
+	var AdvancedControls = connect(
+	// mapStateToProps
+	function (state) {
+	    return (0, _defineProperty3.default)({}, SHOW_MAIN_CONTROLS, state[SHOW_MAIN_CONTROLS]);
+	})(__AdvancedControls);
+	
 	var __ReviewControls = function __ReviewControls(props) {
 	    var currenTab = props.currenTab;
 	
@@ -7125,7 +7168,8 @@ webpackJsonp([2],[
 	        'div',
 	        null,
 	        React.createElement(MainControls, null),
-	        React.createElement(PerformanceControls, null)
+	        React.createElement(PerformanceControls, null),
+	        React.createElement(AdvancedControls, null)
 	    );
 	};
 	
@@ -7213,17 +7257,7 @@ webpackJsonp([2],[
 	                    ' Reveal preview/source buttons'
 	                )
 	            )
-	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement('hr', { className: 'is-marginless' })
-	            )
-	        ),
-	        React.createElement(AdvancedControls, null)
+	        )
 	    );
 	};
 	
@@ -7791,11 +7825,11 @@ webpackJsonp([2],[
 	            method: 'GET'
 	        }).then(function (response) {
 	            return _promise2.default.all([response.status, jsonDecode(response)]);
-	        }).then(function (_ref6) {
-	            var _ref7 = (0, _slicedToArray3.default)(_ref6, 2);
+	        }).then(function (_ref7) {
+	            var _ref8 = (0, _slicedToArray3.default)(_ref7, 2);
 	
-	            var statusCode = _ref7[0];
-	            var jsonResponse = _ref7[1];
+	            var statusCode = _ref8[0];
+	            var jsonResponse = _ref8[1];
 	
 	
 	            dispatch(reduceIn(
@@ -7989,11 +8023,11 @@ webpackJsonp([2],[
 	            body: (0, _stringify2.default)(reviewRequest)
 	        }).then(function (response) {
 	            return _promise2.default.all([response.status, jsonDecode(response)]);
-	        }).then(function (_ref8) {
-	            var _ref9 = (0, _slicedToArray3.default)(_ref8, 2);
+	        }).then(function (_ref9) {
+	            var _ref10 = (0, _slicedToArray3.default)(_ref9, 2);
 	
-	            var statusCode = _ref9[0];
-	            var jsonResponse = _ref9[1];
+	            var statusCode = _ref10[0];
+	            var jsonResponse = _ref10[1];
 	
 	
 	            dispatch(reduceIn(
@@ -8270,6 +8304,7 @@ webpackJsonp([2],[
 	
 	    switch (action.type) {
 	        case NOT_SELECTED:
+	        case EASY:
 	        case RIGHT:
 	        case WRONG:
 	        case FORGOT:
@@ -8290,6 +8325,8 @@ webpackJsonp([2],[
 	var generateReviewAction = function generateReviewAction(performance) {
 	
 	    switch (performance) {
+	        case EASY:
+	            return 'Easy';
 	        case RIGHT:
 	            return 'Right';
 	        case WRONG:
@@ -8481,7 +8518,10 @@ webpackJsonp([2],[
 	
 	    return React.createElement(
 	        'h1',
-	        { className: 'title' },
+	        {
+	            className: 'title',
+	            style: { fontWeight: 'bold' }
+	        },
 	        content
 	    );
 	};
@@ -8502,11 +8542,13 @@ webpackJsonp([2],[
 	        content: React.PropTypes.string.isRequired,
 	        notice: React.PropTypes.string.isRequired,
 	        isEditing: React.PropTypes.bool.isRequired,
-	        assignField: React.PropTypes.object.isRequired
+	        assignField: React.PropTypes.object.isRequired,
+	        shouldFocus: React.PropTypes.bool.isRequired
 	    },
 	
 	    getDefaultProps: function getDefaultProps() {
 	        return {
+	            shouldFocus: true,
 	            mathjaxify: false,
 	            isEditing: false,
 	            assignField: {}
@@ -8604,7 +8646,7 @@ webpackJsonp([2],[
 	                        className: 'input',
 	                        type: 'text',
 	                        placeholder: 'Card Title',
-	                        autoFocus: true,
+	                        autoFocus: this.props.shouldFocus,
 	                        readOnly: !this.props.isEditing
 	                    }, assign({ value: this.props.content }, this.props.assignField)))
 	                )
@@ -19044,6 +19086,7 @@ webpackJsonp([2],[
 	
 	    return React.createElement(TextareaAutosize, (0, _extends3.default)({
 	
+	        autoFocus: props.shouldFocus,
 	        style: props.style,
 	        useCacheForDOMMeasurements: true,
 	        minRows: 6,
@@ -19067,11 +19110,13 @@ webpackJsonp([2],[
 	    contents: '',
 	    editable: false,
 	    id: void 0,
-	    style: {}
+	    style: {},
+	    shouldFocus: false
 	};
 	
 	if (true) {
 	    MarkdownSource.propTypes = {
+	        shouldFocus: React.PropTypes.bool.isRequired,
 	        style: React.PropTypes.object.isRequired,
 	        contents: React.PropTypes.string.isRequired,
 	        editable: React.PropTypes.bool.isRequired,

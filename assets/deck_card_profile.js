@@ -11,7 +11,6 @@ webpackJsonp([3],[
 	if (true) {
 	    var invariant = __webpack_require__(571);
 	    invariant(window.__PRE_RENDER_STATE__, 'we expect to consume window.__PRE_RENDER_STATE__');
-	    invariant(!window.__POST_RENDER_STATE__, 'we do not expect to consume window.__POST_RENDER_STATE__');
 	}
 	
 	var preRenderState = window.__PRE_RENDER_STATE__;
@@ -6778,7 +6777,10 @@ webpackJsonp([3],[
 	
 	    return React.createElement(
 	        'h1',
-	        { className: 'title' },
+	        {
+	            className: 'title',
+	            style: { fontWeight: 'bold' }
+	        },
 	        content
 	    );
 	};
@@ -6799,11 +6801,13 @@ webpackJsonp([3],[
 	        content: React.PropTypes.string.isRequired,
 	        notice: React.PropTypes.string.isRequired,
 	        isEditing: React.PropTypes.bool.isRequired,
-	        assignField: React.PropTypes.object.isRequired
+	        assignField: React.PropTypes.object.isRequired,
+	        shouldFocus: React.PropTypes.bool.isRequired
 	    },
 	
 	    getDefaultProps: function getDefaultProps() {
 	        return {
+	            shouldFocus: true,
 	            mathjaxify: false,
 	            isEditing: false,
 	            assignField: {}
@@ -6901,7 +6905,7 @@ webpackJsonp([3],[
 	                        className: 'input',
 	                        type: 'text',
 	                        placeholder: 'Card Title',
-	                        autoFocus: true,
+	                        autoFocus: this.props.shouldFocus,
 	                        readOnly: !this.props.isEditing
 	                    }, assign({ value: this.props.content }, this.props.assignField)))
 	                )
@@ -17341,6 +17345,7 @@ webpackJsonp([3],[
 	
 	    return React.createElement(TextareaAutosize, (0, _extends3.default)({
 	
+	        autoFocus: props.shouldFocus,
 	        style: props.style,
 	        useCacheForDOMMeasurements: true,
 	        minRows: 6,
@@ -17364,11 +17369,13 @@ webpackJsonp([3],[
 	    contents: '',
 	    editable: false,
 	    id: void 0,
-	    style: {}
+	    style: {},
+	    shouldFocus: false
 	};
 	
 	if (true) {
 	    MarkdownSource.propTypes = {
+	        shouldFocus: React.PropTypes.bool.isRequired,
 	        style: React.PropTypes.object.isRequired,
 	        contents: React.PropTypes.string.isRequired,
 	        editable: React.PropTypes.bool.isRequired,
@@ -22687,14 +22694,17 @@ webpackJsonp([3],[
 
 /***/ },
 /* 912 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
+	
+	var has = __webpack_require__(856);
 	
 	var typeReducer = function typeReducer(state, action) {
 	
-	    state = action && action.type || state;
-	
+	    if (action && has(action, 'type')) {
+	        state = action.type;
+	    }
 	    return state;
 	};
 	

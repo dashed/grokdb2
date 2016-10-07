@@ -17167,6 +17167,7 @@ webpackJsonp([5],[
 	
 	    return React.createElement(TextareaAutosize, (0, _extends3.default)({
 	
+	        autoFocus: props.shouldFocus,
 	        style: props.style,
 	        useCacheForDOMMeasurements: true,
 	        minRows: 6,
@@ -17190,11 +17191,13 @@ webpackJsonp([5],[
 	    contents: '',
 	    editable: false,
 	    id: void 0,
-	    style: {}
+	    style: {},
+	    shouldFocus: false
 	};
 	
 	if (true) {
 	    MarkdownSource.propTypes = {
+	        shouldFocus: React.PropTypes.bool.isRequired,
 	        style: React.PropTypes.object.isRequired,
 	        contents: React.PropTypes.string.isRequired,
 	        editable: React.PropTypes.bool.isRequired,

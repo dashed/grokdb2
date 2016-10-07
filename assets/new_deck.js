@@ -17144,6 +17144,7 @@ webpackJsonp([11],[
 	
 	    return React.createElement(TextareaAutosize, (0, _extends3.default)({
 	
+	        autoFocus: props.shouldFocus,
 	        style: props.style,
 	        useCacheForDOMMeasurements: true,
 	        minRows: 6,
@@ -17167,11 +17168,13 @@ webpackJsonp([11],[
 	    contents: '',
 	    editable: false,
 	    id: void 0,
-	    style: {}
+	    style: {},
+	    shouldFocus: false
 	};
 	
 	if (true) {
 	    MarkdownSource.propTypes = {
+	        shouldFocus: React.PropTypes.bool.isRequired,
 	        style: React.PropTypes.object.isRequired,
 	        contents: React.PropTypes.string.isRequired,
 	        editable: React.PropTypes.bool.isRequired,
@@ -21778,7 +21781,7 @@ webpackJsonp([11],[
 	                React.createElement(
 	                    'a',
 	                    {
-	                        className: classnames('button is-success', {
+	                        className: classnames('button is-success is-bold', {
 	                            'is-disabled': submitting || String(name.value).trim().length <= 0,
 	                            'is-loading': submitting
 	                        }),

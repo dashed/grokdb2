@@ -6816,7 +6816,10 @@ webpackJsonp([7],[
 	
 	    return React.createElement(
 	        'h1',
-	        { className: 'title' },
+	        {
+	            className: 'title',
+	            style: { fontWeight: 'bold' }
+	        },
 	        content
 	    );
 	};
@@ -6837,11 +6840,13 @@ webpackJsonp([7],[
 	        content: React.PropTypes.string.isRequired,
 	        notice: React.PropTypes.string.isRequired,
 	        isEditing: React.PropTypes.bool.isRequired,
-	        assignField: React.PropTypes.object.isRequired
+	        assignField: React.PropTypes.object.isRequired,
+	        shouldFocus: React.PropTypes.bool.isRequired
 	    },
 	
 	    getDefaultProps: function getDefaultProps() {
 	        return {
+	            shouldFocus: true,
 	            mathjaxify: false,
 	            isEditing: false,
 	            assignField: {}
@@ -6939,7 +6944,7 @@ webpackJsonp([7],[
 	                        className: 'input',
 	                        type: 'text',
 	                        placeholder: 'Card Title',
-	                        autoFocus: true,
+	                        autoFocus: this.props.shouldFocus,
 	                        readOnly: !this.props.isEditing
 	                    }, assign({ value: this.props.content }, this.props.assignField)))
 	                )
@@ -17379,6 +17384,7 @@ webpackJsonp([7],[
 	
 	    return React.createElement(TextareaAutosize, (0, _extends3.default)({
 	
+	        autoFocus: props.shouldFocus,
 	        style: props.style,
 	        useCacheForDOMMeasurements: true,
 	        minRows: 6,
@@ -17402,11 +17408,13 @@ webpackJsonp([7],[
 	    contents: '',
 	    editable: false,
 	    id: void 0,
-	    style: {}
+	    style: {},
+	    shouldFocus: false
 	};
 	
 	if (true) {
 	    MarkdownSource.propTypes = {
+	        shouldFocus: React.PropTypes.bool.isRequired,
 	        style: React.PropTypes.object.isRequired,
 	        contents: React.PropTypes.string.isRequired,
 	        editable: React.PropTypes.bool.isRequired,
@@ -18423,7 +18431,24 @@ webpackJsonp([7],[
 /* 909 */,
 /* 910 */,
 /* 911 */,
-/* 912 */,
+/* 912 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var has = __webpack_require__(856);
+	
+	var typeReducer = function typeReducer(state, action) {
+	
+	    if (action && has(action, 'type')) {
+	        state = action.type;
+	    }
+	    return state;
+	};
+	
+	module.exports = typeReducer;
+
+/***/ },
 /* 913 */,
 /* 914 */,
 /* 915 */,
@@ -18505,7 +18530,9 @@ webpackJsonp([7],[
 	
 	var CHOSEN_PERFORMANCE = 'CHOSEN_PERFORMANCE';
 	var NOT_SELECTED = 'NOT_SELECTED';
+	var EASY = 'EASY';
 	var RIGHT = 'RIGHT';
+	var HARD = 'HARD';
 	var WRONG = 'WRONG';
 	var FORGOT = 'FORGOT';
 	var SHOW_PREVIEW_SOURCE_BUTTONS = 'SHOW_PREVIEW_SOURCE_BUTTONS';
@@ -18513,6 +18540,11 @@ webpackJsonp([7],[
 	var SET_CARD = 'SET_CARD';
 	var HAS_CARD_FOR_REVIEW = 'HAS_CARD_FOR_REVIEW';
 	var PROFILE_URL = 'PROFILE_URL';
+	var MINUTES = 'MINUTES';
+	var HOURS = 'HOURS';
+	var TIME_CONTROL = 'TIME_CONTROL';
+	var TIME_TILL_AVAILABLE_FOR_REVIEW = 'TIME_TILL_AVAILABLE_FOR_REVIEW';
+	var CARDS_TILL_AVAILABLE_FOR_REVIEW = 'CARDS_TILL_AVAILABLE_FOR_REVIEW';
 	
 	/* react components */
 	
@@ -18600,7 +18632,9 @@ webpackJsonp([7],[
 	
 	    var chosenPerformance = props[CHOSEN_PERFORMANCE];
 	
+	    var easyClassValue = chosenPerformance != EASY;
 	    var rightClassValue = chosenPerformance != RIGHT;
+	    var hardClassValue = chosenPerformance != HARD;
 	    var wrongClassValue = chosenPerformance != WRONG;
 	    var forgotClassValue = chosenPerformance != FORGOT;
 	
@@ -18608,56 +18642,96 @@ webpackJsonp([7],[
 	
 	    return React.createElement(
 	        'div',
-	        { className: 'columns' },
+	        null,
 	        React.createElement(
 	            'div',
-	            { className: 'column is-one-third' },
+	            { className: 'columns' },
 	            React.createElement(
-	                'a',
-	                {
-	                    href: '#right',
-	                    className: classnames('button is-success is-fullwidth is-bold is-medium', {
-	                        'is-outlined': rightClassValue,
-	                        'is-disabled': submitting
-	                    }),
-	                    onClick: submitting ? noOp() : switchPerformance(props.dispatch, RIGHT)
-	                },
-	                'Right'
-	            )
-	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'column is-one-third' },
-	            React.createElement(
-	                'a',
-	                {
-	                    href: '#wrong',
-	                    className: classnames('button is-danger is-fullwidth is-bold is-medium', {
-	                        'is-outlined': wrongClassValue,
-	                        'is-disabled': submitting
-	                    }),
-	                    onClick: submitting ? noOp() : switchPerformance(props.dispatch, WRONG)
-	                },
-	                'Wrong'
-	            )
-	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'column is-one-third' },
-	            React.createElement(
-	                'a',
-	                {
-	                    href: '#forgot',
-	                    className: classnames('button is-warning is-fullwidth is-bold is-medium', {
-	                        'is-outlined': forgotClassValue,
-	                        'is-disabled': submitting
-	                    }),
-	                    style: {
-	                        color: '#454552'
+	                'div',
+	                { className: 'column is-one-third' },
+	                React.createElement(
+	                    'a',
+	                    {
+	                        href: '#easy',
+	                        className: classnames('button is-success is-fullwidth is-bold is-medium', {
+	                            'is-outlined': easyClassValue,
+	                            'is-disabled': submitting || !easyClassValue
+	                        }),
+	                        onClick: submitting ? noOp() : switchPerformance(props.dispatch, EASY)
 	                    },
-	                    onClick: submitting ? noOp() : switchPerformance(props.dispatch, FORGOT)
-	                },
-	                'Forgot'
+	                    'Easy'
+	                )
+	            ),
+	            React.createElement(
+	                'div',
+	                { className: 'column is-one-third' },
+	                React.createElement(
+	                    'a',
+	                    {
+	                        href: '#right',
+	                        className: classnames('button is-success is-fullwidth is-bold is-medium', {
+	                            'is-outlined': rightClassValue,
+	                            'is-disabled': submitting || !rightClassValue
+	                        }),
+	                        onClick: submitting ? noOp() : switchPerformance(props.dispatch, RIGHT)
+	                    },
+	                    'Right'
+	                )
+	            ),
+	            React.createElement(
+	                'div',
+	                { className: 'column is-one-third' },
+	                React.createElement(
+	                    'a',
+	                    {
+	                        href: '#hard',
+	                        className: classnames('button is-success is-fullwidth is-bold is-medium', {
+	                            'is-outlined': hardClassValue,
+	                            'is-disabled': submitting || !hardClassValue
+	                        }),
+	                        onClick: submitting ? noOp() : switchPerformance(props.dispatch, HARD)
+	                    },
+	                    'Hard'
+	                )
+	            )
+	        ),
+	        React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column is-one-half' },
+	                React.createElement(
+	                    'a',
+	                    {
+	                        href: '#wrong',
+	                        className: classnames('button is-danger is-fullwidth is-bold is-medium', {
+	                            'is-outlined': wrongClassValue,
+	                            'is-disabled': submitting || !wrongClassValue
+	                        }),
+	                        onClick: submitting ? noOp() : switchPerformance(props.dispatch, WRONG)
+	                    },
+	                    'Wrong'
+	                )
+	            ),
+	            React.createElement(
+	                'div',
+	                { className: 'column is-one-half' },
+	                React.createElement(
+	                    'a',
+	                    {
+	                        href: '#forgot',
+	                        className: classnames('button is-warning is-fullwidth is-bold is-medium', {
+	                            'is-outlined': forgotClassValue,
+	                            'is-disabled': submitting || !forgotClassValue
+	                        })
+	                        // style={{
+	                        //     color: '#454552'
+	                        // }}
+	                        , onClick: submitting ? noOp() : switchPerformance(props.dispatch, FORGOT)
+	                    },
+	                    'Forgot'
+	                )
 	            )
 	        )
 	    );
@@ -18666,7 +18740,7 @@ webpackJsonp([7],[
 	if (true) {
 	    var _PerformanceControls;
 	
-	    __PerformanceControls.propTypes = (_PerformanceControls = {}, (0, _defineProperty3.default)(_PerformanceControls, IS_CONFIRM_SKIP, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, CHOSEN_PERFORMANCE, React.PropTypes.oneOf([NOT_SELECTED, FORGOT, RIGHT, WRONG])), (0, _defineProperty3.default)(_PerformanceControls, 'submitting', React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, 'dispatch', React.PropTypes.func.isRequired), _PerformanceControls);
+	    __PerformanceControls.propTypes = (_PerformanceControls = {}, (0, _defineProperty3.default)(_PerformanceControls, IS_CONFIRM_SKIP, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, CHOSEN_PERFORMANCE, React.PropTypes.oneOf([NOT_SELECTED, FORGOT, EASY, RIGHT, HARD, WRONG])), (0, _defineProperty3.default)(_PerformanceControls, 'submitting', React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_PerformanceControls, 'dispatch', React.PropTypes.func.isRequired), _PerformanceControls);
 	}
 	
 	var PerformanceControls = connect(
@@ -18705,8 +18779,8 @@ webpackJsonp([7],[
 	                className: classnames('button is-success is-fullwidth is-bold is-medium', {
 	                    'is-disabled is-loading': props.submitting
 	                }),
-	                onClick: reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting),
-	                style: { color: '#454552' }
+	                onClick: reviewCard(dispatch, props.postURL, props.reviewRequest, props.submitting)
+	                // style={{color: '#454552'}}
 	            },
 	            'Answer, and get next card'
 	        );
@@ -18726,7 +18800,7 @@ webpackJsonp([7],[
 	if (true) {
 	    var _CommitButton$propTy;
 	
-	    __CommitButton.propTypes = (_CommitButton$propTy = {}, (0, _defineProperty3.default)(_CommitButton$propTy, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'postURL', React.PropTypes.string.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'submitting', React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'dispatch', React.PropTypes.func.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, CHOSEN_PERFORMANCE, React.PropTypes.oneOf([NOT_SELECTED, FORGOT, RIGHT, WRONG])), (0, _defineProperty3.default)(_CommitButton$propTy, 'reviewRequest', React.PropTypes.object.isRequired), _CommitButton$propTy);
+	    __CommitButton.propTypes = (_CommitButton$propTy = {}, (0, _defineProperty3.default)(_CommitButton$propTy, SHOW_MAIN_CONTROLS, React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'postURL', React.PropTypes.string.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'submitting', React.PropTypes.bool.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, 'dispatch', React.PropTypes.func.isRequired), (0, _defineProperty3.default)(_CommitButton$propTy, CHOSEN_PERFORMANCE, React.PropTypes.oneOf([NOT_SELECTED, FORGOT, EASY, RIGHT, HARD, WRONG])), (0, _defineProperty3.default)(_CommitButton$propTy, 'reviewRequest', React.PropTypes.object.isRequired), _CommitButton$propTy);
 	}
 	
 	var CommitButton = connect(
@@ -18823,11 +18897,31 @@ webpackJsonp([7],[
 	    return _ref5 = {}, (0, _defineProperty3.default)(_ref5, IS_CONFIRM_SKIP, state[IS_CONFIRM_SKIP]), (0, _defineProperty3.default)(_ref5, 'submitting', state[SUBMITTING]), (0, _defineProperty3.default)(_ref5, 'reviewRequest', generateReviewRequest(state)), (0, _defineProperty3.default)(_ref5, 'postURL', state[POST_TO]), _ref5;
 	})(__MainControls);
 	
-	var AdvancedControls = function AdvancedControls() {
+	var __AdvancedControls = function __AdvancedControls(props) {
+	
+	    var isConfirmSkip = props[IS_CONFIRM_SKIP];
+	    var showMainControls = props[SHOW_MAIN_CONTROLS];
+	
+	    if (!(isConfirmSkip || showMainControls)) {
+	        return null;
+	    }
+	
+	    var timeControl = props[TIME_CONTROL];
+	    var dispatch = props.dispatch;
+	
 	
 	    return React.createElement(
 	        'div',
 	        null,
+	        React.createElement(
+	            'div',
+	            { className: 'columns' },
+	            React.createElement(
+	                'div',
+	                { className: 'column' },
+	                React.createElement('hr', { className: 'is-marginless' })
+	            )
+	        ),
 	        React.createElement(
 	            'div',
 	            { className: 'columns' },
@@ -18860,7 +18954,13 @@ webpackJsonp([7],[
 	            React.createElement(
 	                'div',
 	                { className: 'column is-two-thirds' },
-	                React.createElement('input', { className: 'input', type: 'number', min: '1', value: '3' })
+	                React.createElement('input', {
+	                    className: 'input',
+	                    type: 'number',
+	                    min: 0,
+	                    value: props[TIME_TILL_AVAILABLE_FOR_REVIEW],
+	                    onChange: changeTimeTillReview(dispatch)
+	                })
 	            ),
 	            React.createElement(
 	                'div',
@@ -18873,19 +18973,33 @@ webpackJsonp([7],[
 	                        null,
 	                        React.createElement(
 	                            'li',
-	                            null,
+	                            {
+	                                className: classnames({
+	                                    'is-active': timeControl === MINUTES
+	                                })
+	                            },
 	                            React.createElement(
 	                                'a',
-	                                null,
+	                                {
+	                                    className: 'button is-bold',
+	                                    onClick: switchTime(dispatch, MINUTES, props[TIME_TILL_AVAILABLE_FOR_REVIEW])
+	                                },
 	                                'Minutes'
 	                            )
 	                        ),
 	                        React.createElement(
 	                            'li',
-	                            null,
+	                            {
+	                                className: classnames({
+	                                    'is-active': timeControl === HOURS
+	                                })
+	                            },
 	                            React.createElement(
 	                                'a',
-	                                null,
+	                                {
+	                                    className: 'button is-bold',
+	                                    onClick: switchTime(dispatch, HOURS, props[TIME_TILL_AVAILABLE_FOR_REVIEW])
+	                                },
 	                                'Hours'
 	                            )
 	                        )
@@ -18912,11 +19026,31 @@ webpackJsonp([7],[
 	            React.createElement(
 	                'div',
 	                { className: 'column' },
-	                React.createElement('input', { className: 'input', type: 'number', min: '0', value: '1' })
+	                React.createElement('input', {
+	                    className: 'input',
+	                    type: 'number',
+	                    min: 0,
+	                    value: props[CARDS_TILL_AVAILABLE_FOR_REVIEW],
+	                    onChange: changeCardsTillReview(dispatch)
+	                })
 	            )
 	        )
 	    );
 	};
+	
+	if (true) {
+	    __AdvancedControls.propTypes = {
+	        dispatch: React.PropTypes.func.isRequired
+	    };
+	}
+	
+	var AdvancedControls = connect(
+	// mapStateToProps
+	function (state) {
+	    var _ref6;
+	
+	    return _ref6 = {}, (0, _defineProperty3.default)(_ref6, IS_CONFIRM_SKIP, state[IS_CONFIRM_SKIP]), (0, _defineProperty3.default)(_ref6, SHOW_MAIN_CONTROLS, state[SHOW_MAIN_CONTROLS]), (0, _defineProperty3.default)(_ref6, TIME_CONTROL, state[TIME_CONTROL]), (0, _defineProperty3.default)(_ref6, TIME_TILL_AVAILABLE_FOR_REVIEW, state[TIME_TILL_AVAILABLE_FOR_REVIEW]), (0, _defineProperty3.default)(_ref6, CARDS_TILL_AVAILABLE_FOR_REVIEW, state[CARDS_TILL_AVAILABLE_FOR_REVIEW]), _ref6;
+	})(__AdvancedControls);
 	
 	var __ReviewControls = function __ReviewControls(props) {
 	    var currenTab = props.currenTab;
@@ -18931,7 +19065,8 @@ webpackJsonp([7],[
 	        'div',
 	        null,
 	        React.createElement(MainControls, null),
-	        React.createElement(PerformanceControls, null)
+	        React.createElement(PerformanceControls, null),
+	        React.createElement(AdvancedControls, null)
 	    );
 	};
 	
@@ -19019,17 +19154,7 @@ webpackJsonp([7],[
 	                    ' Reveal preview/source buttons'
 	                )
 	            )
-	        ),
-	        React.createElement(
-	            'div',
-	            { className: 'columns' },
-	            React.createElement(
-	                'div',
-	                { className: 'column' },
-	                React.createElement('hr', { className: 'is-marginless' })
-	            )
-	        ),
-	        React.createElement(AdvancedControls, null)
+	        )
 	    );
 	};
 	
@@ -19628,11 +19753,11 @@ webpackJsonp([7],[
 	            method: 'GET'
 	        }).then(function (response) {
 	            return _promise2.default.all([response.status, jsonDecode(response)]);
-	        }).then(function (_ref7) {
-	            var _ref8 = (0, _slicedToArray3.default)(_ref7, 2);
+	        }).then(function (_ref8) {
+	            var _ref9 = (0, _slicedToArray3.default)(_ref8, 2);
 	
-	            var statusCode = _ref8[0];
-	            var jsonResponse = _ref8[1];
+	            var statusCode = _ref9[0];
+	            var jsonResponse = _ref9[1];
 	
 	
 	            dispatch(reduceIn(
@@ -19806,11 +19931,11 @@ webpackJsonp([7],[
 	            body: (0, _stringify2.default)(reviewRequest)
 	        }).then(function (response) {
 	            return _promise2.default.all([response.status, jsonDecode(response)]);
-	        }).then(function (_ref9) {
-	            var _ref10 = (0, _slicedToArray3.default)(_ref9, 2);
+	        }).then(function (_ref10) {
+	            var _ref11 = (0, _slicedToArray3.default)(_ref10, 2);
 	
-	            var statusCode = _ref10[0];
-	            var jsonResponse = _ref10[1];
+	            var statusCode = _ref11[0];
+	            var jsonResponse = _ref11[1];
 	
 	
 	            dispatch(reduceIn(
@@ -20068,12 +20193,78 @@ webpackJsonp([7],[
 	    };
 	};
 	
+	var switchTime = function switchTime(dispatch) {
+	    var timeType = arguments.length <= 1 || arguments[1] === undefined ? HOURS : arguments[1];
+	    var time = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
+	
+	    return function (event) {
+	        event.preventDefault();
+	
+	        time = Number(time);
+	
+	        if (timeType === MINUTES) {
+	            time = time * 60;
+	        } else {
+	            time = time / 60;
+	        }
+	
+	        dispatch(reduceIn(
+	        // reducer
+	        typeReducer,
+	        // path
+	        [TIME_TILL_AVAILABLE_FOR_REVIEW],
+	        // action
+	        {
+	            type: time
+	        }));
+	
+	        dispatch(reduceIn(
+	        // reducer
+	        timeReducer,
+	        // path
+	        [TIME_CONTROL],
+	        // action
+	        {
+	            type: timeType
+	        }));
+	    };
+	};
+	
+	var changeTimeTillReview = function changeTimeTillReview(dispatch) {
+	    return function (event) {
+	        dispatch(reduceIn(
+	        // reducer
+	        typeReducer,
+	        // path
+	        [TIME_TILL_AVAILABLE_FOR_REVIEW],
+	        // action
+	        {
+	            type: Number(event.target.value)
+	        }));
+	    };
+	};
+	
+	var changeCardsTillReview = function changeCardsTillReview(dispatch) {
+	    return function (event) {
+	        dispatch(reduceIn(
+	        // reducer
+	        typeReducer,
+	        // path
+	        [CARDS_TILL_AVAILABLE_FOR_REVIEW],
+	        // action
+	        {
+	            type: Number(event.target.value)
+	        }));
+	    };
+	};
+	
 	/* redux reducers */
 	
 	var markdownViewReducer = __webpack_require__(859);
 	var boolReducer = __webpack_require__(700);
 	var tabReducer = __webpack_require__(860);
 	var errorReducer = __webpack_require__(701);
+	var typeReducer = __webpack_require__(912);
 	
 	var performanceReducer = function performanceReducer() {
 	    var state = arguments.length <= 0 || arguments[0] === undefined ? NOT_SELECTED : arguments[0];
@@ -20085,6 +20276,8 @@ webpackJsonp([7],[
 	        case RIGHT:
 	        case WRONG:
 	        case FORGOT:
+	        case EASY:
+	        case HARD:
 	            if (state === action.type && state != NOT_SELECTED) {
 	                state = NOT_SELECTED;
 	            } else {
@@ -20102,6 +20295,10 @@ webpackJsonp([7],[
 	var generateReviewAction = function generateReviewAction(performance) {
 	
 	    switch (performance) {
+	        case EASY:
+	            return 'Easy';
+	        case HARD:
+	            return 'Hard';
 	        case RIGHT:
 	            return 'Right';
 	        case WRONG:
@@ -20130,6 +20327,9 @@ webpackJsonp([7],[
 	    var cardMeta = {};
 	    var hasCardForReview = false;
 	    var profileURL = '';
+	    var timeTillReview = 0;
+	    var cardsTillReview = 0;
+	    var timeControl = HOURS;
 	
 	    switch (action.type) {
 	        case SET_CARD:
@@ -20152,29 +20352,64 @@ webpackJsonp([7],[
 	                    answer: __card.answer,
 	                    is_active: __card.is_active
 	                };
+	
+	                timeTillReview = payload.card_for_review.card_score.review_after_normalized;
+	                cardsTillReview = payload.card_for_review.card_score.cards_till_ready_for_review;
+	                timeControl = payload.card_for_review.card_score.review_after_time_control;
 	            }
 	
 	            break;
 	    }
 	
-	    var newState = (_newState = {}, (0, _defineProperty3.default)(_newState, PROFILE_URL, profileURL), (0, _defineProperty3.default)(_newState, CARD_ID, card.id), (0, _defineProperty3.default)(_newState, CARD_TITLE, (_CARD_TITLE = {}, (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_CONTENTS, card.title), _CARD_TITLE)), (0, _defineProperty3.default)(_newState, CURRENT_TAB, CARD_QUESTION), (0, _defineProperty3.default)(_newState, CARD_DESCRIPTION, (_CARD_DESCRIPTION = {}, (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_CONTENTS, card.description), _CARD_DESCRIPTION)), (0, _defineProperty3.default)(_newState, CARD_QUESTION, (_CARD_QUESTION = {}, (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_CONTENTS, card.question), _CARD_QUESTION)), (0, _defineProperty3.default)(_newState, CARD_ANSWER, (_CARD_ANSWER = {}, (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_CONTENTS, card.answer), _CARD_ANSWER)), (0, _defineProperty3.default)(_newState, CARD_IS_ACTIVE, (0, _defineProperty3.default)({}, VALUE, card.is_active)), (0, _defineProperty3.default)(_newState, IS_CONFIRM_SKIP, false), (0, _defineProperty3.default)(_newState, SHOW_MAIN_CONTROLS, false), (0, _defineProperty3.default)(_newState, SHOW_PREVIEW_SOURCE_BUTTONS, false), (0, _defineProperty3.default)(_newState, HAS_CARD_FOR_REVIEW, hasCardForReview), (0, _defineProperty3.default)(_newState, CHOSEN_PERFORMANCE, NOT_SELECTED), (0, _defineProperty3.default)(_newState, CARD_META, cardMeta), _newState);
+	    var newState = (_newState = {}, (0, _defineProperty3.default)(_newState, PROFILE_URL, profileURL), (0, _defineProperty3.default)(_newState, CARD_ID, card.id), (0, _defineProperty3.default)(_newState, CARD_TITLE, (_CARD_TITLE = {}, (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_TITLE, MARKDOWN_CONTENTS, card.title), _CARD_TITLE)), (0, _defineProperty3.default)(_newState, CURRENT_TAB, CARD_QUESTION), (0, _defineProperty3.default)(_newState, CARD_DESCRIPTION, (_CARD_DESCRIPTION = {}, (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_DESCRIPTION, MARKDOWN_CONTENTS, card.description), _CARD_DESCRIPTION)), (0, _defineProperty3.default)(_newState, CARD_QUESTION, (_CARD_QUESTION = {}, (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_QUESTION, MARKDOWN_CONTENTS, card.question), _CARD_QUESTION)), (0, _defineProperty3.default)(_newState, CARD_ANSWER, (_CARD_ANSWER = {}, (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_ANSWER, MARKDOWN_CONTENTS, card.answer), _CARD_ANSWER)), (0, _defineProperty3.default)(_newState, CARD_IS_ACTIVE, (0, _defineProperty3.default)({}, VALUE, card.is_active)), (0, _defineProperty3.default)(_newState, IS_CONFIRM_SKIP, false), (0, _defineProperty3.default)(_newState, SHOW_MAIN_CONTROLS, false), (0, _defineProperty3.default)(_newState, SHOW_PREVIEW_SOURCE_BUTTONS, false), (0, _defineProperty3.default)(_newState, HAS_CARD_FOR_REVIEW, hasCardForReview), (0, _defineProperty3.default)(_newState, CHOSEN_PERFORMANCE, NOT_SELECTED), (0, _defineProperty3.default)(_newState, CARD_META, cardMeta), (0, _defineProperty3.default)(_newState, TIME_TILL_AVAILABLE_FOR_REVIEW, timeTillReview), (0, _defineProperty3.default)(_newState, CARDS_TILL_AVAILABLE_FOR_REVIEW, cardsTillReview), (0, _defineProperty3.default)(_newState, TIME_CONTROL, timeControl), _newState);
 	
 	    return assign({}, state, newState);
+	};
+	
+	var timeReducer = function timeReducer(state, action) {
+	
+	    switch (action.type) {
+	        case MINUTES:
+	        case HOURS:
+	            state = action.type;
+	
+	            break;
+	
+	        default:
+	            state = HOURS;
+	    }
+	
+	    return state;
 	};
 	
 	// TODO: this is not a reducer; move this somewhere
 	var generateReviewRequest = function generateReviewRequest(state) {
 	
+	    var timeTillReview = Number(state[TIME_TILL_AVAILABLE_FOR_REVIEW]);
+	
+	    if (state[TIME_CONTROL] === HOURS) {
+	        timeTillReview = timeTillReview * 60;
+	    }
+	
+	    timeTillReview = timeTillReview < 0 ? 3 * 60 : // 3 hours = 180 mins
+	    timeTillReview;
+	
+	    var cardsTillReview = Number(state[CARDS_TILL_AVAILABLE_FOR_REVIEW]);
+	
+	    cardsTillReview = cardsTillReview < 0 ? 1 : cardsTillReview;
+	
 	    return {
 	        card_id: Number(state[CARD_ID]),
-	        review_action: generateReviewAction(!!state[IS_CONFIRM_SKIP] ? void 0 : state[CHOSEN_PERFORMANCE])
+	        review_action: generateReviewAction(!!state[IS_CONFIRM_SKIP] ? void 0 : state[CHOSEN_PERFORMANCE]),
 	
+	        time_till_available_for_review: timeTillReview,
+	        cards_till_available_for_review: cardsTillReview
 	    };
 	};
 	
 	/* app state */
 	
-	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, PROFILE_URL, ''), (0, _defineProperty3.default)(_initialState, CARD_ID, 0), (0, _defineProperty3.default)(_initialState, CARD_TITLE, (_CARD_TITLE2 = {}, (0, _defineProperty3.default)(_CARD_TITLE2, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_TITLE2, MARKDOWN_CONTENTS, ''), _CARD_TITLE2)), (0, _defineProperty3.default)(_initialState, CURRENT_TAB, CARD_QUESTION), (0, _defineProperty3.default)(_initialState, CARD_DESCRIPTION, (_CARD_DESCRIPTION2 = {}, (0, _defineProperty3.default)(_CARD_DESCRIPTION2, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_DESCRIPTION2, MARKDOWN_CONTENTS, ''), _CARD_DESCRIPTION2)), (0, _defineProperty3.default)(_initialState, CARD_QUESTION, (_CARD_QUESTION2 = {}, (0, _defineProperty3.default)(_CARD_QUESTION2, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_QUESTION2, MARKDOWN_CONTENTS, ''), _CARD_QUESTION2)), (0, _defineProperty3.default)(_initialState, CARD_ANSWER, (_CARD_ANSWER2 = {}, (0, _defineProperty3.default)(_CARD_ANSWER2, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_ANSWER2, MARKDOWN_CONTENTS, ''), _CARD_ANSWER2)), (0, _defineProperty3.default)(_initialState, CARD_IS_ACTIVE, (0, _defineProperty3.default)({}, VALUE, true)), (0, _defineProperty3.default)(_initialState, IS_CONFIRM_SKIP, false), (0, _defineProperty3.default)(_initialState, SHOW_MAIN_CONTROLS, false), (0, _defineProperty3.default)(_initialState, SHOW_PREVIEW_SOURCE_BUTTONS, false), (0, _defineProperty3.default)(_initialState, HAS_CARD_FOR_REVIEW, true), (0, _defineProperty3.default)(_initialState, CHOSEN_PERFORMANCE, NOT_SELECTED), (0, _defineProperty3.default)(_initialState, CARD_META, {}), (0, _defineProperty3.default)(_initialState, SUBMITTING, false), (0, _defineProperty3.default)(_initialState, ERROR, errorReducer()), _initialState);
+	var initialState = (_initialState = {}, (0, _defineProperty3.default)(_initialState, POST_TO, ''), (0, _defineProperty3.default)(_initialState, PROFILE_URL, ''), (0, _defineProperty3.default)(_initialState, CARD_ID, 0), (0, _defineProperty3.default)(_initialState, CARD_TITLE, (_CARD_TITLE2 = {}, (0, _defineProperty3.default)(_CARD_TITLE2, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_TITLE2, MARKDOWN_CONTENTS, ''), _CARD_TITLE2)), (0, _defineProperty3.default)(_initialState, CURRENT_TAB, CARD_QUESTION), (0, _defineProperty3.default)(_initialState, CARD_DESCRIPTION, (_CARD_DESCRIPTION2 = {}, (0, _defineProperty3.default)(_CARD_DESCRIPTION2, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_DESCRIPTION2, MARKDOWN_CONTENTS, ''), _CARD_DESCRIPTION2)), (0, _defineProperty3.default)(_initialState, CARD_QUESTION, (_CARD_QUESTION2 = {}, (0, _defineProperty3.default)(_CARD_QUESTION2, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_QUESTION2, MARKDOWN_CONTENTS, ''), _CARD_QUESTION2)), (0, _defineProperty3.default)(_initialState, CARD_ANSWER, (_CARD_ANSWER2 = {}, (0, _defineProperty3.default)(_CARD_ANSWER2, MARKDOWN_VIEW, MARKDOWN_VIEW_RENDER), (0, _defineProperty3.default)(_CARD_ANSWER2, MARKDOWN_CONTENTS, ''), _CARD_ANSWER2)), (0, _defineProperty3.default)(_initialState, CARD_IS_ACTIVE, (0, _defineProperty3.default)({}, VALUE, true)), (0, _defineProperty3.default)(_initialState, IS_CONFIRM_SKIP, false), (0, _defineProperty3.default)(_initialState, SHOW_MAIN_CONTROLS, false), (0, _defineProperty3.default)(_initialState, SHOW_PREVIEW_SOURCE_BUTTONS, false), (0, _defineProperty3.default)(_initialState, HAS_CARD_FOR_REVIEW, true), (0, _defineProperty3.default)(_initialState, CHOSEN_PERFORMANCE, NOT_SELECTED), (0, _defineProperty3.default)(_initialState, CARD_META, {}), (0, _defineProperty3.default)(_initialState, SUBMITTING, false), (0, _defineProperty3.default)(_initialState, TIME_TILL_AVAILABLE_FOR_REVIEW, 3), (0, _defineProperty3.default)(_initialState, CARDS_TILL_AVAILABLE_FOR_REVIEW, 1), (0, _defineProperty3.default)(_initialState, TIME_CONTROL, HOURS), (0, _defineProperty3.default)(_initialState, ERROR, errorReducer()), _initialState);
 	
 	/* exports */
 	
