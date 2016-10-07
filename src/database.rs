@@ -314,8 +314,8 @@ fn raw_score(ctx: &Context) -> SqliteResult<c_double> {
     // raw_score(success: int, fail: int) -> f64
     assert!(ctx.len() == 2, "called with unexpected number of arguments");
 
-    let success = try!(ctx.get::<c_int>(0)) as c_double;
-    let fail = try!(ctx.get::<c_int>(1)) as c_double;
+    let success: c_double = try!(ctx.get::<c_double>(0));
+    let fail: c_double = try!(ctx.get::<c_double>(1));
 
     let total: c_double = success + fail;
 

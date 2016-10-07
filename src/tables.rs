@@ -230,8 +230,8 @@ CREATE TABLE IF NOT EXISTS CardsScore (
 
     changelog TEXT NOT NULL DEFAULT '',
 
-    success INTEGER NOT NULL DEFAULT 0,
-    fail INTEGER NOT NULL DEFAULT 0,
+    success REAL NOT NULL DEFAULT 0,
+    fail REAL NOT NULL DEFAULT 0,
 
     times_reviewed INT NOT NULL DEFAULT 0,
     times_seen INT NOT NULL DEFAULT 0,
@@ -276,11 +276,11 @@ CREATE TABLE IF NOT EXISTS CardsScoreHistory (
 
     is_review_event INT NOT NULL DEFAULT 0,
 
-    success INTEGER NOT NULL DEFAULT 0,
-    fail INTEGER NOT NULL DEFAULT 0,
+    success REAL NOT NULL DEFAULT 0,
+    fail REAL NOT NULL DEFAULT 0,
 
-    total_success INTEGER NOT NULL DEFAULT 0,
-    total_fail INTEGER NOT NULL DEFAULT 0,
+    total_success REAL NOT NULL DEFAULT 0,
+    total_fail REAL NOT NULL DEFAULT 0,
 
     changelog TEXT NOT NULL DEFAULT '',
 

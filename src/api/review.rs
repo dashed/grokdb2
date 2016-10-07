@@ -610,8 +610,8 @@ pub struct CardScore {
     pub changelog: String,
 
     pub raw_score: f64, // NOTE: not in database table
-    pub success: u64,
-    pub fail: u64,
+    pub success: f64,
+    pub fail: f64,
 
     pub times_reviewed: u64,
     pub times_seen: u64,
@@ -715,16 +715,10 @@ pub fn get_card_score(context: Rc<RefCell<Context>>, card_id: CardID) -> Result<
 
         let results = db_conn.query_row(&query, &[], |row| -> CardScore {
 
-            let success: i64 =  row.get(1);
-            let success = success as u64;
+            let success: f64 =  row.get(1);
 
-            let fail: i64 =  row.get(2);
-            let fail = fail as u64;
-
-            let total: f64 = (success as f64) + (fail as f64);
-
-            // TODO: centralize this lidstone formula
-            let raw_score = ((fail as f64) + 0.5f64) / (total + 1.0f64);
+            let fail: f64 =  row.get(2);
+            let raw_score = calculate_raw_score(success, fail);
 
             let times_reviewed: i64 =  row.get(3);
             let times_seen: i64 =  row.get(4);
@@ -1136,4 +1130,10 @@ fn gen_card_select(upper_bound: ItemCount) -> Offset {
 
     return card_idx;
 
+}
+
+#[inline]
+fn calculate_raw_score(success: f64, fail: f64) -> f64 {
+    let total: f64 = success + fail;
+    (fail + 0.5f64) / (total + 1.0f64)
 }

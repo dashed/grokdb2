@@ -52,6 +52,7 @@ const CHOSEN_PERFORMANCE = 'CHOSEN_PERFORMANCE';
 const NOT_SELECTED = 'NOT_SELECTED';
 const EASY = 'EASY';
 const RIGHT = 'RIGHT';
+const HARD = 'HARD';
 const WRONG = 'WRONG';
 const FORGOT = 'FORGOT';
 const SHOW_PREVIEW_SOURCE_BUTTONS = 'SHOW_PREVIEW_SOURCE_BUTTONS';
@@ -160,67 +161,85 @@ const __PerformanceControls = function(props) {
 
     const easyClassValue = chosenPerformance != EASY;
     const rightClassValue = chosenPerformance != RIGHT;
+    const hardClassValue = chosenPerformance != HARD;
     const wrongClassValue = chosenPerformance != WRONG;
     const forgotClassValue = chosenPerformance != FORGOT;
 
     const submitting = props.submitting;
 
     return (
-        <div className='columns'>
-            <div className='column is-one-quarter'>
-                <a
-                    href='#easy'
-                    className={classnames('button is-purple is-fullwidth is-bold is-medium',
-                        {
-                            'is-outlined': easyClassValue,
-                            'is-disabled': submitting
-                        })}
-                    onClick={submitting ? noOp() : switchPerformance(props.dispatch, EASY)}
-                >
-                    {'Easy'}
-                </a>
+        <div>
+            <div className='columns'>
+                <div className='column is-one-third'>
+                    <a
+                        href='#easy'
+                        className={classnames('button is-success is-fullwidth is-bold is-medium',
+                            {
+                                'is-outlined': easyClassValue,
+                                'is-disabled': submitting || !easyClassValue
+                            })}
+                        onClick={submitting ? noOp() : switchPerformance(props.dispatch, EASY)}
+                    >
+                        {'Easy'}
+                    </a>
+                </div>
+                <div className='column is-one-third'>
+                    <a
+                        href='#right'
+                        className={classnames('button is-success is-fullwidth is-bold is-medium',
+                            {
+                                'is-outlined': rightClassValue,
+                                'is-disabled': submitting || !rightClassValue
+                            })}
+                        onClick={submitting ? noOp() : switchPerformance(props.dispatch, RIGHT)}
+                    >
+                        {'Right'}
+                    </a>
+                </div>
+                <div className='column is-one-third'>
+                    <a
+                        href='#hard'
+                        className={classnames('button is-success is-fullwidth is-bold is-medium',
+                            {
+                                'is-outlined': hardClassValue,
+                                'is-disabled': submitting || !hardClassValue
+                            })}
+                        onClick={submitting ? noOp() : switchPerformance(props.dispatch, HARD)}
+                    >
+                        {'Hard'}
+                    </a>
+                </div>
             </div>
-            <div className='column is-one-quarter'>
-                <a
-                    href='#right'
-                    className={classnames('button is-success is-fullwidth is-bold is-medium',
-                        {
-                            'is-outlined': rightClassValue,
-                            'is-disabled': submitting
-                        })}
-                    onClick={submitting ? noOp() : switchPerformance(props.dispatch, RIGHT)}
-                >
-                    {'Right'}
-                </a>
-            </div>
-            <div className='column is-one-quarter'>
-                <a
-                    href='#wrong'
-                    className={classnames('button is-danger is-fullwidth is-bold is-medium',
-                        {
-                            'is-outlined': wrongClassValue,
-                            'is-disabled': submitting
-                        })}
-                    onClick={submitting ? noOp() : switchPerformance(props.dispatch, WRONG)}
-                >
-                    {'Wrong'}
-                </a>
-            </div>
-            <div className='column is-one-quarter'>
-                <a
-                    href='#forgot'
-                    className={classnames('button is-warning is-fullwidth is-bold is-medium',
-                        {
-                            'is-outlined': forgotClassValue,
-                            'is-disabled': submitting
-                        })}
-                    // style={{
-                    //     color: '#454552'
-                    // }}
-                    onClick={submitting ? noOp() : switchPerformance(props.dispatch, FORGOT)}
-                >
-                    {'Forgot'}
-                </a>
+            <div className='columns'>
+                <div className='column is-one-half'>
+                    <a
+                        href='#wrong'
+                        className={classnames('button is-danger is-fullwidth is-bold is-medium',
+                            {
+                                'is-outlined': wrongClassValue,
+                                'is-disabled': submitting || !wrongClassValue
+                            })}
+                        onClick={submitting ? noOp() : switchPerformance(props.dispatch, WRONG)}
+                    >
+                        {'Wrong'}
+                    </a>
+                </div>
+                <div className='column is-one-half'>
+                    <a
+                        href='#forgot'
+                        className={classnames('button is-warning is-fullwidth is-bold is-medium',
+                            {
+                                'is-outlined': forgotClassValue,
+                                'is-disabled': submitting || !forgotClassValue
+                            })}
+                        // style={{
+                        //     color: '#454552'
+                        // }}
+                        onClick={submitting ? noOp() : switchPerformance(props.dispatch, FORGOT)}
+                    >
+                        {'Forgot'}
+                    </a>
+                </div>
             </div>
         </div>
     );
@@ -235,6 +254,7 @@ if(process.env.NODE_ENV !== 'production') {
             FORGOT,
             EASY,
             RIGHT,
+            HARD,
             WRONG
         ]),
         submitting: React.PropTypes.bool.isRequired,
@@ -311,6 +331,7 @@ if(process.env.NODE_ENV !== 'production') {
             FORGOT,
             EASY,
             RIGHT,
+            HARD,
             WRONG
         ]),
         reviewRequest: React.PropTypes.object.isRequired,
@@ -1744,6 +1765,7 @@ const performanceReducer = function(state = NOT_SELECTED, action) {
     case WRONG:
     case FORGOT:
     case EASY:
+    case HARD:
         if(state === action.type && state != NOT_SELECTED) {
             state = NOT_SELECTED;
         } else {
@@ -1763,6 +1785,8 @@ const generateReviewAction = function(performance) {
     switch(performance) {
     case EASY:
         return 'Easy';
+    case HARD:
+        return 'Hard';
     case RIGHT:
         return 'Right';
     case WRONG:

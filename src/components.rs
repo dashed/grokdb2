@@ -909,110 +909,216 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             ");
 
                             : raw!("
-                                .button.is-success {
-                                  background-color: #5c940d;
-                                  color: #f4fce3;
-                                  border-color: #5c940d;
-                                }
-
-                                .button.is-success:hover,
+                                .button.is-success,
                                 .button.is-success:focus {
-                                  background-color: #f4fce3;
-                                  color: #5c940d;
-                                  border-color: #5c940d;
-                                }
-
-                                .button.is-success.is-outlined {
-                                  background-color: #f4fce3;
-                                  color: #5c940d;
-                                  border-color: #5c940d;
-                                }
-
-                                .button.is-success.is-outlined:hover,
-                                .button.is-success.is-outlined:focus {
                                   background-color: #5c940d;
                                   color: #f4fce3;
                                   border-color: #5c940d;
                                 }
 
-                                .button.is-danger {
-                                  background-color: #c92a2a;
-                                  color: #fff5f5;
-                                  border-color: #c92a2a;
+                                .button.is-success:hover {
+                                  background-color: #f4fce3;
+                                  color: #5c940d;
+                                  border-color: #5c940d;
                                 }
 
-                                .button.is-danger:hover,
+                                .button.is-success.is-outlined,
+                                .button.is-success.is-outlined:focus {
+                                  background-color: #f4fce3;
+                                  color: #5c940d;
+                                  border-color: #5c940d;
+                                }
+
+                                .button.is-success.is-outlined:hover {
+                                  background-color: #5c940d;
+                                  color: #f4fce3;
+                                  border-color: #5c940d;
+                                }
+
+                                .button.is-danger,
                                 .button.is-danger:focus {
-                                  background-color: #fff5f5;
-                                  color: #c92a2a;
-                                  border-color: #c92a2a;
-                                }
-
-                                .button.is-danger.is-outlined {
-                                  background-color: #fff5f5;
-                                  color: #c92a2a;
-                                  border-color: #c92a2a;
-                                }
-
-                                .button.is-danger.is-outlined:hover,
-                                .button.is-danger.is-outlined:focus {
                                   background-color: #c92a2a;
                                   color: #fff5f5;
                                   border-color: #c92a2a;
                                 }
 
-                                .button.is-warning {
-                                  background-color: #d9480f;
-                                  color: #fff9db;
-                                  border-color: #d9480f;
+                                .button.is-danger:hover {
+                                  background-color: #fff5f5;
+                                  color: #c92a2a;
+                                  border-color: #c92a2a;
                                 }
 
-                                .button.is-warning:hover,
+                                .button.is-danger.is-outlined,
+                                .button.is-danger.is-outlined:focus {
+                                  background-color: #fff5f5;
+                                  color: #c92a2a;
+                                  border-color: #c92a2a;
+                                }
+
+                                .button.is-danger.is-outlined:hover {
+                                  background-color: #c92a2a;
+                                  color: #fff5f5;
+                                  border-color: #c92a2a;
+                                }
+
+                                .button.is-warning,
                                 .button.is-warning:focus {
-                                  background-color: #fff9db;
-                                  color: #d9480f;
-                                  border-color: #d9480f;
-                                }
-
-                                .button.is-warning.is-outlined {
-                                  background-color: #fff9db;
-                                  color: #d9480f;
-                                  border-color: #d9480f;
-                                }
-
-                                .button.is-warning.is-outlined:hover,
-                                .button.is-warning.is-outlined:focus {
                                   background-color: #d9480f;
                                   color: #fff9db;
                                   border-color: #d9480f;
                                 }
 
-                                .button.is-purple {
+                                .button.is-warning:hover {
+                                  background-color: #fff9db;
+                                  color: #d9480f;
+                                  border-color: #d9480f;
+                                }
+
+                                .button.is-warning.is-outlined,
+                                .button.is-warning.is-outlined:focus {
+                                  background-color: #fff9db;
+                                  color: #d9480f;
+                                  border-color: #d9480f;
+                                }
+
+                                .button.is-warning.is-outlined:hover {
+                                  background-color: #d9480f;
+                                  color: #fff9db;
+                                  border-color: #d9480f;
+                                }
+
+                                .button.is-purple,
+                                .button.is-purple:focus {
                                   background-color: #5f3dc4;
                                   color: #f3f0ff;
                                   border-color: #5f3dc4;
                                 }
 
-                                .button.is-purple:hover,
-                                .button.is-purple:focus {
+                                .button.is-purple:hover {
                                   background-color: #f3f0ff;
                                   color: #5f3dc4;
                                   border-color: #5f3dc4;
                                 }
 
-                                .button.is-purple.is-outlined {
-                                  background-color: #f3f0ff;
-                                  color: #5f3dc4;
-                                  border-color: #5f3dc4;
-                                }
-
-                                .button.is-purple.is-outlined:hover,
+                                .button.is-purple.is-outlined,
                                 .button.is-purple.is-outlined:focus {
+                                  background-color: #f3f0ff;
+                                  color: #5f3dc4;
+                                  border-color: #5f3dc4;
+                                }
+
+                                .button.is-purple.is-outlined:hover {
                                   background-color: #5f3dc4;
                                   color: #f3f0ff;
                                   border-color: #5f3dc4;
                                 }
                             ");
+
+                            // : raw!("
+                            //     .button.is-success {
+                            //       background-color: #5c940d;
+                            //       color: #f4fce3;
+                            //       border-color: #5c940d;
+                            //     }
+
+                            //     .button.is-success:hover,
+                            //     .button.is-success:focus {
+                            //       background-color: #f4fce3;
+                            //       color: #5c940d;
+                            //       border-color: #5c940d;
+                            //     }
+
+                            //     .button.is-success.is-outlined {
+                            //       background-color: #f4fce3;
+                            //       color: #5c940d;
+                            //       border-color: #5c940d;
+                            //     }
+
+                            //     .button.is-success.is-outlined:hover,
+                            //     .button.is-success.is-outlined:focus {
+                            //       background-color: #5c940d;
+                            //       color: #f4fce3;
+                            //       border-color: #5c940d;
+                            //     }
+
+                            //     .button.is-danger {
+                            //       background-color: #c92a2a;
+                            //       color: #fff5f5;
+                            //       border-color: #c92a2a;
+                            //     }
+
+                            //     .button.is-danger:hover,
+                            //     .button.is-danger:focus {
+                            //       background-color: #fff5f5;
+                            //       color: #c92a2a;
+                            //       border-color: #c92a2a;
+                            //     }
+
+                            //     .button.is-danger.is-outlined {
+                            //       background-color: #fff5f5;
+                            //       color: #c92a2a;
+                            //       border-color: #c92a2a;
+                            //     }
+
+                            //     .button.is-danger.is-outlined:hover,
+                            //     .button.is-danger.is-outlined:focus {
+                            //       background-color: #c92a2a;
+                            //       color: #fff5f5;
+                            //       border-color: #c92a2a;
+                            //     }
+
+                            //     .button.is-warning {
+                            //       background-color: #d9480f;
+                            //       color: #fff9db;
+                            //       border-color: #d9480f;
+                            //     }
+
+                            //     .button.is-warning:hover,
+                            //     .button.is-warning:focus {
+                            //       background-color: #fff9db;
+                            //       color: #d9480f;
+                            //       border-color: #d9480f;
+                            //     }
+
+                            //     .button.is-warning.is-outlined {
+                            //       background-color: #fff9db;
+                            //       color: #d9480f;
+                            //       border-color: #d9480f;
+                            //     }
+
+                            //     .button.is-warning.is-outlined:hover,
+                            //     .button.is-warning.is-outlined:focus {
+                            //       background-color: #d9480f;
+                            //       color: #fff9db;
+                            //       border-color: #d9480f;
+                            //     }
+
+                            //     .button.is-purple {
+                            //       background-color: #5f3dc4;
+                            //       color: #f3f0ff;
+                            //       border-color: #5f3dc4;
+                            //     }
+
+                            //     .button.is-purple:hover,
+                            //     .button.is-purple:focus {
+                            //       background-color: #f3f0ff;
+                            //       color: #5f3dc4;
+                            //       border-color: #5f3dc4;
+                            //     }
+
+                            //     .button.is-purple.is-outlined {
+                            //       background-color: #f3f0ff;
+                            //       color: #5f3dc4;
+                            //       border-color: #5f3dc4;
+                            //     }
+
+                            //     .button.is-purple.is-outlined:hover,
+                            //     .button.is-purple.is-outlined:focus {
+                            //       background-color: #5f3dc4;
+                            //       color: #f3f0ff;
+                            //       border-color: #5f3dc4;
+                            //     }
+                            // ");
                         }
                     }
                 }
