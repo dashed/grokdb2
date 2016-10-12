@@ -76,9 +76,7 @@ pub enum AppRoute {
 
     Deck(DeckID, DeckRoute),
 
-    // TODO: remove
-    // Card(CardID, CardRoute),
-    // CardInDeck(DeckID, CardID, CardRoute),
+    Card(CardID, CardRoute)
 }
 
 #[derive(Debug, Clone)]
@@ -128,7 +126,8 @@ pub enum DeckRoute {
     Stats,
     Review(Option<(CardID, Option<CachedReviewProcedure>)>),
 
-    CardProfile(CardID, CardRoute)
+    // TODO: remove
+    // CardProfile(CardID, CardRoute)
 
     // Create,
     // Read,
@@ -194,9 +193,8 @@ pub fn parse_request_uri<'a>(input: Input<'a, u8>, context: Rc<RefCell<Context>>
             // /api/*
             parse_route_api(context.clone(), request.clone()) <|>
 
-            // TODO: complete
             // /card/*
-            // parse_route_card() <|>
+            parse_route_card_profile(context.clone(), request.clone()) <|>
 
             // /deck/*
             parse_route_deck(context.clone(), request.clone()) <|>
@@ -327,7 +325,7 @@ fn parse_assets<'a>(input: Input<'a, u8>, request: Rc<RefCell<Request>>) -> U8Re
 fn parse_route_preferences<'a>(
     input: Input<'a, u8>,
     _context: Rc<RefCell<Context>>,
-    _request: Rc<RefCell<Request>>) -> U8Result<'a, RenderResponse> {
+    request: Rc<RefCell<Request>>) -> U8Result<'a, RenderResponse> {
 
     parse!{input;
 
@@ -345,8 +343,12 @@ fn parse_route_preferences<'a>(
         eof();
 
         ret {
-            let route = AppRoute::Preferences;
-            RenderResponse::Component(route)
+            if request.borrow().method != Method::Get {
+                RenderResponse::MethodNotAllowed
+            } else {
+                let route = AppRoute::Preferences;
+                RenderResponse::Component(route)
+            }
         }
 
     }
@@ -662,11 +664,10 @@ fn __parse_route_api_card_move(
                 Ok(_card) => {
 
                     let response = cards::MoveCardResponse {
-                        redirect_to: view_route_to_link(context.clone(), AppRoute::Deck(request.deck_id,
-                            DeckRoute::CardProfile(card_id,
-                                CardRoute::Settings(CardSettings::Move(
-                                    MoveDecksPageQuery::default_with_card(context.clone(), card_id),
-                                    Default::default())))))
+                        redirect_to: view_route_to_link(context.clone(), AppRoute::Card(card_id,
+                            CardRoute::Settings(CardSettings::Move(
+                                MoveDecksPageQuery::default_with_card(context.clone(), card_id),
+                                Default::default()))))
                     };
 
                     return respond_json!(Some(response));
@@ -1545,8 +1546,7 @@ fn __parse_route_api_deck_new_card(
                 Ok(new_card) => {
 
                     let card_route = CardRoute::Contents;
-                    let app_route = AppRoute::Deck(parent_deck_id,
-                        DeckRoute::CardProfile(new_card.id, card_route));
+                    let app_route = AppRoute::Card(new_card.id, card_route);
 
                     let response = cards::CardCreateResponse {
                         profile_url: view_route_to_link(context, app_route)
@@ -1804,8 +1804,6 @@ fn __parse_route_deck<'a>(
                 parse_route_deck_decks(context.clone(), request.clone(), deck_id) <|>
                 // /cards
                 parse_route_deck_cards(context.clone(), request.clone(), deck_id) <|>
-                // /card/:id/*
-                parse_route_deck_card_profile(context.clone(), request.clone(), deck_id) <|>
                 // /new/deck
                 parse_route_deck_new_deck(request.clone(), deck_id) <|>
                 // /new/card
@@ -2016,11 +2014,10 @@ fn route_deck_cards(
 }
 
 #[inline]
-fn parse_route_deck_card_profile<'a>(
+fn parse_route_card_profile<'a>(
     input: Input<'a, u8>,
     context: Rc<RefCell<Context>>,
-    request: Rc<RefCell<Request>>,
-    deck_id: DeckID) -> U8Result<'a, RenderResponse> {
+    request: Rc<RefCell<Request>>) -> U8Result<'a, RenderResponse> {
 
     (parse!{input;
 
@@ -2031,24 +2028,7 @@ fn parse_route_deck_card_profile<'a>(
         ret card_id
 
     }).bind(|i, card_id| {
-
-        let _guard = context::read_lock(context.clone());
-
-        match cards::is_card_in_deck(context.clone(), card_id, deck_id) {
-            Ok(exists) => {
-
-                if exists {
-                    __parse_route_card(i, context.clone(), request, deck_id, card_id)
-                } else {
-                    // TODO: redirect to /card/:id
-                    i.ret(RenderResponse::NotFound)
-                }
-
-            },
-            // TODO: internal error logging
-            Err(_) => i.ret(RenderResponse::InternalServerError)
-        }
-
+        __parse_route_card(i, context.clone(), request, card_id)
     })
 }
 
@@ -2057,26 +2037,38 @@ fn __parse_route_card<'a>(
     input: Input<'a, u8>,
     context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
-    deck_id: DeckID,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
+
+    {
+        let _guard = context::read_lock(context.clone());
+        match cards::card_exists(context.clone(), card_id) {
+            Err(_) => {},
+            Ok(exists) => {
+                if !exists {
+                    return input.ret(RenderResponse::NotFound);
+                }
+            }
+        }
+    };
+
     parse!{input;
 
         let render_response = or(|i| parse!{i;
 
             parse_byte_limit(b'/', 5);
 
-            let render_response =
+            let card_route_response =
                 // /contents
-                parse_route_card_contents(context.clone(), request.clone(), deck_id, card_id) <|>
+                parse_route_card_contents(context.clone(), request.clone(), card_id) <|>
                 // /review
-                parse_route_card_review(context.clone(), request.clone(), deck_id, card_id) <|>
+                parse_route_card_review(context.clone(), request.clone(), card_id) <|>
                 // /stats
-                parse_route_card_stats(context.clone(), request.clone(), deck_id, card_id) <|>
+                parse_route_card_stats(context.clone(), request.clone(), card_id) <|>
                 // /settings
-                parse_route_card_settings(context.clone(), request.clone(), deck_id, card_id);
+                parse_route_card_settings(context.clone(), request.clone(), card_id);
 
 
-            ret render_response
+            ret card_route_response
 
         }, |i| parse!{i;
 
@@ -2092,8 +2084,12 @@ fn __parse_route_card<'a>(
             eof();
 
             ret {
-                let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Contents));
-                RenderResponse::Component(route)
+                if request.borrow().method != Method::Get {
+                    RenderResponse::MethodNotAllowed
+                } else {
+                    let route = AppRoute::Card(card_id, CardRoute::Contents);
+                    RenderResponse::Component(route)
+                }
             }
 
         });
@@ -2106,8 +2102,7 @@ fn __parse_route_card<'a>(
 fn parse_route_card_contents<'a>(
     input: Input<'a, u8>,
     _context: Rc<RefCell<Context>>,
-    _request: Rc<RefCell<Request>>,
-    deck_id: DeckID,
+    request: Rc<RefCell<Request>>,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -2125,8 +2120,15 @@ fn parse_route_card_contents<'a>(
         eof();
 
         ret {
-            let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Contents));
-            RenderResponse::Component(route)
+
+            if request.borrow().method != Method::Get {
+                RenderResponse::MethodNotAllowed
+            } else {
+
+                let route = AppRoute::Card(card_id, CardRoute::Contents);
+                RenderResponse::Component(route)
+
+            }
         }
     }
 }
@@ -2135,8 +2137,7 @@ fn parse_route_card_contents<'a>(
 fn parse_route_card_review<'a>(
     input: Input<'a, u8>,
     _context: Rc<RefCell<Context>>,
-    _request: Rc<RefCell<Request>>,
-    deck_id: DeckID,
+    request: Rc<RefCell<Request>>,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -2154,8 +2155,14 @@ fn parse_route_card_review<'a>(
         eof();
 
         ret {
-            let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Review));
-            RenderResponse::Component(route)
+
+            if request.borrow().method != Method::Get {
+                RenderResponse::MethodNotAllowed
+            } else {
+
+                let route = AppRoute::Card(card_id, CardRoute::Review);
+                RenderResponse::Component(route)
+            }
         }
     }
 }
@@ -2164,8 +2171,7 @@ fn parse_route_card_review<'a>(
 fn parse_route_card_stats<'a>(
     input: Input<'a, u8>,
     _context: Rc<RefCell<Context>>,
-    _request: Rc<RefCell<Request>>,
-    deck_id: DeckID,
+    request: Rc<RefCell<Request>>,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -2183,8 +2189,13 @@ fn parse_route_card_stats<'a>(
         eof();
 
         ret {
-            let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id, CardRoute::Stats));
-            RenderResponse::Component(route)
+
+            if request.borrow().method != Method::Get {
+                RenderResponse::MethodNotAllowed
+            } else {
+                let route = AppRoute::Card(card_id, CardRoute::Stats);
+                RenderResponse::Component(route)
+            }
         }
     }
 }
@@ -2194,14 +2205,13 @@ fn parse_route_card_settings<'a>(
     input: Input<'a, u8>,
     context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
-    deck_id: DeckID,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
         string_ignore_case(b"settings");
 
-        let response = parse_route_card_settings_move(context, request.clone(), deck_id, card_id) <|>
-            parse_route_card_settings_main(request.clone(), deck_id, card_id);
+        let response = parse_route_card_settings_move(context, request.clone(), card_id) <|>
+            parse_route_card_settings_main(request.clone(), card_id);
 
         ret response
 
@@ -2214,7 +2224,6 @@ fn parse_route_card_settings_main<'a>(
     // NOTE: not needed
     // context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
-    deck_id: DeckID,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -2233,8 +2242,7 @@ fn parse_route_card_settings_main<'a>(
                 RenderResponse::MethodNotAllowed
             } else {
 
-                let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id,
-                    CardRoute::Settings(CardSettings::Main)));
+                let route = AppRoute::Card(card_id, CardRoute::Settings(CardSettings::Main));
 
                 RenderResponse::Component(route)
             }
@@ -2247,7 +2255,6 @@ fn parse_route_card_settings_move<'a>(
     input: Input<'a, u8>,
     context: Rc<RefCell<Context>>,
     request: Rc<RefCell<Request>>,
-    deck_id: DeckID,
     card_id: CardID) -> U8Result<'a, RenderResponse> {
     parse!{input;
 
@@ -2283,8 +2290,7 @@ fn parse_route_card_settings_move<'a>(
                     }
                 };
 
-                let route = AppRoute::Deck(deck_id, DeckRoute::CardProfile(card_id,
-                    CardRoute::Settings(card_settings_move)));
+                let route = AppRoute::Card(card_id, CardRoute::Settings(card_settings_move));
 
                 RenderResponse::Component(route)
             }
@@ -2525,7 +2531,6 @@ fn parse_route_deck_new_card<'a>(
         eof();
 
         ret {
-            // Allow only GET requests
             __parse_route_deck_new_card(context, request, deck_id, query_string)
 
         }
@@ -2539,6 +2544,7 @@ fn __parse_route_deck_new_card(
     deck_id: DeckID,
     query_string: Option<QueryString>) -> RenderResponse {
 
+    // Allow only GET requests
     if request.borrow().method != Method::Get {
         return RenderResponse::MethodNotAllowed;
     }

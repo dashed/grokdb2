@@ -520,7 +520,7 @@ impl ReviewResponse {
             let card_for_review = CardForReview {
                 post_to: generate_post_to(&AppRoute::Deck(deck.id, DeckRoute::Review(None))),
                 profile_url: view_route_to_link(context,
-                                    AppRoute::Deck(deck.id, DeckRoute::CardProfile(card.id, Default::default()))),
+                                    AppRoute::Card(card.id, Default::default())),
                 card: card,
                 card_meta: cached_review_procedure,
                 card_score: card_score
