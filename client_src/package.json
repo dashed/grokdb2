@@ -44,6 +44,7 @@
     "redux-logger": "^2.6.1",
     "redux-thunk": "^2.1.0",
     "stats-webpack-plugin": "^0.4.2",
-    "webpack": "^1.13"
+    "webpack": "^1.13",
+    "tachyons": "4.5.3"
   }
 }
