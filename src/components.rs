@@ -2277,7 +2277,7 @@ fn CardDetailNav(
                         a(href = view_route_to_link(context.clone(),
                             AppRoute::Deck(deck_id,
                                 DeckRoute::NewCard(Some(card_id)))),
-                            class = "is-bold button is-primary is-fullwidth is-medium"
+                            class = "is-bold button is-primary is-fullwidth is-medium is-outlined"
                         ) {
                             : "Clone Card"
                         }
@@ -2666,7 +2666,7 @@ fn CardListItemComponent(
             style=labels!(
                 "border-bottom:1px dotted #d3d6db;" => !is_bottom)) {
             div(class="column is-side-paddingless") {
-                h5(class="title is-5 is-marginless is-bold") {
+                h5(class="title is-5 is-bold", style="margin-bottom: 10px;") {
                     a(href = view_route_to_link(context.clone(),
                                 AppRoute::Card(card_id, CardRoute::Contents))
                     ) {
@@ -3586,7 +3586,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
 
                         div(class="level-item") {
 
-                            h5(class="title is-5 is-marginless is-bold") {
+                            h5(class="title is-5 is-bold", style="margin-bottom: 10px;") {
                                 a(href = view_route_to_link(context.clone(),
                                             AppRoute::Deck(child_deck,
                                                 DeckRoute::Settings(
@@ -3934,7 +3934,7 @@ fn DeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>
             style=labels!(
                 "border-bottom:1px dotted #d3d6db;" => !is_bottom)) {
             div(class="column is-side-paddingless") {
-                h5(class="title is-5 is-marginless is-bold") {
+                h5(class="title is-5 is-bold", style="margin-bottom: 10px;") {
                     a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
                                         DeckRoute::Decks(DecksPageQuery::default_with_deck(deck_id),
@@ -4585,7 +4585,7 @@ fn MoveCardToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
 
                         div(class="level-item") {
 
-                            h5(class="title is-5 is-marginless is-bold") {
+                            h5(class="title is-5 is-bold", style="margin-bottom: 10px;") {
                                 a(href = view_route_to_link(context.clone(),
                                             AppRoute::Card(card_id,
                                                 CardRoute::Settings(CardSettings::Move(
