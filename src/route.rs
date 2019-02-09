@@ -1,6 +1,7 @@
 /* rust lib imports */
 
-use std::panic::{self, AssertUnwindSafe};
+use std::panic;
+use std::panic::{AssertUnwindSafe};
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::Read;

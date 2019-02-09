@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 
 /* 3rd-party imports */
 
-use libc::{c_int, c_double};
+use libc::{c_double};
 use rusqlite::{Connection, Result as SqliteResult};
 use rusqlite::functions::{Context};
 

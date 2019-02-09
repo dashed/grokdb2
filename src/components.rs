@@ -5,7 +5,7 @@ use std::cell::RefCell;
 
 /* 3rd-party imports */
 
-use horrorshow::{TemplateBuffer, Template};
+use horrorshow::{TemplateBuffer, Template,Raw};
 
 use serde_json;
 
@@ -294,7 +294,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
     // invariant: this function is excuted inside a script tag
 
     // NOTES:
-    // - use raw! macro
+    // - use Raw macro
     // - if possible, write JSON manually
 
     // window.__PRE_RENDER_STATE__
@@ -359,7 +359,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     };
 
                     tmpl << html! {
-                        : raw!(
+                        : Raw(
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
@@ -396,7 +396,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         CardSettings::Main => {
 
                             tmpl << html! {
-                                : raw!(
+                                : Raw(
                                     format!(
                                         "window.__PRE_RENDER_STATE__ = \
                                             {{\
@@ -412,7 +412,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         CardSettings::Move(_, _) => {
 
                             tmpl << html! {
-                                : raw!(
+                                : Raw(
                                     format!(
                                         "window.__PRE_RENDER_STATE__ = \
                                             {{\
@@ -465,7 +465,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     };
 
                     tmpl << html! {
-                        : raw!(
+                        : Raw(
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
@@ -496,7 +496,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
             match *deck_route {
                 DeckRoute::NewDeck => {
                     tmpl << html! {
-                        : raw!(
+                        : Raw(
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
@@ -544,7 +544,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     };
 
                     tmpl << html! {
-                        : raw!(
+                        : Raw(
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
@@ -566,7 +566,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                 },
                 DeckRoute::NewCard(None) => {
                     tmpl << html! {
-                        : raw!(
+                        : Raw(
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
@@ -594,7 +594,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     };
 
                     tmpl << html! {
-                        : raw!(
+                        : Raw(
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
@@ -624,7 +624,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     };
 
                     tmpl << html! {
-                        : raw!(
+                        : Raw(
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
@@ -646,7 +646,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                 },
                 DeckRoute::Settings(DeckSettings::Move(_, _)) => {
                     tmpl << html! {
-                        : raw!(
+                        : Raw(
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
@@ -664,7 +664,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                         None => {
 
                             tmpl << html! {
-                                : raw!(
+                                : Raw(
                                     format!(
                                         "window.__PRE_RENDER_STATE__ = \
                                             {{\
@@ -743,7 +743,7 @@ fn pre_render_state(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     };
 
                     tmpl << html! {
-                        : raw!(
+                        : Raw(
                             format!(
                                 "window.__PRE_RENDER_STATE__ = \
                                     {{\
@@ -841,7 +841,7 @@ fn generate_title(
 pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, app_route: &AppRoute) {
 
     tmpl << html! {
-        : raw!("<!DOCTYPE html>");
+        : Raw("<!DOCTYPE html>");
         html {
             head {
                 title {
@@ -854,7 +854,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                 // TODO: necessary?
                 // style(type="text/css") {
-                //     : raw!(include_str!("../assets/bulma.css"))
+                //     : Raw(include_str!("../assets/bulma.css"))
                 // }
 
                 link (
@@ -869,7 +869,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             // sticky footer
                             // source: https://philipwalton.github.io/solved-by-flexbox/demos/sticky-footer/
 
-                            : raw!("\
+                            : Raw("\
                                 body {\
                                     display: flex;\
                                     min-height: 100vh;\
@@ -877,7 +877,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                     background-color: #ffffff;\
                                 }\
                             ");
-                            : raw!("\
+                            : Raw("\
                                 #grokdb {\
                                     flex: 1;\
                                 }\
@@ -886,20 +886,20 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             // custom styles
                             // TODO: merge back into bulma css
 
-                            : raw!("\
+                            : Raw("\
                                 .is-side-paddingless {\
                                     padding-left: 0;\
                                     padding-right: 0;\
                                 }\
                             ");
 
-                            : raw!("\
+                            : Raw("\
                                 .is-bold{\
                                     font-weight: bold;\
                                 }\
                             ");
 
-                            : raw!("\
+                            : Raw("\
                                 span.mathjax_inline_pre {\
                                     font-weight: inherit;\
                                 }\
@@ -908,7 +908,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 }\
                             ");
 
-                            : raw!("
+                            : Raw("
                                 .button.is-success,
                                 .button.is-success:focus {
                                   background-color: #5c940d;
@@ -1014,7 +1014,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 }
                             ");
 
-                            // : raw!("
+                            // : Raw("
                             //     .button.is-success {
                             //       background-color: #5c940d;
                             //       color: #f4fce3;
@@ -1125,7 +1125,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                 // http://docs.mathjax.org/en/latest/configuration.html
                 script(type="text/x-mathjax-config") {
-                    : raw!(r"
+                    : Raw(r"
                         MathJax.Hub.Config({
                             skipStartupTypeset: true,
                             tex2jax: {
@@ -1149,7 +1149,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                             div(class="nav-left") {
                                 a(class="nav-item", href="/") {
                                     h1(class="title", style="font-weight:bold;") {
-                                        : raw!("grokdb")
+                                        : Raw("grokdb")
                                     }
 
                                 }
@@ -1171,7 +1171,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                                 matches!(*app_route, AppRoute::Deck(_, _))
                                             }),
                                         href="/") {
-                                        : raw!("Decks")
+                                        : Raw("Decks")
                                     }
                                 }
 
@@ -1185,7 +1185,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                 //                 matches!(*app_route, AppRoute::Stashes)
                                 //             }),
                                 //         href="#") {
-                                //         : raw!("Stashes")
+                                //         : Raw("Stashes")
                                 //     }
                                 // }
 
@@ -1198,7 +1198,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                                                 matches!(*app_route, AppRoute::Preferences)
                                             }),
                                         href = view_route_to_link(context.clone(), AppRoute::Preferences)) {
-                                        : raw!("Preferences")
+                                        : Raw("Preferences")
                                     }
                                 }
 
@@ -1238,7 +1238,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
                     div(class="content has-text-centered") {
                         p {
 
-                            : raw!("grokdb v");
+                            : Raw("grokdb v");
                             : env!("CARGO_PKG_VERSION");
 
                             : format!(" - Total Reviews: {}", {
@@ -1361,7 +1361,7 @@ pub fn AppComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, ap
 
                                 // script(type="text/javascript") {
                                 //     // needs to be raw b/c of html escaping
-                                //     : raw!(format!("window.__PRE_RENDER_STATE__ = {};",
+                                //     : Raw(format!("window.__PRE_RENDER_STATE__ = {};",
                                 //         view_route_to_pre_render_state(context.view_route.clone(), context)))
                                 // }
 
@@ -1521,7 +1521,7 @@ fn Preferences(
             div(class="columns") {
                 div(class="column") {
                     h2(class="title is-2") {
-                        : raw!("Preferences")
+                        : Raw("Preferences")
                     }
                 }
             }
@@ -1529,7 +1529,7 @@ fn Preferences(
             div(class="columns") {
                 div(class="column") {
                     h3(class="title is-3") {
-                        : raw!("Database backup")
+                        : Raw("Database backup")
                     }
                 }
             }
@@ -1538,7 +1538,7 @@ fn Preferences(
                 div(class="column") {
                     div(id="backup_container") {
                         a(class="button is-primary is-bold is-outlined") {
-                            : raw!("Backup database")
+                            : Raw("Backup database")
                         }
                     }
                 }
@@ -1629,11 +1629,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                     |tmpl| {
                         if index == 0 {
                             tmpl << html!{
-                                : raw!("/ ");
+                                : Raw("/ ");
                             }
                         } else {
                             tmpl << html!{
-                                : raw!(" / ");
+                                : Raw(" / ");
                             }
                         }
                     }
@@ -1687,11 +1687,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    : raw!(" / ");
+                                    : Raw(" / ");
                                 }
 
                                 span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                    : raw!("Review")
+                                    : Raw("Review")
                                 }
                             }
                     },
@@ -1699,11 +1699,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    : raw!(" / ");
+                                    : Raw(" / ");
                                 }
 
                                 span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                    : raw!("Deck Description")
+                                    : Raw("Deck Description")
                                 }
                             }
                     },
@@ -1711,11 +1711,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    : raw!(" / ");
+                                    : Raw(" / ");
                                 }
 
                                 span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                    : raw!("Decks")
+                                    : Raw("Decks")
                                 }
                             }
                     },
@@ -1723,11 +1723,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    : raw!(" / ");
+                                    : Raw(" / ");
                                 }
 
                                 span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                    : raw!("Cards")
+                                    : Raw("Cards")
                                 }
                             }
                     },
@@ -1735,11 +1735,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    : raw!(" / ");
+                                    : Raw(" / ");
                                 }
 
                                 span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                    : raw!("Add New Card")
+                                    : Raw("Add New Card")
                                 }
                             }
                     },
@@ -1747,11 +1747,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    : raw!(" / ");
+                                    : Raw(" / ");
                                 }
 
                                 span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                    : raw!("Add New Deck")
+                                    : Raw("Add New Deck")
                                 }
                             }
                     },
@@ -1759,11 +1759,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    : raw!(" / ");
+                                    : Raw(" / ");
                                 }
 
                                 span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                    : raw!("Settings")
+                                    : Raw("Settings")
                                 }
 
                                 |tmpl| {
@@ -1773,11 +1773,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
 
                                             tmpl << html!{
                                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                                    : raw!(" / ");
+                                                    : Raw(" / ");
                                                 }
 
                                                 span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                                    : raw!("Move Deck")
+                                                    : Raw("Move Deck")
                                                 }
                                             }
                                         },
@@ -1792,11 +1792,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                             tmpl << html!{
 
                                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                    : raw!(" / ");
+                                    : Raw(" / ");
                                 }
 
                                 span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                    : raw!("Statistics")
+                                    : Raw("Statistics")
                                 }
                             }
                     },
@@ -1805,11 +1805,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                         tmpl << html!{
 
                             span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                : raw!(" / ");
+                                : Raw(" / ");
                             }
 
                             span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                : raw!(format!("Card #{}", card_id))
+                                : Raw(format!("Card #{}", card_id))
                             }
 
                             |tmpl| {
@@ -1823,11 +1823,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                         tmpl << html!{
 
                                             span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                                : raw!(" / ");
+                                                : Raw(" / ");
                                             }
 
                                             span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                                : raw!("Review")
+                                                : Raw("Review")
                                             }
 
                                         }
@@ -1837,11 +1837,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                         tmpl << html!{
 
                                             span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                                : raw!(" / ");
+                                                : Raw(" / ");
                                             }
 
                                             span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                                : raw!("Statistics")
+                                                : Raw("Statistics")
                                             }
 
                                         }
@@ -1851,11 +1851,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
                                         tmpl << html!{
 
                                             span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                                : raw!(" / ");
+                                                : Raw(" / ");
                                             }
 
                                             span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                                : raw!("Settings")
+                                                : Raw("Settings")
                                             }
 
                                             |tmpl| {
@@ -1868,11 +1868,11 @@ fn DeckPath(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, deck_id: D
 
                                                         tmpl << html!{
                                                             span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                                                                : raw!(" / ");
+                                                                : Raw(" / ");
                                                             }
 
                                                             span(class="title is-5 is-marginless", style="font-weight:bold;") {
-                                                                : raw!("Move")
+                                                                : Raw("Move")
                                                             }
                                                         }
 
@@ -1949,14 +1949,14 @@ fn DeckDetail(tmpl: &mut TemplateBuffer,
 
             nav(class="panel") {
                 p(class="panel-heading is-bold") {
-                    : raw!("Deck #");
+                    : Raw("Deck #");
                     : deck_id
                 }
                 div(class="panel-block") {
 
                     aside(class="menu has-text-right") {
                         ul(class="menu-list") {
-                            li(style = raw!("padding-bottom:2px;")) {
+                            li(style = Raw("padding-bottom:2px;")) {
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
                                         DeckRoute::Description)),
@@ -1970,7 +1970,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer,
                                     : "Description"
                                 }
                             }
-                            li(style = raw!("padding-top:2px;padding-bottom:2px;")) {
+                            li(style = Raw("padding-top:2px;padding-bottom:2px;")) {
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
                                         DeckRoute::Decks(DecksPageQuery::default_with_deck(deck_id),
@@ -1999,14 +1999,14 @@ fn DeckDetail(tmpl: &mut TemplateBuffer,
 
                                         span(class="level-right") {
                                             span(class="level-item") {
-                                                : raw!("Decks")
+                                                : Raw("Decks")
                                             }
                                         }
                                     }
 
                                 }
                             }
-                            li(style = raw!("padding-top:2px;padding-bottom:2px;")) {
+                            li(style = Raw("padding-top:2px;padding-bottom:2px;")) {
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
                                         DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id)))),
@@ -2034,14 +2034,14 @@ fn DeckDetail(tmpl: &mut TemplateBuffer,
 
                                         span(class="level-right") {
                                             span(class="level-item") {
-                                                : raw!("Cards")
+                                                : Raw("Cards")
                                             }
                                         }
                                     }
 
                                 }
                             }
-                            li(style = raw!("padding-top:2px;padding-bottom:2px;")) {
+                            li(style = Raw("padding-top:2px;padding-bottom:2px;")) {
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
                                         DeckRoute::Stats)),
@@ -2054,7 +2054,7 @@ fn DeckDetail(tmpl: &mut TemplateBuffer,
                                     : "Stats"
                                 }
                             }
-                            li(style = raw!("padding-top:2px;")) {
+                            li(style = Raw("padding-top:2px;")) {
                                 a(href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id,
                                         DeckRoute::Settings(DeckSettings::Main))),
@@ -2221,14 +2221,14 @@ fn CardDetailNav(
 
                 nav(class="panel") {
                     p(class="panel-heading is-bold") {
-                        : raw!("Card #");
+                        : Raw("Card #");
                         : card_id
                     }
                     div(class="panel-block") {
 
                         aside(class="menu has-text-right") {
                             ul(class="menu-list") {
-                                li(style = raw!("padding-bottom:2px;")) {
+                                li(style = Raw("padding-bottom:2px;")) {
                                     a(href = view_route_to_link(context.clone(),
                                                 AppRoute::Card(card_id, CardRoute::Contents)),
                                         class? = classnames!(
@@ -2241,7 +2241,7 @@ fn CardDetailNav(
                                         : "Contents"
                                     }
                                 }
-                                li(style = raw!("padding-top:2px;padding-bottom:2px;")) {
+                                li(style = Raw("padding-top:2px;padding-bottom:2px;")) {
                                     a(href = view_route_to_link(context.clone(),
                                         AppRoute::Card(card_id, CardRoute::Stats)),
                                         class? = classnames!(
@@ -2254,7 +2254,7 @@ fn CardDetailNav(
                                         : "Stats"
                                     }
                                 }
-                                li(style = raw!("padding-top:2px;")) {
+                                li(style = Raw("padding-top:2px;")) {
                                     a(href = view_route_to_link(context.clone(),
                                         AppRoute::Card(card_id, CardRoute::Settings(CardSettings::Main))),
                                         class? = classnames!(
@@ -2318,7 +2318,7 @@ fn NewDeck(
     tmpl << html!{
 
         div(id="new_deck_container") {
-            : raw!(include_str!("react_components/new_deck"))
+            : Raw(include_str!("react_components/new_deck"))
         }
     }
 }
@@ -2331,7 +2331,7 @@ fn NewCard(
 
     tmpl << html!{
         div(id="new_card_container") {
-            : raw!(include_str!("react_components/new_card"))
+            : Raw(include_str!("react_components/new_card"))
         }
     }
 }
@@ -2355,13 +2355,13 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
         // div(class="columns") {
         //     div(class="column") {
         //         h1(class="title") {
-        //             : raw!("Deck Description")
+        //             : Raw("Deck Description")
         //         }
         //     }
         // }
 
         div(id="deck_description_container") {
-            : raw!(include_str!("react_components/deck_description"))
+            : Raw(include_str!("react_components/deck_description"))
         }
 
         div(id="deck_description_container_stub", style="margin-top: 10px;") {
@@ -2371,11 +2371,11 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
             div(class="columns") {
                 div(class="column") {
                     a(class="button is-primary is-bold") {
-                        : raw!("Preview")
+                        : Raw("Preview")
                     }
-                    : raw!(" ");
+                    : Raw(" ");
                     a(class="button is-bold") {
-                        : raw!("Source")
+                        : Raw("Source")
                     }
                 }
             }
@@ -2388,7 +2388,7 @@ fn DeckDescription(tmpl: &mut TemplateBuffer, context: Rc<RefCell<Context>>, dec
                             tmpl << html!{
                                 div(class="message is-info") {
                                     div(class="message-body") {
-                                        : raw!("No description set for this deck. \
+                                        : Raw("No description set for this deck. \
                                             Click \"Edit\" button to add a description.");
                                     }
                                 }
@@ -2434,7 +2434,7 @@ fn DeckCards(
                             a(class="button is-bold is-success",
                                 href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id, DeckRoute::NewCard(None)))) {
-                                : raw!("New Card")
+                                : Raw("New Card")
                             }
                         }
                     }
@@ -2572,7 +2572,7 @@ fn DeckCards(
                                             a(class="button", href=view_route_to_link(context.clone(),
                                                 AppRoute::Deck(deck_id,
                                                     DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id))))) {
-                                                : raw!("Clear")
+                                                : Raw("Clear")
                                             }
                                         }
                                     }
@@ -2587,7 +2587,7 @@ fn DeckCards(
                                 );
 
                                 button(class="button is-primary is-outlined", type="submit") {
-                                    : raw!("Search Cards")
+                                    : Raw("Search Cards")
                                 }
 
                             }
@@ -2626,7 +2626,7 @@ fn CardsList(tmpl: &mut TemplateBuffer,
                 div(class="column") {
                     article(class="message") {
                         div(class="message-body") {
-                            : raw!("There are no cards to display. You may create one within this deck.")
+                            : Raw("There are no cards to display. You may create one within this deck.")
                         }
                     }
                 }
@@ -2715,19 +2715,19 @@ fn CardListItemDetailComponent(
 
                         div(class="level-left") {
                             div(class="level-item", style="font-size:12px; margin-right: 10px;") {
-                                : raw!(format!("Card #{}", card.id));
+                                : Raw(format!("Card #{}", card.id));
                             }
 
                             div(class="level-item", style="font-size:12px; margin-right: 10px;") {
                                 strong {
-                                    : raw!("Score: ")
+                                    : Raw("Score: ")
                                 }
-                                : raw!(format!("{} / 100", card_score.get_perf_score_percent_string()))
+                                : Raw(format!("{} / 100", card_score.get_perf_score_percent_string()))
                             }
 
                             div(class="level-item", style="font-size:12px; margin-right: 10px;") {
                                 strong {
-                                    : raw!("Times reviewed: ");
+                                    : Raw("Times reviewed: ");
                                 }
                                 : card_score.times_reviewed
                             }
@@ -2741,7 +2741,7 @@ fn CardListItemDetailComponent(
                                         tmpl << html!{
 
                                             span(class="tag is-bold is-success is-small") {
-                                                : raw!("Active")
+                                                : Raw("Active")
                                             }
 
                                         };
@@ -2751,7 +2751,7 @@ fn CardListItemDetailComponent(
                                         tmpl << html!{
 
                                             span(class="tag is-bold is-danger is-small") {
-                                                : raw!("Not Active")
+                                                : Raw("Not Active")
                                             }
 
                                         };
@@ -2775,36 +2775,36 @@ fn CardListItemDetailComponent(
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                         AppRoute::Card(card_id, CardRoute::Contents)),
-                                class = raw!("button is-small")
+                                class = Raw("button is-small")
                             ) {
-                                : raw!("Contents")
+                                : Raw("Contents")
                             }
                         }
 
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                             AppRoute::Card(card_id, CardRoute::Stats)),
-                                class = raw!("button is-small")
+                                class = Raw("button is-small")
                             ) {
-                                : raw!("Stats")
+                                : Raw("Stats")
                             }
                         }
 
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                         AppRoute::Card(card_id, CardRoute::Settings(Default::default()))),
-                                class = raw!("button is-small")
+                                class = Raw("button is-small")
                             ) {
-                                : raw!("Settings")
+                                : Raw("Settings")
                             }
                         }
 
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                         AppRoute::Card(card_id, CardRoute::Review)),
-                                class = raw!("button is-small is-primary is-outlined")
+                                class = Raw("button is-small is-primary is-outlined")
                             ) {
-                                : raw!("Review")
+                                : Raw("Review")
                             }
                         }
 
@@ -2833,7 +2833,7 @@ fn DeckReview(
     //         div(class="columns") {
     //             div(class="column") {
     //                 h1(class="title") {
-    //                     : raw!("No cards in this deck to review")
+    //                     : Raw("No cards in this deck to review")
     //                 }
     //             }
     //         }
@@ -2843,7 +2843,7 @@ fn DeckReview(
     //         //     div(class="column") {
     //         //         article(class="message") {
     //         //             div(class="message-body") {
-    //         //                 : raw!("There are no cards to review.")
+    //         //                 : Raw("There are no cards to review.")
     //         //             }
     //         //         }
     //         //     }
@@ -2860,14 +2860,14 @@ fn DeckReview(
         // div(class="columns") {
         //     div(class="column") {
         //         h1(class="title") {
-        //             : raw!("Reviewing Cards in this Deck")
+        //             : Raw("Reviewing Cards in this Deck")
         //         }
         //     }
         // }
 
         div(id="deck_review_container") {
             // TODO: fix
-            // : raw!(include_str!("react_components/deck_review"))
+            // : Raw(include_str!("react_components/deck_review"))
         }
 
     };
@@ -2958,7 +2958,7 @@ fn DeckStats(
                 div(class="level") {
                     div(class="level-item has-text-centered") {
                         p(class="heading") {
-                            : raw!("Number of cards")
+                            : Raw("Number of cards")
                         }
 
                         p(class="title") {
@@ -2968,7 +2968,7 @@ fn DeckStats(
 
                     div(class="level-item has-text-centered") {
                         p(class="heading") {
-                            : raw!("Number of decks")
+                            : Raw("Number of decks")
                         }
 
                         p(class="title") {
@@ -2978,7 +2978,7 @@ fn DeckStats(
 
                     div(class="level-item has-text-centered") {
                         p(class="heading") {
-                            : raw!("Direct deck children")
+                            : Raw("Direct deck children")
                         }
 
                         p(class="title") {
@@ -3000,7 +3000,7 @@ fn DeckStats(
             div(class="column") {
 
                 h1(class="title") {
-                    : raw!("Deck created at")
+                    : Raw("Deck created at")
                 }
 
                 h2(class="subtitle") {
@@ -3014,7 +3014,7 @@ fn DeckStats(
             div(class="column") {
 
                 h1(class="title") {
-                    : raw!("Deck updated at")
+                    : Raw("Deck updated at")
                 }
 
                 h2(class="subtitle") {
@@ -3033,7 +3033,7 @@ fn DeckStats(
                         div(class="column") {
 
                             h1(class="title") {
-                                : raw!("Deck reviewed at")
+                                : Raw("Deck reviewed at")
                             }
 
                             h2(class="subtitle") {
@@ -3060,7 +3060,7 @@ fn DeckStats(
                 div(class="level") {
                     div(class="level-item has-text-centered") {
                         p(class="heading") {
-                            : raw!("Cards active for review")
+                            : Raw("Cards active for review")
                         }
 
                         p(class="title") {
@@ -3070,7 +3070,7 @@ fn DeckStats(
 
                     div(class="level-item has-text-centered") {
                         p(class="heading") {
-                            : raw!("Cards not active for review")
+                            : Raw("Cards not active for review")
                         }
 
                         p(class="title") {
@@ -3089,7 +3089,7 @@ fn DeckStats(
                 div(class="level") {
                     div(class="level-item has-text-centered") {
                         p(class="heading") {
-                            : raw!("New cards for review")
+                            : Raw("New cards for review")
                         }
 
                         p(class="title") {
@@ -3099,7 +3099,7 @@ fn DeckStats(
 
                     div(class="level-item has-text-centered") {
                         p(class="heading") {
-                            : raw!("Cards ready for review")
+                            : Raw("Cards ready for review")
                         }
 
                         p(class="title") {
@@ -3128,7 +3128,7 @@ fn DeckSettings(
         // div(class="columns") {
         //     div(class="column") {
         //         h1(class="title") {
-        //             : raw!("Deck Settings")
+        //             : Raw("Deck Settings")
         //         }
         //     }
         // }
@@ -3236,13 +3236,13 @@ fn DeckSettingsMain(
         div(class="columns") {
             div(class="column") {
                 h4(class="title is-4") {
-                    : raw!("Deck Name")
+                    : Raw("Deck Name")
                 }
             }
         }
 
         div(id="deck_settings_main_name_container", style="margin-bottom:10px;") {
-            // : raw!(include_str!("react_components/deck_description"))
+            // : Raw(include_str!("react_components/deck_description"))
         }
 
         |tmpl| {
@@ -3306,15 +3306,15 @@ fn DeckSettingsMain(
                     div(class="columns") {
                         div(class="column") {
                             h4(class="title is-4") {
-                                : raw!("Delete Deck")
+                                : Raw("Delete Deck")
                             }
 
                             h2(class="subtitle") {
-                                : raw!("This action is irreversible!")
+                                : Raw("This action is irreversible!")
                             }
 
                             p {
-                                : raw!(format!(
+                                : Raw(format!(
                                     "By deleting this deck, {count_of_descendents} {deck_noun} \
                                     and {count_of_cards} {card_noun} will also be deleted.",
                                     count_of_descendents = count_of_descendents,
@@ -3326,7 +3326,7 @@ fn DeckSettingsMain(
                     }
 
                     div(id="deck_settings_main_delete_container") {
-                        // : raw!(include_str!("react_components/deck_description"))
+                        // : Raw(include_str!("react_components/deck_description"))
                     }
                 };
             }
@@ -3354,7 +3354,7 @@ fn DeckSettingsMove(
             div(class="column") {
 
                 h4(class="title is-4") {
-                    : raw!("Move deck to a new deck")
+                    : Raw("Move deck to a new deck")
                 }
 
             }
@@ -3367,7 +3367,7 @@ fn DeckSettingsMove(
                     div(class="level-left") {
                         div(class="level-item") {
                             strong(class="is-bold") {
-                                : raw!("This deck's actual deck parent: ")
+                                : Raw("This deck's actual deck parent: ")
                             }
                         }
 
@@ -3457,10 +3457,10 @@ fn DeckMoveDecksList(
                                             DeckRoute::Settings(
                                                 DeckSettings::Move(go_back_up_deck(context.clone(), deck_id),
                                                     Default::default())))),
-                                class=raw!("is-bold button is-primary is-fullwidth is-outlined")
+                                class=Raw("is-bold button is-primary is-fullwidth is-outlined")
                             ) {
                                 // TODO: phrasing?
-                                : raw!("Go up one deck")
+                                : Raw("Go up one deck")
                             }
                         }
                     }
@@ -3469,7 +3469,7 @@ fn DeckMoveDecksList(
                         div(class="column") {
                             article(class="message") {
                                 div(class="message-body") {
-                                    : raw!("There are no decks to display.")
+                                    : Raw("There are no decks to display.")
                                 }
                             }
                         }
@@ -3488,10 +3488,10 @@ fn DeckMoveDecksList(
                                         DeckRoute::Settings(
                                             DeckSettings::Move(go_back_up_deck(context.clone(), deck_id),
                                                 Default::default())))),
-                            class=raw!("is-bold button is-primary is-fullwidth is-outlined")
+                            class=Raw("is-bold button is-primary is-fullwidth is-outlined")
                         ) {
                             // TODO: phrasing?
-                            : raw!("Go up one deck")
+                            : Raw("Go up one deck")
                         }
                     }
                 }
@@ -3549,7 +3549,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
             div(class="column is-side-paddingless") {
 
                 div(class="level is-marginless",
-                    id = raw!(format!("{}-level", deck_id))) {
+                    id = Raw(format!("{}-level", deck_id))) {
 
                     div(class="level-left") {
 
@@ -3559,7 +3559,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                                 tmpl << html!{
                                     div(class="level-item") {
                                         span(class="tag is-dark is-bold") {
-                                            : raw!("Current Deck")
+                                            : Raw("Current Deck")
                                         }
                                     }
                                 }
@@ -3570,7 +3570,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
 
                             if !is_decks_parent && !is_deck_descendent {
                                 tmpl << html!{
-                                    div(class="level-item", id = raw!(format!("{}-confirm", deck_id))) {
+                                    div(class="level-item", id = Raw(format!("{}-confirm", deck_id))) {
                                         // NOTE: confirm move button here; will be populated by react component
                                     }
                                 }
@@ -3613,11 +3613,11 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                                 div(class="level-right") {
                                     div(class="level-item") {
                                         div(class="move_to_deck",
-                                            data-deck-id = raw!(format!("{}", deck_id))) {
+                                            data-deck-id = Raw(format!("{}", deck_id))) {
 
                                             // TODO: server rendered component
                                             a(class="button is-primary is-bold is-outlined") {
-                                                : raw!("Move to this deck")
+                                                : Raw("Move to this deck")
                                             }
                                         }
                                     }
@@ -3633,7 +3633,7 @@ fn MoveDeckToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                     if !is_decks_parent && !is_deck_descendent {
 
                         tmpl << html!{
-                            div(id = raw!(format!("{}-error", deck_id))) {
+                            div(id = Raw(format!("{}-error", deck_id))) {
                                 // NOTE: rendered by react component
                             }
                         }
@@ -3657,7 +3657,7 @@ fn DeckMovePathToDeck(
         MoveDecksPageQuery::Root(_) => {
             tmpl << html!{
                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                    : raw!("/");
+                    : Raw("/");
                 }
             };
         },
@@ -3679,11 +3679,11 @@ fn DeckMovePathToDeck(
                         |tmpl| {
                             if index == 0 {
                                 tmpl << html!{
-                                    : raw!("/ ");
+                                    : Raw("/ ");
                                 }
                             } else {
                                 tmpl << html!{
-                                    : raw!(" / ");
+                                    : Raw(" / ");
                                 }
                             }
                         }
@@ -3747,11 +3747,11 @@ fn VanillaRealDeckPath(
                 |tmpl| {
                     if index == 0 {
                         tmpl << html!{
-                            : raw!("/ ");
+                            : Raw("/ ");
                         }
                     } else {
                         tmpl << html!{
-                            : raw!(" / ");
+                            : Raw(" / ");
                         }
                     }
                 }
@@ -3802,7 +3802,7 @@ fn DecksChildren(tmpl: &mut TemplateBuffer,
                             a(class="button is-bold is-success",
                                 href = view_route_to_link(context.clone(),
                                     AppRoute::Deck(deck_id, DeckRoute::NewDeck))) {
-                                : raw!("New Deck")
+                                : Raw("New Deck")
                             }
                         }
                     }
@@ -3898,7 +3898,7 @@ fn DecksChildrenList(tmpl: &mut TemplateBuffer,
                 div(class="column") {
                     article(class="message") {
                         div(class="message-body") {
-                            : raw!("There are no decks to display. You may create one within this deck.")
+                            : Raw("There are no decks to display. You may create one within this deck.")
                         }
                     }
                 }
@@ -3990,7 +3990,7 @@ fn CardDetailReview(
         // div(class="columns") {
         //     div(class="column") {
         //         h1(class="title") {
-        //             : raw!("Reviewing Card")
+        //             : Raw("Reviewing Card")
         //         }
         //     }
         // }
@@ -4026,11 +4026,11 @@ fn CardDetailStats(
                             style="padding-right: 10px;") {
 
                             p(class="heading") {
-                                : raw!("Performance score")
+                                : Raw("Performance score")
                             }
 
                             p(class="title") {
-                                : raw!(format!("{} / 100", card_score.get_perf_score_percent_string()))
+                                : Raw(format!("{} / 100", card_score.get_perf_score_percent_string()))
                             }
                         }
                     }
@@ -4046,7 +4046,7 @@ fn CardDetailStats(
                             value = card_score.get_perf_score_string(),
                             max = card_score.get_max_perf_score_string()
                         ) {
-                            : raw!(card_score.get_perf_score_percent_string())
+                            : Raw(card_score.get_perf_score_percent_string())
                         }
 
                     }
@@ -4064,7 +4064,7 @@ fn CardDetailStats(
                     div(class="level-item has-text-centered") {
 
                         p(class="heading") {
-                            : raw!("Times reviewed")
+                            : Raw("Times reviewed")
                         }
 
                         p(class="title") {
@@ -4075,7 +4075,7 @@ fn CardDetailStats(
                     div(class="level-item has-text-centered") {
 
                         p(class="heading") {
-                            : raw!("Times picked for review")
+                            : Raw("Times picked for review")
                         }
 
                         p(class="title") {
@@ -4101,7 +4101,7 @@ fn CardDetailStats(
                                 div(class="level-item has-text-centered") {
 
                                     p(class="heading") {
-                                        : raw!("Last reviewed")
+                                        : Raw("Last reviewed")
                                     }
 
                                     p(class="title") {
@@ -4122,7 +4122,7 @@ fn CardDetailStats(
                                 div(class="level-item has-text-centered") {
 
                                     p(class="heading") {
-                                        : raw!("Last picked for review")
+                                        : Raw("Last picked for review")
                                     }
 
                                     p(class="title") {
@@ -4148,7 +4148,7 @@ fn CardDetailStats(
             div(class="column") {
 
                 h1(class="title") {
-                    : raw!("Ready for review at")
+                    : Raw("Ready for review at")
                 }
 
                 h2(class="subtitle") {
@@ -4174,7 +4174,7 @@ fn CardDetailSettings(
         // div(class="columns") {
         //     div(class="column") {
         //         h1(class="title") {
-        //             : raw!("Card Settings")
+        //             : Raw("Card Settings")
         //         }
         //     }
         // }
@@ -4253,11 +4253,11 @@ fn CardSettingsMain(
             div(class="column") {
 
                 h4(class="title is-4") {
-                    : raw!("Delete card")
+                    : Raw("Delete card")
                 }
 
                 h2(class="subtitle") {
-                    : raw!("This action is irreversible!")
+                    : Raw("This action is irreversible!")
                 }
             }
         }
@@ -4288,7 +4288,7 @@ fn CardSettingsMove(
             div(class="column") {
 
                 h4(class="title is-4") {
-                    : raw!("Move card to a new deck")
+                    : Raw("Move card to a new deck")
                 }
 
             }
@@ -4301,7 +4301,7 @@ fn CardSettingsMove(
                     div(class="level-left") {
                         div(class="level-item") {
                             strong(class="is-bold") {
-                                : raw!("This card's actual deck parent: ")
+                                : Raw("This card's actual deck parent: ")
                             }
                         }
 
@@ -4359,7 +4359,7 @@ fn CardMovePathToDeck(
         MoveDecksPageQuery::Root(_) => {
             tmpl << html!{
                 span(class="title is-5 is-marginless", style="font-weight:normal;") {
-                    : raw!("/");
+                    : Raw("/");
                 }
             };
         },
@@ -4381,11 +4381,11 @@ fn CardMovePathToDeck(
                         |tmpl| {
                             if index == 0 {
                                 tmpl << html!{
-                                    : raw!("/ ");
+                                    : Raw("/ ");
                                 }
                             } else {
                                 tmpl << html!{
-                                    : raw!(" / ");
+                                    : Raw(" / ");
                                 }
                             }
                         }
@@ -4474,10 +4474,10 @@ fn CardMoveDecksList(
                                                 CardRoute::Settings(
                                                     CardSettings::Move(go_back_up_deck(context.clone(), deck_id),
                                                         Default::default())))),
-                                class=raw!("is-bold button is-primary is-fullwidth is-outlined")
+                                class=Raw("is-bold button is-primary is-fullwidth is-outlined")
                             ) {
                                 // TODO: phrasing?
-                                : raw!("Go up one deck")
+                                : Raw("Go up one deck")
                             }
                         }
                     }
@@ -4486,7 +4486,7 @@ fn CardMoveDecksList(
                         div(class="column") {
                             article(class="message") {
                                 div(class="message-body") {
-                                    : raw!("There are no decks to display.")
+                                    : Raw("There are no decks to display.")
                                 }
                             }
                         }
@@ -4505,10 +4505,10 @@ fn CardMoveDecksList(
                                         CardRoute::Settings(
                                             CardSettings::Move(go_back_up_deck(context.clone(), deck_id),
                                                 Default::default())))),
-                            class=raw!("is-bold button is-primary is-fullwidth is-outlined")
+                            class=Raw("is-bold button is-primary is-fullwidth is-outlined")
                         ) {
                             // TODO: phrasing?
-                            : raw!("Go up one deck")
+                            : Raw("Go up one deck")
                         }
                     }
                 }
@@ -4554,7 +4554,7 @@ fn MoveCardToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
             div(class="column is-side-paddingless") {
 
                 div(class="level is-marginless",
-                    id = raw!(format!("{}-level", deck_id))) {
+                    id = Raw(format!("{}-level", deck_id))) {
 
                     div(class="level-left") {
 
@@ -4564,7 +4564,7 @@ fn MoveCardToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                                 tmpl << html!{
                                     div(class="level-item") {
                                         span(class="tag is-dark is-bold") {
-                                            : raw!("Current Deck")
+                                            : Raw("Current Deck")
                                         }
                                     }
                                 }
@@ -4575,7 +4575,7 @@ fn MoveCardToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
 
                             if !is_cards_parent {
                                 tmpl << html!{
-                                    div(class="level-item", id = raw!(format!("{}-confirm", deck_id))) {
+                                    div(class="level-item", id = Raw(format!("{}-confirm", deck_id))) {
                                         // NOTE: confirm move button here; will be populated by react component
                                     }
                                 }
@@ -4611,11 +4611,11 @@ fn MoveCardToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                                 div(class="level-right") {
                                     div(class="level-item") {
                                         div(class="move_to_deck",
-                                            data-deck-id = raw!(format!("{}", deck_id))) {
+                                            data-deck-id = Raw(format!("{}", deck_id))) {
 
                                             // TODO: server rendered component
                                             a(class="button is-primary is-bold is-outlined") {
-                                                : raw!("Move to this deck")
+                                                : Raw("Move to this deck")
                                             }
                                         }
                                     }
@@ -4631,7 +4631,7 @@ fn MoveCardToDeckListItemComponent(tmpl: &mut TemplateBuffer, context: Rc<RefCel
                     if !is_cards_parent {
 
                         tmpl << html!{
-                            div(id = raw!(format!("{}-error", deck_id))) {
+                            div(id = Raw(format!("{}-error", deck_id))) {
                                 // NOTE: rendered by react component
                             }
                         }
@@ -4691,7 +4691,7 @@ fn DeckListItemDetailComponent(
             div(class="level-left") {
                 div(class="level-item") {
                     span(style="font-size:12px;") {
-                        : raw!(format!("Deck #{}", deck.id));
+                        : Raw(format!("Deck #{}", deck.id));
                     }
                 }
             }
@@ -4704,9 +4704,9 @@ fn DeckListItemDetailComponent(
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id, DeckRoute::Description)),
-                                class = raw!("button is-small")
+                                class = Raw("button is-small")
                             ) {
-                                : raw!("Description")
+                                : Raw("Description")
                             }
                         }
 
@@ -4714,18 +4714,18 @@ fn DeckListItemDetailComponent(
                             a(href = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id,
                                                 DeckRoute::Cards(CardsPageQuery::default_with_deck(deck_id)))),
-                                class = raw!("button is-small")
+                                class = Raw("button is-small")
                             ) {
-                                : raw!("View Cards")
+                                : Raw("View Cards")
                             }
                         }
 
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id, DeckRoute::NewCard(None))),
-                                class = raw!("button is-small")
+                                class = Raw("button is-small")
                             ) {
-                                : raw!("New Card")
+                                : Raw("New Card")
                             }
                         }
 
@@ -4734,45 +4734,45 @@ fn DeckListItemDetailComponent(
                                             AppRoute::Deck(deck_id,
                                                 DeckRoute::Decks(DecksPageQuery::default_with_deck(deck_id),
                                                     Default::default()))),
-                                class = raw!("button is-small")
+                                class = Raw("button is-small")
                             ) {
-                                : raw!("View Decks")
+                                : Raw("View Decks")
                             }
                         }
 
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id, DeckRoute::NewDeck)),
-                                class = raw!("button is-small")
+                                class = Raw("button is-small")
                             ) {
-                                : raw!("New Deck")
+                                : Raw("New Deck")
                             }
                         }
 
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id, DeckRoute::Stats)),
-                                class = raw!("button is-small")
+                                class = Raw("button is-small")
                             ) {
-                                : raw!("Stats")
+                                : Raw("Stats")
                             }
                         }
 
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id, DeckRoute::Settings(Default::default()))),
-                                class = raw!("button is-small")
+                                class = Raw("button is-small")
                             ) {
-                                : raw!("Settings")
+                                : Raw("Settings")
                             }
                         }
 
                         p(class="control", style="font-size:12px;") {
                             a(href = view_route_to_link(context.clone(),
                                             AppRoute::Deck(deck_id, DeckRoute::Review(None))),
-                                class = raw!("button is-small is-primary is-outlined")
+                                class = Raw("button is-small is-primary is-outlined")
                             ) {
-                                : raw!("Review")
+                                : Raw("Review")
                             }
                         }
                     }
@@ -4815,7 +4815,7 @@ fn GenericPaginationComponent<PageQuery: Pagination + Clone, LinkMaker>(
 
                                 tmpl << html!(
                                     a(class="button is-bold", href = href) {
-                                        : raw!("Previous")
+                                        : Raw("Previous")
                                     }
                                 );
                             }
@@ -4990,7 +4990,7 @@ fn GenericPaginationComponent<PageQuery: Pagination + Clone, LinkMaker>(
 
                                 tmpl << html!(
                                     a(class="button is-bold", href = href) {
-                                        : raw!("Next")
+                                        : Raw("Next")
                                     }
                                 );
                             }

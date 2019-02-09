@@ -8,10 +8,14 @@ git
 sqlite3
 ```
 
-### OSX 
+### OSX
 
 ```sh
 brew install sqlite3
+
+brew install openssl
+# https://github.com/sfackler/rust-openssl/tree/b8fb29db5c246175a096260eacca38180cd77dd0#osx
+# https://github.com/sfackler/rust-openssl/issues/255#issuecomment-257462451
 ```
 // TODO: other dependencies? libc
 
@@ -19,7 +23,7 @@ brew install sqlite3
 
 ```sh
 cd assets
-unzip MathJax-2.6.1.zip 
+unzip MathJax-2.6.1.zip
 mv MathJax-2.6.1 mathjax
 ```
 
@@ -32,8 +36,8 @@ v6.2.1
 
 ```sh
 cd ./client_src
-npm install
-webpack
+yarn install
+yarn webpack
 ```
 
 NOTE: npm install webpack -g
@@ -51,7 +55,7 @@ build.sh
 
 ```sh
 $ rustc --version
-rustc 1.13.0-nightly (497d67d70 2016-09-01)
+rustc 1.23.0-nightly (2be4cc040 2017-11-01)
 ```
 
 1. install rust via https://www.rustup.rs/
@@ -63,7 +67,7 @@ rustc 1.13.0-nightly (497d67d70 2016-09-01)
 NOTE: use nightly rust. see: https://github.com/rust-lang-nursery/rustup.rs#working-with-nightly-rust
 
 ```sh
-rustup install nightly
+rustup override set nightly-2017-11-01
 ```
 
 ```sh

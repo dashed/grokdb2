@@ -289,11 +289,11 @@ pub fn delete_card(
 
     assert!(context.borrow().is_write_locked());
 
-    let query = format!(indoc!("
+    let query = format!("
         DELETE FROM
             Cards
         WHERE card_id = {card_id};
-    "), card_id = card_id);
+    ", card_id = card_id);
 
     let context = context.borrow();
     db_write_lock!(db_conn; context.database());
@@ -321,13 +321,13 @@ pub fn move_card(
 
     assert!(context.borrow().is_write_locked());
 
-    let query = format!(indoc!("
+    let query = format!("
         UPDATE
             Cards
         SET
             deck_id = {deck_id}
         WHERE card_id = {card_id};
-    "), card_id = card_id, deck_id = deck_id);
+    ", card_id = card_id, deck_id = deck_id);
 
     {
         let context = context.borrow();
@@ -357,7 +357,7 @@ pub fn update_card(
 
     assert!(context.borrow().is_write_locked());
 
-    let query = format!(indoc!("
+    let query = format!("
         UPDATE
             Cards
         SET
@@ -367,7 +367,7 @@ pub fn update_card(
             answer = :answer,
             is_active = :is_active
         WHERE card_id = {card_id};
-    "), card_id = card_id);
+    ", card_id = card_id);
 
     let params: &[(&str, &ToSql)] = &[
         (":title", &update_card_request.title.clone()),
@@ -454,10 +454,10 @@ pub fn total_num_of_cards_in_deck(
 
             params.push((":search_query", search_query));
 
-            indoc!("
+            "
             INNER JOIN CardsFTS
             ON CardsFTS.docid = c.card_id
-            ")
+            "
         }
     };
 
@@ -470,7 +470,7 @@ pub fn total_num_of_cards_in_deck(
 
 
 
-    let query = format!(indoc!("
+    let query = format!("
         SELECT
             COUNT(1)
         FROM DecksClosure AS dc
@@ -485,7 +485,7 @@ pub fn total_num_of_cards_in_deck(
         {search_where_cond}
 
         dc.ancestor = {deck_id};
-    "),
+    ",
     deck_id = deck_id,
     search_inner_join = search_inner_join,
     search_where_cond = search_where_cond);
@@ -527,7 +527,7 @@ pub fn is_card_in_deck(
 
     assert!(context.borrow().is_read_locked());
 
-    let query = format!(indoc!("
+    let query = format!("
         SELECT
             COUNT(1)
         FROM DecksClosure AS dc
@@ -537,7 +537,7 @@ pub fn is_card_in_deck(
             dc.ancestor = {deck_id}
         AND
             c.card_id = {card_id}
-        LIMIT 1;"), card_id = card_id, deck_id = deck_id);
+        LIMIT 1;", card_id = card_id, deck_id = deck_id);
 
     let context = context.borrow();
     db_read_lock!(db_conn; context.database());
@@ -583,7 +583,7 @@ pub fn cards_in_deck(
         }
     };
 
-    let select_sql = format!(indoc!("
+    let select_sql = format!("
         SELECT
             c.card_id,
             c.title,
@@ -603,9 +603,9 @@ pub fn cards_in_deck(
         ON c.card_id = cs.card_id
 
         {search_inner_join}
-        "), search_inner_join = search_inner_join);
+        ", search_inner_join = search_inner_join);
 
-    let inner_select_sql = format!(indoc!("
+    let inner_select_sql = format!("
         SELECT
             c.card_id
         FROM DecksClosure AS dc
@@ -617,40 +617,40 @@ pub fn cards_in_deck(
         ON c.card_id = cs.card_id
 
         {search_inner_join}
-        "), search_inner_join = search_inner_join);
+        ", search_inner_join = search_inner_join);
 
-    let where_sql = format!(indoc!("
+    let where_sql = format!("
         dc.ancestor = {deck_id}
 
         {search_where_cond}
-    "),
+    ",
     deck_id = deck_id,
     search_where_cond = search_where_cond);
 
     let order_by_sql = match cards_page_query.2 {
         CardsPageSort::CardTitle(ref sort_order) => {
-            format!(indoc!("
+            format!("
                 c.title
                 {sql_phrase}
-            "), sql_phrase = sort_order.gen_sql())
+            ", sql_phrase = sort_order.gen_sql())
         },
         CardsPageSort::CreatedAt(ref sort_order) => {
-            format!(indoc!("
+            format!("
                 c.created_at
                 {sql_phrase}
-            "), sql_phrase = sort_order.gen_sql())
+            ", sql_phrase = sort_order.gen_sql())
         },
         CardsPageSort::UpdatedAt(ref sort_order) => {
-            format!(indoc!("
+            format!("
                 c.updated_at
                 {sql_phrase}
-            "), sql_phrase = sort_order.gen_sql())
+            ", sql_phrase = sort_order.gen_sql())
         },
         CardsPageSort::CardScore(ref sort_order) => {
-            format!(indoc!("
+            format!("
                 1.0 - raw_score(cs.success, cs.fail)
                 {sql_phrase}
-            "), sql_phrase = sort_order.gen_sql())
+            ", sql_phrase = sort_order.gen_sql())
         },
         CardsPageSort::LastReviewedAt(ref sort_order) => {
             // convention: descending: newest to oldest

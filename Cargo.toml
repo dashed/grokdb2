@@ -30,21 +30,21 @@ rev = "9901095dd4a10da39d41c4af501cd91380356abd"
 version = "0.9.10"
 
 [dependencies.rusqlite]
-version = "0.7.3"
+version = "0.7.4"
 features = ["functions", "backup"]
 
 [dependencies.horrorshow]
 git = "https://github.com/Stebalien/horrorshow-rs"
-rev = "c5caa64979866aa7a99d60de595b74c7d9d4ad01"
+rev = "6673a6914c1b541e1da3fa243bed6257c49e80ed"
 
 [dependencies.clap]
 version = "1.4"
 
 [dependencies]
 clippy = {version = "0.0.87", optional = true}
-serde = "0.8"
-serde_json = "0.8"
-serde_macros = "0.8"
+serde = "0.9"
+serde_json = "0.9"
+serde_derive = "0.9"
 # regex = "0.1.73" # not used
 # horrorshow = "0.5"
 url = "1.1"
@@ -56,7 +56,6 @@ time = "0.1.35"
 quick-error = "1.1.0"
 chrono = "0.2"
 guardian = "0.3.0"
-indoc = "0.1"
 random-wheel = { git = "https://github.com/dashed/random-wheel-rs", branch = "master" }
 rand = "0.3"
 libc = "0.2.12"

@@ -1,10 +1,10 @@
-#![feature(plugin, custom_derive)]
-#![plugin(serde_macros)]
-#![plugin(indoc)]
+#![feature(proc_macro)]
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
 extern crate guardian;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 #[macro_use]
@@ -152,7 +152,12 @@ fn main() {
 
             match port_str.parse::<u16>() {
                 Ok(port) => port,
-                _ => unreachable!() // should already be validated to be u16
+                Err(_) => {
+                     // should already be validated to be u16
+                    // unreachable!();
+                    0u16
+                }
+
             }
         }
     };

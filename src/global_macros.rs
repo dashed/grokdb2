@@ -56,7 +56,7 @@ macro_rules! respond_json {
 
         let response = JSONResponse {
             error: None,
-            payload: Some(serde_json::to_value(&$payload))
+            payload: Some(serde_json::to_value(&$payload).unwrap())
         };
 
         route::RenderResponse::JSON(APIStatus::Ok, response)
@@ -97,7 +97,7 @@ macro_rules! respond_json_with_error {
 
         let response = JSONResponse {
             error: Some($err),
-            payload: Some(serde_json::to_value(&$payload))
+            payload: Some(serde_json::to_value(&$payload).unwrap())
         };
 
         route::RenderResponse::JSON($api_status, response)
@@ -128,4 +128,10 @@ macro_rules! respond_json_with_error {
         route::RenderResponse::JSON($api_status, response)
 
     }};
+}
+
+macro_rules! indoc {
+( $e:expr ) => {
+    $e
+};
 }

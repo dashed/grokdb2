@@ -208,7 +208,7 @@ pub fn delete_deck(
 
     // delete this deck and all of its descendents
 
-    let query = format!(indoc!("
+    let query = format!("
         DELETE FROM
             Decks
         WHERE deck_id IN (
@@ -218,7 +218,7 @@ pub fn delete_deck(
             WHERE
                 ancestor = {deck_id}
         );
-    "), deck_id = deck_id);
+    ", deck_id = deck_id);
 
     let context = context.borrow();
     db_write_lock!(db_conn; context.database());
@@ -543,7 +543,7 @@ pub fn get_num_descendents(
 
     assert!(context.borrow().is_read_locked());
 
-    let query = format!(indoc!("
+    let query = format!("
         SELECT
             COUNT(1)
         FROM
@@ -554,7 +554,7 @@ pub fn get_num_descendents(
         WHERE
             ancestor = {deck_id}
         AND
-            depth >= 1;"), deck_id = deck_id);
+            depth >= 1;", deck_id = deck_id);
 
     let result = {
         let context = context.borrow();
@@ -605,7 +605,7 @@ pub fn get_deck_children_total_count(
 
     assert!(context.borrow().is_read_locked());
 
-    let query = format!(indoc!("
+    let query = format!("
         SELECT
             COUNT(1)
         FROM
@@ -616,7 +616,7 @@ pub fn get_deck_children_total_count(
         WHERE
             ancestor = {deck_id}
         AND
-            depth = 1;"), deck_id = deck_id);
+            depth = 1;", deck_id = deck_id);
 
     let result = {
         let context = context.borrow();
@@ -667,25 +667,25 @@ pub fn get_deck_children(
     // TODO: search
     // TODO: sort
 
-    let select_sql = indoc!("
+    let select_sql = "
         SELECT
             DecksClosure.descendent
         FROM
             DecksClosure
         INNER JOIN
             Decks
-        ON DecksClosure.descendent = Decks.deck_id");
+        ON DecksClosure.descendent = Decks.deck_id";
 
-    let where_sql = format!(indoc!("
+    let where_sql = format!("
             ancestor = {deck_id}
         AND
             depth = 1
-    "), deck_id = deck_id);
+    ", deck_id = deck_id);
 
-    let order_by_sql = format!(indoc!("
+    let order_by_sql = format!("
         Decks.name
         COLLATE NOCASE ASC
-    "));
+    ");
 
     let query = pagination!(
         select_sql = select_sql;
