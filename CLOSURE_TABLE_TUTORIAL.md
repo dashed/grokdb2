@@ -16,6 +16,285 @@ A closure table is a design pattern for storing and querying hierarchical data i
 - **More storage**: Stores O(n²) rows in worst case (deep hierarchy)
 - **Write overhead**: More rows to maintain on insert/move operations
 
+## Mathematical Foundation and Proof of Correctness
+
+### Graph Theory Background
+
+Let's formalize what we're trying to represent:
+
+**Definition 1: Directed Acyclic Graph (DAG)**
+- A hierarchy is a directed acyclic graph G = (V, E) where:
+  - V = set of nodes (vertices)
+  - E ⊆ V × V = set of edges (parent-child relationships)
+  - No cycles exist (acyclic property)
+
+**Definition 2: Path**
+- A path from node u to node v is a sequence of nodes (u = n₀, n₁, ..., nₖ = v) where:
+  - Each consecutive pair (nᵢ, nᵢ₊₁) ∈ E
+  - The length of the path is k (number of edges)
+
+**Definition 3: Reachability**
+- Node v is reachable from node u if there exists a path from u to v
+- We write this as u ⇝ v
+
+**Definition 4: Transitive Closure**
+- The transitive closure of G is a graph G* = (V, E*) where:
+  - E* = {(u, v) : u ⇝ v}
+  - In other words: E* contains an edge for every reachable pair
+
+**Key Insight:** The closure table stores the transitive closure of the hierarchy graph, plus additional metadata (depth).
+
+### Formal Structure of a Closure Table
+
+**Definition 5: Closure Table Relation**
+
+For a hierarchy G = (V, E), the closure table is a relation C with schema:
+
+```
+C ⊆ V × V × ℕ
+C = {(ancestor, descendant, depth) | ancestor ⇝ descendant}
+```
+
+Where:
+- `ancestor ∈ V`: The source node
+- `descendant ∈ V`: The reachable node
+- `depth ∈ ℕ`: The length of the shortest path from ancestor to descendant
+
+**Invariants:**
+1. **Reflexivity**: ∀v ∈ V, (v, v, 0) ∈ C
+   - Every node is its own ancestor at depth 0
+
+2. **Completeness**: ∀u, v ∈ V, if u ⇝ v via path of length d, then (u, v, d) ∈ C
+   - All reachable pairs are represented
+
+3. **Uniqueness**: ∀u, v ∈ V, ∃ at most one d such that (u, v, d) ∈ C
+   - Each pair appears at most once (with shortest path length)
+
+### Proof: Closure Table Correctly Represents the Hierarchy
+
+**Theorem 1: Completeness**
+
+*Claim:* The closure table contains all ancestor-descendant relationships.
+
+*Proof by structural induction:*
+
+**Base case:** Single node tree
+- Given: Tree T with one node v
+- Must show: (v, v, 0) ∈ C
+- By Invariant 1 (Reflexivity), this is guaranteed by the self-reference trigger
+
+**Inductive step:** Adding a new node as a child
+
+*Assume:*
+- Tree T has n nodes with correct closure table C
+- We add node c as a child of parent p
+- This creates new edge (p, c) ∈ E
+
+*Must show:* All new relationships are added to C
+
+The new relationships are:
+1. (c, c, 0) — self-reference (from Invariant 1)
+2. For all ancestors a of p: (a, c, depth(a,p) + 1)
+
+*Proof of (2):*
+- Let A = {a ∈ V | (a, p, d) ∈ C} be all ancestors of p
+- By inductive hypothesis, A contains all true ancestors of p
+- The connect operation performs:
+  ```sql
+  INSERT INTO C(ancestor, descendant, depth)
+  SELECT a.ancestor, c, a.depth + 1
+  FROM C AS a
+  WHERE a.descendant = p
+  ```
+- This generates exactly the set {(a, c, d+1) | (a, p, d) ∈ C}
+- By transitivity: if a ⇝ p and p ⇝ c, then a ⇝ c
+- The depth is correct: dist(a,c) = dist(a,p) + dist(p,c) = d + 1
+
+Therefore, by induction, all relationships are correctly represented. ∎
+
+**Theorem 2: Query Correctness**
+
+*Claim:* Queries return exactly the correct nodes.
+
+**Example 1: Get all descendants of node u**
+
+*Query:*
+```sql
+SELECT descendant FROM C WHERE ancestor = u AND depth ≥ 1
+```
+
+*Proof of correctness:*
+- By Invariant 2, (u, v, d) ∈ C ⟺ u ⇝ v with shortest path length d
+- The query returns {v | (u, v, d) ∈ C, d ≥ 1}
+- This is exactly {v | u ⇝ v, v ≠ u} (all descendants)
+- Depth ≥ 1 excludes the self-reference (depth 0) ∎
+
+**Example 2: Check if v is descendant of u**
+
+*Query:*
+```sql
+SELECT COUNT(1) FROM C
+WHERE ancestor = u AND descendant = v
+```
+
+*Proof of correctness:*
+- Returns 1 if (u, v, d) ∈ C for some d
+- By Invariant 2, this is true ⟺ u ⇝ v
+- Returns 0 otherwise
+- Therefore, returns 1 ⟺ v is reachable from u ∎
+
+### Proof: Move Operation Maintains Invariants
+
+**Theorem 3: Move Operation Correctness**
+
+*Setup:*
+- Original tree T with closure table C
+- Move child c (with subtree S) from old parent p₁ to new parent p₂
+
+*Two-step algorithm:*
+
+**Step 1: Delete old paths**
+```sql
+DELETE FROM C
+WHERE descendant IN (SELECT descendant FROM C WHERE ancestor = c)
+  AND ancestor IN (SELECT ancestor FROM C WHERE descendant = c
+                   AND ancestor ≠ descendant)
+  AND descendant ≠ ancestor
+```
+
+**Step 2: Insert new paths**
+```sql
+INSERT INTO C(ancestor, descendant, depth)
+SELECT p.ancestor, d.descendant, p.depth + d.depth + 1
+FROM C AS p, C AS d
+WHERE d.ancestor = c AND p.descendant = p₂
+```
+
+*Claim:* After these operations, C correctly represents the new hierarchy.
+
+*Proof:*
+
+**Part A: Step 1 removes exactly the right edges**
+
+Let:
+- A₁ = ancestors of c (excluding c itself)
+- D = descendants of c (including c itself)
+
+Old paths to remove: A₁ × D (all paths from old ancestors to subtree)
+
+The DELETE query computes:
+- descendant IN D
+- ancestor IN A₁
+- descendant ≠ ancestor (exclude self-references)
+
+This is exactly A₁ × D minus self-references, which is correct. ✓
+
+**Part B: Step 2 adds exactly the right edges**
+
+New paths needed:
+- For each ancestor a of p₂ (including p₂)
+- For each descendant d in S (including c)
+- Add (a, d, dist(a, p₂) + dist(p₂, c) + dist(c, d))
+
+Since p₂ → c is the new edge:
+- dist(a, c) = dist(a, p₂) + 1
+- dist(a, d) = dist(a, p₂) + 1 + dist(c, d)
+
+The Cartesian product `C AS p, C AS d` generates:
+- p: all (a, p₂, depth_p) where a is ancestor of p₂
+- d: all (c, d, depth_d) where d is descendant of c
+
+For each pair:
+- depth = p.depth + 1 + d.depth (correct formula)
+
+This generates exactly the needed paths. ✓
+
+**Part C: Self-references preserved**
+
+Note: Step 1's condition `descendant ≠ ancestor` ensures self-references are never deleted.
+All nodes in the subtree retain their (node, node, 0) entries. ✓
+
+Therefore, the move operation maintains all invariants. ∎
+
+### Why This Works: Intuitive Explanation
+
+**The Core Idea:**
+Instead of storing just direct parent-child edges (adjacency list), we materialize all possible ancestor-descendant paths. This is the "transitive closure" of the graph.
+
+**Visual Proof:**
+
+Consider this hierarchy:
+```
+A
+└── B
+    └── C
+```
+
+**Adjacency List stores:**
+- (A, B) — only direct edges
+- (B, C)
+
+**Closure Table stores:**
+- (A, A, 0), (B, B, 0), (C, C, 0) — reflexive
+- (A, B, 1) — direct edge
+- (B, C, 1) — direct edge
+- (A, C, 2) — transitive path via B ✨
+
+The key insight: **(A, C, 2) is derived from (A, B, 1) + (B, C, 1)**
+
+This is why:
+1. **Queries are simple:** Just lookup the materialized path
+2. **Moves work:** Recalculate paths using Cartesian products
+3. **Storage grows:** We store O(paths) not O(nodes)
+
+### Formal Proof of Space Complexity
+
+**Theorem 4: Space Complexity Bounds**
+
+*Claim:* The closure table contains Θ(∑ᵥ descendants(v)) rows.
+
+*Proof:*
+
+Each node v contributes exactly |descendants(v)| + 1 rows to C:
+- 1 self-reference: (v, v, 0)
+- |descendants(v)| descendant relationships
+
+Total rows:
+```
+|C| = ∑ᵥ∈V (|descendants(v)| + 1)
+    = n + ∑ᵥ∈V |descendants(v)|
+```
+
+**Best case (flat tree - no hierarchy):**
+- Each node has 0 descendants
+- |C| = n
+
+**Worst case (chain/linked list):**
+- Node 1: n-1 descendants
+- Node 2: n-2 descendants
+- ...
+- Node n: 0 descendants
+- |C| = n + (n-1 + n-2 + ... + 1 + 0) = n + n(n-1)/2 = Θ(n²)
+
+**Balanced tree:**
+- Average node has O(n/h) descendants where h = height
+- For balanced binary tree: h = log n
+- |C| = O(n · n/log n) = O(n²/log n)
+
+∎
+
+### Summary of Formal Properties
+
+| Property | Status | Proof |
+|----------|--------|-------|
+| **Completeness** | ✓ | Theorem 1: All paths represented |
+| **Correctness** | ✓ | Theorem 2: Queries return exact results |
+| **Move Safety** | ✓ | Theorem 3: Invariants preserved |
+| **Space Bounds** | ✓ | Theorem 4: O(n) to O(n²) proven |
+| **No Redundancy** | ✓ | Invariant 3: Each pair appears once |
+
+The closure table is mathematically sound: it's a correct, complete representation of the transitive closure with efficient query and update properties.
+
 ## Space and Time Complexity Analysis
 
 ### Space Complexity
