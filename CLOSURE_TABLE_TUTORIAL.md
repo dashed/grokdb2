@@ -16,6 +16,48 @@ A closure table is a design pattern for storing and querying hierarchical data i
 - **More storage**: Stores O(n²) rows in worst case (deep hierarchy)
 - **Write overhead**: More rows to maintain on insert/move operations
 
+## Space and Time Complexity Analysis
+
+### Space Complexity
+
+**Main Data Table (Decks):**
+- **Space:** O(n) where n = number of nodes
+- **Reasoning:** One row per node, each storing fixed-size attributes (ID, name, timestamps)
+
+**Closure Table (DecksClosure):**
+- **Best case:** O(n) — flat hierarchy (no parent-child relationships beyond self-references)
+- **Average case:** O(n × h) where h = average height — balanced trees
+- **Worst case:** O(n²) — completely unbalanced tree (linked list structure)
+
+**Detailed reasoning:**
+- Each node stores paths to all its descendants
+- A node at depth d with s descendants stores s closure records
+- In a complete binary tree: ~O(n log n) total records
+- In a degenerate tree (chain): Node 1 has n-1 descendants, Node 2 has n-2, etc. = n(n-1)/2 ≈ O(n²)
+
+**Example calculations:**
+```
+Flat (3 nodes, no hierarchy):     3 rows (only self-references)
+Balanced tree (7 nodes, height 3): 15 rows
+Chain (7 nodes):                   28 rows (7 + 6 + 5 + 4 + 3 + 2 + 1)
+```
+
+**Indexes:**
+- Primary key (ancestor, descendent): O(rows in closure table)
+- Depth index: O(rows in closure table)
+- Additional indexes scale with closure table size
+
+### Time Complexity Notation
+
+**Variables used in analysis:**
+- `n` = total nodes in entire tree
+- `h` = height of tree (max depth)
+- `d` = number of descendants of a node
+- `a` = number of ancestors of a node
+- `c` = number of direct children
+- `s` = number of siblings
+- `k` = result set size
+
 ## Schema Structure
 
 A closure table implementation requires two tables:
@@ -120,6 +162,14 @@ WHERE descendent = :child_id
 LIMIT 1;
 ```
 
+**Time Complexity:** O(log n)
+
+**Reasoning:**
+- Lookup on indexed column `descendent` with equality + depth filter
+- Primary key index (ancestor, descendent) enables efficient lookup
+- Returns at most 1 row (nodes have at most one direct parent)
+- Index seek + constant-time depth check
+
 **Example:** Get parent of "Python" (ID 3) → Returns 2 (Programming)
 
 ### 2. Get Full Path (Root to Node)
@@ -133,6 +183,14 @@ WHERE descendent = :node_id
   AND depth >= 0
 ORDER BY depth DESC;
 ```
+
+**Time Complexity:** O(h + h log h) = O(h log h) where h = height/depth of node
+
+**Reasoning:**
+- Index scan on `descendent` column finds h rows (all ancestors)
+- Sorting h rows by depth: O(h log h)
+- In practice, h << n for balanced trees (h ≈ log n)
+- For balanced trees: O(log n × log(log n))
 
 **Example:** Get path to "Python" (ID 3) → Returns [1, 2, 3]
 
@@ -150,6 +208,14 @@ WHERE dc.ancestor = :parent_id
 ORDER BY d.name COLLATE NOCASE ASC;
 ```
 
+**Time Complexity:** O(c log c) where c = number of direct children
+
+**Reasoning:**
+- Index lookup on (ancestor, depth) finds c rows
+- Join with Decks table: O(c) via primary key lookups
+- Sorting c results by name: O(c log c)
+- With composite index on (ancestor, depth): scan is O(c)
+
 **Example:** Get children of "Programming" (ID 2) → Returns [3, 4]
 
 ### 4. Count Direct Children
@@ -163,6 +229,13 @@ WHERE ancestor = :parent_id
   AND depth = 1;
 ```
 
+**Time Complexity:** O(c) where c = number of direct children
+
+**Reasoning:**
+- Same index scan as #3 but without sorting
+- Database may optimize COUNT to use index-only scan
+- Must scan all c matching rows to count them
+
 ### 5. Get All Descendants
 
 Get entire subtree under a node (depth ≥ 1):
@@ -174,6 +247,13 @@ WHERE ancestor = :parent_id
   AND depth >= 1
 ORDER BY depth ASC;
 ```
+
+**Time Complexity:** O(d log d) where d = number of descendants
+
+**Reasoning:**
+- Index scan on `ancestor` finds d rows (all descendants)
+- Sorting d rows by depth: O(d log d)
+- Depth filter (≥ 1) applied during scan
 
 **Example:** Get all descendants of "Root" (ID 1) → Returns [2, 5, 3, 4, 6]
 
@@ -188,6 +268,14 @@ WHERE ancestor = :parent_id
   AND depth >= 1;
 ```
 
+**Time Complexity:** O(d) where d = number of descendants
+
+**Reasoning:**
+- Index scan on `ancestor` column
+- Must scan all d matching rows
+- COUNT aggregation is O(d)
+- Join may be optimized away if only counting
+
 ### 7. Check if Node is Descendant of Another
 
 ```sql
@@ -198,6 +286,13 @@ WHERE descendent = :maybe_descendent_id
   AND depth >= 0
 LIMIT 1;
 ```
+
+**Time Complexity:** O(log n)
+
+**Reasoning:**
+- Direct lookup on composite primary key (ancestor, descendent)
+- Returns 0 or 1, limited by LIMIT clause
+- Single index probe with equality conditions on both key columns
 
 Returns count ≥ 1 if relationship exists.
 
@@ -214,6 +309,15 @@ WHERE dc.ancestor = :deck_id
   AND c.card_id = :card_id
 LIMIT 1;
 ```
+
+**Time Complexity:** O(d) where d = descendants of deck (worst case), O(log n) typical
+
+**Reasoning:**
+- Scan closure table for all descendants of target deck: O(d)
+- For each descendant, check if card's deck_id matches: O(1) per check via hash join
+- Early exit with LIMIT 1 when match found
+- Best case O(1) if card is in the deck itself
+- Typical case: card found in first few descendants checked
 
 **How it works:** Checks if a card's deck is the target deck OR any of its descendants.
 
@@ -248,6 +352,15 @@ ancestor IN (
 AND descendent != ancestor;
 ```
 
+**Time Complexity:** O((a-1) × d) where a = ancestors of child, d = descendants of child
+
+**Reasoning:**
+- First subquery finds d descendants: O(d)
+- Second subquery finds a-1 ancestors (excluding self): O(a)
+- DELETE operates on (a-1) × d rows (cross product of old ancestors and child's subtree)
+- Each deletion is O(1) with proper indexing
+- Typical case: a ≈ h (height), so O(h × d)
+
 **Example:** Moving "Python" (3) from "Programming" (2) to "Math" (5)
 - Deletes paths: (1→3, depth 2) and (2→3, depth 1)
 
@@ -262,6 +375,17 @@ FROM DecksClosure AS p, DecksClosure AS c
 WHERE c.ancestor = :child_id
   AND p.descendent = :new_parent_id;
 ```
+
+**Time Complexity:** O(a' × d) where a' = ancestors of new parent (including itself), d = descendants of child
+
+**Reasoning:**
+- Query for child's descendants: O(d)
+- Query for new parent's ancestors: O(a')
+- Cartesian product generates a' × d rows
+- Batch INSERT of a' × d rows: O(a' × d) with index updates
+- Typical case: a' ≈ h, so O(h × d)
+
+**Combined Move Complexity:** O(a × d + a' × d) = O((a + a') × d) ≈ O(h × d) for balanced trees
 
 **How it works:**
 - `p` represents all ancestors of the new parent (including parent itself at depth 0)
@@ -285,6 +409,14 @@ SET name = :new_name
 WHERE deck_id = :deck_id;
 ```
 
+**Time Complexity:** O(1)
+
+**Reasoning:**
+- Primary key lookup: O(1) with hash/B-tree index
+- Single row update of fixed-size data
+- No cascade to closure table (structure unchanged)
+- Triggers add negligible overhead for timestamp updates
+
 ### Update with Trigger
 
 Use triggers to maintain timestamps automatically:
@@ -300,6 +432,8 @@ BEGIN
 END;
 ```
 
+**Time Complexity:** O(1) - same as direct update, trigger fires once per row
+
 ## Deletion Operations
 
 ### Delete Node and Its Subtree
@@ -314,6 +448,22 @@ WHERE deck_id IN (
     WHERE ancestor = :deck_id
 );
 ```
+
+**Time Complexity:** O(d + d²) where d = descendants (including node itself)
+
+**Reasoning:**
+- Subquery finds d descendants: O(d)
+- Delete d rows from Decks table: O(d)
+- CASCADE delete from DecksClosure:
+  - Each deleted node has ≤ d related closure rows
+  - Deleting d nodes triggers up to d² closure row deletions
+  - Total CASCADE: O(d²)
+- Dominant term: O(d²)
+
+**Breakdown of CASCADE deletions:**
+- Node at depth 0 (root of subtree): has d closure entries (to all descendants)
+- Node at depth 1: has d-k closure entries (to its descendants)
+- Sum of deletions: d + (d-1) + ... + 1 = d(d+1)/2 ≈ O(d²)
 
 **How it works:**
 - Selects the target node and all descendants
@@ -363,6 +513,25 @@ ORDER BY d.name COLLATE NOCASE ASC
 LIMIT :per_page;
 ```
 
+**Time Complexity:** O(offset × log c + per_page × log c) where c = total children
+
+**Reasoning:**
+- Inner subquery: sorts c children and takes first `offset` items: O(c log c)
+- Outer query: filters out offset items using NOT IN: O(offset) lookups
+- Sorts remaining (c - offset) items: O((c - offset) × log(c - offset))
+- Takes `per_page` items: O(per_page)
+- Simplified: O(c log c) dominated by sorting
+- **Note:** This is less efficient than OFFSET clause for small offsets, but more consistent across databases
+
+**Alternative with OFFSET (simpler but varies by DB):**
+```sql
+SELECT dc.descendent FROM DecksClosure AS dc
+INNER JOIN Decks AS d ON dc.descendent = d.deck_id
+WHERE dc.ancestor = :parent_id AND dc.depth = 1
+ORDER BY d.name LIMIT :per_page OFFSET :offset;
+```
+**Time Complexity:** O(c log c + offset) - sorts once, then skips offset rows
+
 ## Advanced Patterns
 
 ### 1. Get Siblings
@@ -382,6 +551,14 @@ WHERE self.descendent = :node_id
   AND sibling.descendent != :node_id;
 ```
 
+**Time Complexity:** O(s) where s = number of siblings
+
+**Reasoning:**
+- Find parent via self-join with depth=1: O(1)
+- Find all children of parent: O(s + 1) (includes the node itself)
+- Filter out the node itself: O(1)
+- Net result: O(s)
+
 ### 2. Get Depth of Node
 
 ```sql
@@ -395,6 +572,19 @@ WHERE descendent = :node_id
   )
 LIMIT 1;
 ```
+
+**Time Complexity:** O(h) where h = height/depth of node
+
+**Reasoning:**
+- Inner subquery scans h rows (all ancestors) to find MAX: O(h)
+- Outer query filters to single matching row: O(1) with index
+- Database may optimize to single pass: O(h)
+
+**Optimized alternative (simpler):**
+```sql
+SELECT MAX(depth) FROM DecksClosure WHERE descendent = :node_id;
+```
+**Time Complexity:** O(h) - scans ancestors once
 
 ### 3. Get Root Nodes
 
@@ -410,6 +600,22 @@ WHERE d.deck_id NOT IN (
 );
 ```
 
+**Time Complexity:** O(n × m) where n = total nodes, m = closure table size
+
+**Reasoning:**
+- Subquery scans closure table for all depth > 0: O(m) where m is closure size
+- For each of n nodes, check if in subquery results: O(n × log m) with index
+- NOT IN can be inefficient; better to use NOT EXISTS or LEFT JOIN
+- Simplified: O(n + m) with proper optimization
+
+**Optimized alternative:**
+```sql
+SELECT d.deck_id FROM Decks d
+LEFT JOIN DecksClosure dc ON d.deck_id = dc.descendent AND dc.depth > 0
+WHERE dc.descendent IS NULL;
+```
+**Time Complexity:** O(n + m) - single scan with hash join
+
 ### 4. Get Leaf Nodes
 
 Nodes with no children:
@@ -424,7 +630,44 @@ WHERE d.deck_id NOT IN (
 );
 ```
 
+**Time Complexity:** O(n × m) unoptimized, O(n + m) optimized
+
+**Reasoning:** Same as Get Root Nodes, but filters on ancestor column
+
+**Optimized alternative:**
+```sql
+SELECT d.deck_id FROM Decks d
+LEFT JOIN DecksClosure dc ON d.deck_id = dc.ancestor AND dc.depth > 0
+WHERE dc.ancestor IS NULL;
+```
+**Time Complexity:** O(n + m) - single pass with LEFT JOIN
+
 ## Performance Considerations
+
+### Complexity Summary Table
+
+| Operation | Time Complexity | Space Complexity | Notes |
+|-----------|----------------|------------------|-------|
+| **Storage** | - | O(n) to O(n²) | Depends on tree balance |
+| Get parent | O(log n) | O(1) | Index seek |
+| Get path | O(h log h) | O(h) | h = height |
+| Get children | O(c log c) | O(c) | c = children count |
+| Count children | O(c) | O(1) | Index scan |
+| Get descendants | O(d log d) | O(d) | d = descendants |
+| Count descendants | O(d) | O(1) | Index scan |
+| Check relationship | O(log n) | O(1) | PK lookup |
+| Move subtree | O(h × d) | O(h × d) | h ancestors, d descendants |
+| Update node | O(1) | O(1) | Single row |
+| Delete subtree | O(d²) | - | CASCADE effect |
+| Insert node | O(1) | O(1) | Trigger adds self-ref |
+| Pagination | O(c log c) | O(per_page) | c = total children |
+
+**Key insights:**
+- **Read operations:** Generally O(log n) to O(k log k) where k = result size
+- **Write operations:** O(1) for simple updates, O(h × d) for moves
+- **Deletions:** O(d²) due to cascade; most expensive operation
+- **Best for:** Frequent reads, infrequent structure changes
+- **Worst case:** Deep, unbalanced trees (h ≈ n, space → O(n²))
 
 ### Indexes
 
@@ -442,12 +685,20 @@ CREATE INDEX idx_descendent ON DecksClosure(descendent);
 CREATE INDEX idx_ancestor_depth ON DecksClosure(ancestor, depth);
 ```
 
+**Index Impact on Complexity:**
+- Without indexes: Most queries become O(n) full table scans
+- Primary key (ancestor, descendent): Enables O(1) relationship checks
+- Depth index: Speeds up depth-filtered queries
+- Composite indexes: Eliminate index merges, improve range queries
+
 ### Query Optimization Tips
 
 1. **Use depth filtering**: Always include depth constraints when possible
 2. **Limit results**: Use `LIMIT` for single-item queries
 3. **Batch operations**: Group multiple inserts/deletes in transactions
 4. **Index coverage**: Ensure indexes cover your WHERE clauses
+5. **Monitor tree balance**: Rebalance if height becomes excessive (h > 2 log n)
+6. **Cache frequently accessed paths**: Consider application-level caching for hot paths
 
 ## Common Pitfalls and Solutions
 
@@ -508,6 +759,68 @@ This implementation is based on patterns described in:
 - *SQL Antipatterns* by Bill Karwin (Pragmatic Programmers)
 - ["The Simplest Way to Do Tree-Based Queries"](http://dirtsimple.org/2010/11/simplest-way-to-do-tree-based-queries.html)
 
+## Comparison with Other Hierarchical Patterns
+
+### Complexity Comparison
+
+| Pattern | Space | Get Subtree | Move Subtree | Get Path | Notes |
+|---------|-------|-------------|--------------|----------|-------|
+| **Adjacency List** | O(n) | O(n²) recursive | O(1) | O(h²) | Simplest, poor performance |
+| **Nested Sets** | O(n) | O(k) | O(n) | O(h) | Fast reads, expensive writes |
+| **Materialized Path** | O(n×h) | O(k log k) | O(d) | O(1) | String operations, limited depth |
+| **Closure Table** | O(n²) | O(d) | O(h×d) | O(h log h) | Best read perf, high storage |
+
+**When to use each pattern:**
+
+**Adjacency List** (parent_id column):
+- Simple parent-child relationships
+- Rarely need full subtree queries
+- Frequent structure changes
+- Minimal storage constraints
+
+**Nested Sets** (left, right values):
+- Read-heavy workloads (10:1 read/write)
+- Rare structure modifications
+- Need fast subtree queries
+- Tree rarely changes
+
+**Materialized Path** (path string like "/1/2/3/"):
+- Known maximum depth
+- Need ancestor paths frequently
+- Filesystem-like structures
+- Want simple queries
+
+**Closure Table** (this pattern):
+- ✅ Complex hierarchical queries
+- ✅ Frequent ancestor/descendant checks
+- ✅ Moderate structure changes
+- ✅ Storage not a primary concern
+- ✅ Need move operations
+
+### Real-World Performance
+
+**Example: 10,000 node tree (balanced, depth=13)**
+
+| Operation | Adjacency | Nested Sets | Path | Closure |
+|-----------|-----------|-------------|------|---------|
+| Storage rows | 10,000 | 10,000 | 10,000 | ~65,000 |
+| Get children | 1 query | 1 query | 1 query | 1 query |
+| Get all descendants | 13 recursive | 1 query | 1 query | 1 query |
+| Get full path | 13 queries | 1 query | Parse string | 1 query |
+| Move subtree | 1 UPDATE | Rebuild tree | UPDATE paths | 2 queries |
+| Insert node | 1 INSERT | UPDATE all right nodes | 1 INSERT | 1 INSERT |
+
+**Closure table wins when:**
+- You need O(1) or O(log n) relationship checks
+- Subtree queries are common (faster than recursive approaches)
+- Move operations happen but aren't dominant
+- Storage cost is acceptable (6-7x for balanced trees)
+
+**Closure table loses when:**
+- Storage is severely limited (use adjacency list)
+- Writes vastly outnumber reads (use adjacency list)
+- Tree is extremely large and flat (millions of nodes, depth < 3)
+
 ## Summary
 
 Closure tables provide an elegant solution for hierarchical data when:
@@ -517,3 +830,10 @@ Closure tables provide an elegant solution for hierarchical data when:
 - Storage space is acceptable
 
 The pattern trades storage space for query simplicity and performance, making it ideal for applications with moderate hierarchy sizes and frequent read operations.
+
+### Complexity Quick Reference
+
+**Space:** O(n) best case to O(n²) worst case
+**Reads:** O(log n) to O(k log k) where k = result size
+**Writes:** O(1) for updates, O(h × d) for moves, O(d²) for deletes
+**Sweet spot:** 1K-100K nodes, balanced trees, read-heavy workloads
